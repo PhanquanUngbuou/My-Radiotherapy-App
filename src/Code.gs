@@ -45,14 +45,15 @@ function setup() {
   });
 
   var dm = ss.getSheetByName(SHEET_NAMES.DM);
-  if (dm.getLastRow() <= 1) {
-    var rows = [];
-    Object.keys(RT.DEFAULT_DM).forEach(function (loai) {
-      RT.DEFAULT_DM[loai].forEach(function (v) { rows.push([loai, v]); });
-    });
-    rows.push(['NGAY_LE', '2027-01-01']);
-    dm.getRange(2, 1, rows.length, 2).setNumberFormat('@').setValues(rows);
-  }
+  // Bổ sung các danh mục còn thiếu (lần đầu, hoặc danh mục mới khi nâng cấp)
+  var have = {};
+  if (dm.getLastRow() > 1) dm.getRange(2, 1, dm.getLastRow() - 1, 1).getValues().forEach(function (r) { have[String(r[0]).toUpperCase()] = 1; });
+  var rows = [];
+  Object.keys(RT.DEFAULT_DM).forEach(function (loai) {
+    if (!have[loai]) RT.DEFAULT_DM[loai].forEach(function (v) { rows.push([loai, v]); });
+  });
+  if (!have.NGAY_LE && dm.getLastRow() <= 1) rows.push(['NGAY_LE', '2027-01-01']);
+  if (rows.length) dm.getRange(Math.max(dm.getLastRow(), 1) + 1, 1, rows.length, 2).setNumberFormat('@').setValues(rows);
 
   var users = ss.getSheetByName(SHEET_NAMES.USER);
   if (users.getLastRow() <= 1) {
@@ -174,9 +175,15 @@ function buildCtx_() {
     if (!dm[k]) dm[k] = [];
     if (r.gia_tri) dm[k].push(r.gia_tri);
   });
+  var fromDefault = {};
   Object.keys(RT.DEFAULT_DM).forEach(function (k) {
-    if (!dm[k].length && k !== 'NGAY_LE') dm[k] = RT.DEFAULT_DM[k].slice();
+    if (!dm[k].length && k !== 'NGAY_LE') { dm[k] = RT.DEFAULT_DM[k].slice(); fromDefault[k] = true; }
   });
+  // Danh mục đang dùng giá trị mặc định (chưa có trên sheet): lần sửa đầu tiên ghi cả danh sách xuống sheet
+  var materialize = function (loai, removed) {
+    fromDefault[loai] = false;
+    dm[loai].filter(function (v) { return v !== removed; }).forEach(function (v) { writeRow_(tDM, { loai: loai, gia_tri: v }); });
+  };
 
   var now = Utilities.formatDate(new Date(), TZ, "yyyy-MM-dd'T'HH:mm:ss");
   return {
@@ -195,8 +202,9 @@ function buildCtx_() {
     savePhase: function (g) { writeRow_(tGD, g); },
     saveEx: function (e) { writeRow_(tLich, e); },
     saveUser: function (u) { writeRow_(tU, u); },
-    addDmRow: function (loai, v) { writeRow_(tDM, { loai: loai, gia_tri: v }); },
+    addDmRow: function (loai, v) { if (fromDefault[loai]) return materialize(loai); writeRow_(tDM, { loai: loai, gia_tri: v }); },
     removeDmRow: function (loai, v) {
+      if (fromDefault[loai]) return materialize(loai, v);
       var rows = tDM.sheet.getDataRange().getValues();
       for (var r = rows.length - 1; r >= 1; r--) {
         if (String(rows[r][0]).toUpperCase() === loai && normalize_(rows[r][1]) === v) { tDM.sheet.deleteRow(r + 1); break; }

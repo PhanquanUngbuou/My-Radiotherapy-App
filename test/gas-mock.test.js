@@ -194,4 +194,22 @@ r = ok('bs@x.vn', 'createPatient', { ma_his: '6001', ho_ten: 'Mới', chan_doan:
 const ids = r.data.patients.map(x => x.id);
 assert(!ids.includes(oldId) && new Set(ids).size === ids.length, 'mã đợt mới không trùng mã đã lưu trữ');
 assert(parseInt(r.data.patients.find(x => x.ma_his === '6001').id.slice(5), 10) > parseInt(oldId.slice(5), 10));
+
+// ---- Bước "Chờ mô phỏng" cho BN mới ----
+r = ok('bs@x.vn', 'createPatient', { ma_his: '7001', ho_ten: 'Chờ MP', chan_doan: 'K', vi_tri: 'Não (toàn não)', ky_thuat: '3D-CRT', tong_lieu: '30', so_buoi: '10', trang_thai: 'MO_PHONG', ngay_mo_phong: today });
+let mp = r.data.patients.find(x => x.ma_his === '7001');
+assert.strictEqual(mp.trang_thai, 'MO_PHONG'); assert.strictEqual(mp.ngay_mo_phong, today);
+assert(!api('bs@x.vn', 'contourDone', { id: mp.id }).ok, 'chưa mô phỏng thì chưa contour xong được');
+r = ok('ktv@x.vn', 'simDone', { id: mp.id });
+assert.strictEqual(r.data.patients.find(x => x.id === mp.id).trang_thai, 'CONTOUR');
+ok('bs@x.vn', 'contourDone', { id: mp.id });
+// ---- Danh mục mặc định (VI_TRI chưa có trên sheet) giữ nguyên khi thêm/xoá ----
+sheets.DanhMuc.data = sheets.DanhMuc.data.filter((row, i) => i === 0 || row[0] !== 'VI_TRI');
+r = ok('admin@x.vn', 'bootstrap');
+const nDefault = r.data.dm.VI_TRI.length;
+r = ok('admin@x.vn', 'dmAdd', { loai: 'VI_TRI', gia_tri: 'Hố yên' });
+r = ok('admin@x.vn', 'bootstrap');
+assert.strictEqual(r.data.dm.VI_TRI.length, nDefault + 1, 'thêm vị trí không làm mất danh sách mặc định');
+r = ok('admin@x.vn', 'dmRemove', { loai: 'VI_TRI', gia_tri: 'Hạch' });
+assert.strictEqual(ok('admin@x.vn', 'bootstrap').data.dm.VI_TRI.length, nDefault);
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');

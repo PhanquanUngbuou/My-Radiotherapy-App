@@ -9,9 +9,9 @@
 var RT = (function () {
   'use strict';
 
-  var STATUS_ORDER = ['CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA', 'DANG_XA', 'TAM_NGUNG', 'HOAN_THANH'];
+  var STATUS_ORDER = ['MO_PHONG', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA', 'DANG_XA', 'TAM_NGUNG', 'HOAN_THANH'];
   var STATUS = {
-    MO_PHONG: 'Chờ mô phỏng lại',
+    MO_PHONG: 'Chờ mô phỏng',
     CONTOUR: 'Đang contour',
     CHO_KH: 'Chờ lập KH',
     DANG_KH: 'Đang lập KH',
@@ -33,7 +33,7 @@ var RT = (function () {
       'tong_lieu', 'so_buoi', 'igrt', 'sgrt', 'uu_tien', 'trang_thai', 'ngay_tao', 'ngay_contour_xong',
       'ks_email', 'ngay_nhan_kh', 'ngay_kh_xong', 'can_qa', 'qa_ket_qua', 'ngay_qa', 'ngay_du_kien',
       'ngay_nghi_tuan', 'may', 'ngay_bat_dau', 'ngay_ket_thuc', 'tam_ngung_tu', 'ly_do_tam_ngung',
-      'ghi_chu', 'cap_nhat_luc', 'cap_nhat_boi', 'ly_do_ket_thuc', 'muc_lieu', 'vi_tri', 'muc_dich'],
+      'ghi_chu', 'cap_nhat_luc', 'cap_nhat_boi', 'ly_do_ket_thuc', 'muc_lieu', 'vi_tri', 'muc_dich', 'ngay_mo_phong'],
     GiaiDoan: ['id', 'bn_id', 'stt', 'ky_thuat', 'tong_lieu', 'so_buoi', 'muc_lieu', 'trang_thai', 'di_cung',
       'uu_tien', 'ngay_tao', 'ngay_mo_phong', 'ngay_contour_xong', 'ks_email', 'ngay_nhan_kh', 'ngay_kh_xong',
       'can_qa', 'qa_ket_qua', 'ngay_qa', 'ghi_chu', 'cap_nhat_luc', 'cap_nhat_boi'],
@@ -57,7 +57,11 @@ var RT = (function () {
     NGAY_LE: []
   };
   DEFAULT_DM.MUC_DICH = ['Triệt căn', 'Bổ trợ', 'Giảm nhẹ / triệu chứng', 'Xạ lại'];
-  var DM_EDITABLE = ['MUC_DICH', 'MAY', 'NGAY_LE', 'KY_THUAT', 'IGRT', 'HINH_ANH', 'KHOA', 'LY_DO_TAM_NGUNG', 'TEN_DON_VI'];
+  DEFAULT_DM.VI_TRI = ['Đầu cổ', 'Vòm họng', 'Não (toàn não)', 'Não (khu trú)', 'Vú trái', 'Vú phải', 'Thành ngực',
+    'Phổi', 'Thực quản', 'Trung thất', 'Dạ dày', 'Tuỵ', 'Gan', 'Trực tràng', 'Cổ tử cung', 'Nội mạc tử cung',
+    'Tuyến tiền liệt', 'Bàng quang', 'Tiểu khung', 'Cột sống cổ', 'Cột sống ngực', 'Cột sống thắt lưng',
+    'Xương chậu', 'Xương chi', 'Hạch', 'Da / mô mềm'];
+  var DM_EDITABLE = ['VI_TRI', 'MUC_DICH', 'MAY', 'NGAY_LE', 'KY_THUAT', 'IGRT', 'HINH_ANH', 'KHOA', 'LY_DO_TAM_NGUNG', 'TEN_DON_VI'];
 
   var PERM = {
     createPatient: ['BS', 'ADMIN'],
@@ -227,7 +231,7 @@ var RT = (function () {
   }
 
   // ---------- Thao tác ----------
-  var EDIT_FIELDS = ['ma_his', 'ho_ten', 'nam_sinh', 'gioi', 'chan_doan', 'vi_tri', 'muc_dich', 'khoa', 'bs_email', 'ky_thuat',
+  var EDIT_FIELDS = ['ma_his', 'ho_ten', 'nam_sinh', 'gioi', 'chan_doan', 'vi_tri', 'muc_dich', 'ngay_mo_phong', 'khoa', 'bs_email', 'ky_thuat',
     'tong_lieu', 'so_buoi', 'muc_lieu', 'igrt', 'sgrt', 'uu_tien', 'may', 'ghi_chu'];
   var PHASE_FIELDS = ['ky_thuat', 'tong_lieu', 'so_buoi', 'muc_lieu', 'uu_tien', 'ngay_mo_phong', 'ghi_chu'];
 
@@ -307,7 +311,7 @@ var RT = (function () {
     if (!g.uu_tien) g.uu_tien = p.uu_tien || 'Thường';
     if (buoc === 'CUNG_LUC') {
       g.di_cung = 'Có';
-      buoc = ['CONTOUR'].indexOf(p.trang_thai) >= 0 ? 'CONTOUR' : 'CHO_KH';
+      buoc = p.trang_thai === 'MO_PHONG' ? 'MO_PHONG' : p.trang_thai === 'CONTOUR' ? 'CONTOUR' : 'CHO_KH';
     }
     g.trang_thai = buoc;
     if (buoc === 'MO_PHONG' && g.ngay_mo_phong && !isDate(g.ngay_mo_phong)) fail('Ngày mô phỏng không hợp lệ.');
@@ -343,7 +347,9 @@ var RT = (function () {
       var dup = ctx.patients.filter(function (x) { return x.ma_his === p.ma_his && x.trang_thai !== 'HOAN_THANH' && x.trang_thai !== 'HUY'; })[0];
       if (dup && !a.force) fail('DUP_HIS:' + dup.ho_ten + ' (' + dup.id + ', ' + STATUS[dup.trang_thai] + ')');
       var step = a.trang_thai || 'CONTOUR';
-      if (['CONTOUR', 'CHO_KH', 'CHO_XA', 'DANG_XA'].indexOf(step) < 0) fail('Bước hiện tại không hợp lệ.');
+      if (['MO_PHONG', 'CONTOUR', 'CHO_KH', 'CHO_XA', 'DANG_XA'].indexOf(step) < 0) fail('Bước hiện tại không hợp lệ.');
+      if (step === 'MO_PHONG' && p.ngay_mo_phong && !isDate(p.ngay_mo_phong)) fail('Ngày hẹn mô phỏng không hợp lệ.');
+      if (step !== 'MO_PHONG') p.ngay_mo_phong = p.ngay_mo_phong || '';
       var nn = String(a.ngay_nghi_tuan || '');
       if (nn && !/^[1-5]$/.test(nn)) fail('Ngày nghỉ trong tuần không hợp lệ.');
       p.ngay_nghi_tuan = nn;
@@ -368,7 +374,7 @@ var RT = (function () {
       }
       p.ngay_tao = ctx.today;
       p.trang_thai = step;
-      if (step !== 'CONTOUR') p.ngay_contour_xong = ctx.today;
+      if (step !== 'CONTOUR' && step !== 'MO_PHONG') p.ngay_contour_xong = ctx.today;
       if (step === 'CHO_XA' || step === 'DANG_XA') { p.ngay_kh_xong = ctx.today; p.qa_ket_qua = 'Nhập ban đầu'; }
       if (step === 'DANG_XA') { p.ngay_bat_dau = backfill[0]; p.ngay_du_kien = backfill[0]; }
       ctx.patients.push(p);
@@ -477,7 +483,7 @@ var RT = (function () {
     },
     addPhase: function (ctx, a) {
       var p = findP(ctx, a.bn_id);
-      need(p, ['CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA', 'DANG_XA', 'TAM_NGUNG']);
+      need(p, ['MO_PHONG', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA', 'DANG_XA', 'TAM_NGUNG']);
       if (ctx.user.vai_tro === 'BS' && p.bs_email && p.bs_email !== ctx.user.email && !a.force) { /* BS khác vẫn được thêm, chỉ ghi nhật ký */ }
       var g = newPhase(ctx, p, a);
       saveT(ctx, { g: g, p: p, x: g }, 'Thêm boost', g.ky_thuat + ' ' + g.tong_lieu + ' Gy/' + g.so_buoi + ' buổi · ' + STATUS[g.trang_thai]);
@@ -512,16 +518,20 @@ var RT = (function () {
       return 'Đã huỷ boost GĐ' + g.stt + ' của ' + p.ho_ten + '.';
     },
     simDone: function (ctx, a) {
-      var g = findG(ctx, a.id); if (!g) fail('Không tìm thấy giai đoạn.');
-      var p = findP(ctx, g.bn_id);
-      need(g, ['MO_PHONG']);
-      g.trang_thai = 'CONTOUR'; g.ngay_mo_phong = ctx.today;
-      saveT(ctx, { g: g, p: p, x: g }, 'Mô phỏng lại xong', '');
-      return 'Đã ghi mô phỏng lại cho ' + p.ho_ten + '. Bác sĩ có thể contour boost.';
+      var t = target(ctx, a.id);
+      need(t.x, ['MO_PHONG']);
+      t.x.trang_thai = 'CONTOUR'; t.x.ngay_mo_phong = ctx.today;
+      saveT(ctx, t, t.g ? 'Mô phỏng lại xong' : 'Mô phỏng xong', '');
+      ctx.phases.forEach(function (g) {
+        if (!t.g && g.bn_id === t.p.id && g.di_cung === 'Có' && g.trang_thai === 'MO_PHONG') {
+          g.trang_thai = 'CONTOUR'; g.ngay_mo_phong = ctx.today; saveT(ctx, { g: g, p: t.p, x: g }, 'Mô phỏng xong', 'cùng GĐ1');
+        }
+      });
+      return 'Đã ghi mô phỏng xong cho ' + t.name + '. Bác sĩ có thể contour.';
     },
     schedule: function (ctx, a) {
       var p = findP(ctx, a.id);
-      need(p, ['CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA', 'DANG_XA', 'TAM_NGUNG']);
+      need(p, ['MO_PHONG', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA', 'DANG_XA', 'TAM_NGUNG']);
       var parts = [];
       if (a.ngay_du_kien !== undefined) {
         if (a.ngay_du_kien && !isDate(a.ngay_du_kien)) fail('Ngày dự kiến không hợp lệ.');
@@ -540,7 +550,7 @@ var RT = (function () {
     },
     setDay: function (ctx, a) {
       var p = findP(ctx, a.bn_id);
-      need(p, ['CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA', 'DANG_XA', 'TAM_NGUNG']);
+      need(p, ['MO_PHONG', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA', 'DANG_XA', 'TAM_NGUNG']);
       if (!isDate(a.ngay) || a.ngay < ctx.today) fail('Chỉ đổi lịch từ hôm nay trở đi.');
       var env = envOf(ctx);
       if (env.holidays.indexOf(a.ngay) >= 0) fail('Ngày này là ngày nghỉ lễ.');
