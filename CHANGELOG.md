@@ -1,5 +1,9 @@
 # Lịch sử phiên bản
 
+## v1.5
+- Khi người dùng cấp thiếu quyền lúc đăng nhập lần đầu, ứng dụng tự hiện lại màn hình xin quyền.
+- Thông báo lỗi tiếng Việt kèm cách xử lý: thiếu quyền, chưa được chia sẻ Sheet.
+
 ## v1.4
 - **Kỹ sư, KTV, điều dưỡng thêm được bệnh nhân** theo phiếu chỉ định của bác sĩ (bắt buộc chọn bác sĩ điều trị).
 - Ghi lại người nhập; chi tiết BN hiện "nhập bởi … theo phiếu chỉ định".

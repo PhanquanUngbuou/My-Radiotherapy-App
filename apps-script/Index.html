@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Điều phối Xạ trị · phiên bản v1.4 -->
+<!-- Điều phối Xạ trị · phiên bản v1.5 -->
 <html lang="vi">
 <head>
 <base target="_top">
@@ -305,7 +305,7 @@ button.wk:hover{border-color:var(--accent-2)}
  */
 var RT = (function () {
   'use strict';
-  var VERSION = '1.4';
+  var VERSION = '1.5';
 
   var STATUS_ORDER = ['MO_PHONG', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA', 'DANG_XA', 'TAM_NGUNG', 'HOAN_THANH'];
   var STATUS = {
@@ -2263,6 +2263,14 @@ if (typeof module !== 'undefined') module.exports = RT;
       var msg = String(e.error || '');
       var html;
       if (msg.indexOf('NO_ACCESS:') === 0) html = '<h1>Tài khoản chưa được cấp quyền</h1><p>Tài khoản <b class="mono">' + esc(msg.slice(10)) + '</b> chưa có trong danh sách người dùng.</p><p class="muted">Gửi địa chỉ email này cho quản trị để được thêm vào trang tính <b>NguoiDung</b>, rồi tải lại trang.</p>';
+      else if (/googleapis\.com\/auth|thực hiện lệnh gọi|required permissions|not have permission to call/i.test(msg)) html =
+        '<h1>Chưa cấp đủ quyền cho ứng dụng</h1><p>Lúc cấp quyền lần đầu, tài khoản của bạn chưa tích đủ các ô quyền. Làm 2 bước sau (khoảng 1 phút):</p>' +
+        '<ol><li>Mở <b>myaccount.google.com/connections</b>, chọn ứng dụng <b>Điều phối Xạ trị</b> (hoặc "Dự án không có tiêu đề") → <b>Xoá mọi quyền truy cập</b>.</li>' +
+        '<li>Mở lại link ứng dụng. Khi Google hỏi quyền: <b>Nâng cao → Đi tới… → tích “Chọn tất cả”</b> → <b>Tiếp tục</b>.</li></ol>' +
+        '<p class="muted">Chi tiết lỗi: ' + esc(msg) + '</p>';
+      else if (/access|quyền truy cập|not found|không tìm thấy/i.test(msg) && /openById|tài liệu|document|spreadsheet/i.test(msg)) html =
+        '<h1>Chưa được chia sẻ dữ liệu</h1><p>Tài khoản của bạn chưa được chia sẻ Google Sheet dữ liệu của khoa. Nhờ quản trị chia sẻ (quyền Người chỉnh sửa) cho email của bạn, rồi tải lại trang.</p>' +
+        '<p class="muted">Chi tiết lỗi: ' + esc(msg) + '</p>';
       else html = '<h1>Không tải được dữ liệu</h1><p>' + esc(msg) + '</p>';
       $('#main').innerHTML = '<div class="main-in"><div class="notice">' + html + '</div></div>';
     }).finally(function () { setBusy(-1); });

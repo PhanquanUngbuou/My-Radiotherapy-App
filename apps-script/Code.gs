@@ -1,4 +1,4 @@
-// Điều phối Xạ trị · phiên bản v1.4
+// Điều phối Xạ trị · phiên bản v1.5
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
@@ -14,6 +14,9 @@ var ARCHIVE = { BenhNhan: 'LuuTru_BenhNhan', GiaiDoan: 'LuuTru_GiaiDoan', BuoiXa
 var ARCHIVE_DAYS = 60;
 
 function doGet() {
+  // Google cho người dùng bỏ tích từng quyền khi cấp phép. Nếu thiếu quyền nào,
+  // dòng dưới tự hiện lại màn hình xin quyền thay vì để ứng dụng báo lỗi.
+  try { if (ScriptApp.requireAllScopes) ScriptApp.requireAllScopes(ScriptApp.AuthMode.FULL); } catch (e) { if (!/requireAllScopes/.test(String(e))) throw e; }
   return HtmlService.createHtmlOutputFromFile('Index')
     .setTitle('Điều phối Xạ trị')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
