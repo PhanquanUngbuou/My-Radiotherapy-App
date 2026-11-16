@@ -29,6 +29,7 @@ h1 { font-size:24px; margin:0; letter-spacing:-.015em; text-wrap:balance }
 .meta { min-width:0 }
 .meta h2 { margin:0; font-size:18px; font-family:var(--f-code); font-weight:400; color:var(--accent) }
 .meta p { margin:2px 0 0; color:var(--muted); font-size:14px }
+.ver { color:var(--muted); font-size:15px }
 .size { font-size:12.5px; color:var(--muted); font-variant-numeric:tabular-nums }
 .copy { border:0; background:var(--accent); color:var(--accent-ink); font:inherit; font-weight:600; padding:10px 20px; border-radius:25px; cursor:pointer; white-space:nowrap }
 .copy:hover { filter:brightness(1.07) }
@@ -40,21 +41,22 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
 </style>
 <div class="wrap">
   <div class="intro">
-    <h1>Mã nguồn Apps Script · Điều phối Xạ trị</h1>
+    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v1.3</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản: 74d4730 · 16/11/2026 03:36</span>
+    <span class="rev">Phiên bản v1.3 · bản lưu d173242 · 16/11/2026 04:05. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v1.3”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Code">Code.gs</h2>
+        <h2 id="h-Code">Code.gs <span class="ver">· v1.3</span></h2>
         <p>File có sẵn tên Code.gs: xoá hết nội dung cũ, dán vào.</p>
-        <span class="size">317 dòng · 14 KB</span>
+        <span class="size">318 dòng · 15 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs</button>
+      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v1.3)</button>
     </div>
-    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">/**
+    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v1.3
+/**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
  *
@@ -375,13 +377,14 @@ function moveRows_(ss, fromName, toName, pred) {
   <section class="card" aria-labelledby="h-Core">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Core">Core.gs</h2>
+        <h2 id="h-Core">Core.gs <span class="ver">· v1.3</span></h2>
         <p>Bấm + → Script (Tập lệnh), đặt tên Core.</p>
-        <span class="size">788 dòng · 44 KB</span>
+        <span class="size">790 dòng · 44 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs</button>
+      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v1.3)</button>
     </div>
-    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">/**
+    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v1.3
+/**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
  * Ngày luôn lưu dạng chuỗi &#x27;yyyy-mm-dd&#x27;.
@@ -391,6 +394,7 @@ function moveRows_(ss, fromName, toName, pred) {
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
+  var VERSION = &#x27;1.3&#x27;;
 
   var STATUS_ORDER = [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;];
   var STATUS = {
@@ -1159,7 +1163,7 @@ var RT = (function () {
   }
 
   return {
-    STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
+    VERSION: VERSION, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
@@ -1173,13 +1177,14 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
   <section class="card" aria-labelledby="h-Index">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Index">Index.html</h2>
+        <h2 id="h-Index">Index.html <span class="ver">· v1.3</span></h2>
         <p>Bấm + → HTML, đặt tên Index (chữ I hoa).</p>
-        <span class="size">2,267 dòng · 166 KB</span>
+        <span class="size">2,269 dòng · 166 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html</button>
+      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v1.3)</button>
     </div>
     <textarea id="t-Index" readonly spellcheck="false" aria-label="Nội dung Index.html">&lt;!DOCTYPE html&gt;
+&lt;!-- Điều phối Xạ trị · phiên bản v1.3 --&gt;
 &lt;html lang=&quot;vi&quot;&gt;
 &lt;head&gt;
 &lt;base target=&quot;_top&quot;&gt;
@@ -1485,6 +1490,7 @@ button.wk:hover{border-color:var(--accent-2)}
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
+  var VERSION = &#x27;1.3&#x27;;
 
   var STATUS_ORDER = [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;];
   var STATUS = {
@@ -2253,7 +2259,7 @@ var RT = (function () {
   }
 
   return {
-    STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
+    VERSION: VERSION, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
@@ -2509,7 +2515,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     }
     var t = today(), dowFull = [&#x27;Chủ nhật&#x27;, &#x27;Thứ Hai&#x27;, &#x27;Thứ Ba&#x27;, &#x27;Thứ Tư&#x27;, &#x27;Thứ Năm&#x27;, &#x27;Thứ Sáu&#x27;, &#x27;Thứ Bảy&#x27;][RT.dow(t)];
     $(&#x27;#top&#x27;).innerHTML =
-      &#x27;&lt;div class=&quot;util&quot;&gt;&lt;div class=&quot;util-in&quot;&gt;&lt;span&gt;&lt;b&gt;&#x27; + esc(unitName()) + &#x27;&lt;/b&gt;&lt;/span&gt;&lt;span&gt;&#x27; + dowFull + &#x27;, &#x27; + fdy(t) + &#x27;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&#x27; +
+      &#x27;&lt;div class=&quot;util&quot;&gt;&lt;div class=&quot;util-in&quot;&gt;&lt;span&gt;&lt;b&gt;&#x27; + esc(unitName()) + &#x27;&lt;/b&gt;&lt;/span&gt;&lt;span&gt;&#x27; + dowFull + &#x27;, &#x27; + fdy(t) + &#x27; · &lt;span title=&quot;Phiên bản ứng dụng&quot;&gt;v&#x27; + esc(RT.VERSION) + &#x27;&lt;/span&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&#x27; +
       &#x27;&lt;div class=&quot;top-in&quot;&gt;&lt;div class=&quot;brand&quot;&gt;&lt;span class=&quot;brand-mark&quot;&gt;&lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;#fff&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot;&gt;&lt;circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;3.2&quot;/&gt;&lt;path d=&quot;M12 2.5v4M12 17.5v4M2.5 12h4M17.5 12h4M5.3 5.3l2.8 2.8M15.9 15.9l2.8 2.8M18.7 5.3l-2.8 2.8M8.1 15.9l-2.8 2.8&quot;/&gt;&lt;/svg&gt;&lt;/span&gt;&lt;span&gt;Điều phối Xạ trị&lt;small&gt;Bác sĩ · Kỹ sư · KTV · Điều dưỡng&lt;/small&gt;&lt;/span&gt;&lt;/div&gt;&#x27; +
       &#x27;&lt;div class=&quot;search&quot;&gt;&lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke-width=&quot;2&quot;&gt;&lt;circle cx=&quot;11&quot; cy=&quot;11&quot; r=&quot;7&quot;/&gt;&lt;path d=&quot;m20 20-3.5-3.5&quot;/&gt;&lt;/svg&gt;&#x27; +
       &#x27;&lt;input id=&quot;q&quot; type=&quot;search&quot; placeholder=&quot;Tìm theo mã HIS hoặc tên bệnh nhân&quot; value=&quot;&#x27; + esc(S.q) + &#x27;&quot; aria-label=&quot;Tìm bệnh nhân&quot; autocomplete=&quot;off&quot;&gt;&lt;/div&gt;&#x27; + who + &#x27;&lt;/div&gt;&#x27; +

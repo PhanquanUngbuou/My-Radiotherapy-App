@@ -7,7 +7,9 @@ import pathlib, shutil
 
 ROOT = pathlib.Path(__file__).parent
 SRC = ROOT / "src"
-read = lambda n: (SRC / n).read_text(encoding="utf-8")
+VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+read = lambda n: (SRC / n).read_text(encoding="utf-8").replace("__VERSION__", VERSION)
+STAMP = "// Điều phối Xạ trị · phiên bản v" + VERSION + "\n"
 
 FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com">\n'
          '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
@@ -21,10 +23,10 @@ DEMO_BAR = ('<div class="demo-bar"><div class="demo-in"><b>BẢN DEMO</b><span>D
 def gas():
     out = ROOT / "apps-script"
     out.mkdir(exist_ok=True)
-    (out / "Core.gs").write_text(read("core.js"), encoding="utf-8")
-    shutil.copy(SRC / "Code.gs", out / "Code.gs")
+    (out / "Core.gs").write_text(STAMP + read("core.js"), encoding="utf-8")
+    (out / "Code.gs").write_text(STAMP + read("Code.gs"), encoding="utf-8")
     shutil.copy(SRC / "appsscript.json", out / "appsscript.json")
-    html = ('<!DOCTYPE html>\n<html lang="vi">\n<head>\n<base target="_top">\n<meta charset="utf-8">\n'
+    html = ('<!DOCTYPE html>\n<!-- Điều phối Xạ trị · phiên bản v' + VERSION + ' -->\n<html lang="vi">\n<head>\n<base target="_top">\n<meta charset="utf-8">\n'
             '<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>Điều phối Xạ trị</title>\n'
             + FONTS + '\n<style>\n' + read("styles.css") + '\n</style>\n</head>\n<body>\n' + SHELL.format(demo="") +
             '\n<script>\n' + read("core.js") + '\n</script>\n<script>\n' + read("app.js") + '\n</script>\n</body>\n</html>\n')

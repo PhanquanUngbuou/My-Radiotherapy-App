@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Điều phối Xạ trị · phiên bản v1.3 -->
 <html lang="vi">
 <head>
 <base target="_top">
@@ -304,6 +305,7 @@ button.wk:hover{border-color:var(--accent-2)}
  */
 var RT = (function () {
   'use strict';
+  var VERSION = '1.3';
 
   var STATUS_ORDER = ['MO_PHONG', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA', 'DANG_XA', 'TAM_NGUNG', 'HOAN_THANH'];
   var STATUS = {
@@ -1072,7 +1074,7 @@ var RT = (function () {
   }
 
   return {
-    STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
+    VERSION: VERSION, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
@@ -1328,7 +1330,7 @@ if (typeof module !== 'undefined') module.exports = RT;
     }
     var t = today(), dowFull = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'][RT.dow(t)];
     $('#top').innerHTML =
-      '<div class="util"><div class="util-in"><span><b>' + esc(unitName()) + '</b></span><span>' + dowFull + ', ' + fdy(t) + '</span></div></div>' +
+      '<div class="util"><div class="util-in"><span><b>' + esc(unitName()) + '</b></span><span>' + dowFull + ', ' + fdy(t) + ' · <span title="Phiên bản ứng dụng">v' + esc(RT.VERSION) + '</span></span></div></div>' +
       '<div class="top-in"><div class="brand"><span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v4M12 17.5v4M2.5 12h4M17.5 12h4M5.3 5.3l2.8 2.8M15.9 15.9l2.8 2.8M18.7 5.3l-2.8 2.8M8.1 15.9l-2.8 2.8"/></svg></span><span>Điều phối Xạ trị<small>Bác sĩ · Kỹ sư · KTV · Điều dưỡng</small></span></div>' +
       '<div class="search"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>' +
       '<input id="q" type="search" placeholder="Tìm theo mã HIS hoặc tên bệnh nhân" value="' + esc(S.q) + '" aria-label="Tìm bệnh nhân" autocomplete="off"></div>' + who + '</div>' +

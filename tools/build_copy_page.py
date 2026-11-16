@@ -4,6 +4,7 @@ import html, pathlib, subprocess
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 src = ROOT / 'apps-script'
+VERSION = (ROOT / 'VERSION').read_text().strip()
 rev = subprocess.run(['git', '-C', str(ROOT), 'log', '-1', '--format=%h · %cd', '--date=format:%d/%m/%Y %H:%M'],
                      capture_output=True, text=True).stdout.strip()
 files = [
@@ -20,11 +21,11 @@ for i, (name, fn, hint) in enumerate(files):
   <section class="card" aria-labelledby="h-{name}">
     <div class="head">
       <div class="meta">
-        <h2 id="h-{name}">{fn}</h2>
+        <h2 id="h-{name}">{fn} <span class="ver">· v{VERSION}</span></h2>
         <p>{html.escape(hint)}</p>
         <span class="size">{lines:,} dòng · {kb} KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-{name}" id="b-{name}">Sao chép {fn}</button>
+      <button class="copy" type="button" data-target="t-{name}" id="b-{name}">Sao chép {fn} (v{VERSION})</button>
     </div>
     <textarea id="t-{name}" readonly spellcheck="false" aria-label="Nội dung {fn}">{html.escape(text)}</textarea>
   </section>''')
@@ -60,6 +61,7 @@ h1 {{ font-size:24px; margin:0; letter-spacing:-.015em; text-wrap:balance }}
 .meta {{ min-width:0 }}
 .meta h2 {{ margin:0; font-size:18px; font-family:var(--f-code); font-weight:400; color:var(--accent) }}
 .meta p {{ margin:2px 0 0; color:var(--muted); font-size:14px }}
+.ver {{ color:var(--muted); font-size:15px }}
 .size {{ font-size:12.5px; color:var(--muted); font-variant-numeric:tabular-nums }}
 .copy {{ border:0; background:var(--accent); color:var(--accent-ink); font:inherit; font-weight:600; padding:10px 20px; border-radius:25px; cursor:pointer; white-space:nowrap }}
 .copy:hover {{ filter:brightness(1.07) }}
@@ -71,9 +73,9 @@ textarea {{ width:100%; height:180px; resize:vertical; font-family:var(--f-code)
 </style>
 <div class="wrap">
   <div class="intro">
-    <h1>Mã nguồn Apps Script · Điều phối Xạ trị</h1>
+    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v{VERSION}</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản: {html.escape(rev)}</span>
+    <span class="rev">Phiên bản v{VERSION} · bản lưu {html.escape(rev)}. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v{VERSION}”.</span>
   </div>
   {''.join(cards)}
   <p class="tip">Nếu nút Sao chép không chạy: bấm vào khung chữ, nhấn Ctrl+A rồi Ctrl+C (trên Mac: Cmd+A, Cmd+C).</p>
