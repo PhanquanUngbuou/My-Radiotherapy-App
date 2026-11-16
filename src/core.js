@@ -34,7 +34,7 @@ var RT = (function () {
       'tong_lieu', 'so_buoi', 'igrt', 'sgrt', 'uu_tien', 'trang_thai', 'ngay_tao', 'ngay_contour_xong',
       'ks_email', 'ngay_nhan_kh', 'ngay_kh_xong', 'can_qa', 'qa_ket_qua', 'ngay_qa', 'ngay_du_kien',
       'ngay_nghi_tuan', 'may', 'ngay_bat_dau', 'ngay_ket_thuc', 'tam_ngung_tu', 'ly_do_tam_ngung',
-      'ghi_chu', 'cap_nhat_luc', 'cap_nhat_boi', 'ly_do_ket_thuc', 'muc_lieu', 'vi_tri', 'muc_dich', 'ngay_mo_phong'],
+      'ghi_chu', 'cap_nhat_luc', 'cap_nhat_boi', 'ly_do_ket_thuc', 'muc_lieu', 'vi_tri', 'muc_dich', 'ngay_mo_phong', 'nguoi_nhap'],
     GiaiDoan: ['id', 'bn_id', 'stt', 'ky_thuat', 'tong_lieu', 'so_buoi', 'muc_lieu', 'trang_thai', 'di_cung',
       'uu_tien', 'ngay_tao', 'ngay_mo_phong', 'ngay_contour_xong', 'ks_email', 'ngay_nhan_kh', 'ngay_kh_xong',
       'can_qa', 'qa_ket_qua', 'ngay_qa', 'ghi_chu', 'cap_nhat_luc', 'cap_nhat_boi'],
@@ -65,7 +65,7 @@ var RT = (function () {
   var DM_EDITABLE = ['VI_TRI', 'MUC_DICH', 'MAY', 'NGAY_LE', 'KY_THUAT', 'IGRT', 'HINH_ANH', 'KHOA', 'LY_DO_TAM_NGUNG', 'TEN_DON_VI'];
 
   var PERM = {
-    createPatient: ['BS', 'ADMIN'],
+    createPatient: ['BS', 'KS', 'KTV', 'DD', 'ADMIN'],
     updatePatient: ['BS', 'ADMIN'],
     contourDone: ['BS', 'ADMIN'],
     setPriority: ['BS', 'KS', 'ADMIN'],
@@ -340,6 +340,11 @@ var RT = (function () {
       var p = blank(COLS.BenhNhan);
       Object.keys(o).forEach(function (k) { p[k] = o[k]; });
       if (!p.bs_email && ctx.user.vai_tro === 'BS') p.bs_email = ctx.user.email;
+      // Người không phải bác sĩ nhập theo phiếu chỉ định: bắt buộc chọn bác sĩ điều trị
+      if (!p.bs_email) fail('Cần chọn bác sĩ điều trị (bác sĩ ghi trên phiếu chỉ định).');
+      var bsU = ctx.users.filter(function (u) { return u.email === p.bs_email && u.kich_hoat !== 'Không'; })[0];
+      if (!bsU || (bsU.vai_tro !== 'BS' && bsU.vai_tro !== 'ADMIN')) fail('Bác sĩ điều trị không có trong danh sách bác sĩ.');
+      p.nguoi_nhap = ctx.user.email;
       if (!p.uu_tien) p.uu_tien = 'Thường';
       if (!p.igrt) p.igrt = 'Không';
       if (!p.sgrt) p.sgrt = 'Không';

@@ -758,7 +758,7 @@
     var dr = $('#drawer');
     var acts = detailActions(p);
     var tl = [
-      ['Thêm vào hệ thống', p.ngay_tao, ''],
+      ['Thêm vào hệ thống', p.ngay_tao, p.nguoi_nhap && p.nguoi_nhap !== p.bs_email ? 'nhập bởi ' + nameOf(p.nguoi_nhap) + ' theo phiếu chỉ định' : ''],
       ['Mô phỏng', p.ngay_mo_phong && p.trang_thai !== 'MO_PHONG' ? p.ngay_mo_phong : '', p.trang_thai === 'MO_PHONG' && p.ngay_mo_phong ? 'Hẹn ' + fdw(p.ngay_mo_phong) : ''],
       ['Contour xong', p.ngay_contour_xong, nameOf(p.bs_email)],
       ['Kỹ sư nhận lập KH', p.ngay_nhan_kh, nameOf(p.ks_email)],
@@ -1031,7 +1031,8 @@
     var inp = function (name, type, attrs) { return '<input type="' + (type || 'text') + '" name="' + name + '" value="' + esc(v0[name] || '') + '" ' + (attrs || '') + '>'; };
     modal({
       title: prefill ? 'Đợt xạ mới · ' + prefill.ho_ten : isNew ? 'Thêm bệnh nhân' : 'Sửa thông tin bệnh nhân', ok: prefill ? 'Tạo đợt xạ mới' : isNew ? 'Thêm bệnh nhân' : 'Lưu thay đổi',
-      body: '<div class="form">' +
+      body: (isNew && !isDoctor(me()) ? '<div class="confirm" style="cursor:default;font-weight:500">Nhập theo <b>&nbsp;phiếu chỉ định của bác sĩ</b>. Chọn đúng bác sĩ điều trị; bác sĩ sẽ thấy BN trong danh sách của mình và sửa được nếu cần.</div>' : '') +
+        '<div class="form">' +
         field('Mã BN trên HIS <span class="req">*</span>', inp('ma_his', 'text', 'inputmode="numeric" autocomplete="off"'), '', 'Dùng để tra cứu, khớp với HIS') +
         field('Họ và tên <span class="req">*</span>', inp('ho_ten')) +
         field('Năm sinh', inp('nam_sinh', 'number', 'min="1900" max="2030"')) +
@@ -1040,7 +1041,7 @@
         field('Vị trí xạ', inp('vi_tri', 'text', 'list="dl-vitri" autocomplete="off" placeholder="Chọn hoặc gõ, VD: Cột sống L2–L4"') + '<datalist id="dl-vitri">' + (d.VI_TRI || RT.DEFAULT_DM.VI_TRI).map(function (x) { return '<option value="' + esc(x) + '"></option>'; }).join('') + '</datalist>', '', 'Bấm vào ô để chọn, hoặc gõ vị trí khác') +
         field('Mục đích', '<select name="muc_dich">' + opts(mucDich, v0.muc_dich, '—') + '</select>') +
         field('Khoa', '<select name="khoa">' + opts(d.KHOA, v0.khoa) + '</select>') +
-        field('Bác sĩ điều trị', '<select name="bs_email">' + opts(bsList, v0.bs_email) + '</select>') +
+        field('Bác sĩ điều trị <span class="req">*</span>', '<select name="bs_email">' + opts(bsList, v0.bs_email, 'Chọn bác sĩ') + '</select>') +
         field('Kỹ thuật <span class="req">*</span>', '<select name="ky_thuat">' + opts(d.KY_THUAT, v0.ky_thuat, 'Chọn kỹ thuật') + '</select>') +
         field('Ưu tiên', '<select name="uu_tien">' + opts(d.UU_TIEN, v0.uu_tien) + '</select>') +
         field('Tổng liều (Gy) <span class="req">*</span>', inp('tong_lieu', 'number', 'step="0.01" min="0"')) +
@@ -1079,6 +1080,7 @@
       },
       validate: function (v) {
         if (!v.ma_his) return 'Cần nhập mã BN trên HIS.';
+        if (!v.bs_email) return 'Cần chọn bác sĩ điều trị.';
         if (!v.ho_ten) return 'Cần nhập họ tên.';
         if (!v.chan_doan) return 'Cần nhập chẩn đoán.';
         if (!v.ky_thuat) return 'Cần chọn kỹ thuật.';

@@ -1,5 +1,10 @@
 # Lịch sử phiên bản
 
+## v1.4
+- **Kỹ sư, KTV, điều dưỡng thêm được bệnh nhân** theo phiếu chỉ định của bác sĩ (bắt buộc chọn bác sĩ điều trị).
+- Ghi lại người nhập; chi tiết BN hiện "nhập bởi … theo phiếu chỉ định".
+- Chỉ bác sĩ và quản trị sửa được chỉ định sau khi nhập.
+
 ## v1.3
 - Thêm bước **Chờ mô phỏng** cho BN mới; KTV bấm "Đã mô phỏng xong".
 - Ô **Vị trí xạ** có danh sách gợi ý (sửa ở tab Quản trị).

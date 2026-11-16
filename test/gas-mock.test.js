@@ -53,8 +53,17 @@ const ok = (who, action, payload) => { const r = api(who, action, payload); if (
 
 let r = api('stranger@x.vn', 'bootstrap');
 assert(!r.ok && r.error.startsWith('NO_ACCESS:'), 'người lạ bị chặn');
-r = api('dd@x.vn', 'createPatient', { ma_his: '0123', ho_ten: 'X' });
-assert(!r.ok && /quyền/.test(r.error), 'ĐD không tạo được BN');
+r = api('dd@x.vn', 'createPatient', { ma_his: '0123', ho_ten: 'X', chan_doan: 'K', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25' });
+assert(!r.ok && /bác sĩ điều trị/.test(r.error), 'ĐD nhập BN phải chọn BS điều trị: ' + r.error);
+r = api('ktv@x.vn', 'createPatient', { ma_his: '0124', ho_ten: 'X', chan_doan: 'K', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25', bs_email: 'ks@x.vn' });
+assert(!r.ok && /danh sách bác sĩ/.test(r.error), 'BS điều trị phải là bác sĩ');
+r = ok('ktv@x.vn', 'createPatient', { ma_his: '0125', ho_ten: 'Nhập bởi KTV', chan_doan: 'K', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25', bs_email: 'bs@x.vn', trang_thai: 'MO_PHONG' });
+let byKtv = r.data.patients.find(x => x.ma_his === '0125');
+assert.strictEqual(byKtv.nguoi_nhap, 'ktv@x.vn'); assert.strictEqual(byKtv.bs_email, 'bs@x.vn');
+ok('ks@x.vn', 'createPatient', { ma_his: '0126', ho_ten: 'Nhập bởi KS', chan_doan: 'K', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25', bs_email: 'bs@x.vn' });
+assert(!api('ktv@x.vn', 'updatePatient', { id: byKtv.id, tong_lieu: '60' }).ok, 'KTV không sửa chỉ định');
+ok('bs@x.vn', 'deletePatient', { id: byKtv.id, ly_do: 'test' });
+ok('bs@x.vn', 'deletePatient', { id: r.data.patients.find(x => x.ma_his === '0125').id === byKtv.id ? ok('admin@x.vn', 'bootstrap').data.patients.find(x => x.ma_his === '0126').id : '', ly_do: 'test' });
 
 r = ok('bs@x.vn', 'createPatient', { ma_his: '00123456', ho_ten: 'Nguyễn Văn A', chan_doan: 'K vòm', ky_thuat: 'VMAT', tong_lieu: '6', so_buoi: '3', sgrt: 'Có' });
 const id = r.data.patients[0].id;

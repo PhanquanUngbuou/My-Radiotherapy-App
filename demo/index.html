@@ -298,7 +298,7 @@ button.wk:hover{border-color:var(--accent-2)}
  */
 var RT = (function () {
   'use strict';
-  var VERSION = '1.3';
+  var VERSION = '1.4';
 
   var STATUS_ORDER = ['MO_PHONG', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA', 'DANG_XA', 'TAM_NGUNG', 'HOAN_THANH'];
   var STATUS = {
@@ -324,7 +324,7 @@ var RT = (function () {
       'tong_lieu', 'so_buoi', 'igrt', 'sgrt', 'uu_tien', 'trang_thai', 'ngay_tao', 'ngay_contour_xong',
       'ks_email', 'ngay_nhan_kh', 'ngay_kh_xong', 'can_qa', 'qa_ket_qua', 'ngay_qa', 'ngay_du_kien',
       'ngay_nghi_tuan', 'may', 'ngay_bat_dau', 'ngay_ket_thuc', 'tam_ngung_tu', 'ly_do_tam_ngung',
-      'ghi_chu', 'cap_nhat_luc', 'cap_nhat_boi', 'ly_do_ket_thuc', 'muc_lieu', 'vi_tri', 'muc_dich', 'ngay_mo_phong'],
+      'ghi_chu', 'cap_nhat_luc', 'cap_nhat_boi', 'ly_do_ket_thuc', 'muc_lieu', 'vi_tri', 'muc_dich', 'ngay_mo_phong', 'nguoi_nhap'],
     GiaiDoan: ['id', 'bn_id', 'stt', 'ky_thuat', 'tong_lieu', 'so_buoi', 'muc_lieu', 'trang_thai', 'di_cung',
       'uu_tien', 'ngay_tao', 'ngay_mo_phong', 'ngay_contour_xong', 'ks_email', 'ngay_nhan_kh', 'ngay_kh_xong',
       'can_qa', 'qa_ket_qua', 'ngay_qa', 'ghi_chu', 'cap_nhat_luc', 'cap_nhat_boi'],
@@ -355,7 +355,7 @@ var RT = (function () {
   var DM_EDITABLE = ['VI_TRI', 'MUC_DICH', 'MAY', 'NGAY_LE', 'KY_THUAT', 'IGRT', 'HINH_ANH', 'KHOA', 'LY_DO_TAM_NGUNG', 'TEN_DON_VI'];
 
   var PERM = {
-    createPatient: ['BS', 'ADMIN'],
+    createPatient: ['BS', 'KS', 'KTV', 'DD', 'ADMIN'],
     updatePatient: ['BS', 'ADMIN'],
     contourDone: ['BS', 'ADMIN'],
     setPriority: ['BS', 'KS', 'ADMIN'],
@@ -630,6 +630,11 @@ var RT = (function () {
       var p = blank(COLS.BenhNhan);
       Object.keys(o).forEach(function (k) { p[k] = o[k]; });
       if (!p.bs_email && ctx.user.vai_tro === 'BS') p.bs_email = ctx.user.email;
+      // Người không phải bác sĩ nhập theo phiếu chỉ định: bắt buộc chọn bác sĩ điều trị
+      if (!p.bs_email) fail('Cần chọn bác sĩ điều trị (bác sĩ ghi trên phiếu chỉ định).');
+      var bsU = ctx.users.filter(function (u) { return u.email === p.bs_email && u.kich_hoat !== 'Không'; })[0];
+      if (!bsU || (bsU.vai_tro !== 'BS' && bsU.vai_tro !== 'ADMIN')) fail('Bác sĩ điều trị không có trong danh sách bác sĩ.');
+      p.nguoi_nhap = ctx.user.email;
       if (!p.uu_tien) p.uu_tien = 'Thường';
       if (!p.igrt) p.igrt = 'Không';
       if (!p.sgrt) p.sgrt = 'Không';
@@ -2045,7 +2050,7 @@ window.DEMO = (function () {
     var dr = $('#drawer');
     var acts = detailActions(p);
     var tl = [
-      ['Thêm vào hệ thống', p.ngay_tao, ''],
+      ['Thêm vào hệ thống', p.ngay_tao, p.nguoi_nhap && p.nguoi_nhap !== p.bs_email ? 'nhập bởi ' + nameOf(p.nguoi_nhap) + ' theo phiếu chỉ định' : ''],
       ['Mô phỏng', p.ngay_mo_phong && p.trang_thai !== 'MO_PHONG' ? p.ngay_mo_phong : '', p.trang_thai === 'MO_PHONG' && p.ngay_mo_phong ? 'Hẹn ' + fdw(p.ngay_mo_phong) : ''],
       ['Contour xong', p.ngay_contour_xong, nameOf(p.bs_email)],
       ['Kỹ sư nhận lập KH', p.ngay_nhan_kh, nameOf(p.ks_email)],
@@ -2318,7 +2323,8 @@ window.DEMO = (function () {
     var inp = function (name, type, attrs) { return '<input type="' + (type || 'text') + '" name="' + name + '" value="' + esc(v0[name] || '') + '" ' + (attrs || '') + '>'; };
     modal({
       title: prefill ? 'Đợt xạ mới · ' + prefill.ho_ten : isNew ? 'Thêm bệnh nhân' : 'Sửa thông tin bệnh nhân', ok: prefill ? 'Tạo đợt xạ mới' : isNew ? 'Thêm bệnh nhân' : 'Lưu thay đổi',
-      body: '<div class="form">' +
+      body: (isNew && !isDoctor(me()) ? '<div class="confirm" style="cursor:default;font-weight:500">Nhập theo <b>&nbsp;phiếu chỉ định của bác sĩ</b>. Chọn đúng bác sĩ điều trị; bác sĩ sẽ thấy BN trong danh sách của mình và sửa được nếu cần.</div>' : '') +
+        '<div class="form">' +
         field('Mã BN trên HIS <span class="req">*</span>', inp('ma_his', 'text', 'inputmode="numeric" autocomplete="off"'), '', 'Dùng để tra cứu, khớp với HIS') +
         field('Họ và tên <span class="req">*</span>', inp('ho_ten')) +
         field('Năm sinh', inp('nam_sinh', 'number', 'min="1900" max="2030"')) +
@@ -2327,7 +2333,7 @@ window.DEMO = (function () {
         field('Vị trí xạ', inp('vi_tri', 'text', 'list="dl-vitri" autocomplete="off" placeholder="Chọn hoặc gõ, VD: Cột sống L2–L4"') + '<datalist id="dl-vitri">' + (d.VI_TRI || RT.DEFAULT_DM.VI_TRI).map(function (x) { return '<option value="' + esc(x) + '"></option>'; }).join('') + '</datalist>', '', 'Bấm vào ô để chọn, hoặc gõ vị trí khác') +
         field('Mục đích', '<select name="muc_dich">' + opts(mucDich, v0.muc_dich, '—') + '</select>') +
         field('Khoa', '<select name="khoa">' + opts(d.KHOA, v0.khoa) + '</select>') +
-        field('Bác sĩ điều trị', '<select name="bs_email">' + opts(bsList, v0.bs_email) + '</select>') +
+        field('Bác sĩ điều trị <span class="req">*</span>', '<select name="bs_email">' + opts(bsList, v0.bs_email, 'Chọn bác sĩ') + '</select>') +
         field('Kỹ thuật <span class="req">*</span>', '<select name="ky_thuat">' + opts(d.KY_THUAT, v0.ky_thuat, 'Chọn kỹ thuật') + '</select>') +
         field('Ưu tiên', '<select name="uu_tien">' + opts(d.UU_TIEN, v0.uu_tien) + '</select>') +
         field('Tổng liều (Gy) <span class="req">*</span>', inp('tong_lieu', 'number', 'step="0.01" min="0"')) +
@@ -2366,6 +2372,7 @@ window.DEMO = (function () {
       },
       validate: function (v) {
         if (!v.ma_his) return 'Cần nhập mã BN trên HIS.';
+        if (!v.bs_email) return 'Cần chọn bác sĩ điều trị.';
         if (!v.ho_ten) return 'Cần nhập họ tên.';
         if (!v.chan_doan) return 'Cần nhập chẩn đoán.';
         if (!v.ky_thuat) return 'Cần chọn kỹ thuật.';
