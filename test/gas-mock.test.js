@@ -53,23 +53,23 @@ const ok = (who, action, payload) => { const r = api(who, action, payload); if (
 
 let r = api('stranger@x.vn', 'bootstrap');
 assert(!r.ok && r.error.startsWith('NO_ACCESS:'), 'người lạ bị chặn');
-r = api('dd@x.vn', 'createPatient', { ma_his: '0123', ho_ten: 'X', chan_doan: 'K', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25' });
+r = api('dd@x.vn', 'createPatient', { ma_his: '0123', ho_ten: 'X', nam_sinh: '1960', chan_doan: 'K', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25' });
 assert(!r.ok && /bác sĩ điều trị/.test(r.error), 'ĐD nhập BN phải chọn BS điều trị: ' + r.error);
-r = api('ktv@x.vn', 'createPatient', { ma_his: '0124', ho_ten: 'X', chan_doan: 'K', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25', bs_email: 'ks@x.vn' });
+r = api('ktv@x.vn', 'createPatient', { ma_his: '0124', ho_ten: 'X', nam_sinh: '1960', chan_doan: 'K', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25', bs_email: 'ks@x.vn' });
 assert(!r.ok && /danh sách bác sĩ/.test(r.error), 'BS điều trị phải là bác sĩ');
-r = ok('ktv@x.vn', 'createPatient', { ma_his: '0125', ho_ten: 'Nhập bởi KTV', chan_doan: 'K', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25', bs_email: 'bs@x.vn', trang_thai: 'MO_PHONG' });
+r = ok('ktv@x.vn', 'createPatient', { ma_his: '0125', ho_ten: 'Nhập bởi KTV', nam_sinh: '1960', chan_doan: 'K', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25', bs_email: 'bs@x.vn', trang_thai: 'MO_PHONG' });
 let byKtv = r.data.patients.find(x => x.ma_his === '0125');
 assert.strictEqual(byKtv.nguoi_nhap, 'ktv@x.vn'); assert.strictEqual(byKtv.bs_email, 'bs@x.vn');
-ok('ks@x.vn', 'createPatient', { ma_his: '0126', ho_ten: 'Nhập bởi KS', chan_doan: 'K', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25', bs_email: 'bs@x.vn' });
+ok('ks@x.vn', 'createPatient', { ma_his: '0126', ho_ten: 'Nhập bởi KS', nam_sinh: '1960', chan_doan: 'K', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25', bs_email: 'bs@x.vn' });
 assert(!api('ktv@x.vn', 'updatePatient', { id: byKtv.id, tong_lieu: '60' }).ok, 'KTV không sửa chỉ định');
 ok('bs@x.vn', 'deletePatient', { id: byKtv.id, ly_do: 'test' });
 ok('bs@x.vn', 'deletePatient', { id: r.data.patients.find(x => x.ma_his === '0125').id === byKtv.id ? ok('admin@x.vn', 'bootstrap').data.patients.find(x => x.ma_his === '0126').id : '', ly_do: 'test' });
 
-r = ok('bs@x.vn', 'createPatient', { ma_his: '00123456', ho_ten: 'Nguyễn Văn A', chan_doan: 'K vòm', ky_thuat: 'VMAT', tong_lieu: '6', so_buoi: '3', sgrt: 'Có' });
+r = ok('bs@x.vn', 'createPatient', { ma_his: '00123456', ho_ten: 'Nguyễn Văn A', nam_sinh: '1960', chan_doan: 'K vòm', ky_thuat: 'VMAT', tong_lieu: '6', so_buoi: '3', sgrt: 'Có' });
 const id = r.data.patients[0].id;
 assert.strictEqual(r.data.patients[0].ma_his, '00123456', 'giữ số 0 đầu mã HIS');
 assert.strictEqual(r.data.patients[0].trang_thai, 'CONTOUR');
-r = api('bs@x.vn', 'createPatient', { ma_his: '00123456', ho_ten: 'Nguyễn Văn A', chan_doan: 'K vòm', ky_thuat: 'VMAT', tong_lieu: '6', so_buoi: '3' });
+r = api('bs@x.vn', 'createPatient', { ma_his: '00123456', ho_ten: 'Nguyễn Văn A', nam_sinh: '1960', chan_doan: 'K vòm', ky_thuat: 'VMAT', tong_lieu: '6', so_buoi: '3' });
 assert(!r.ok && r.error.startsWith('DUP_HIS:'), 'cảnh báo trùng mã HIS');
 
 ok('bs@x.vn', 'contourDone', { id, uu_tien: 'Cấp cứu' });
@@ -104,10 +104,10 @@ const c = ctx.RT.course(r.data.patients[0], r.data.fractions, ctx.RT.makeEnv(tod
 assert.strictEqual(c.done, 2); assert.strictEqual(c.doseDone, 4); assert.strictEqual(c.projected.length, 1);
 // Bệnh nhân đang xạ dở khi bắt đầu dùng hệ thống
 const st = ctx.RT.addDays(today, -13);
-r = ok('bs@x.vn', 'createPatient', { ma_his: '777', ho_ten: 'BN Cũ', chan_doan: 'K vú', ky_thuat: '3D-CRT', tong_lieu: '50', so_buoi: '25', trang_thai: 'DANG_XA', ngay_bat_dau: st, da_xa: '8' });
+r = ok('bs@x.vn', 'createPatient', { ma_his: '777', ho_ten: 'BN Cũ', nam_sinh: '1960', chan_doan: 'K vú', ky_thuat: '3D-CRT', tong_lieu: '50', so_buoi: '25', trang_thai: 'DANG_XA', ngay_bat_dau: st, da_xa: '8' });
 let old = r.data.patients.find(x => x.ma_his === '777');
 assert.strictEqual(old.trang_thai, 'DANG_XA'); assert.strictEqual(r.data.fractions.filter(f => f.bn_id === old.id).length, 8);
-r = api('bs@x.vn', 'createPatient', { ma_his: '778', ho_ten: 'Sai', chan_doan: 'K', ky_thuat: '3D-CRT', tong_lieu: '50', so_buoi: '25', trang_thai: 'DANG_XA', ngay_bat_dau: today, da_xa: '5' });
+r = api('bs@x.vn', 'createPatient', { ma_his: '778', ho_ten: 'Sai', nam_sinh: '1960', chan_doan: 'K', ky_thuat: '3D-CRT', tong_lieu: '50', so_buoi: '25', trang_thai: 'DANG_XA', ngay_bat_dau: today, da_xa: '5' });
 assert(!r.ok, 'chặn số buổi đã xạ vượt số ngày');
 r = ok('bs@x.vn', 'endEarly', { id: old.id, ly_do: 'Bệnh tiến triển' });
 assert.strictEqual(r.data.patients.find(x => x.id === old.id).trang_thai, 'HOAN_THANH');
@@ -132,7 +132,7 @@ r = ok('admin@x.vn', 'getLog');
 assert(r.log.length > 10 && r.log[0].thao_tac);
 assert(!api('bs@x.vn', 'getLog').ok);
 // Huỷ hồ sơ
-r = ok('bs@x.vn', 'createPatient', { ma_his: '999', ho_ten: 'Nhầm', chan_doan: 'K', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25' });
+r = ok('bs@x.vn', 'createPatient', { ma_his: '999', ho_ten: 'Nhầm', nam_sinh: '1960', chan_doan: 'K', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25' });
 const nid = r.data.patients.find(x => x.ma_his === '999').id;
 r = ok('bs@x.vn', 'deletePatient', { id: nid, ly_do: 'nhập nhầm' });
 assert(!r.data.patients.some(x => x.id === nid), 'hồ sơ huỷ bị ẩn');
@@ -141,7 +141,7 @@ vm.runInContext('setup()', ctx);
 assert.strictEqual(ok('admin@x.vn', 'bootstrap').data.patients.length, 2);
 
 // ---- Boost theo giai đoạn ----
-r = ok('bs@x.vn', 'createPatient', { ma_his: '5001', ho_ten: 'BN Boost', chan_doan: 'K TTL', vi_tri: 'Tiểu khung', ky_thuat: 'VMAT', tong_lieu: '4', so_buoi: '2', trang_thai: 'CHO_XA', ngay_du_kien: today, boost: { ky_thuat: 'VMAT', tong_lieu: '6', so_buoi: '2', buoc: 'CONTOUR' } });
+r = ok('bs@x.vn', 'createPatient', { ma_his: '5001', ho_ten: 'BN Boost', nam_sinh: '1960', chan_doan: 'K TTL', vi_tri: 'Tiểu khung', ky_thuat: 'VMAT', tong_lieu: '4', so_buoi: '2', trang_thai: 'CHO_XA', ngay_du_kien: today, boost: { ky_thuat: 'VMAT', tong_lieu: '6', so_buoi: '2', buoc: 'CONTOUR' } });
 let bp = r.data.patients.find(x => x.ma_his === '5001');
 let g = r.data.phases.find(x => x.bn_id === bp.id);
 assert.strictEqual(g.trang_thai, 'CONTOUR'); assert.strictEqual(bp.vi_tri, 'Tiểu khung');
@@ -182,7 +182,7 @@ r = ok('ktv@x.vn', 'machineUp', { id: mid });
 assert(!r.data.exceptions.some(e => e.loai === 'MAY_NGHI'));
 assert(!api('dd@x.vn', 'setDay', { bn_id: bp.id, ngay: wd, xa: false }).ok, 'ĐD không đổi lịch');
 // ---- Đợt xạ mới cho cùng BN (xạ triệu chứng vị trí khác) ----
-r = ok('bs@x.vn', 'createPatient', { ma_his: '5001', ho_ten: 'BN Boost', chan_doan: 'Di căn xương', vi_tri: 'Cột sống L3', muc_dich: 'Giảm nhẹ / triệu chứng', ky_thuat: '3D-CRT', tong_lieu: '8', so_buoi: '1', force: true });
+r = ok('bs@x.vn', 'createPatient', { ma_his: '5001', ho_ten: 'BN Boost', nam_sinh: '1960', chan_doan: 'Di căn xương', vi_tri: 'Cột sống L3', muc_dich: 'Giảm nhẹ / triệu chứng', ky_thuat: '3D-CRT', tong_lieu: '8', so_buoi: '1', force: true });
 assert.strictEqual(r.data.patients.filter(x => x.ma_his === '5001').length, 2);
 // ---- Lưu trữ ----
 const BN = sheets.BenhNhan, head = BN.data[0];
@@ -199,13 +199,13 @@ let sr = JSON.parse(ctx.api('searchArchive', { q: '777' }));
 assert(sr.ok && sr.archive.patients.length === 1 && sr.archive.fractions.length === 8, 'tìm được trong lưu trữ');
 sr = JSON.parse(ctx.api('searchArchive', { q: 'bn cu' }));
 assert(sr.ok && sr.archive.patients.length === 1, 'tìm không dấu');
-r = ok('bs@x.vn', 'createPatient', { ma_his: '6001', ho_ten: 'Mới', chan_doan: 'K', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25' });
+r = ok('bs@x.vn', 'createPatient', { ma_his: '6001', ho_ten: 'Mới', nam_sinh: '1960', chan_doan: 'K', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25' });
 const ids = r.data.patients.map(x => x.id);
 assert(!ids.includes(oldId) && new Set(ids).size === ids.length, 'mã đợt mới không trùng mã đã lưu trữ');
 assert(parseInt(r.data.patients.find(x => x.ma_his === '6001').id.slice(5), 10) > parseInt(oldId.slice(5), 10));
 
 // ---- Bước "Chờ mô phỏng" cho BN mới ----
-r = ok('bs@x.vn', 'createPatient', { ma_his: '7001', ho_ten: 'Chờ MP', chan_doan: 'K', vi_tri: 'Não (toàn não)', ky_thuat: '3D-CRT', tong_lieu: '30', so_buoi: '10', trang_thai: 'MO_PHONG', ngay_mo_phong: today });
+r = ok('bs@x.vn', 'createPatient', { ma_his: '7001', ho_ten: 'Chờ MP', nam_sinh: '1960', chan_doan: 'K', vi_tri: 'Não (toàn não)', ky_thuat: '3D-CRT', tong_lieu: '30', so_buoi: '10', trang_thai: 'MO_PHONG', ngay_mo_phong: today });
 let mp = r.data.patients.find(x => x.ma_his === '7001');
 assert.strictEqual(mp.trang_thai, 'MO_PHONG'); assert.strictEqual(mp.ngay_mo_phong, today);
 assert(!api('bs@x.vn', 'contourDone', { id: mp.id }).ok, 'chưa mô phỏng thì chưa contour xong được');
@@ -221,4 +221,22 @@ r = ok('admin@x.vn', 'bootstrap');
 assert.strictEqual(r.data.dm.VI_TRI.length, nDefault + 1, 'thêm vị trí không làm mất danh sách mặc định');
 r = ok('admin@x.vn', 'dmRemove', { loai: 'VI_TRI', gia_tri: 'Hạch' });
 assert.strictEqual(ok('admin@x.vn', 'bootstrap').data.dm.VI_TRI.length, nDefault);
+
+// ---- v1.6: nhập hành chính trước, chuyên môn bổ sung khi contour xong ----
+r = api('dd@x.vn', 'createPatient', { ma_his: '8001', ho_ten: 'Chỉ hành chính', bs_email: 'bs@x.vn', trang_thai: 'CONTOUR' });
+assert(!r.ok && /năm sinh/.test(r.error), 'bắt buộc năm sinh/tuổi');
+r = ok('dd@x.vn', 'createPatient', { ma_his: '8001', ho_ten: 'Chỉ hành chính', nam_sinh: '61', bs_email: 'bs@x.vn', trang_thai: 'MO_PHONG' });
+let hc = r.data.patients.find(x => x.ma_his === '8001');
+assert.strictEqual(hc.nam_sinh, String(parseInt(today.slice(0, 4), 10) - 61), 'tuổi đổi ra năm sinh');
+assert(!api('dd@x.vn', 'createPatient', { ma_his: '8002', ho_ten: 'X', nam_sinh: '1960', bs_email: 'bs@x.vn', trang_thai: 'CHO_KH' }).ok, 'chuyển thẳng kỹ sư thì phải đủ chuyên môn');
+ok('ktv@x.vn', 'simDone', { id: hc.id });
+r = api('bs@x.vn', 'contourDone', { id: hc.id });
+assert(!r.ok && /chẩn đoán, kỹ thuật, tổng liều, số buổi/.test(r.error), 'contour xong khi thiếu chuyên môn bị chặn: ' + r.error);
+r = api('bs@x.vn', 'contourDone', { id: hc.id, chan_doan: 'K vú', ky_thuat: '3D-CRT', tong_lieu: '40.05' });
+assert(!r.ok && /số buổi/.test(r.error), 'vẫn thiếu số buổi');
+r = ok('bs@x.vn', 'contourDone', { id: hc.id, chan_doan: 'K vú', vi_tri: 'Vú trái', ky_thuat: '3D-CRT', tong_lieu: '40.05', so_buoi: '15', uu_tien: 'Ưu tiên' });
+hc = r.data.patients.find(x => x.id === hc.id);
+assert.strictEqual(hc.trang_thai, 'CHO_KH'); assert.strictEqual(hc.so_buoi, '15'); assert.strictEqual(hc.vi_tri, 'Vú trái');
+r = ok('bs@x.vn', 'updatePatient', { id: hc.id, ghi_chu: 'ok' });
+assert(!api('bs@x.vn', 'updatePatient', { id: hc.id, so_buoi: '' }).ok, 'sau khi chuyển kỹ sư không được xoá trống chỉ định');
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');

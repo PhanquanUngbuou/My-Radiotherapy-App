@@ -79,7 +79,7 @@
   function prRank(p) { var r = RT.PRIORITY_RANK[p.uu_tien]; return r == null ? 2 : r; }
   function stPill(p) { return '<span class="pill st-' + p.trang_thai + '">' + esc(RT.STATUS[p.trang_thai] || p.trang_thai) + '</span>'; }
   function prPill(p) { return '<span class="pill pr-' + prRank(p) + '">' + esc(p.uu_tien || 'Thường') + '</span>'; }
-  function rx(p) { return esc(p.ky_thuat) + ' · <span class="num">' + esc(p.tong_lieu) + ' Gy/' + esc(p.so_buoi) + '</span>'; }
+  function rx(p) { if (!p._g && RT.missingRx(p).length) return '<span class="flag">Chưa đủ chỉ định</span>' + (p.ky_thuat ? ' ' + esc(p.ky_thuat) : ''); return esc(p.ky_thuat) + ' · <span class="num">' + esc(p.tong_lieu) + ' Gy/' + esc(p.so_buoi) + '</span>'; }
   function ptCell(p) {
     return '<div class="pt"><b>' + esc(p.ho_ten) + '</b>' + (p._g ? ' <span class="tag boost">Boost GĐ' + esc(p._g.stt) + '</span>' : '') + '<span class="sub"><span class="mono">' + esc(p.ma_his) + '</span>' +
       (age(p) ? ' · ' + age(p) : '') + (p.gioi ? ' · ' + esc(p.gioi) : '') + '</span></div>';
@@ -960,13 +960,25 @@
       onOk: function (v) { run('undoFraction', { id: fid, ly_do: v.ly_do }); } });
   }
   function contourForm(p) {
-    modal({ title: 'Contour xong, chuyển kỹ sư', ok: 'Chuyển kỹ sư', body: whoBox(p) +
+    var d = S.data.dm, miss = p._g ? [] : RT.missingRx(p);
+    var inp = function (name, type, attrs) { return '<input type="' + (type || 'text') + '" name="' + name + '" value="' + esc(p[name] || '') + '" ' + (attrs || '') + '>'; };
+    var fill = miss.length ? '<div class="confirm" style="cursor:default;font-weight:500">BN chưa đủ phần chuyên môn (thiếu: <b>&nbsp;' + esc(miss.join(', ')) + '</b>). Nhập đủ rồi mới chuyển kỹ sư được.</div>' +
+      '<div class="form">' +
+      field('Chẩn đoán <span class="req">*</span>', inp('chan_doan', 'text', 'placeholder="VD: K phổi di căn não"'), 'full') +
+      field('Vị trí xạ', inp('vi_tri', 'text', 'list="dl-vitri2" autocomplete="off"') + '<datalist id="dl-vitri2">' + (d.VI_TRI || RT.DEFAULT_DM.VI_TRI).map(function (x) { return '<option value="' + esc(x) + '"></option>'; }).join('') + '</datalist>') +
+      field('Kỹ thuật <span class="req">*</span>', '<select name="ky_thuat">' + opts(d.KY_THUAT, p.ky_thuat, 'Chọn kỹ thuật') + '</select>') +
+      field('Tổng liều (Gy) <span class="req">*</span>', inp('tong_lieu', 'number', 'step="0.01" min="0"')) +
+      field('Số buổi <span class="req">*</span>', inp('so_buoi', 'number', 'step="1" min="1" max="60"')) +
+      field('IGRT dự kiến', '<select name="igrt">' + opts(d.IGRT, p.igrt || 'Không') + '</select>') +
+      field('SGRT', '<select name="sgrt">' + opts(['Không', 'Có'], p.sgrt || 'Không') + '</select>') + '</div>' : '';
+    modal({ title: 'Contour xong, chuyển kỹ sư', ok: 'Chuyển kỹ sư', body: whoBox(p) + fill +
       '<div class="field"><span class="lb">Mức ưu tiên lập kế hoạch</span><div class="radios">' + [
         ['Cấp cứu', 'Chèn ép tủy, chảy máu, tắc nghẽn… Lập kế hoạch ngay.'],
         ['Ưu tiên', 'Cần sớm hơn thứ tự thông thường.'],
         ['Thường', 'Theo thứ tự contour xong trước làm trước.']
       ].map(function (x) { return '<label><input type="radio" name="uu_tien" value="' + x[0] + '"' + ((p.uu_tien || 'Thường') === x[0] ? ' checked' : '') + '><span><b>' + x[0] + '</b><small>' + x[1] + '</small></span></label>'; }).join('') + '</div></div>',
-      onOk: function (v) { run('contourDone', { id: p.id, uu_tien: v.uu_tien }); } });
+      validate: function (v) { if (!miss.length) return ''; var m = RT.missingRx(v); return m.length ? 'Cần nhập đủ: ' + m.join(', ') + '.' : ''; },
+      onOk: function (v) { v.id = p.id; run('contourDone', v); } });
   }
   function priorityForm(p) {
     modal({ title: 'Đổi mức ưu tiên', ok: 'Lưu', body: whoBox(p) + '<div class="radios">' + ['Cấp cứu', 'Ưu tiên', 'Thường'].map(function (x) {
@@ -1035,17 +1047,18 @@
         '<div class="form">' +
         field('Mã BN trên HIS <span class="req">*</span>', inp('ma_his', 'text', 'inputmode="numeric" autocomplete="off"'), '', 'Dùng để tra cứu, khớp với HIS') +
         field('Họ và tên <span class="req">*</span>', inp('ho_ten')) +
-        field('Năm sinh', inp('nam_sinh', 'number', 'min="1900" max="2030"')) +
+        field('Năm sinh hoặc tuổi <span class="req">*</span>', inp('nam_sinh', 'number', 'min="0" max="2100" placeholder="VD: 1965 hoặc 61"')) +
         field('Giới', '<select name="gioi">' + opts(['Nam', 'Nữ'], v0.gioi, '—') + '</select>') +
-        field('Chẩn đoán <span class="req">*</span>', inp('chan_doan', 'text', 'placeholder="VD: K phổi di căn não, xương"'), 'full') +
+        '<div class="full sec-lb">Phần chuyên môn <span class="muted">· có thể để trống khi BN đang chờ mô phỏng / đang contour; bác sĩ bổ sung lúc contour xong</span></div>' +
+        field('Chẩn đoán <span class="req rx-req">*</span>', inp('chan_doan', 'text', 'placeholder="VD: K phổi di căn não, xương"'), 'full') +
         field('Vị trí xạ', inp('vi_tri', 'text', 'list="dl-vitri" autocomplete="off" placeholder="Chọn hoặc gõ, VD: Cột sống L2–L4"') + '<datalist id="dl-vitri">' + (d.VI_TRI || RT.DEFAULT_DM.VI_TRI).map(function (x) { return '<option value="' + esc(x) + '"></option>'; }).join('') + '</datalist>', '', 'Bấm vào ô để chọn, hoặc gõ vị trí khác') +
         field('Mục đích', '<select name="muc_dich">' + opts(mucDich, v0.muc_dich, '—') + '</select>') +
         field('Khoa', '<select name="khoa">' + opts(d.KHOA, v0.khoa) + '</select>') +
         field('Bác sĩ điều trị <span class="req">*</span>', '<select name="bs_email">' + opts(bsList, v0.bs_email, 'Chọn bác sĩ') + '</select>') +
-        field('Kỹ thuật <span class="req">*</span>', '<select name="ky_thuat">' + opts(d.KY_THUAT, v0.ky_thuat, 'Chọn kỹ thuật') + '</select>') +
+        field('Kỹ thuật <span class="req rx-req">*</span>', '<select name="ky_thuat">' + opts(d.KY_THUAT, v0.ky_thuat, 'Chọn kỹ thuật') + '</select>') +
         field('Ưu tiên', '<select name="uu_tien">' + opts(d.UU_TIEN, v0.uu_tien) + '</select>') +
-        field('Tổng liều (Gy) <span class="req">*</span>', inp('tong_lieu', 'number', 'step="0.01" min="0"')) +
-        field('Số buổi <span class="req">*</span>', inp('so_buoi', 'number', 'step="1" min="1" max="60"'), '', '<span id="dpf"></span>') +
+        field('Tổng liều (Gy) <span class="req rx-req">*</span>', inp('tong_lieu', 'number', 'step="0.01" min="0"')) +
+        field('Số buổi <span class="req rx-req">*</span>', inp('so_buoi', 'number', 'step="1" min="1" max="60"'), '', '<span id="dpf"></span>') +
         field('IGRT dự kiến', '<select name="igrt">' + opts(d.IGRT, v0.igrt) + '</select>') +
         field('SGRT', '<select name="sgrt">' + opts(['Không', 'Có'], v0.sgrt) + '</select>') +
         field('Các mức liều (SIB, nếu có)', inp('muc_lieu', 'text', 'placeholder="VD: 70 / 60 / 54 Gy"'), 'full') +
@@ -1071,6 +1084,8 @@
         $$('input', form).forEach(function (el) { el.addEventListener('input', upd); }); upd();
         var step = function () {
           var st = (formValues(form).trang_thai) || '';
+          var early = isNew ? (st === 'MO_PHONG' || st === 'CONTOUR') : ['MO_PHONG', 'CONTOUR'].indexOf(p.trang_thai) >= 0;
+          $$('.rx-req', form).forEach(function (el) { el.hidden = early; });
           $$('[data-for]', form).forEach(function (el) { el.hidden = !isNew || el.dataset.for.split(' ').indexOf(st) < 0; });
         };
         $$('input[name=trang_thai]', form).forEach(function (el) { el.addEventListener('change', step); }); step();
@@ -1080,12 +1095,14 @@
       },
       validate: function (v) {
         if (!v.ma_his) return 'Cần nhập mã BN trên HIS.';
-        if (!v.bs_email) return 'Cần chọn bác sĩ điều trị.';
         if (!v.ho_ten) return 'Cần nhập họ tên.';
-        if (!v.chan_doan) return 'Cần nhập chẩn đoán.';
-        if (!v.ky_thuat) return 'Cần chọn kỹ thuật.';
-        if (!(RT.num(v.tong_lieu) > 0)) return 'Cần nhập tổng liều.';
-        if (!(RT.num(v.so_buoi) >= 1)) return 'Cần nhập số buổi.';
+        if (!v.nam_sinh) return 'Cần nhập năm sinh hoặc tuổi.';
+        if (!v.bs_email) return 'Cần chọn bác sĩ điều trị.';
+        var early = isNew ? (!v.trang_thai || v.trang_thai === 'MO_PHONG' || v.trang_thai === 'CONTOUR') && !v.co_boost : ['MO_PHONG', 'CONTOUR'].indexOf(p.trang_thai) >= 0;
+        if (!early) {
+          var miss = RT.missingRx(v);
+          if (miss.length) return 'Ở bước này cần nhập đủ phần chuyên môn: ' + miss.join(', ') + '.';
+        }
         if (v.co_boost) {
           if (!v.b_ky_thuat) return 'Chọn kỹ thuật boost.';
           if (!(RT.num(v.b_tong_lieu) > 0) || !(RT.num(v.b_so_buoi) >= 1)) return 'Nhập liều và số buổi boost.';

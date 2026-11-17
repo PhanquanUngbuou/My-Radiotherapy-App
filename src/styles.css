@@ -272,3 +272,5 @@ button.wk:hover{border-color:var(--accent-2)}
 .wk-count b{color:var(--ink);font-size:15px}
 .st-MO_PHONG{background:var(--blue-soft);color:var(--blue)}
 .st-SAN_SANG{background:var(--ktv-soft);color:var(--ktv)}
+
+.sec-lb{font-size:13px;font-weight:700;color:var(--accent);padding-top:6px;border-top:1px solid var(--line)}

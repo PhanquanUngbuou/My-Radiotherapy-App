@@ -277,12 +277,36 @@ var RT = (function () {
     var n = num(x.so_buoi);
     if (!(n >= 1 && n <= 60 && Math.round(n) === n)) fail('Số buổi' + (what || '') + ' phải là số nguyên từ 1 đến 60.');
   }
-  function validate(p) {
+  /** Phần hành chính: luôn bắt buộc */
+  function validateBasic(p, today) {
     if (!p.ma_his) fail('Cần nhập mã BN trên HIS.');
     if (!p.ho_ten) fail('Cần nhập họ tên bệnh nhân.');
-    if (!p.chan_doan) fail('Cần nhập chẩn đoán.');
+    var y = num(p.nam_sinh), cur = parseInt(String(today || '').slice(0, 4), 10) || new Date().getFullYear();
+    if (y > 0 && y < 130 && Math.round(y) === y) p.nam_sinh = String(cur - y);   // nhập tuổi → đổi ra năm sinh
+    y = num(p.nam_sinh);
+    if (!(y >= 1900 && y <= cur)) fail('Cần nhập năm sinh (hoặc tuổi) của bệnh nhân.');
+    if (p.tong_lieu !== '' && p.tong_lieu != null && !(num(p.tong_lieu) > 0)) fail('Tổng liều phải lớn hơn 0.');
+    if (p.so_buoi !== '' && p.so_buoi != null) {
+      var n = num(p.so_buoi);
+      if (!(n >= 1 && n <= 60 && Math.round(n) === n)) fail('Số buổi phải là số nguyên từ 1 đến 60.');
+    }
+  }
+  /** Phần chuyên môn còn thiếu (cần đủ trước khi chuyển kỹ sư) */
+  function missingRx(p) {
+    var m = [];
+    if (!p.chan_doan) m.push('chẩn đoán');
+    if (!p.ky_thuat) m.push('kỹ thuật');
+    if (!(num(p.tong_lieu) > 0)) m.push('tổng liều');
+    if (!(num(p.so_buoi) >= 1)) m.push('số buổi');
+    return m;
+  }
+  function validate(p, today) {
+    validateBasic(p, today);
+    var m = missingRx(p);
+    if (m.length) fail('Cần nhập đủ phần chuyên môn: ' + m.join(', ') + '.');
     validateRx(p);
   }
+  var EARLY = ['MO_PHONG', 'CONTOUR'];   // bước được phép chưa có chỉ định chuyên môn
   function nextId(ctx) {
     var prefix = 'XT' + ctx.today.slice(2, 4) + '-', max = ctx.idFloor ? ctx.idFloor(prefix) : 0;
     ctx.patients.forEach(function (p) {
@@ -348,7 +372,8 @@ var RT = (function () {
       if (!p.uu_tien) p.uu_tien = 'Thường';
       if (!p.igrt) p.igrt = 'Không';
       if (!p.sgrt) p.sgrt = 'Không';
-      validate(p);
+      var step0 = a.trang_thai || 'CONTOUR';
+      if (EARLY.indexOf(step0) >= 0 && !a.boost) validateBasic(p, ctx.today); else validate(p, ctx.today);
       if (a.boost) validateRx(a.boost, ' của boost');
       var dup = ctx.patients.filter(function (x) { return x.ma_his === p.ma_his && x.trang_thai !== 'HOAN_THANH' && x.trang_thai !== 'HUY'; })[0];
       if (dup && !a.force) fail('DUP_HIS:' + dup.ho_ten + ' (' + dup.id + ', ' + STATUS[dup.trang_thai] + ')');
@@ -402,7 +427,8 @@ var RT = (function () {
       var p = findP(ctx, a.id), o = clean(a, EDIT_FIELDS), merged = {};
       Object.keys(p).forEach(function (k) { merged[k] = p[k]; });
       Object.keys(o).forEach(function (k) { merged[k] = o[k]; });
-      validate(merged);
+      if (EARLY.indexOf(p.trang_thai) >= 0) validateBasic(merged, ctx.today); else validate(merged, ctx.today);
+      if (merged.nam_sinh !== p.nam_sinh) o.nam_sinh = merged.nam_sinh;
       var done = fxOf(p, ctx.fractions).length;
       if (num(merged.so_buoi) !== num(p.so_buoi)) {
         var hasPhases = phasesOf(p, envOf(ctx)).length > 0;
@@ -420,6 +446,16 @@ var RT = (function () {
     contourDone: function (ctx, a) {
       var t = target(ctx, a.id);
       need(t.x, ['CONTOUR']);
+      if (!t.g) {
+        var add = clean(a, ['chan_doan', 'vi_tri', 'muc_dich', 'ky_thuat', 'tong_lieu', 'so_buoi', 'muc_lieu', 'igrt', 'sgrt']);
+        var merged = {};
+        Object.keys(t.p).forEach(function (k) { merged[k] = t.p[k]; });
+        Object.keys(add).forEach(function (k) { if (add[k] !== '') merged[k] = add[k]; });
+        var miss = missingRx(merged);
+        if (miss.length) fail('Chưa chuyển kỹ sư được. Cần nhập đủ: ' + miss.join(', ') + '.');
+        validateRx(merged);
+        Object.keys(add).forEach(function (k) { if (add[k] !== '') t.p[k] = add[k]; });
+      }
       if (a.uu_tien) t.x.uu_tien = a.uu_tien;
       t.x.trang_thai = 'CHO_KH';
       t.x.ngay_contour_xong = ctx.today;
@@ -786,7 +822,7 @@ var RT = (function () {
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
-    scheduleLabel: scheduleLabel, needsOffDay: needsOffDay, offDay: offDay, dosePerFx: dosePerFx,
+    scheduleLabel: scheduleLabel, missingRx: missingRx, needsOffDay: needsOffDay, offDay: offDay, dosePerFx: dosePerFx,
     addDays: addDays, diffDays: diffDays, dow: dow, monday: monday, isDate: isDate, num: num, splitList: splitList, fxOf: fxOf
   };
 })();

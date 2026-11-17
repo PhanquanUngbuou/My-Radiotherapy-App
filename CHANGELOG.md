@@ -1,5 +1,10 @@
 # Lịch sử phiên bản
 
+## v1.6
+- Thêm BN chỉ bắt buộc phần hành chính: họ tên, mã HIS, năm sinh (hoặc tuổi), bác sĩ điều trị. Phần chuyên môn có thể để trống ở bước Chờ mô phỏng / Đang contour.
+- Bác sĩ bấm "Contour xong": nếu thiếu chẩn đoán, kỹ thuật, liều, số buổi thì nhập luôn trong hộp đó; đủ mới chuyển kỹ sư.
+- BN thiếu chỉ định hiện nhãn "Chưa đủ chỉ định".
+
 ## v1.5
 - Khi người dùng cấp thiếu quyền lúc đăng nhập lần đầu, ứng dụng tự hiện lại màn hình xin quyền.
 - Thông báo lỗi tiếng Việt kèm cách xử lý: thiếu quyền, chưa được chia sẻ Sheet.

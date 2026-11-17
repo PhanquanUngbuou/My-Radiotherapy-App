@@ -41,21 +41,21 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
 </style>
 <div class="wrap">
   <div class="intro">
-    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v1.5</h1>
+    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v1.6</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v1.5 · bản lưu bef7d33 · 16/11/2026 04:39. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v1.5”.</span>
+    <span class="rev">Phiên bản v1.6 · bản lưu 12a2827 · 16/11/2026 09:37. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v1.6”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Code">Code.gs <span class="ver">· v1.5</span></h2>
+        <h2 id="h-Code">Code.gs <span class="ver">· v1.6</span></h2>
         <p>File có sẵn tên Code.gs: xoá hết nội dung cũ, dán vào.</p>
         <span class="size">321 dòng · 15 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v1.5)</button>
+      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v1.6)</button>
     </div>
-    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v1.5
+    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v1.6
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
@@ -380,13 +380,13 @@ function moveRows_(ss, fromName, toName, pred) {
   <section class="card" aria-labelledby="h-Core">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Core">Core.gs <span class="ver">· v1.5</span></h2>
+        <h2 id="h-Core">Core.gs <span class="ver">· v1.6</span></h2>
         <p>Bấm + → Script (Tập lệnh), đặt tên Core.</p>
-        <span class="size">795 dòng · 44 KB</span>
+        <span class="size">831 dòng · 47 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v1.5)</button>
+      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v1.6)</button>
     </div>
-    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v1.5
+    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v1.6
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -397,7 +397,7 @@ function moveRows_(ss, fromName, toName, pred) {
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;1.5&#x27;;
+  var VERSION = &#x27;1.6&#x27;;
 
   var STATUS_ORDER = [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;];
   var STATUS = {
@@ -666,12 +666,36 @@ var RT = (function () {
     var n = num(x.so_buoi);
     if (!(n &gt;= 1 &amp;&amp; n &lt;= 60 &amp;&amp; Math.round(n) === n)) fail(&#x27;Số buổi&#x27; + (what || &#x27;&#x27;) + &#x27; phải là số nguyên từ 1 đến 60.&#x27;);
   }
-  function validate(p) {
+  /** Phần hành chính: luôn bắt buộc */
+  function validateBasic(p, today) {
     if (!p.ma_his) fail(&#x27;Cần nhập mã BN trên HIS.&#x27;);
     if (!p.ho_ten) fail(&#x27;Cần nhập họ tên bệnh nhân.&#x27;);
-    if (!p.chan_doan) fail(&#x27;Cần nhập chẩn đoán.&#x27;);
+    var y = num(p.nam_sinh), cur = parseInt(String(today || &#x27;&#x27;).slice(0, 4), 10) || new Date().getFullYear();
+    if (y &gt; 0 &amp;&amp; y &lt; 130 &amp;&amp; Math.round(y) === y) p.nam_sinh = String(cur - y);   // nhập tuổi → đổi ra năm sinh
+    y = num(p.nam_sinh);
+    if (!(y &gt;= 1900 &amp;&amp; y &lt;= cur)) fail(&#x27;Cần nhập năm sinh (hoặc tuổi) của bệnh nhân.&#x27;);
+    if (p.tong_lieu !== &#x27;&#x27; &amp;&amp; p.tong_lieu != null &amp;&amp; !(num(p.tong_lieu) &gt; 0)) fail(&#x27;Tổng liều phải lớn hơn 0.&#x27;);
+    if (p.so_buoi !== &#x27;&#x27; &amp;&amp; p.so_buoi != null) {
+      var n = num(p.so_buoi);
+      if (!(n &gt;= 1 &amp;&amp; n &lt;= 60 &amp;&amp; Math.round(n) === n)) fail(&#x27;Số buổi phải là số nguyên từ 1 đến 60.&#x27;);
+    }
+  }
+  /** Phần chuyên môn còn thiếu (cần đủ trước khi chuyển kỹ sư) */
+  function missingRx(p) {
+    var m = [];
+    if (!p.chan_doan) m.push(&#x27;chẩn đoán&#x27;);
+    if (!p.ky_thuat) m.push(&#x27;kỹ thuật&#x27;);
+    if (!(num(p.tong_lieu) &gt; 0)) m.push(&#x27;tổng liều&#x27;);
+    if (!(num(p.so_buoi) &gt;= 1)) m.push(&#x27;số buổi&#x27;);
+    return m;
+  }
+  function validate(p, today) {
+    validateBasic(p, today);
+    var m = missingRx(p);
+    if (m.length) fail(&#x27;Cần nhập đủ phần chuyên môn: &#x27; + m.join(&#x27;, &#x27;) + &#x27;.&#x27;);
     validateRx(p);
   }
+  var EARLY = [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;];   // bước được phép chưa có chỉ định chuyên môn
   function nextId(ctx) {
     var prefix = &#x27;XT&#x27; + ctx.today.slice(2, 4) + &#x27;-&#x27;, max = ctx.idFloor ? ctx.idFloor(prefix) : 0;
     ctx.patients.forEach(function (p) {
@@ -737,7 +761,8 @@ var RT = (function () {
       if (!p.uu_tien) p.uu_tien = &#x27;Thường&#x27;;
       if (!p.igrt) p.igrt = &#x27;Không&#x27;;
       if (!p.sgrt) p.sgrt = &#x27;Không&#x27;;
-      validate(p);
+      var step0 = a.trang_thai || &#x27;CONTOUR&#x27;;
+      if (EARLY.indexOf(step0) &gt;= 0 &amp;&amp; !a.boost) validateBasic(p, ctx.today); else validate(p, ctx.today);
       if (a.boost) validateRx(a.boost, &#x27; của boost&#x27;);
       var dup = ctx.patients.filter(function (x) { return x.ma_his === p.ma_his &amp;&amp; x.trang_thai !== &#x27;HOAN_THANH&#x27; &amp;&amp; x.trang_thai !== &#x27;HUY&#x27;; })[0];
       if (dup &amp;&amp; !a.force) fail(&#x27;DUP_HIS:&#x27; + dup.ho_ten + &#x27; (&#x27; + dup.id + &#x27;, &#x27; + STATUS[dup.trang_thai] + &#x27;)&#x27;);
@@ -791,7 +816,8 @@ var RT = (function () {
       var p = findP(ctx, a.id), o = clean(a, EDIT_FIELDS), merged = {};
       Object.keys(p).forEach(function (k) { merged[k] = p[k]; });
       Object.keys(o).forEach(function (k) { merged[k] = o[k]; });
-      validate(merged);
+      if (EARLY.indexOf(p.trang_thai) &gt;= 0) validateBasic(merged, ctx.today); else validate(merged, ctx.today);
+      if (merged.nam_sinh !== p.nam_sinh) o.nam_sinh = merged.nam_sinh;
       var done = fxOf(p, ctx.fractions).length;
       if (num(merged.so_buoi) !== num(p.so_buoi)) {
         var hasPhases = phasesOf(p, envOf(ctx)).length &gt; 0;
@@ -809,6 +835,16 @@ var RT = (function () {
     contourDone: function (ctx, a) {
       var t = target(ctx, a.id);
       need(t.x, [&#x27;CONTOUR&#x27;]);
+      if (!t.g) {
+        var add = clean(a, [&#x27;chan_doan&#x27;, &#x27;vi_tri&#x27;, &#x27;muc_dich&#x27;, &#x27;ky_thuat&#x27;, &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;, &#x27;muc_lieu&#x27;, &#x27;igrt&#x27;, &#x27;sgrt&#x27;]);
+        var merged = {};
+        Object.keys(t.p).forEach(function (k) { merged[k] = t.p[k]; });
+        Object.keys(add).forEach(function (k) { if (add[k] !== &#x27;&#x27;) merged[k] = add[k]; });
+        var miss = missingRx(merged);
+        if (miss.length) fail(&#x27;Chưa chuyển kỹ sư được. Cần nhập đủ: &#x27; + miss.join(&#x27;, &#x27;) + &#x27;.&#x27;);
+        validateRx(merged);
+        Object.keys(add).forEach(function (k) { if (add[k] !== &#x27;&#x27;) t.p[k] = add[k]; });
+      }
       if (a.uu_tien) t.x.uu_tien = a.uu_tien;
       t.x.trang_thai = &#x27;CHO_KH&#x27;;
       t.x.ngay_contour_xong = ctx.today;
@@ -1175,7 +1211,7 @@ var RT = (function () {
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
-    scheduleLabel: scheduleLabel, needsOffDay: needsOffDay, offDay: offDay, dosePerFx: dosePerFx,
+    scheduleLabel: scheduleLabel, missingRx: missingRx, needsOffDay: needsOffDay, offDay: offDay, dosePerFx: dosePerFx,
     addDays: addDays, diffDays: diffDays, dow: dow, monday: monday, isDate: isDate, num: num, splitList: splitList, fxOf: fxOf
   };
 })();
@@ -1185,14 +1221,14 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
   <section class="card" aria-labelledby="h-Index">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Index">Index.html <span class="ver">· v1.5</span></h2>
+        <h2 id="h-Index">Index.html <span class="ver">· v1.6</span></h2>
         <p>Bấm + → HTML, đặt tên Index (chữ I hoa).</p>
-        <span class="size">2,284 dòng · 168 KB</span>
+        <span class="size">2,339 dòng · 173 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v1.5)</button>
+      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v1.6)</button>
     </div>
     <textarea id="t-Index" readonly spellcheck="false" aria-label="Nội dung Index.html">&lt;!DOCTYPE html&gt;
-&lt;!-- Điều phối Xạ trị · phiên bản v1.5 --&gt;
+&lt;!-- Điều phối Xạ trị · phiên bản v1.6 --&gt;
 &lt;html lang=&quot;vi&quot;&gt;
 &lt;head&gt;
 &lt;base target=&quot;_top&quot;&gt;
@@ -1478,6 +1514,8 @@ button.wk:hover{border-color:var(--accent-2)}
 .st-MO_PHONG{background:var(--blue-soft);color:var(--blue)}
 .st-SAN_SANG{background:var(--ktv-soft);color:var(--ktv)}
 
+.sec-lb{font-size:13px;font-weight:700;color:var(--accent);padding-top:6px;border-top:1px solid var(--line)}
+
 &lt;/style&gt;
 &lt;/head&gt;
 &lt;body&gt;
@@ -1498,7 +1536,7 @@ button.wk:hover{border-color:var(--accent-2)}
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;1.5&#x27;;
+  var VERSION = &#x27;1.6&#x27;;
 
   var STATUS_ORDER = [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;];
   var STATUS = {
@@ -1767,12 +1805,36 @@ var RT = (function () {
     var n = num(x.so_buoi);
     if (!(n &gt;= 1 &amp;&amp; n &lt;= 60 &amp;&amp; Math.round(n) === n)) fail(&#x27;Số buổi&#x27; + (what || &#x27;&#x27;) + &#x27; phải là số nguyên từ 1 đến 60.&#x27;);
   }
-  function validate(p) {
+  /** Phần hành chính: luôn bắt buộc */
+  function validateBasic(p, today) {
     if (!p.ma_his) fail(&#x27;Cần nhập mã BN trên HIS.&#x27;);
     if (!p.ho_ten) fail(&#x27;Cần nhập họ tên bệnh nhân.&#x27;);
-    if (!p.chan_doan) fail(&#x27;Cần nhập chẩn đoán.&#x27;);
+    var y = num(p.nam_sinh), cur = parseInt(String(today || &#x27;&#x27;).slice(0, 4), 10) || new Date().getFullYear();
+    if (y &gt; 0 &amp;&amp; y &lt; 130 &amp;&amp; Math.round(y) === y) p.nam_sinh = String(cur - y);   // nhập tuổi → đổi ra năm sinh
+    y = num(p.nam_sinh);
+    if (!(y &gt;= 1900 &amp;&amp; y &lt;= cur)) fail(&#x27;Cần nhập năm sinh (hoặc tuổi) của bệnh nhân.&#x27;);
+    if (p.tong_lieu !== &#x27;&#x27; &amp;&amp; p.tong_lieu != null &amp;&amp; !(num(p.tong_lieu) &gt; 0)) fail(&#x27;Tổng liều phải lớn hơn 0.&#x27;);
+    if (p.so_buoi !== &#x27;&#x27; &amp;&amp; p.so_buoi != null) {
+      var n = num(p.so_buoi);
+      if (!(n &gt;= 1 &amp;&amp; n &lt;= 60 &amp;&amp; Math.round(n) === n)) fail(&#x27;Số buổi phải là số nguyên từ 1 đến 60.&#x27;);
+    }
+  }
+  /** Phần chuyên môn còn thiếu (cần đủ trước khi chuyển kỹ sư) */
+  function missingRx(p) {
+    var m = [];
+    if (!p.chan_doan) m.push(&#x27;chẩn đoán&#x27;);
+    if (!p.ky_thuat) m.push(&#x27;kỹ thuật&#x27;);
+    if (!(num(p.tong_lieu) &gt; 0)) m.push(&#x27;tổng liều&#x27;);
+    if (!(num(p.so_buoi) &gt;= 1)) m.push(&#x27;số buổi&#x27;);
+    return m;
+  }
+  function validate(p, today) {
+    validateBasic(p, today);
+    var m = missingRx(p);
+    if (m.length) fail(&#x27;Cần nhập đủ phần chuyên môn: &#x27; + m.join(&#x27;, &#x27;) + &#x27;.&#x27;);
     validateRx(p);
   }
+  var EARLY = [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;];   // bước được phép chưa có chỉ định chuyên môn
   function nextId(ctx) {
     var prefix = &#x27;XT&#x27; + ctx.today.slice(2, 4) + &#x27;-&#x27;, max = ctx.idFloor ? ctx.idFloor(prefix) : 0;
     ctx.patients.forEach(function (p) {
@@ -1838,7 +1900,8 @@ var RT = (function () {
       if (!p.uu_tien) p.uu_tien = &#x27;Thường&#x27;;
       if (!p.igrt) p.igrt = &#x27;Không&#x27;;
       if (!p.sgrt) p.sgrt = &#x27;Không&#x27;;
-      validate(p);
+      var step0 = a.trang_thai || &#x27;CONTOUR&#x27;;
+      if (EARLY.indexOf(step0) &gt;= 0 &amp;&amp; !a.boost) validateBasic(p, ctx.today); else validate(p, ctx.today);
       if (a.boost) validateRx(a.boost, &#x27; của boost&#x27;);
       var dup = ctx.patients.filter(function (x) { return x.ma_his === p.ma_his &amp;&amp; x.trang_thai !== &#x27;HOAN_THANH&#x27; &amp;&amp; x.trang_thai !== &#x27;HUY&#x27;; })[0];
       if (dup &amp;&amp; !a.force) fail(&#x27;DUP_HIS:&#x27; + dup.ho_ten + &#x27; (&#x27; + dup.id + &#x27;, &#x27; + STATUS[dup.trang_thai] + &#x27;)&#x27;);
@@ -1892,7 +1955,8 @@ var RT = (function () {
       var p = findP(ctx, a.id), o = clean(a, EDIT_FIELDS), merged = {};
       Object.keys(p).forEach(function (k) { merged[k] = p[k]; });
       Object.keys(o).forEach(function (k) { merged[k] = o[k]; });
-      validate(merged);
+      if (EARLY.indexOf(p.trang_thai) &gt;= 0) validateBasic(merged, ctx.today); else validate(merged, ctx.today);
+      if (merged.nam_sinh !== p.nam_sinh) o.nam_sinh = merged.nam_sinh;
       var done = fxOf(p, ctx.fractions).length;
       if (num(merged.so_buoi) !== num(p.so_buoi)) {
         var hasPhases = phasesOf(p, envOf(ctx)).length &gt; 0;
@@ -1910,6 +1974,16 @@ var RT = (function () {
     contourDone: function (ctx, a) {
       var t = target(ctx, a.id);
       need(t.x, [&#x27;CONTOUR&#x27;]);
+      if (!t.g) {
+        var add = clean(a, [&#x27;chan_doan&#x27;, &#x27;vi_tri&#x27;, &#x27;muc_dich&#x27;, &#x27;ky_thuat&#x27;, &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;, &#x27;muc_lieu&#x27;, &#x27;igrt&#x27;, &#x27;sgrt&#x27;]);
+        var merged = {};
+        Object.keys(t.p).forEach(function (k) { merged[k] = t.p[k]; });
+        Object.keys(add).forEach(function (k) { if (add[k] !== &#x27;&#x27;) merged[k] = add[k]; });
+        var miss = missingRx(merged);
+        if (miss.length) fail(&#x27;Chưa chuyển kỹ sư được. Cần nhập đủ: &#x27; + miss.join(&#x27;, &#x27;) + &#x27;.&#x27;);
+        validateRx(merged);
+        Object.keys(add).forEach(function (k) { if (add[k] !== &#x27;&#x27;) t.p[k] = add[k]; });
+      }
       if (a.uu_tien) t.x.uu_tien = a.uu_tien;
       t.x.trang_thai = &#x27;CHO_KH&#x27;;
       t.x.ngay_contour_xong = ctx.today;
@@ -2276,7 +2350,7 @@ var RT = (function () {
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
-    scheduleLabel: scheduleLabel, needsOffDay: needsOffDay, offDay: offDay, dosePerFx: dosePerFx,
+    scheduleLabel: scheduleLabel, missingRx: missingRx, needsOffDay: needsOffDay, offDay: offDay, dosePerFx: dosePerFx,
     addDays: addDays, diffDays: diffDays, dow: dow, monday: monday, isDate: isDate, num: num, splitList: splitList, fxOf: fxOf
   };
 })();
@@ -2365,7 +2439,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
   function prRank(p) { var r = RT.PRIORITY_RANK[p.uu_tien]; return r == null ? 2 : r; }
   function stPill(p) { return &#x27;&lt;span class=&quot;pill st-&#x27; + p.trang_thai + &#x27;&quot;&gt;&#x27; + esc(RT.STATUS[p.trang_thai] || p.trang_thai) + &#x27;&lt;/span&gt;&#x27;; }
   function prPill(p) { return &#x27;&lt;span class=&quot;pill pr-&#x27; + prRank(p) + &#x27;&quot;&gt;&#x27; + esc(p.uu_tien || &#x27;Thường&#x27;) + &#x27;&lt;/span&gt;&#x27;; }
-  function rx(p) { return esc(p.ky_thuat) + &#x27; · &lt;span class=&quot;num&quot;&gt;&#x27; + esc(p.tong_lieu) + &#x27; Gy/&#x27; + esc(p.so_buoi) + &#x27;&lt;/span&gt;&#x27;; }
+  function rx(p) { if (!p._g &amp;&amp; RT.missingRx(p).length) return &#x27;&lt;span class=&quot;flag&quot;&gt;Chưa đủ chỉ định&lt;/span&gt;&#x27; + (p.ky_thuat ? &#x27; &#x27; + esc(p.ky_thuat) : &#x27;&#x27;); return esc(p.ky_thuat) + &#x27; · &lt;span class=&quot;num&quot;&gt;&#x27; + esc(p.tong_lieu) + &#x27; Gy/&#x27; + esc(p.so_buoi) + &#x27;&lt;/span&gt;&#x27;; }
   function ptCell(p) {
     return &#x27;&lt;div class=&quot;pt&quot;&gt;&lt;b&gt;&#x27; + esc(p.ho_ten) + &#x27;&lt;/b&gt;&#x27; + (p._g ? &#x27; &lt;span class=&quot;tag boost&quot;&gt;Boost GĐ&#x27; + esc(p._g.stt) + &#x27;&lt;/span&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;span class=&quot;sub&quot;&gt;&lt;span class=&quot;mono&quot;&gt;&#x27; + esc(p.ma_his) + &#x27;&lt;/span&gt;&#x27; +
       (age(p) ? &#x27; · &#x27; + age(p) : &#x27;&#x27;) + (p.gioi ? &#x27; · &#x27; + esc(p.gioi) : &#x27;&#x27;) + &#x27;&lt;/span&gt;&lt;/div&gt;&#x27;;
@@ -3246,13 +3320,25 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
       onOk: function (v) { run(&#x27;undoFraction&#x27;, { id: fid, ly_do: v.ly_do }); } });
   }
   function contourForm(p) {
-    modal({ title: &#x27;Contour xong, chuyển kỹ sư&#x27;, ok: &#x27;Chuyển kỹ sư&#x27;, body: whoBox(p) +
+    var d = S.data.dm, miss = p._g ? [] : RT.missingRx(p);
+    var inp = function (name, type, attrs) { return &#x27;&lt;input type=&quot;&#x27; + (type || &#x27;text&#x27;) + &#x27;&quot; name=&quot;&#x27; + name + &#x27;&quot; value=&quot;&#x27; + esc(p[name] || &#x27;&#x27;) + &#x27;&quot; &#x27; + (attrs || &#x27;&#x27;) + &#x27;&gt;&#x27;; };
+    var fill = miss.length ? &#x27;&lt;div class=&quot;confirm&quot; style=&quot;cursor:default;font-weight:500&quot;&gt;BN chưa đủ phần chuyên môn (thiếu: &lt;b&gt;&amp;nbsp;&#x27; + esc(miss.join(&#x27;, &#x27;)) + &#x27;&lt;/b&gt;). Nhập đủ rồi mới chuyển kỹ sư được.&lt;/div&gt;&#x27; +
+      &#x27;&lt;div class=&quot;form&quot;&gt;&#x27; +
+      field(&#x27;Chẩn đoán &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&#x27;, inp(&#x27;chan_doan&#x27;, &#x27;text&#x27;, &#x27;placeholder=&quot;VD: K phổi di căn não&quot;&#x27;), &#x27;full&#x27;) +
+      field(&#x27;Vị trí xạ&#x27;, inp(&#x27;vi_tri&#x27;, &#x27;text&#x27;, &#x27;list=&quot;dl-vitri2&quot; autocomplete=&quot;off&quot;&#x27;) + &#x27;&lt;datalist id=&quot;dl-vitri2&quot;&gt;&#x27; + (d.VI_TRI || RT.DEFAULT_DM.VI_TRI).map(function (x) { return &#x27;&lt;option value=&quot;&#x27; + esc(x) + &#x27;&quot;&gt;&lt;/option&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;/datalist&gt;&#x27;) +
+      field(&#x27;Kỹ thuật &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&#x27;, &#x27;&lt;select name=&quot;ky_thuat&quot;&gt;&#x27; + opts(d.KY_THUAT, p.ky_thuat, &#x27;Chọn kỹ thuật&#x27;) + &#x27;&lt;/select&gt;&#x27;) +
+      field(&#x27;Tổng liều (Gy) &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&#x27;, inp(&#x27;tong_lieu&#x27;, &#x27;number&#x27;, &#x27;step=&quot;0.01&quot; min=&quot;0&quot;&#x27;)) +
+      field(&#x27;Số buổi &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&#x27;, inp(&#x27;so_buoi&#x27;, &#x27;number&#x27;, &#x27;step=&quot;1&quot; min=&quot;1&quot; max=&quot;60&quot;&#x27;)) +
+      field(&#x27;IGRT dự kiến&#x27;, &#x27;&lt;select name=&quot;igrt&quot;&gt;&#x27; + opts(d.IGRT, p.igrt || &#x27;Không&#x27;) + &#x27;&lt;/select&gt;&#x27;) +
+      field(&#x27;SGRT&#x27;, &#x27;&lt;select name=&quot;sgrt&quot;&gt;&#x27; + opts([&#x27;Không&#x27;, &#x27;Có&#x27;], p.sgrt || &#x27;Không&#x27;) + &#x27;&lt;/select&gt;&#x27;) + &#x27;&lt;/div&gt;&#x27; : &#x27;&#x27;;
+    modal({ title: &#x27;Contour xong, chuyển kỹ sư&#x27;, ok: &#x27;Chuyển kỹ sư&#x27;, body: whoBox(p) + fill +
       &#x27;&lt;div class=&quot;field&quot;&gt;&lt;span class=&quot;lb&quot;&gt;Mức ưu tiên lập kế hoạch&lt;/span&gt;&lt;div class=&quot;radios&quot;&gt;&#x27; + [
         [&#x27;Cấp cứu&#x27;, &#x27;Chèn ép tủy, chảy máu, tắc nghẽn… Lập kế hoạch ngay.&#x27;],
         [&#x27;Ưu tiên&#x27;, &#x27;Cần sớm hơn thứ tự thông thường.&#x27;],
         [&#x27;Thường&#x27;, &#x27;Theo thứ tự contour xong trước làm trước.&#x27;]
       ].map(function (x) { return &#x27;&lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;uu_tien&quot; value=&quot;&#x27; + x[0] + &#x27;&quot;&#x27; + ((p.uu_tien || &#x27;Thường&#x27;) === x[0] ? &#x27; checked&#x27; : &#x27;&#x27;) + &#x27;&gt;&lt;span&gt;&lt;b&gt;&#x27; + x[0] + &#x27;&lt;/b&gt;&lt;small&gt;&#x27; + x[1] + &#x27;&lt;/small&gt;&lt;/span&gt;&lt;/label&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;/div&gt;&lt;/div&gt;&#x27;,
-      onOk: function (v) { run(&#x27;contourDone&#x27;, { id: p.id, uu_tien: v.uu_tien }); } });
+      validate: function (v) { if (!miss.length) return &#x27;&#x27;; var m = RT.missingRx(v); return m.length ? &#x27;Cần nhập đủ: &#x27; + m.join(&#x27;, &#x27;) + &#x27;.&#x27; : &#x27;&#x27;; },
+      onOk: function (v) { v.id = p.id; run(&#x27;contourDone&#x27;, v); } });
   }
   function priorityForm(p) {
     modal({ title: &#x27;Đổi mức ưu tiên&#x27;, ok: &#x27;Lưu&#x27;, body: whoBox(p) + &#x27;&lt;div class=&quot;radios&quot;&gt;&#x27; + [&#x27;Cấp cứu&#x27;, &#x27;Ưu tiên&#x27;, &#x27;Thường&#x27;].map(function (x) {
@@ -3321,17 +3407,18 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
         &#x27;&lt;div class=&quot;form&quot;&gt;&#x27; +
         field(&#x27;Mã BN trên HIS &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&#x27;, inp(&#x27;ma_his&#x27;, &#x27;text&#x27;, &#x27;inputmode=&quot;numeric&quot; autocomplete=&quot;off&quot;&#x27;), &#x27;&#x27;, &#x27;Dùng để tra cứu, khớp với HIS&#x27;) +
         field(&#x27;Họ và tên &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&#x27;, inp(&#x27;ho_ten&#x27;)) +
-        field(&#x27;Năm sinh&#x27;, inp(&#x27;nam_sinh&#x27;, &#x27;number&#x27;, &#x27;min=&quot;1900&quot; max=&quot;2030&quot;&#x27;)) +
+        field(&#x27;Năm sinh hoặc tuổi &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&#x27;, inp(&#x27;nam_sinh&#x27;, &#x27;number&#x27;, &#x27;min=&quot;0&quot; max=&quot;2100&quot; placeholder=&quot;VD: 1965 hoặc 61&quot;&#x27;)) +
         field(&#x27;Giới&#x27;, &#x27;&lt;select name=&quot;gioi&quot;&gt;&#x27; + opts([&#x27;Nam&#x27;, &#x27;Nữ&#x27;], v0.gioi, &#x27;—&#x27;) + &#x27;&lt;/select&gt;&#x27;) +
-        field(&#x27;Chẩn đoán &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&#x27;, inp(&#x27;chan_doan&#x27;, &#x27;text&#x27;, &#x27;placeholder=&quot;VD: K phổi di căn não, xương&quot;&#x27;), &#x27;full&#x27;) +
+        &#x27;&lt;div class=&quot;full sec-lb&quot;&gt;Phần chuyên môn &lt;span class=&quot;muted&quot;&gt;· có thể để trống khi BN đang chờ mô phỏng / đang contour; bác sĩ bổ sung lúc contour xong&lt;/span&gt;&lt;/div&gt;&#x27; +
+        field(&#x27;Chẩn đoán &lt;span class=&quot;req rx-req&quot;&gt;*&lt;/span&gt;&#x27;, inp(&#x27;chan_doan&#x27;, &#x27;text&#x27;, &#x27;placeholder=&quot;VD: K phổi di căn não, xương&quot;&#x27;), &#x27;full&#x27;) +
         field(&#x27;Vị trí xạ&#x27;, inp(&#x27;vi_tri&#x27;, &#x27;text&#x27;, &#x27;list=&quot;dl-vitri&quot; autocomplete=&quot;off&quot; placeholder=&quot;Chọn hoặc gõ, VD: Cột sống L2–L4&quot;&#x27;) + &#x27;&lt;datalist id=&quot;dl-vitri&quot;&gt;&#x27; + (d.VI_TRI || RT.DEFAULT_DM.VI_TRI).map(function (x) { return &#x27;&lt;option value=&quot;&#x27; + esc(x) + &#x27;&quot;&gt;&lt;/option&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;/datalist&gt;&#x27;, &#x27;&#x27;, &#x27;Bấm vào ô để chọn, hoặc gõ vị trí khác&#x27;) +
         field(&#x27;Mục đích&#x27;, &#x27;&lt;select name=&quot;muc_dich&quot;&gt;&#x27; + opts(mucDich, v0.muc_dich, &#x27;—&#x27;) + &#x27;&lt;/select&gt;&#x27;) +
         field(&#x27;Khoa&#x27;, &#x27;&lt;select name=&quot;khoa&quot;&gt;&#x27; + opts(d.KHOA, v0.khoa) + &#x27;&lt;/select&gt;&#x27;) +
         field(&#x27;Bác sĩ điều trị &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&#x27;, &#x27;&lt;select name=&quot;bs_email&quot;&gt;&#x27; + opts(bsList, v0.bs_email, &#x27;Chọn bác sĩ&#x27;) + &#x27;&lt;/select&gt;&#x27;) +
-        field(&#x27;Kỹ thuật &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&#x27;, &#x27;&lt;select name=&quot;ky_thuat&quot;&gt;&#x27; + opts(d.KY_THUAT, v0.ky_thuat, &#x27;Chọn kỹ thuật&#x27;) + &#x27;&lt;/select&gt;&#x27;) +
+        field(&#x27;Kỹ thuật &lt;span class=&quot;req rx-req&quot;&gt;*&lt;/span&gt;&#x27;, &#x27;&lt;select name=&quot;ky_thuat&quot;&gt;&#x27; + opts(d.KY_THUAT, v0.ky_thuat, &#x27;Chọn kỹ thuật&#x27;) + &#x27;&lt;/select&gt;&#x27;) +
         field(&#x27;Ưu tiên&#x27;, &#x27;&lt;select name=&quot;uu_tien&quot;&gt;&#x27; + opts(d.UU_TIEN, v0.uu_tien) + &#x27;&lt;/select&gt;&#x27;) +
-        field(&#x27;Tổng liều (Gy) &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&#x27;, inp(&#x27;tong_lieu&#x27;, &#x27;number&#x27;, &#x27;step=&quot;0.01&quot; min=&quot;0&quot;&#x27;)) +
-        field(&#x27;Số buổi &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&#x27;, inp(&#x27;so_buoi&#x27;, &#x27;number&#x27;, &#x27;step=&quot;1&quot; min=&quot;1&quot; max=&quot;60&quot;&#x27;), &#x27;&#x27;, &#x27;&lt;span id=&quot;dpf&quot;&gt;&lt;/span&gt;&#x27;) +
+        field(&#x27;Tổng liều (Gy) &lt;span class=&quot;req rx-req&quot;&gt;*&lt;/span&gt;&#x27;, inp(&#x27;tong_lieu&#x27;, &#x27;number&#x27;, &#x27;step=&quot;0.01&quot; min=&quot;0&quot;&#x27;)) +
+        field(&#x27;Số buổi &lt;span class=&quot;req rx-req&quot;&gt;*&lt;/span&gt;&#x27;, inp(&#x27;so_buoi&#x27;, &#x27;number&#x27;, &#x27;step=&quot;1&quot; min=&quot;1&quot; max=&quot;60&quot;&#x27;), &#x27;&#x27;, &#x27;&lt;span id=&quot;dpf&quot;&gt;&lt;/span&gt;&#x27;) +
         field(&#x27;IGRT dự kiến&#x27;, &#x27;&lt;select name=&quot;igrt&quot;&gt;&#x27; + opts(d.IGRT, v0.igrt) + &#x27;&lt;/select&gt;&#x27;) +
         field(&#x27;SGRT&#x27;, &#x27;&lt;select name=&quot;sgrt&quot;&gt;&#x27; + opts([&#x27;Không&#x27;, &#x27;Có&#x27;], v0.sgrt) + &#x27;&lt;/select&gt;&#x27;) +
         field(&#x27;Các mức liều (SIB, nếu có)&#x27;, inp(&#x27;muc_lieu&#x27;, &#x27;text&#x27;, &#x27;placeholder=&quot;VD: 70 / 60 / 54 Gy&quot;&#x27;), &#x27;full&#x27;) +
@@ -3357,6 +3444,8 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
         $$(&#x27;input&#x27;, form).forEach(function (el) { el.addEventListener(&#x27;input&#x27;, upd); }); upd();
         var step = function () {
           var st = (formValues(form).trang_thai) || &#x27;&#x27;;
+          var early = isNew ? (st === &#x27;MO_PHONG&#x27; || st === &#x27;CONTOUR&#x27;) : [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;].indexOf(p.trang_thai) &gt;= 0;
+          $$(&#x27;.rx-req&#x27;, form).forEach(function (el) { el.hidden = early; });
           $$(&#x27;[data-for]&#x27;, form).forEach(function (el) { el.hidden = !isNew || el.dataset.for.split(&#x27; &#x27;).indexOf(st) &lt; 0; });
         };
         $$(&#x27;input[name=trang_thai]&#x27;, form).forEach(function (el) { el.addEventListener(&#x27;change&#x27;, step); }); step();
@@ -3366,12 +3455,14 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
       },
       validate: function (v) {
         if (!v.ma_his) return &#x27;Cần nhập mã BN trên HIS.&#x27;;
-        if (!v.bs_email) return &#x27;Cần chọn bác sĩ điều trị.&#x27;;
         if (!v.ho_ten) return &#x27;Cần nhập họ tên.&#x27;;
-        if (!v.chan_doan) return &#x27;Cần nhập chẩn đoán.&#x27;;
-        if (!v.ky_thuat) return &#x27;Cần chọn kỹ thuật.&#x27;;
-        if (!(RT.num(v.tong_lieu) &gt; 0)) return &#x27;Cần nhập tổng liều.&#x27;;
-        if (!(RT.num(v.so_buoi) &gt;= 1)) return &#x27;Cần nhập số buổi.&#x27;;
+        if (!v.nam_sinh) return &#x27;Cần nhập năm sinh hoặc tuổi.&#x27;;
+        if (!v.bs_email) return &#x27;Cần chọn bác sĩ điều trị.&#x27;;
+        var early = isNew ? (!v.trang_thai || v.trang_thai === &#x27;MO_PHONG&#x27; || v.trang_thai === &#x27;CONTOUR&#x27;) &amp;&amp; !v.co_boost : [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;].indexOf(p.trang_thai) &gt;= 0;
+        if (!early) {
+          var miss = RT.missingRx(v);
+          if (miss.length) return &#x27;Ở bước này cần nhập đủ phần chuyên môn: &#x27; + miss.join(&#x27;, &#x27;) + &#x27;.&#x27;;
+        }
         if (v.co_boost) {
           if (!v.b_ky_thuat) return &#x27;Chọn kỹ thuật boost.&#x27;;
           if (!(RT.num(v.b_tong_lieu) &gt; 0) || !(RT.num(v.b_so_buoi) &gt;= 1)) return &#x27;Nhập liều và số buổi boost.&#x27;;

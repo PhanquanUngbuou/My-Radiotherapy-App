@@ -141,6 +141,8 @@ window.DEMO = (function () {
     mk({ ho_ten: 'Đoàn Thị Hương', nam_sinh: '1969', gioi: 'Nữ', chan_doan: 'K vú phải sau bảo tồn', ky_thuat: '3D-CRT', tong_lieu: '40.05', so_buoi: '15', sgrt: 'Có', trang_thai: 'CHO_KH', ngay_tao: wdAgo(4), ngay_contour_xong: wdAgo(2), bs_email: 'bs.thu@demo' });
     mk({ ho_ten: 'Quách Văn Tú', nam_sinh: '1972', gioi: 'Nam', chan_doan: 'K amidan T2N2b', ky_thuat: 'VMAT', tong_lieu: '70', so_buoi: '35', igrt: 'CBCT 3 buổi đầu, sau đó hằng tuần', trang_thai: 'CHO_KH', uu_tien: 'Ưu tiên', ngay_tao: wdAgo(3), ngay_contour_xong: wdAgo(1) });
     mk({ ho_ten: 'Tô Thị Nhung', nam_sinh: '1980', gioi: 'Nữ', chan_doan: 'K cổ tử cung IIB', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25', igrt: 'CBCT hằng tuần', trang_thai: 'CHO_KH', ngay_tao: wdAgo(3), ngay_contour_xong: wdAgo(1) });
+    // Do KTV nhập theo phiếu chỉ định, chưa có phần chuyên môn
+    mk({ ho_ten: 'Hồ Thị Nga', nam_sinh: '1959', gioi: 'Nữ', chan_doan: '', ky_thuat: '', tong_lieu: '', so_buoi: '', trang_thai: 'CONTOUR', ngay_tao: today, nguoi_nhap: 'ktv.linh@demo' });
     // Chờ mô phỏng
     mk({ ho_ten: 'Kim Văn Hưng', nam_sinh: '1962', gioi: 'Nam', chan_doan: 'K phổi di căn não', vi_tri: 'Não (toàn não)', muc_dich: 'Giảm nhẹ / triệu chứng', ky_thuat: '3D-CRT', tong_lieu: '30', so_buoi: '10', trang_thai: 'MO_PHONG', ngay_mo_phong: fwd(1), ngay_tao: today, uu_tien: 'Ưu tiên' });
     // Đang contour
