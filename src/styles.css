@@ -418,3 +418,21 @@ html.modal-open,html.modal-open body{overflow:hidden;overscroll-behavior:none}
   .nurse-tbl td:first-child,.nurse-tbl th:first-child{width:44%;padding-left:12px}
   .nurse-tbl th .sub{font-size:11px;white-space:normal}
 }
+
+/* v2.7: tô nền theo mức ưu tiên (BN đang chuẩn bị xạ) */
+:root{--pr0-bg:#fbd5d0;--pr1-bg:#ffdfb8}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--pr0-bg:#4a1c17;--pr1-bg:#4a2e0c} }
+:root[data-theme="dark"]{--pr0-bg:#4a1c17;--pr1-bg:#4a2e0c}
+tbody tr.pr-row-0,tbody tr.pr-row-0 td{background:var(--pr0-bg)}
+tbody tr.pr-row-1,tbody tr.pr-row-1 td{background:var(--pr1-bg)}
+tbody tr.pr-row-0 td:first-child{box-shadow:inset 4px 0 0 var(--crit)}
+tbody tr.pr-row-1 td:first-child{box-shadow:inset 4px 0 0 #e07b00}
+tbody tr.pr-row-0.click:hover td{background:var(--pr0-bg)}
+tbody tr.pr-row-1.click:hover td{background:var(--pr1-bg)}
+.pr-row-0 .pr-0,.pr-row-1 .pr-1{background:var(--surface)}
+.pr-why{max-width:220px;white-space:normal}
+@media (max-width:760px){
+  .cards tr.pr-row-0{box-shadow:inset 5px 0 0 var(--crit)}
+  .cards tr.pr-row-1{box-shadow:inset 5px 0 0 #e07b00}
+  .cards tr.pr-row-0 td:first-child,.cards tr.pr-row-1 td:first-child{box-shadow:none}
+}

@@ -425,6 +425,24 @@ html.modal-open,html.modal-open body{overflow:hidden;overscroll-behavior:none}
   .nurse-tbl th .sub{font-size:11px;white-space:normal}
 }
 
+/* v2.7: tô nền theo mức ưu tiên (BN đang chuẩn bị xạ) */
+:root{--pr0-bg:#fbd5d0;--pr1-bg:#ffdfb8}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--pr0-bg:#4a1c17;--pr1-bg:#4a2e0c} }
+:root[data-theme="dark"]{--pr0-bg:#4a1c17;--pr1-bg:#4a2e0c}
+tbody tr.pr-row-0,tbody tr.pr-row-0 td{background:var(--pr0-bg)}
+tbody tr.pr-row-1,tbody tr.pr-row-1 td{background:var(--pr1-bg)}
+tbody tr.pr-row-0 td:first-child{box-shadow:inset 4px 0 0 var(--crit)}
+tbody tr.pr-row-1 td:first-child{box-shadow:inset 4px 0 0 #e07b00}
+tbody tr.pr-row-0.click:hover td{background:var(--pr0-bg)}
+tbody tr.pr-row-1.click:hover td{background:var(--pr1-bg)}
+.pr-row-0 .pr-0,.pr-row-1 .pr-1{background:var(--surface)}
+.pr-why{max-width:220px;white-space:normal}
+@media (max-width:760px){
+  .cards tr.pr-row-0{box-shadow:inset 5px 0 0 var(--crit)}
+  .cards tr.pr-row-1{box-shadow:inset 5px 0 0 #e07b00}
+  .cards tr.pr-row-0 td:first-child,.cards tr.pr-row-1 td:first-child{box-shadow:none}
+}
+
 </style>
 <div id="busy" class="busy" hidden></div>
 <div class="demo-bar"><div class="demo-in"><b>BẢN DEMO</b><span>Dữ liệu giả, chỉ lưu tạm trong trình duyệt và mất khi tải lại trang. Đổi người dùng ở góc phải để xem giao diện của từng vai trò.</span><span id="demo-date"></span></div></div>
@@ -476,10 +494,10 @@ var RT = (function () {
       'tong_lieu', 'so_buoi', 'igrt', 'sgrt', 'uu_tien', 'trang_thai', 'ngay_tao', 'ngay_contour_xong',
       'ks_email', 'ngay_nhan_kh', 'ngay_kh_xong', 'can_qa', 'qa_ket_qua', 'ngay_qa', 'ngay_du_kien',
       'ngay_nghi_tuan', 'may', 'ngay_bat_dau', 'ngay_ket_thuc', 'tam_ngung_tu', 'ly_do_tam_ngung',
-      'ghi_chu', 'cap_nhat_luc', 'cap_nhat_boi', 'ly_do_ket_thuc', 'muc_lieu', 'vi_tri', 'muc_dich', 'ngay_mo_phong', 'nguoi_nhap', 'icd'],
+      'ghi_chu', 'cap_nhat_luc', 'cap_nhat_boi', 'ly_do_ket_thuc', 'muc_lieu', 'vi_tri', 'muc_dich', 'ngay_mo_phong', 'nguoi_nhap', 'icd', 'ly_do_uu_tien', 'tg_nop_kh'],
     GiaiDoan: ['id', 'bn_id', 'stt', 'ky_thuat', 'tong_lieu', 'so_buoi', 'muc_lieu', 'trang_thai', 'di_cung',
       'uu_tien', 'ngay_tao', 'ngay_mo_phong', 'ngay_contour_xong', 'ks_email', 'ngay_nhan_kh', 'ngay_kh_xong',
-      'can_qa', 'qa_ket_qua', 'ngay_qa', 'ghi_chu', 'cap_nhat_luc', 'cap_nhat_boi'],
+      'can_qa', 'qa_ket_qua', 'ngay_qa', 'ghi_chu', 'cap_nhat_luc', 'cap_nhat_boi', 'ly_do_uu_tien', 'tg_nop_kh'],
     BuoiXa: ['id', 'bn_id', 'ngay', 'buoi_so', 'ktv_email', 'thoi_gian', 'hinh_anh', 'ghi_chu',
       'da_huy', 'huy_boi', 'ly_do_huy', 'gd', 'ghi_bu', 'ly_do_bu'],
     LichNgoaiLe: ['id', 'bn_id', 'may', 'ngay', 'loai', 'ghi_chu', 'nguoi', 'thoi_gian', 'da_xoa'],
@@ -702,24 +720,38 @@ var RT = (function () {
     };
   }
 
-  /** Hàng đợi lập kế hoạch (cả GĐ1 và boost). Cấp cứu → Ưu tiên → Thường; boost sắp hết GĐ trước lên trước; còn lại ai contour xong trước làm trước. */
+  /** Thời điểm nộp cho kỹ sư (contour xong); dữ liệu cũ chỉ có ngày */
+  function submitTime(x) { return x.tg_nop_kh || x.ngay_contour_xong || x.ngay_tao || ''; }
+  /** Thứ tự trong phần lập kế hoạch: Cấp cứu lên trước; còn lại (Ưu tiên, Thường) nộp trước làm trước */
+  function planOrder(a, b) {
+    var ra = a.uu_tien === 'Cấp cứu' ? 0 : 1, rb = b.uu_tien === 'Cấp cứu' ? 0 : 1;
+    if (ra !== rb) return ra - rb;
+    var da = submitTime(a), db = submitTime(b);
+    if (da !== db) return da < db ? -1 : 1;
+    return a.id < b.id ? -1 : 1;
+  }
+  /** Hàng đợi lập kế hoạch (cả GĐ1 và boost): Cấp cứu → boost sắp tới lượt xạ → nộp trước làm trước. */
   function planningQueue(items, urgentOf) {
     return items.filter(function (x) { return x.trang_thai === 'CHO_KH'; }).sort(function (a, b) {
-      var ra = PRIORITY_RANK[a.uu_tien] != null ? PRIORITY_RANK[a.uu_tien] : 2;
-      var rb = PRIORITY_RANK[b.uu_tien] != null ? PRIORITY_RANK[b.uu_tien] : 2;
+      var ra = a.uu_tien === 'Cấp cứu' ? 0 : 1, rb = b.uu_tien === 'Cấp cứu' ? 0 : 1;
       if (ra !== rb) return ra - rb;
       var ua = urgentOf ? urgentOf(a) : 99, ub = urgentOf ? urgentOf(b) : 99;
       if (ua !== ub) return ua - ub;
-      var da = a.ngay_contour_xong || a.ngay_tao, db = b.ngay_contour_xong || b.ngay_tao;
-      if (da !== db) return da < db ? -1 : 1;
-      return a.id < b.id ? -1 : 1;
+      return planOrder(a, b);
     });
+  }
+  /** Mức ưu tiên và lý do: "Ưu tiên" bắt buộc ghi lý do; "Thường" thì xoá lý do. */
+  function checkPrio(x, reason, strict) {
+    if (x.uu_tien && PRIORITY_RANK[x.uu_tien] == null) fail('Mức ưu tiên không hợp lệ.');
+    if (!x.uu_tien || x.uu_tien === 'Thường') { x.ly_do_uu_tien = ''; return; }
+    if (reason !== undefined) x.ly_do_uu_tien = String(reason || '').trim();
+    if (strict !== false && x.uu_tien === 'Ưu tiên' && !x.ly_do_uu_tien) fail('BN "Ưu tiên" cần ghi rõ lý do ưu tiên.');
   }
 
   // ---------- Thao tác ----------
   var EDIT_FIELDS = ['ma_his', 'ho_ten', 'nam_sinh', 'gioi', 'icd', 'chan_doan', 'vi_tri', 'muc_dich', 'ngay_mo_phong', 'khoa', 'bs_email', 'ky_thuat',
-    'tong_lieu', 'so_buoi', 'muc_lieu', 'igrt', 'sgrt', 'uu_tien', 'may', 'ghi_chu'];
-  var PHASE_FIELDS = ['ky_thuat', 'tong_lieu', 'so_buoi', 'muc_lieu', 'uu_tien', 'ngay_mo_phong', 'ghi_chu'];
+    'tong_lieu', 'so_buoi', 'muc_lieu', 'igrt', 'sgrt', 'uu_tien', 'ly_do_uu_tien', 'may', 'ghi_chu'];
+  var PHASE_FIELDS = ['ky_thuat', 'tong_lieu', 'so_buoi', 'muc_lieu', 'uu_tien', 'ly_do_uu_tien', 'ngay_mo_phong', 'ghi_chu'];
 
   function fail(msg) { throw new Error(msg); }
   function findP(ctx, id) {
@@ -861,7 +893,8 @@ var RT = (function () {
     g.id = p.id + '-G' + g.stt;
     g.bn_id = p.id;
     g.ngay_tao = ctx.today;
-    if (!g.uu_tien) g.uu_tien = p.uu_tien || 'Thường';
+    if (!g.uu_tien) { g.uu_tien = p.uu_tien || 'Thường'; g.ly_do_uu_tien = p.ly_do_uu_tien || ''; }
+    checkPrio(g);
     if (buoc === 'CUNG_LUC') {
       g.di_cung = 'Có';
       buoc = p.trang_thai === 'MO_PHONG' ? 'MO_PHONG' : p.trang_thai === 'CONTOUR' ? 'CONTOUR' : 'CHO_KH';
@@ -869,7 +902,7 @@ var RT = (function () {
     g.trang_thai = buoc;
     if (buoc === 'MO_PHONG' && g.ngay_mo_phong && !isDate(g.ngay_mo_phong)) fail('Ngày mô phỏng không hợp lệ.');
     if (buoc !== 'MO_PHONG') g.ngay_mo_phong = '';
-    if (buoc === 'CHO_KH' || buoc === 'SAN_SANG') g.ngay_contour_xong = ctx.today;
+    if (buoc === 'CHO_KH' || buoc === 'SAN_SANG') { g.ngay_contour_xong = ctx.today; g.tg_nop_kh = ctx.now || ''; }
     if (buoc === 'SAN_SANG') { g.ngay_kh_xong = ctx.today; g.qa_ket_qua = 'Nhập ban đầu'; }
     ctx.phases.push(g);
     return g;
@@ -910,6 +943,7 @@ var RT = (function () {
       setKhoa(ctx, p);
       p.nguoi_nhap = ctx.user.email;
       if (!p.uu_tien) p.uu_tien = 'Thường';
+      checkPrio(p);
       if (!p.igrt) p.igrt = 'Không';
       if (!p.sgrt) p.sgrt = 'Không';
       var step0 = a.trang_thai || 'CONTOUR';
@@ -944,7 +978,7 @@ var RT = (function () {
       }
       p.ngay_tao = ctx.today;
       p.trang_thai = step;
-      if (step !== 'CONTOUR' && step !== 'MO_PHONG') p.ngay_contour_xong = ctx.today;
+      if (step !== 'CONTOUR' && step !== 'MO_PHONG') { p.ngay_contour_xong = ctx.today; p.tg_nop_kh = ctx.now || ''; }
       if (step === 'CHO_XA' || step === 'DANG_XA') { p.ngay_kh_xong = ctx.today; p.qa_ket_qua = 'Nhập ban đầu'; }
       if (step === 'DANG_XA') { p.ngay_bat_dau = backfill[0]; p.ngay_du_kien = backfill[0]; }
       ctx.patients.push(p);
@@ -967,6 +1001,10 @@ var RT = (function () {
       Object.keys(p).forEach(function (k) { merged[k] = p[k]; });
       Object.keys(o).forEach(function (k) { merged[k] = o[k]; });
       if (o.bs_email !== undefined || o.khoa !== undefined) { setKhoa(ctx, merged); o.khoa = merged.khoa; }
+      if (o.uu_tien !== undefined || o.ly_do_uu_tien !== undefined) {
+        checkPrio(merged, undefined, merged.uu_tien !== p.uu_tien || PLAN_STATES.indexOf(p.trang_thai) >= 0);
+        o.ly_do_uu_tien = merged.ly_do_uu_tien;
+      }
       if (EARLY.indexOf(p.trang_thai) >= 0) validateBasic(merged, ctx.today); else validate(merged, ctx.today);
       if (merged.icd !== (o.icd === undefined ? merged.icd : o.icd)) o.icd = merged.icd;
       if (o.icd !== undefined) o.icd = merged.icd;
@@ -1001,14 +1039,16 @@ var RT = (function () {
         Object.keys(add).forEach(function (k) { if (add[k] !== '') t.p[k] = add[k]; });
       }
       if (a.uu_tien) t.x.uu_tien = a.uu_tien;
+      checkPrio(t.x, a.uu_tien ? a.ly_do_uu_tien : undefined);
       t.x.trang_thai = 'CHO_KH';
       t.x.ngay_contour_xong = ctx.today;
-      saveT(ctx, t, 'Contour xong', 'Ưu tiên: ' + t.x.uu_tien);
+      t.x.tg_nop_kh = ctx.now || '';
+      saveT(ctx, t, 'Contour xong', 'Ưu tiên: ' + t.x.uu_tien + (t.x.ly_do_uu_tien ? ' (' + t.x.ly_do_uu_tien + ')' : ''));
       var extra = 0;
       if (!t.g) {
         ctx.phases.forEach(function (g) {
           if (g.bn_id === t.p.id && g.di_cung === 'Có' && g.trang_thai === 'CONTOUR') {
-            g.trang_thai = 'CHO_KH'; g.ngay_contour_xong = ctx.today; if (a.uu_tien) g.uu_tien = a.uu_tien;
+            g.trang_thai = 'CHO_KH'; g.ngay_contour_xong = ctx.today; g.tg_nop_kh = ctx.now || ''; if (a.uu_tien) { g.uu_tien = t.x.uu_tien; g.ly_do_uu_tien = t.x.ly_do_uu_tien; }
             saveT(ctx, { g: g, p: t.p, x: g }, 'Contour xong', 'cùng GĐ1'); extra++;
           }
         });
@@ -1019,7 +1059,8 @@ var RT = (function () {
       var t = target(ctx, a.id);
       if (PRIORITY_RANK[a.uu_tien] == null) fail('Mức ưu tiên không hợp lệ.');
       t.x.uu_tien = a.uu_tien;
-      saveT(ctx, t, 'Đổi ưu tiên', a.uu_tien);
+      checkPrio(t.x, a.ly_do_uu_tien);
+      saveT(ctx, t, 'Đổi ưu tiên', a.uu_tien + (t.x.ly_do_uu_tien ? ' (' + t.x.ly_do_uu_tien + ')' : ''));
       return 'Đã đặt ưu tiên "' + a.uu_tien + '" cho ' + t.name + '.';
     },
     claimPlan: function (ctx, a) {
@@ -1084,6 +1125,10 @@ var RT = (function () {
       Object.keys(g).forEach(function (k) { merged[k] = g[k]; });
       Object.keys(o).forEach(function (k) { merged[k] = o[k]; });
       validateRx(merged, ' của boost');
+      if (o.uu_tien !== undefined || o.ly_do_uu_tien !== undefined) {
+        checkPrio(merged, undefined, merged.uu_tien !== g.uu_tien || PLAN_STATES.indexOf(g.trang_thai) >= 0);
+        o.ly_do_uu_tien = merged.ly_do_uu_tien;
+      }
       var seg = segments(p, envOf(ctx)).filter(function (s) { return s.g === g; })[0];
       var deliveredIn = Math.max(0, Math.min(fxOf(p, ctx.fractions).length, seg.to) - seg.from);
       if (num(merged.so_buoi) < deliveredIn) fail('Số buổi boost không được nhỏ hơn số buổi boost đã xạ (' + deliveredIn + ').');
@@ -1728,7 +1773,7 @@ var RT = (function () {
 
   return {
     VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, nurseKhoa: nurseKhoa, canByDoctor: canByDoctor, doctorKhoa: doctorKhoa, report: report, staffKhoa: staffKhoa, myDoctors: myDoctors,
-    normIcd: normIcd, isIcd: isIcd, icdName: icdName, summary: summary, findPatients: findPatients, scopePatients: scopePatients, fold: fold, indexRow: indexRow, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
+    normIcd: normIcd, isIcd: isIcd, icdName: icdName, summary: summary, findPatients: findPatients, scopePatients: scopePatients, fold: fold, indexRow: indexRow, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, planOrder: planOrder, submitTime: submitTime, DOW: DOW,
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
@@ -1802,6 +1847,7 @@ window.DEMO = (function () {
     p.bs_email = 'bs.hai@demo';
     Object.keys(o).forEach(function (k) { p[k] = o[k]; });
     if (p.bs_email === 'bs.thu@demo' || p.bs_email === 'bs.chi@demo') p.khoa = 'Xạ trị';
+    if (p.uu_tien === 'Ưu tiên' && !p.ly_do_uu_tien) p.ly_do_uu_tien = ['Người nhà nhân viên bệnh viện', 'Theo chỉ đạo Ban Giám đốc', 'BN ở xa, cần xạ sớm để về'][seq % 3];
     if (p.chan_doan && !p.icd) demoIcd(p);
     patients.push(p);
     return p;
@@ -2071,7 +2117,7 @@ window.DEMO = (function () {
     if (list.length) setTimeout(function () { pushNotes(list.map(function (p) { return { pid: p.id, text: p.ho_ten + ' (' + p.ma_his + '): vắng ' + course(p).streak + ' buổi liên tiếp', time: '' }; })); if (S.data) renderShell(); }, 0);
   }
   /** Các "việc lập kế hoạch": BN (GĐ1) và các boost đang ở bước mô phỏng → QA. Boost mượn thông tin hành chính của BN. */
-  var PH_FIELDS = ['ky_thuat', 'tong_lieu', 'so_buoi', 'muc_lieu', 'uu_tien', 'trang_thai', 'ngay_tao', 'ngay_mo_phong', 'ngay_contour_xong', 'ks_email', 'ngay_nhan_kh', 'ngay_kh_xong', 'can_qa', 'qa_ket_qua', 'ngay_qa', 'ghi_chu'];
+  var PH_FIELDS = ['ky_thuat', 'tong_lieu', 'so_buoi', 'muc_lieu', 'uu_tien', 'ly_do_uu_tien', 'tg_nop_kh', 'trang_thai', 'ngay_tao', 'ngay_mo_phong', 'ngay_contour_xong', 'ks_email', 'ngay_nhan_kh', 'ngay_kh_xong', 'can_qa', 'qa_ket_qua', 'ngay_qa', 'ghi_chu'];
   function phaseItem(g, p) {
     var it = {};
     Object.keys(p).forEach(function (k) { it[k] = p[k]; });
@@ -2124,7 +2170,21 @@ window.DEMO = (function () {
   function daysSince(s) { return s ? RT.diffDays(s, today()) : 0; }
   function prRank(p) { var r = RT.PRIORITY_RANK[p.uu_tien]; return r == null ? 2 : r; }
   function stPill(p) { return '<span class="pill st-' + p.trang_thai + '">' + esc(RT.STATUS[p.trang_thai] || p.trang_thai) + '</span>'; }
-  function prPill(p) { return '<span class="pill pr-' + prRank(p) + '">' + esc(p.uu_tien || 'Thường') + '</span>'; }
+  function prPill(p) { return '<span class="pill pr-' + prRank(p) + '"' + (p.ly_do_uu_tien ? ' title="' + esc(p.ly_do_uu_tien) + '"' : '') + '>' + esc(p.uu_tien || 'Thường') + '</span>'; }
+  function prCell(p) { return prPill(p) + (p.ly_do_uu_tien && p.uu_tien !== 'Thường' ? '<span class="sub pr-why">' + esc(p.ly_do_uu_tien) + '</span>' : ''); }
+  /** Tô nền dòng BN đang trong quy trình chuẩn bị: cấp cứu đỏ, ưu tiên cam */
+  var PR_ROW_ST = ['MO_PHONG', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA'];
+  function prRowCls(p) { return p && PR_ROW_ST.indexOf(p.trang_thai) >= 0 ? (p.uu_tien === 'Cấp cứu' ? ' pr-row-0' : p.uu_tien === 'Ưu tiên' ? ' pr-row-1' : '') : ''; }
+  var PRIO_PH = 'VD: theo chỉ đạo Ban Giám đốc, người nhà nhân viên, BN ở xa…';
+  function prioReasonField(val) {
+    return '<div class="field full" data-prio-why><label>Lý do ưu tiên <span class="req" data-prio-req>*</span></label><input type="text" name="ly_do_uu_tien" maxlength="200" value="' + esc(val || '') + '" placeholder="' + PRIO_PH + '"><span class="help">Bắt buộc với BN “Ưu tiên”; không bắt buộc với cấp cứu.</span></div>';
+  }
+  function bindPrio(form) {
+    var box = $('[data-prio-why]', form); if (!box) return;
+    var upd = function () { var v = formValues(form).uu_tien || 'Thường'; box.hidden = v === 'Thường'; $('[data-prio-req]', form).hidden = v !== 'Ưu tiên'; };
+    $$('[name=uu_tien]', form).forEach(function (el) { el.addEventListener('change', upd); }); upd();
+  }
+  function prioError(v) { return v.uu_tien === 'Ưu tiên' && !String(v.ly_do_uu_tien || '').trim() ? 'BN “Ưu tiên” cần ghi rõ lý do ưu tiên.' : ''; }
   function rx(p) { if (!p._g && RT.missingRx(p).length) return '<span class="flag">Chưa đủ chỉ định</span>' + (p.ky_thuat ? ' ' + esc(p.ky_thuat) : ''); return esc(p.ky_thuat) + ' · <span class="num">' + esc(p.tong_lieu) + ' Gy/' + esc(p.so_buoi) + '</span>'; }
   function ptCell(p) {
     return '<div class="pt"><b>' + esc(p.ho_ten) + '</b>' + (p._g ? ' <span class="tag boost">Boost GĐ' + esc(p._g.stt) + '</span>' : '') + '<span class="sub"><span class="mono">' + esc(p.ma_his) + '</span>' +
@@ -2399,7 +2459,7 @@ window.DEMO = (function () {
     var lb = cols.map(function (c) { return esc(String(c.h || '').replace(/<[^>]*>/g, '')); });
     return '<div class="card"><div class="tbl-wrap cards"><table><thead><tr>' + cols.map(function (c) { return '<th>' + c.h + '</th>'; }).join('') +
       '</tr></thead><tbody>' + rows.map(function (p, i) {
-        return '<tr class="click" tabindex="0" data-open="' + esc(p._pid || p.id) + '">' + cols.map(function (c, k) {
+        return '<tr class="click' + prRowCls(p) + '" tabindex="0" data-open="' + esc(p._pid || p.id) + '">' + cols.map(function (c, k) {
           return '<td class="' + (c.cls || '') + '" data-l="' + lb[k] + '">' + c.v(p, i) + '</td>';
         }).join('') + '</tr>';
       }).join('') + '</tbody></table></div></div>';
@@ -2418,7 +2478,7 @@ window.DEMO = (function () {
     dx: { h: 'Chẩn đoán', v: function (p) { return (p.icd ? '<span class="icd-tag">' + esc(p.icd) + '</span> ' : '') + esc(p.chan_doan) + (p.vi_tri ? '<span class="sub">Vị trí: ' + esc(p.vi_tri) + '</span>' : ''); } },
     rx: { h: 'Kỹ thuật · liều', v: rx, cls: 'nowrap' },
     bs: { h: 'BS điều trị', v: function (p) { return esc(nameOf(p.bs_email)); }, cls: 'nowrap' },
-    pr: { h: 'Ưu tiên', v: prPill },
+    pr: { h: 'Ưu tiên', v: prCell },
     st: { h: 'Trạng thái', v: stPill },
     img: { h: 'IGRT / SGRT', v: igrtBadges, cls: 'nowrap' },
     prog: { h: 'Tiến độ', v: progCell },
@@ -2636,7 +2696,7 @@ window.DEMO = (function () {
         'Xếp: Cấp cứu → Ưu tiên → chờ lâu trước.', 'Không có BN chờ contour.');
   }
   function renderQa() {
-    var list = byState(['CHO_QA']).sort(function (a, b) { return prRank(a) - prRank(b) || (a.ngay_kh_xong < b.ngay_kh_xong ? -1 : 1); });
+    var list = byState(['CHO_QA']).sort(RT.planOrder);
     return stepHead('QA', 'Kế hoạch đã lập xong, chờ đo kiểm tra (QA). QA đạt thì BN chuyển sang “Chờ vào xạ” để KTV xếp lịch.') +
       group('qa', 'Chờ QA', list, [C.pt, C.pr,
         { h: 'Kỹ sư · KH xong', cls: 'nowrap', v: function (p) { return esc(nameOf(p.ks_email)) + '<span class="sub">' + fd(p.ngay_kh_xong) + ' · ' + daysSince(p.ngay_kh_xong) + ' ngày</span>'; } },
@@ -2657,8 +2717,8 @@ window.DEMO = (function () {
   function renderKsMine() {
     var em = me().email;
     var queue = RT.planningQueue(items(), boostLeft);
-    var doing = byState(['DANG_KH']).filter(function (p) { return p.ks_email === em; }).sort(function (a, b) { return prRank(a) - prRank(b) || (a.ngay_nhan_kh < b.ngay_nhan_kh ? -1 : 1); });
-    var qa = byState(['CHO_QA']).filter(function (p) { return p.ks_email === em; });
+    var doing = byState(['DANG_KH']).filter(function (p) { return p.ks_email === em; }).sort(RT.planOrder);
+    var qa = byState(['CHO_QA']).filter(function (p) { return p.ks_email === em; }).sort(RT.planOrder);
     var recent = items().concat([]).filter(function (p) { return p.ks_email === em && p.ngay_kh_xong && daysSince(p.ngay_kh_xong) <= 7 && ['CHO_XA', 'DANG_XA', 'TAM_NGUNG', 'HOAN_THANH'].indexOf(p.trang_thai) >= 0; })
       .sort(function (a, b) { return a.ngay_kh_xong < b.ngay_kh_xong ? 1 : -1; });
     var urgent = queue.filter(function (p) { return p.uu_tien === 'Cấp cứu'; }).length;
@@ -2676,7 +2736,7 @@ window.DEMO = (function () {
       { h: 'Contour xong', cls: 'nowrap', v: function (p) { var n = daysSince(p.ngay_contour_xong); return '<span class="num">' + fdw(p.ngay_contour_xong) + '</span><span class="sub"' + (n >= 3 ? ' style="color:var(--warn)"' : '') + '>chờ ' + n + ' ngày</span>'; } },
       C.dx, C.rx, { h: 'Hạn', v: deadline },
       { h: '', cls: 'act', v: function (p) { return can('claimPlan') ? btn('claimPlan', p.id, 'Nhận ca', 'primary') : ''; } }
-    ], 'Thứ tự: Cấp cứu → Ưu tiên → boost sắp tới lượt xạ → contour xong trước làm trước.', 'Không có ca nào chờ nhận.');
+    ], 'Thứ tự: Cấp cứu → boost sắp tới lượt xạ → nộp trước làm trước. Nền đỏ: cấp cứu, nền cam: ưu tiên.', 'Không có ca nào chờ nhận.');
     html += group('kd', 'Ca tôi đang lập kế hoạch', doing, [C.pt, C.pr, C.bs,
       { h: 'Nhận ca', cls: 'nowrap', v: function (p) { var n = daysSince(p.ngay_nhan_kh); return '<span class="num">' + fdw(p.ngay_nhan_kh) + '</span><span class="sub"' + (n >= 3 ? ' style="color:var(--warn)"' : '') + '>' + n + ' ngày</span>'; } },
       C.dx, C.rx, { h: 'Hạn', v: deadline },
@@ -2695,8 +2755,8 @@ window.DEMO = (function () {
   // ---------- Kỹ sư ----------
   function renderPlanning() {
     var queue = RT.planningQueue(items(), boostLeft);
-    var doing = items().filter(function (p) { return p.trang_thai === 'DANG_KH'; }).sort(function (a, b) { return prRank(a) - prRank(b) || (a.ngay_nhan_kh < b.ngay_nhan_kh ? -1 : 1); });
-    var qa = items().filter(function (p) { return p.trang_thai === 'CHO_QA'; }).sort(function (a, b) { return prRank(a) - prRank(b) || (a.ngay_kh_xong < b.ngay_kh_xong ? -1 : 1); });
+    var doing = items().filter(function (p) { return p.trang_thai === 'DANG_KH'; }).sort(RT.planOrder);
+    var qa = items().filter(function (p) { return p.trang_thai === 'CHO_QA'; }).sort(RT.planOrder);
     var recent = pts().filter(function (p) { return p.ngay_kh_xong && daysSince(p.ngay_kh_xong) <= 7 && ['CHO_XA', 'DANG_XA', 'TAM_NGUNG', 'HOAN_THANH'].indexOf(p.trang_thai) >= 0; })
       .sort(function (a, b) { return a.ngay_kh_xong < b.ngay_kh_xong ? 1 : -1; });
     var mine = doing.filter(function (p) { return p.ks_email === me().email; }).length;
@@ -2714,7 +2774,7 @@ window.DEMO = (function () {
       { h: 'Contour xong', cls: 'nowrap', v: function (p) { return '<span class="num">' + fdw(p.ngay_contour_xong) + '</span><span class="sub">chờ ' + daysSince(p.ngay_contour_xong) + ' ngày</span>'; } },
       C.dx, C.rx, { h: 'Hạn', v: function (p) { return boostFlag(p) || '<span class="muted">—</span>'; } }, C.bs,
       { h: '', cls: 'act', v: function (p) { return can('claimPlan') ? btn('claimPlan', p.id, 'Nhận ca') + btn('planDone', p.id, 'Lập KH xong', 'primary') : ''; } }
-    ], 'Thứ tự: Cấp cứu → Ưu tiên → boost sắp tới lượt xạ → ca contour xong trước làm trước.', 'Không có ca nào chờ lập kế hoạch.');
+    ], 'Thứ tự: Cấp cứu → boost sắp tới lượt xạ → nộp trước làm trước. Nền đỏ: cấp cứu, nền cam: ưu tiên.', 'Không có ca nào chờ lập kế hoạch.');
     html += group('doing', 'Đang lập kế hoạch', doing, [C.pt, C.pr,
       { h: 'Kỹ sư', cls: 'nowrap', v: function (p) { return esc(nameOf(p.ks_email)) + '<span class="sub">nhận ' + fd(p.ngay_nhan_kh) + ' · ' + daysSince(p.ngay_nhan_kh) + ' ngày</span>'; } },
       C.dx, C.rx, { h: 'Hạn', v: function (p) { return boostFlag(p) || '<span class="muted">—</span>'; } },
@@ -3509,7 +3569,7 @@ window.DEMO = (function () {
 
     dr.innerHTML = '<div class="scrim" data-close></div><aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="dr-t">' +
       '<div class="drawer-head"><div class="row"><h2 id="dr-t">' + esc(p.ho_ten) + '</h2><button class="x" data-close aria-label="Đóng">×</button></div>' +
-      '<div>' + stPill(p) + ' ' + prPill(p) + ' <span class="muted">· Mã HIS</span> <b class="mono">' + esc(p.ma_his) + '</b><button class="copy" id="copy-his">Sao chép</button>' +
+      '<div>' + stPill(p) + ' ' + prPill(p) + (p.ly_do_uu_tien && p.uu_tien !== 'Thường' ? ' <span class="muted">(' + esc(p.ly_do_uu_tien) + ')</span>' : '') + ' <span class="muted">· Mã HIS</span> <b class="mono">' + esc(p.ma_his) + '</b><button class="copy" id="copy-his">Sao chép</button>' +
       '<span class="muted"> · ' + [age(p), p.gioi, p.id].filter(Boolean).map(esc).join(' · ') + '</span></div></div>' +
       '<div class="drawer-body">' +
       (ro ? '<div class="sec" style="border-color:var(--blue)"><h3 style="color:var(--blue)">Hồ sơ lưu trữ</h3><p>Đợt xạ đã kết thúc và được chuyển sang lưu trữ. Chỉ xem, không sửa.</p></div>' : '') +
@@ -3725,17 +3785,18 @@ window.DEMO = (function () {
     modal({ title: 'Contour xong, chuyển kỹ sư', ok: 'Chuyển kỹ sư', body: whoBox(p) + fill +
       '<div class="field"><span class="lb">Mức ưu tiên lập kế hoạch</span><div class="radios">' + [
         ['Cấp cứu', 'Chèn ép tủy, chảy máu, tắc nghẽn… Lập kế hoạch ngay.'],
-        ['Ưu tiên', 'Cần sớm hơn thứ tự thông thường.'],
+        ['Ưu tiên', 'Tô nền cam để kỹ sư chú ý. Cần ghi rõ lý do.'],
         ['Thường', 'Theo thứ tự contour xong trước làm trước.']
-      ].map(function (x) { return '<label><input type="radio" name="uu_tien" value="' + x[0] + '"' + ((p.uu_tien || 'Thường') === x[0] ? ' checked' : '') + '><span><b>' + x[0] + '</b><small>' + x[1] + '</small></span></label>'; }).join('') + '</div></div>',
-      onMount: bindIcd,
-      validate: function (v) { if (!miss.length) return ''; var m = RT.missingRx(v, true); return m.length ? 'Cần nhập đủ: ' + m.join(', ') + '.' : ''; },
+      ].map(function (x) { return '<label><input type="radio" name="uu_tien" value="' + x[0] + '"' + ((p.uu_tien || 'Thường') === x[0] ? ' checked' : '') + '><span><b>' + x[0] + '</b><small>' + x[1] + '</small></span></label>'; }).join('') + '</div></div>' + prioReasonField(p.ly_do_uu_tien),
+      onMount: function (form) { bindIcd(form); bindPrio(form); },
+      validate: function (v) { var pe = prioError(v); if (pe) return pe; if (!miss.length) return ''; var m = RT.missingRx(v, true); return m.length ? 'Cần nhập đủ: ' + m.join(', ') + '.' : ''; },
       onOk: function (v) { v.id = p.id; run('contourDone', v); } });
   }
   function priorityForm(p) {
     modal({ title: 'Đổi mức ưu tiên', ok: 'Lưu', body: whoBox(p) + '<div class="radios">' + ['Cấp cứu', 'Ưu tiên', 'Thường'].map(function (x) {
-      return '<label><input type="radio" name="uu_tien" value="' + x + '"' + ((p.uu_tien || 'Thường') === x ? ' checked' : '') + '><span><b>' + x + '</b></span></label>'; }).join('') + '</div>',
-      onOk: function (v) { run('setPriority', { id: p.id, uu_tien: v.uu_tien }); } });
+      return '<label><input type="radio" name="uu_tien" value="' + x + '"' + ((p.uu_tien || 'Thường') === x ? ' checked' : '') + '><span><b>' + x + '</b></span></label>'; }).join('') + '</div>' + prioReasonField(p.ly_do_uu_tien),
+      onMount: bindPrio, validate: prioError,
+      onOk: function (v) { run('setPriority', { id: p.id, uu_tien: v.uu_tien, ly_do_uu_tien: v.ly_do_uu_tien }); } });
   }
   function ksSelect(sel) {
     return field('Kỹ sư phụ trách <span class="req">*</span>', '<select name="ks_email">' + opts(activeUsers('KS').map(function (u) { return { v: u.email, l: u.ho_ten }; }), sel || '', 'Chọn kỹ sư') + '</select>', 'full');
@@ -3856,7 +3917,7 @@ window.DEMO = (function () {
         field('Vị trí xạ', inp('vi_tri', 'text', 'list="dl-vitri" autocomplete="off" placeholder="Chọn hoặc gõ, VD: Cột sống L2–L4"') + '<datalist id="dl-vitri">' + (d.VI_TRI || RT.DEFAULT_DM.VI_TRI).map(function (x) { return '<option value="' + esc(x) + '"></option>'; }).join('') + '</datalist>', '', 'Bấm vào ô để chọn, hoặc gõ vị trí khác') +
         field('Mục đích', '<select name="muc_dich">' + opts(mucDich, v0.muc_dich, '—') + '</select>') +
         field('Kỹ thuật <span class="req rx-req">*</span>', '<select name="ky_thuat">' + opts(d.KY_THUAT, v0.ky_thuat, 'Chọn kỹ thuật') + '</select>') +
-        field('Ưu tiên', '<select name="uu_tien">' + opts(d.UU_TIEN, v0.uu_tien) + '</select>') +
+        field('Ưu tiên', '<select name="uu_tien">' + opts(d.UU_TIEN, v0.uu_tien) + '</select>') + prioReasonField(v0.ly_do_uu_tien) +
         field('Tổng liều (Gy) <span class="req rx-req">*</span>', inp('tong_lieu', 'number', 'step="0.01" min="0"')) +
         field('Số buổi <span class="req rx-req">*</span>', inp('so_buoi', 'number', 'step="1" min="1" max="60"'), '', '<span id="dpf"></span>') +
         field('IGRT dự kiến', '<select name="igrt">' + opts(d.IGRT, v0.igrt) + '</select>') +
@@ -3880,6 +3941,7 @@ window.DEMO = (function () {
           kHelp.textContent = k ? 'Theo khoa của bác sĩ điều trị' : bsSel.value ? 'Bác sĩ này chưa ghi khoa trong Quản trị: chọn khoa' : 'Chọn bác sĩ, khoa tự điền theo bác sĩ';
         };
         bsSel.addEventListener('change', syncKhoa); syncKhoa();
+        bindPrio(form);
         var cb = $('#co-boost', form), more = $('#more', form);
         var step = function () {
           var st = (formValues(form).trang_thai) || '';
@@ -3933,6 +3995,7 @@ window.DEMO = (function () {
         if (isNew && !v.trang_thai) return 'Cần chọn bước hiện tại của bệnh nhân (chưa mô phỏng, đang contour…).';
         if (!v.bs_email) return 'Cần chọn bác sĩ điều trị.';
         if (!v.khoa) return 'Cần chọn khoa.';
+        if (prioError(v)) return prioError(v);
         if (v.icd && !RT.isIcd(RT.normIcd(v.icd))) return 'Mã ICD-10 chưa đúng dạng (VD: C50.9).';
         var early = isNew ? (!v.trang_thai || v.trang_thai === 'MO_PHONG' || v.trang_thai === 'CONTOUR') && !v.co_boost : ['MO_PHONG', 'CONTOUR'].indexOf(p.trang_thai) >= 0;
         if (!early) {
@@ -3987,12 +4050,12 @@ window.DEMO = (function () {
     ['SAN_SANG', 'Đã có KH boost', 'Dùng khi nhập BN đã có sẵn kế hoạch boost']
   ];
   function phaseForm(p, g) {
-    var isNew = !g, d = S.data.dm, v0 = g || { uu_tien: p.uu_tien || 'Thường' };
+    var isNew = !g, d = S.data.dm, v0 = g || { uu_tien: p.uu_tien || 'Thường', ly_do_uu_tien: p.ly_do_uu_tien || '' };
     var inp = function (name, type, attrs) { return '<input type="' + (type || 'text') + '" name="' + name + '" value="' + esc(v0[name] || '') + '" ' + (attrs || '') + '>'; };
     modal({ title: isNew ? 'Thêm boost (GĐ' + (course(p).segs.length + 1) + ')' : 'Sửa boost GĐ' + g.stt, ok: isNew ? 'Thêm boost' : 'Lưu',
       body: whoBox(p) + '<div class="form">' +
         field('Kỹ thuật <span class="req">*</span>', '<select name="ky_thuat">' + opts(d.KY_THUAT, v0.ky_thuat, 'Chọn') + '</select>') +
-        field('Ưu tiên lập KH', '<select name="uu_tien">' + opts(d.UU_TIEN, v0.uu_tien) + '</select>') +
+        field('Ưu tiên lập KH', '<select name="uu_tien">' + opts(d.UU_TIEN, v0.uu_tien) + '</select>') + prioReasonField(v0.ly_do_uu_tien) +
         field('Tổng liều boost (Gy) <span class="req">*</span>', inp('tong_lieu', 'number', 'step="0.01" min="0"')) +
         field('Số buổi <span class="req">*</span>', inp('so_buoi', 'number', 'step="1" min="1" max="60"')) +
         field('Các mức liều (nếu SIB)', inp('muc_lieu'), 'full') +
@@ -4004,9 +4067,11 @@ window.DEMO = (function () {
       onMount: function (form) {
         var upd = function () { var v = formValues(form); $$('[data-sim]', form).forEach(function (el) { el.hidden = v.buoc !== 'MO_PHONG'; }); };
         $$('input[name=buoc]', form).forEach(function (el) { el.addEventListener('change', upd); }); upd();
+        bindPrio(form);
       },
       validate: function (v) {
         if (!v.ky_thuat) return 'Chọn kỹ thuật.';
+        if (prioError(v)) return prioError(v);
         if (!(RT.num(v.tong_lieu) > 0) || !(RT.num(v.so_buoi) >= 1)) return 'Nhập liều và số buổi boost.';
         return '';
       },

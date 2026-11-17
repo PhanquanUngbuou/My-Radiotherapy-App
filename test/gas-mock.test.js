@@ -151,7 +151,7 @@ ok('ktv@x.vn', 'logFraction', { bn_id: bp.id, ngay: d1, ly_do_bu: 'quên tích' 
 ok('ktv@x.vn', 'logFraction', { bn_id: bp.id, ngay: d2, ly_do_bu: 'quên tích' });
 r = api('ktv@x.vn', 'logFraction', { bn_id: bp.id, ngay: today });
 assert(!r.ok && /chưa sẵn sàng/.test(r.error), 'chặn xạ khi KH boost chưa sẵn sàng: ' + r.error);
-ok('bs@x.vn', 'contourDone', { id: g.id, uu_tien: 'Ưu tiên' });
+ok('bs@x.vn', 'contourDone', { id: g.id, uu_tien: 'Ưu tiên', ly_do_uu_tien: 'test' });
 ok('ks@x.vn', 'claimPlan', { id: g.id, ks_email: 'ks@x.vn' });
 ok('ks@x.vn', 'planDone', { id: g.id, can_qa: true });
 r = ok('ks@x.vn', 'qaResult', { id: g.id, dat: true });
@@ -244,7 +244,7 @@ r = api('bs@x.vn', 'contourDone', { id: hc.id });
 assert(!r.ok && /chẩn đoán, kỹ thuật, tổng liều, số buổi/.test(r.error), 'contour xong khi thiếu chuyên môn bị chặn: ' + r.error);
 r = api('bs@x.vn', 'contourDone', { id: hc.id, chan_doan: 'K vú', ky_thuat: '3D-CRT', tong_lieu: '40.05' });
 assert(!r.ok && /số buổi/.test(r.error), 'vẫn thiếu số buổi');
-r = ok('bs@x.vn', 'contourDone', { id: hc.id, icd: 'C50.9', chan_doan: 'K vú', vi_tri: 'Vú trái', ky_thuat: '3D-CRT', tong_lieu: '40.05', so_buoi: '15', uu_tien: 'Ưu tiên' });
+r = ok('bs@x.vn', 'contourDone', { id: hc.id, icd: 'C50.9', chan_doan: 'K vú', vi_tri: 'Vú trái', ky_thuat: '3D-CRT', tong_lieu: '40.05', so_buoi: '15', uu_tien: 'Ưu tiên', ly_do_uu_tien: 'test' });
 hc = r.data.patients.find(x => x.id === hc.id);
 assert.strictEqual(hc.trang_thai, 'CHO_KH'); assert.strictEqual(hc.so_buoi, '15'); assert.strictEqual(hc.vi_tri, 'Vú trái');
 r = ok('bs@x.vn', 'updatePatient', { id: hc.id, ghi_chu: 'ok' });
@@ -461,5 +461,32 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   assert(fb.found.rows.length && fb.found.rows.every(x => x.bs_email === 'bs@x.vn'), 'trưởng khoa lọc theo BS');
   let fd = ok('dd2@x.vn', 'findPatients', { tu: dR, den: today, moc: 'xa' });
   assert(fd.found.rows.every(x => x.khoa === 'Xạ trị'), 'ĐD tìm trong khoa mình');
+}
+// ---- v2.7: lý do ưu tiên, thứ tự lập kế hoạch ----
+{
+  const mkc = (his) => ok('bs@x.vn', 'createPatient', { ma_his: his, ho_ten: 'UT ' + his, nam_sinh: '1960', icd: 'C50.9', chan_doan: 'K', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25', trang_thai: 'CONTOUR' }).data.patients.find(x => x.ma_his === his);
+  const q1 = mkc('UT1'), q2 = mkc('UT2'), q3 = mkc('UT3');
+  r = api('bs@x.vn', 'contourDone', { id: q1.id, uu_tien: 'Ưu tiên' });
+  assert(!r.ok && /lý do ưu tiên/.test(r.error), 'Ưu tiên phải ghi lý do');
+  ok('bs@x.vn', 'contourDone', { id: q1.id, uu_tien: 'Ưu tiên', ly_do_uu_tien: 'Người nhà nhân viên' });
+  ok('bs@x.vn', 'contourDone', { id: q2.id, uu_tien: 'Thường', ly_do_uu_tien: 'bỏ qua' });
+  r = ok('bs@x.vn', 'contourDone', { id: q3.id, uu_tien: 'Cấp cứu' });
+  const g = (id) => r.data.patients.find(x => x.id === id);
+  assert.strictEqual(g(q1.id).ly_do_uu_tien, 'Người nhà nhân viên', 'lưu lý do');
+  assert.strictEqual(g(q2.id).ly_do_uu_tien, '', 'BN thường không lưu lý do');
+  assert(g(q1.id).tg_nop_kh && g(q1.id).tg_nop_kh <= g(q2.id).tg_nop_kh, 'lưu thời điểm nộp');
+  const qq = ctx.RT.planningQueue(r.data.patients.filter(x => ['UT1', 'UT2', 'UT3'].includes(x.ma_his)));
+  assert.deepStrictEqual(qq.map(x => x.ma_his), ['UT3', 'UT1', 'UT2'], 'cấp cứu trước, rồi nộp trước làm trước');
+  // ưu tiên không vượt BN thường nộp trước
+  const qq2 = ctx.RT.planningQueue([{ id: 'a', trang_thai: 'CHO_KH', uu_tien: 'Thường', tg_nop_kh: '2026-01-01T08:00:00' }, { id: 'b', trang_thai: 'CHO_KH', uu_tien: 'Ưu tiên', tg_nop_kh: '2026-01-01T09:00:00' }, { id: 'c', trang_thai: 'CHO_KH', uu_tien: 'Cấp cứu', tg_nop_kh: '2026-01-02T09:00:00' }]);
+  assert.deepStrictEqual(qq2.map(x => x.id), ['c', 'a', 'b']);
+  assert(!api('ks@x.vn', 'setPriority', { id: q2.id, uu_tien: 'Ưu tiên' }).ok || !api('bs@x.vn', 'setPriority', { id: q2.id, uu_tien: 'Ưu tiên' }).ok, 'đổi sang Ưu tiên phải có lý do');
+  r = ok('bs@x.vn', 'setPriority', { id: q2.id, uu_tien: 'Ưu tiên', ly_do_uu_tien: 'BN ở xa' });
+  assert.strictEqual(r.data.patients.find(x => x.id === q2.id).ly_do_uu_tien, 'BN ở xa');
+  r = ok('bs@x.vn', 'setPriority', { id: q2.id, uu_tien: 'Thường' });
+  assert.strictEqual(r.data.patients.find(x => x.id === q2.id).ly_do_uu_tien, '', 'về thường thì xoá lý do');
+  assert(!api('bs@x.vn', 'createPatient', { ma_his: 'UT4', ho_ten: 'UT4', nam_sinh: '1960', uu_tien: 'Ưu tiên', trang_thai: 'CONTOUR' }).ok, 'thêm BN ưu tiên phải có lý do');
+  assert(!api('bs@x.vn', 'updatePatient', { id: q1.id, uu_tien: 'Ưu tiên', ly_do_uu_tien: '' }).ok, 'không xoá được lý do của BN đang chờ lập KH');
+  assert(sheets.BenhNhan.data[0].includes('ly_do_uu_tien') && sheets.BenhNhan.data[0].includes('tg_nop_kh'), 'cột mới');
 }
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');

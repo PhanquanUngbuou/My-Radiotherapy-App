@@ -43,7 +43,7 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
   <div class="intro">
     <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v2.7</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v2.7 · bản lưu 3234acf · 17/11/2026 14:49. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v2.7”.</span>
+    <span class="rev">Phiên bản v2.7 · bản lưu 2a27e4c · 17/11/2026 15:28. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v2.7”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
@@ -578,7 +578,7 @@ function writePatients_(r, user) {
       <div class="meta">
         <h2 id="h-Core">Core.gs <span class="ver">· v2.7</span></h2>
         <p>Bấm + → Script (Tập lệnh), đặt tên Core.</p>
-        <span class="size">1,303 dòng · 147 KB</span>
+        <span class="size">1,330 dòng · 149 KB</span>
       </div>
       <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v2.7)</button>
     </div>
@@ -619,10 +619,10 @@ var RT = (function () {
       &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;, &#x27;igrt&#x27;, &#x27;sgrt&#x27;, &#x27;uu_tien&#x27;, &#x27;trang_thai&#x27;, &#x27;ngay_tao&#x27;, &#x27;ngay_contour_xong&#x27;,
       &#x27;ks_email&#x27;, &#x27;ngay_nhan_kh&#x27;, &#x27;ngay_kh_xong&#x27;, &#x27;can_qa&#x27;, &#x27;qa_ket_qua&#x27;, &#x27;ngay_qa&#x27;, &#x27;ngay_du_kien&#x27;,
       &#x27;ngay_nghi_tuan&#x27;, &#x27;may&#x27;, &#x27;ngay_bat_dau&#x27;, &#x27;ngay_ket_thuc&#x27;, &#x27;tam_ngung_tu&#x27;, &#x27;ly_do_tam_ngung&#x27;,
-      &#x27;ghi_chu&#x27;, &#x27;cap_nhat_luc&#x27;, &#x27;cap_nhat_boi&#x27;, &#x27;ly_do_ket_thuc&#x27;, &#x27;muc_lieu&#x27;, &#x27;vi_tri&#x27;, &#x27;muc_dich&#x27;, &#x27;ngay_mo_phong&#x27;, &#x27;nguoi_nhap&#x27;, &#x27;icd&#x27;],
+      &#x27;ghi_chu&#x27;, &#x27;cap_nhat_luc&#x27;, &#x27;cap_nhat_boi&#x27;, &#x27;ly_do_ket_thuc&#x27;, &#x27;muc_lieu&#x27;, &#x27;vi_tri&#x27;, &#x27;muc_dich&#x27;, &#x27;ngay_mo_phong&#x27;, &#x27;nguoi_nhap&#x27;, &#x27;icd&#x27;, &#x27;ly_do_uu_tien&#x27;, &#x27;tg_nop_kh&#x27;],
     GiaiDoan: [&#x27;id&#x27;, &#x27;bn_id&#x27;, &#x27;stt&#x27;, &#x27;ky_thuat&#x27;, &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;, &#x27;muc_lieu&#x27;, &#x27;trang_thai&#x27;, &#x27;di_cung&#x27;,
       &#x27;uu_tien&#x27;, &#x27;ngay_tao&#x27;, &#x27;ngay_mo_phong&#x27;, &#x27;ngay_contour_xong&#x27;, &#x27;ks_email&#x27;, &#x27;ngay_nhan_kh&#x27;, &#x27;ngay_kh_xong&#x27;,
-      &#x27;can_qa&#x27;, &#x27;qa_ket_qua&#x27;, &#x27;ngay_qa&#x27;, &#x27;ghi_chu&#x27;, &#x27;cap_nhat_luc&#x27;, &#x27;cap_nhat_boi&#x27;],
+      &#x27;can_qa&#x27;, &#x27;qa_ket_qua&#x27;, &#x27;ngay_qa&#x27;, &#x27;ghi_chu&#x27;, &#x27;cap_nhat_luc&#x27;, &#x27;cap_nhat_boi&#x27;, &#x27;ly_do_uu_tien&#x27;, &#x27;tg_nop_kh&#x27;],
     BuoiXa: [&#x27;id&#x27;, &#x27;bn_id&#x27;, &#x27;ngay&#x27;, &#x27;buoi_so&#x27;, &#x27;ktv_email&#x27;, &#x27;thoi_gian&#x27;, &#x27;hinh_anh&#x27;, &#x27;ghi_chu&#x27;,
       &#x27;da_huy&#x27;, &#x27;huy_boi&#x27;, &#x27;ly_do_huy&#x27;, &#x27;gd&#x27;, &#x27;ghi_bu&#x27;, &#x27;ly_do_bu&#x27;],
     LichNgoaiLe: [&#x27;id&#x27;, &#x27;bn_id&#x27;, &#x27;may&#x27;, &#x27;ngay&#x27;, &#x27;loai&#x27;, &#x27;ghi_chu&#x27;, &#x27;nguoi&#x27;, &#x27;thoi_gian&#x27;, &#x27;da_xoa&#x27;],
@@ -845,24 +845,38 @@ var RT = (function () {
     };
   }
 
-  /** Hàng đợi lập kế hoạch (cả GĐ1 và boost). Cấp cứu → Ưu tiên → Thường; boost sắp hết GĐ trước lên trước; còn lại ai contour xong trước làm trước. */
+  /** Thời điểm nộp cho kỹ sư (contour xong); dữ liệu cũ chỉ có ngày */
+  function submitTime(x) { return x.tg_nop_kh || x.ngay_contour_xong || x.ngay_tao || &#x27;&#x27;; }
+  /** Thứ tự trong phần lập kế hoạch: Cấp cứu lên trước; còn lại (Ưu tiên, Thường) nộp trước làm trước */
+  function planOrder(a, b) {
+    var ra = a.uu_tien === &#x27;Cấp cứu&#x27; ? 0 : 1, rb = b.uu_tien === &#x27;Cấp cứu&#x27; ? 0 : 1;
+    if (ra !== rb) return ra - rb;
+    var da = submitTime(a), db = submitTime(b);
+    if (da !== db) return da &lt; db ? -1 : 1;
+    return a.id &lt; b.id ? -1 : 1;
+  }
+  /** Hàng đợi lập kế hoạch (cả GĐ1 và boost): Cấp cứu → boost sắp tới lượt xạ → nộp trước làm trước. */
   function planningQueue(items, urgentOf) {
     return items.filter(function (x) { return x.trang_thai === &#x27;CHO_KH&#x27;; }).sort(function (a, b) {
-      var ra = PRIORITY_RANK[a.uu_tien] != null ? PRIORITY_RANK[a.uu_tien] : 2;
-      var rb = PRIORITY_RANK[b.uu_tien] != null ? PRIORITY_RANK[b.uu_tien] : 2;
+      var ra = a.uu_tien === &#x27;Cấp cứu&#x27; ? 0 : 1, rb = b.uu_tien === &#x27;Cấp cứu&#x27; ? 0 : 1;
       if (ra !== rb) return ra - rb;
       var ua = urgentOf ? urgentOf(a) : 99, ub = urgentOf ? urgentOf(b) : 99;
       if (ua !== ub) return ua - ub;
-      var da = a.ngay_contour_xong || a.ngay_tao, db = b.ngay_contour_xong || b.ngay_tao;
-      if (da !== db) return da &lt; db ? -1 : 1;
-      return a.id &lt; b.id ? -1 : 1;
+      return planOrder(a, b);
     });
+  }
+  /** Mức ưu tiên và lý do: &quot;Ưu tiên&quot; bắt buộc ghi lý do; &quot;Thường&quot; thì xoá lý do. */
+  function checkPrio(x, reason, strict) {
+    if (x.uu_tien &amp;&amp; PRIORITY_RANK[x.uu_tien] == null) fail(&#x27;Mức ưu tiên không hợp lệ.&#x27;);
+    if (!x.uu_tien || x.uu_tien === &#x27;Thường&#x27;) { x.ly_do_uu_tien = &#x27;&#x27;; return; }
+    if (reason !== undefined) x.ly_do_uu_tien = String(reason || &#x27;&#x27;).trim();
+    if (strict !== false &amp;&amp; x.uu_tien === &#x27;Ưu tiên&#x27; &amp;&amp; !x.ly_do_uu_tien) fail(&#x27;BN &quot;Ưu tiên&quot; cần ghi rõ lý do ưu tiên.&#x27;);
   }
 
   // ---------- Thao tác ----------
   var EDIT_FIELDS = [&#x27;ma_his&#x27;, &#x27;ho_ten&#x27;, &#x27;nam_sinh&#x27;, &#x27;gioi&#x27;, &#x27;icd&#x27;, &#x27;chan_doan&#x27;, &#x27;vi_tri&#x27;, &#x27;muc_dich&#x27;, &#x27;ngay_mo_phong&#x27;, &#x27;khoa&#x27;, &#x27;bs_email&#x27;, &#x27;ky_thuat&#x27;,
-    &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;, &#x27;muc_lieu&#x27;, &#x27;igrt&#x27;, &#x27;sgrt&#x27;, &#x27;uu_tien&#x27;, &#x27;may&#x27;, &#x27;ghi_chu&#x27;];
-  var PHASE_FIELDS = [&#x27;ky_thuat&#x27;, &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;, &#x27;muc_lieu&#x27;, &#x27;uu_tien&#x27;, &#x27;ngay_mo_phong&#x27;, &#x27;ghi_chu&#x27;];
+    &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;, &#x27;muc_lieu&#x27;, &#x27;igrt&#x27;, &#x27;sgrt&#x27;, &#x27;uu_tien&#x27;, &#x27;ly_do_uu_tien&#x27;, &#x27;may&#x27;, &#x27;ghi_chu&#x27;];
+  var PHASE_FIELDS = [&#x27;ky_thuat&#x27;, &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;, &#x27;muc_lieu&#x27;, &#x27;uu_tien&#x27;, &#x27;ly_do_uu_tien&#x27;, &#x27;ngay_mo_phong&#x27;, &#x27;ghi_chu&#x27;];
 
   function fail(msg) { throw new Error(msg); }
   function findP(ctx, id) {
@@ -1004,7 +1018,8 @@ var RT = (function () {
     g.id = p.id + &#x27;-G&#x27; + g.stt;
     g.bn_id = p.id;
     g.ngay_tao = ctx.today;
-    if (!g.uu_tien) g.uu_tien = p.uu_tien || &#x27;Thường&#x27;;
+    if (!g.uu_tien) { g.uu_tien = p.uu_tien || &#x27;Thường&#x27;; g.ly_do_uu_tien = p.ly_do_uu_tien || &#x27;&#x27;; }
+    checkPrio(g);
     if (buoc === &#x27;CUNG_LUC&#x27;) {
       g.di_cung = &#x27;Có&#x27;;
       buoc = p.trang_thai === &#x27;MO_PHONG&#x27; ? &#x27;MO_PHONG&#x27; : p.trang_thai === &#x27;CONTOUR&#x27; ? &#x27;CONTOUR&#x27; : &#x27;CHO_KH&#x27;;
@@ -1012,7 +1027,7 @@ var RT = (function () {
     g.trang_thai = buoc;
     if (buoc === &#x27;MO_PHONG&#x27; &amp;&amp; g.ngay_mo_phong &amp;&amp; !isDate(g.ngay_mo_phong)) fail(&#x27;Ngày mô phỏng không hợp lệ.&#x27;);
     if (buoc !== &#x27;MO_PHONG&#x27;) g.ngay_mo_phong = &#x27;&#x27;;
-    if (buoc === &#x27;CHO_KH&#x27; || buoc === &#x27;SAN_SANG&#x27;) g.ngay_contour_xong = ctx.today;
+    if (buoc === &#x27;CHO_KH&#x27; || buoc === &#x27;SAN_SANG&#x27;) { g.ngay_contour_xong = ctx.today; g.tg_nop_kh = ctx.now || &#x27;&#x27;; }
     if (buoc === &#x27;SAN_SANG&#x27;) { g.ngay_kh_xong = ctx.today; g.qa_ket_qua = &#x27;Nhập ban đầu&#x27;; }
     ctx.phases.push(g);
     return g;
@@ -1053,6 +1068,7 @@ var RT = (function () {
       setKhoa(ctx, p);
       p.nguoi_nhap = ctx.user.email;
       if (!p.uu_tien) p.uu_tien = &#x27;Thường&#x27;;
+      checkPrio(p);
       if (!p.igrt) p.igrt = &#x27;Không&#x27;;
       if (!p.sgrt) p.sgrt = &#x27;Không&#x27;;
       var step0 = a.trang_thai || &#x27;CONTOUR&#x27;;
@@ -1087,7 +1103,7 @@ var RT = (function () {
       }
       p.ngay_tao = ctx.today;
       p.trang_thai = step;
-      if (step !== &#x27;CONTOUR&#x27; &amp;&amp; step !== &#x27;MO_PHONG&#x27;) p.ngay_contour_xong = ctx.today;
+      if (step !== &#x27;CONTOUR&#x27; &amp;&amp; step !== &#x27;MO_PHONG&#x27;) { p.ngay_contour_xong = ctx.today; p.tg_nop_kh = ctx.now || &#x27;&#x27;; }
       if (step === &#x27;CHO_XA&#x27; || step === &#x27;DANG_XA&#x27;) { p.ngay_kh_xong = ctx.today; p.qa_ket_qua = &#x27;Nhập ban đầu&#x27;; }
       if (step === &#x27;DANG_XA&#x27;) { p.ngay_bat_dau = backfill[0]; p.ngay_du_kien = backfill[0]; }
       ctx.patients.push(p);
@@ -1110,6 +1126,10 @@ var RT = (function () {
       Object.keys(p).forEach(function (k) { merged[k] = p[k]; });
       Object.keys(o).forEach(function (k) { merged[k] = o[k]; });
       if (o.bs_email !== undefined || o.khoa !== undefined) { setKhoa(ctx, merged); o.khoa = merged.khoa; }
+      if (o.uu_tien !== undefined || o.ly_do_uu_tien !== undefined) {
+        checkPrio(merged, undefined, merged.uu_tien !== p.uu_tien || PLAN_STATES.indexOf(p.trang_thai) &gt;= 0);
+        o.ly_do_uu_tien = merged.ly_do_uu_tien;
+      }
       if (EARLY.indexOf(p.trang_thai) &gt;= 0) validateBasic(merged, ctx.today); else validate(merged, ctx.today);
       if (merged.icd !== (o.icd === undefined ? merged.icd : o.icd)) o.icd = merged.icd;
       if (o.icd !== undefined) o.icd = merged.icd;
@@ -1144,14 +1164,16 @@ var RT = (function () {
         Object.keys(add).forEach(function (k) { if (add[k] !== &#x27;&#x27;) t.p[k] = add[k]; });
       }
       if (a.uu_tien) t.x.uu_tien = a.uu_tien;
+      checkPrio(t.x, a.uu_tien ? a.ly_do_uu_tien : undefined);
       t.x.trang_thai = &#x27;CHO_KH&#x27;;
       t.x.ngay_contour_xong = ctx.today;
-      saveT(ctx, t, &#x27;Contour xong&#x27;, &#x27;Ưu tiên: &#x27; + t.x.uu_tien);
+      t.x.tg_nop_kh = ctx.now || &#x27;&#x27;;
+      saveT(ctx, t, &#x27;Contour xong&#x27;, &#x27;Ưu tiên: &#x27; + t.x.uu_tien + (t.x.ly_do_uu_tien ? &#x27; (&#x27; + t.x.ly_do_uu_tien + &#x27;)&#x27; : &#x27;&#x27;));
       var extra = 0;
       if (!t.g) {
         ctx.phases.forEach(function (g) {
           if (g.bn_id === t.p.id &amp;&amp; g.di_cung === &#x27;Có&#x27; &amp;&amp; g.trang_thai === &#x27;CONTOUR&#x27;) {
-            g.trang_thai = &#x27;CHO_KH&#x27;; g.ngay_contour_xong = ctx.today; if (a.uu_tien) g.uu_tien = a.uu_tien;
+            g.trang_thai = &#x27;CHO_KH&#x27;; g.ngay_contour_xong = ctx.today; g.tg_nop_kh = ctx.now || &#x27;&#x27;; if (a.uu_tien) { g.uu_tien = t.x.uu_tien; g.ly_do_uu_tien = t.x.ly_do_uu_tien; }
             saveT(ctx, { g: g, p: t.p, x: g }, &#x27;Contour xong&#x27;, &#x27;cùng GĐ1&#x27;); extra++;
           }
         });
@@ -1162,7 +1184,8 @@ var RT = (function () {
       var t = target(ctx, a.id);
       if (PRIORITY_RANK[a.uu_tien] == null) fail(&#x27;Mức ưu tiên không hợp lệ.&#x27;);
       t.x.uu_tien = a.uu_tien;
-      saveT(ctx, t, &#x27;Đổi ưu tiên&#x27;, a.uu_tien);
+      checkPrio(t.x, a.ly_do_uu_tien);
+      saveT(ctx, t, &#x27;Đổi ưu tiên&#x27;, a.uu_tien + (t.x.ly_do_uu_tien ? &#x27; (&#x27; + t.x.ly_do_uu_tien + &#x27;)&#x27; : &#x27;&#x27;));
       return &#x27;Đã đặt ưu tiên &quot;&#x27; + a.uu_tien + &#x27;&quot; cho &#x27; + t.name + &#x27;.&#x27;;
     },
     claimPlan: function (ctx, a) {
@@ -1227,6 +1250,10 @@ var RT = (function () {
       Object.keys(g).forEach(function (k) { merged[k] = g[k]; });
       Object.keys(o).forEach(function (k) { merged[k] = o[k]; });
       validateRx(merged, &#x27; của boost&#x27;);
+      if (o.uu_tien !== undefined || o.ly_do_uu_tien !== undefined) {
+        checkPrio(merged, undefined, merged.uu_tien !== g.uu_tien || PLAN_STATES.indexOf(g.trang_thai) &gt;= 0);
+        o.ly_do_uu_tien = merged.ly_do_uu_tien;
+      }
       var seg = segments(p, envOf(ctx)).filter(function (s) { return s.g === g; })[0];
       var deliveredIn = Math.max(0, Math.min(fxOf(p, ctx.fractions).length, seg.to) - seg.from);
       if (num(merged.so_buoi) &lt; deliveredIn) fail(&#x27;Số buổi boost không được nhỏ hơn số buổi boost đã xạ (&#x27; + deliveredIn + &#x27;).&#x27;);
@@ -1871,7 +1898,7 @@ var RT = (function () {
 
   return {
     VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, nurseKhoa: nurseKhoa, canByDoctor: canByDoctor, doctorKhoa: doctorKhoa, report: report, staffKhoa: staffKhoa, myDoctors: myDoctors,
-    normIcd: normIcd, isIcd: isIcd, icdName: icdName, summary: summary, findPatients: findPatients, scopePatients: scopePatients, fold: fold, indexRow: indexRow, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
+    normIcd: normIcd, isIcd: isIcd, icdName: icdName, summary: summary, findPatients: findPatients, scopePatients: scopePatients, fold: fold, indexRow: indexRow, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, planOrder: planOrder, submitTime: submitTime, DOW: DOW,
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
@@ -1891,7 +1918,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
       <div class="meta">
         <h2 id="h-Index">Index.html <span class="ver">· v2.7</span></h2>
         <p>Bấm + → HTML, đặt tên Index (chữ I hoa).</p>
-        <span class="size">3,800 dòng · 365 KB</span>
+        <span class="size">3,864 dòng · 370 KB</span>
       </div>
       <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v2.7)</button>
     </div>
@@ -2328,6 +2355,24 @@ html.modal-open,html.modal-open body{overflow:hidden;overscroll-behavior:none}
   .nurse-tbl th .sub{font-size:11px;white-space:normal}
 }
 
+/* v2.7: tô nền theo mức ưu tiên (BN đang chuẩn bị xạ) */
+:root{--pr0-bg:#fbd5d0;--pr1-bg:#ffdfb8}
+@media (prefers-color-scheme: dark){ :root:not([data-theme=&quot;light&quot;]){--pr0-bg:#4a1c17;--pr1-bg:#4a2e0c} }
+:root[data-theme=&quot;dark&quot;]{--pr0-bg:#4a1c17;--pr1-bg:#4a2e0c}
+tbody tr.pr-row-0,tbody tr.pr-row-0 td{background:var(--pr0-bg)}
+tbody tr.pr-row-1,tbody tr.pr-row-1 td{background:var(--pr1-bg)}
+tbody tr.pr-row-0 td:first-child{box-shadow:inset 4px 0 0 var(--crit)}
+tbody tr.pr-row-1 td:first-child{box-shadow:inset 4px 0 0 #e07b00}
+tbody tr.pr-row-0.click:hover td{background:var(--pr0-bg)}
+tbody tr.pr-row-1.click:hover td{background:var(--pr1-bg)}
+.pr-row-0 .pr-0,.pr-row-1 .pr-1{background:var(--surface)}
+.pr-why{max-width:220px;white-space:normal}
+@media (max-width:760px){
+  .cards tr.pr-row-0{box-shadow:inset 5px 0 0 var(--crit)}
+  .cards tr.pr-row-1{box-shadow:inset 5px 0 0 #e07b00}
+  .cards tr.pr-row-0 td:first-child,.cards tr.pr-row-1 td:first-child{box-shadow:none}
+}
+
 &lt;/style&gt;
 &lt;/head&gt;
 &lt;body&gt;
@@ -2380,10 +2425,10 @@ var RT = (function () {
       &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;, &#x27;igrt&#x27;, &#x27;sgrt&#x27;, &#x27;uu_tien&#x27;, &#x27;trang_thai&#x27;, &#x27;ngay_tao&#x27;, &#x27;ngay_contour_xong&#x27;,
       &#x27;ks_email&#x27;, &#x27;ngay_nhan_kh&#x27;, &#x27;ngay_kh_xong&#x27;, &#x27;can_qa&#x27;, &#x27;qa_ket_qua&#x27;, &#x27;ngay_qa&#x27;, &#x27;ngay_du_kien&#x27;,
       &#x27;ngay_nghi_tuan&#x27;, &#x27;may&#x27;, &#x27;ngay_bat_dau&#x27;, &#x27;ngay_ket_thuc&#x27;, &#x27;tam_ngung_tu&#x27;, &#x27;ly_do_tam_ngung&#x27;,
-      &#x27;ghi_chu&#x27;, &#x27;cap_nhat_luc&#x27;, &#x27;cap_nhat_boi&#x27;, &#x27;ly_do_ket_thuc&#x27;, &#x27;muc_lieu&#x27;, &#x27;vi_tri&#x27;, &#x27;muc_dich&#x27;, &#x27;ngay_mo_phong&#x27;, &#x27;nguoi_nhap&#x27;, &#x27;icd&#x27;],
+      &#x27;ghi_chu&#x27;, &#x27;cap_nhat_luc&#x27;, &#x27;cap_nhat_boi&#x27;, &#x27;ly_do_ket_thuc&#x27;, &#x27;muc_lieu&#x27;, &#x27;vi_tri&#x27;, &#x27;muc_dich&#x27;, &#x27;ngay_mo_phong&#x27;, &#x27;nguoi_nhap&#x27;, &#x27;icd&#x27;, &#x27;ly_do_uu_tien&#x27;, &#x27;tg_nop_kh&#x27;],
     GiaiDoan: [&#x27;id&#x27;, &#x27;bn_id&#x27;, &#x27;stt&#x27;, &#x27;ky_thuat&#x27;, &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;, &#x27;muc_lieu&#x27;, &#x27;trang_thai&#x27;, &#x27;di_cung&#x27;,
       &#x27;uu_tien&#x27;, &#x27;ngay_tao&#x27;, &#x27;ngay_mo_phong&#x27;, &#x27;ngay_contour_xong&#x27;, &#x27;ks_email&#x27;, &#x27;ngay_nhan_kh&#x27;, &#x27;ngay_kh_xong&#x27;,
-      &#x27;can_qa&#x27;, &#x27;qa_ket_qua&#x27;, &#x27;ngay_qa&#x27;, &#x27;ghi_chu&#x27;, &#x27;cap_nhat_luc&#x27;, &#x27;cap_nhat_boi&#x27;],
+      &#x27;can_qa&#x27;, &#x27;qa_ket_qua&#x27;, &#x27;ngay_qa&#x27;, &#x27;ghi_chu&#x27;, &#x27;cap_nhat_luc&#x27;, &#x27;cap_nhat_boi&#x27;, &#x27;ly_do_uu_tien&#x27;, &#x27;tg_nop_kh&#x27;],
     BuoiXa: [&#x27;id&#x27;, &#x27;bn_id&#x27;, &#x27;ngay&#x27;, &#x27;buoi_so&#x27;, &#x27;ktv_email&#x27;, &#x27;thoi_gian&#x27;, &#x27;hinh_anh&#x27;, &#x27;ghi_chu&#x27;,
       &#x27;da_huy&#x27;, &#x27;huy_boi&#x27;, &#x27;ly_do_huy&#x27;, &#x27;gd&#x27;, &#x27;ghi_bu&#x27;, &#x27;ly_do_bu&#x27;],
     LichNgoaiLe: [&#x27;id&#x27;, &#x27;bn_id&#x27;, &#x27;may&#x27;, &#x27;ngay&#x27;, &#x27;loai&#x27;, &#x27;ghi_chu&#x27;, &#x27;nguoi&#x27;, &#x27;thoi_gian&#x27;, &#x27;da_xoa&#x27;],
@@ -2606,24 +2651,38 @@ var RT = (function () {
     };
   }
 
-  /** Hàng đợi lập kế hoạch (cả GĐ1 và boost). Cấp cứu → Ưu tiên → Thường; boost sắp hết GĐ trước lên trước; còn lại ai contour xong trước làm trước. */
+  /** Thời điểm nộp cho kỹ sư (contour xong); dữ liệu cũ chỉ có ngày */
+  function submitTime(x) { return x.tg_nop_kh || x.ngay_contour_xong || x.ngay_tao || &#x27;&#x27;; }
+  /** Thứ tự trong phần lập kế hoạch: Cấp cứu lên trước; còn lại (Ưu tiên, Thường) nộp trước làm trước */
+  function planOrder(a, b) {
+    var ra = a.uu_tien === &#x27;Cấp cứu&#x27; ? 0 : 1, rb = b.uu_tien === &#x27;Cấp cứu&#x27; ? 0 : 1;
+    if (ra !== rb) return ra - rb;
+    var da = submitTime(a), db = submitTime(b);
+    if (da !== db) return da &lt; db ? -1 : 1;
+    return a.id &lt; b.id ? -1 : 1;
+  }
+  /** Hàng đợi lập kế hoạch (cả GĐ1 và boost): Cấp cứu → boost sắp tới lượt xạ → nộp trước làm trước. */
   function planningQueue(items, urgentOf) {
     return items.filter(function (x) { return x.trang_thai === &#x27;CHO_KH&#x27;; }).sort(function (a, b) {
-      var ra = PRIORITY_RANK[a.uu_tien] != null ? PRIORITY_RANK[a.uu_tien] : 2;
-      var rb = PRIORITY_RANK[b.uu_tien] != null ? PRIORITY_RANK[b.uu_tien] : 2;
+      var ra = a.uu_tien === &#x27;Cấp cứu&#x27; ? 0 : 1, rb = b.uu_tien === &#x27;Cấp cứu&#x27; ? 0 : 1;
       if (ra !== rb) return ra - rb;
       var ua = urgentOf ? urgentOf(a) : 99, ub = urgentOf ? urgentOf(b) : 99;
       if (ua !== ub) return ua - ub;
-      var da = a.ngay_contour_xong || a.ngay_tao, db = b.ngay_contour_xong || b.ngay_tao;
-      if (da !== db) return da &lt; db ? -1 : 1;
-      return a.id &lt; b.id ? -1 : 1;
+      return planOrder(a, b);
     });
+  }
+  /** Mức ưu tiên và lý do: &quot;Ưu tiên&quot; bắt buộc ghi lý do; &quot;Thường&quot; thì xoá lý do. */
+  function checkPrio(x, reason, strict) {
+    if (x.uu_tien &amp;&amp; PRIORITY_RANK[x.uu_tien] == null) fail(&#x27;Mức ưu tiên không hợp lệ.&#x27;);
+    if (!x.uu_tien || x.uu_tien === &#x27;Thường&#x27;) { x.ly_do_uu_tien = &#x27;&#x27;; return; }
+    if (reason !== undefined) x.ly_do_uu_tien = String(reason || &#x27;&#x27;).trim();
+    if (strict !== false &amp;&amp; x.uu_tien === &#x27;Ưu tiên&#x27; &amp;&amp; !x.ly_do_uu_tien) fail(&#x27;BN &quot;Ưu tiên&quot; cần ghi rõ lý do ưu tiên.&#x27;);
   }
 
   // ---------- Thao tác ----------
   var EDIT_FIELDS = [&#x27;ma_his&#x27;, &#x27;ho_ten&#x27;, &#x27;nam_sinh&#x27;, &#x27;gioi&#x27;, &#x27;icd&#x27;, &#x27;chan_doan&#x27;, &#x27;vi_tri&#x27;, &#x27;muc_dich&#x27;, &#x27;ngay_mo_phong&#x27;, &#x27;khoa&#x27;, &#x27;bs_email&#x27;, &#x27;ky_thuat&#x27;,
-    &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;, &#x27;muc_lieu&#x27;, &#x27;igrt&#x27;, &#x27;sgrt&#x27;, &#x27;uu_tien&#x27;, &#x27;may&#x27;, &#x27;ghi_chu&#x27;];
-  var PHASE_FIELDS = [&#x27;ky_thuat&#x27;, &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;, &#x27;muc_lieu&#x27;, &#x27;uu_tien&#x27;, &#x27;ngay_mo_phong&#x27;, &#x27;ghi_chu&#x27;];
+    &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;, &#x27;muc_lieu&#x27;, &#x27;igrt&#x27;, &#x27;sgrt&#x27;, &#x27;uu_tien&#x27;, &#x27;ly_do_uu_tien&#x27;, &#x27;may&#x27;, &#x27;ghi_chu&#x27;];
+  var PHASE_FIELDS = [&#x27;ky_thuat&#x27;, &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;, &#x27;muc_lieu&#x27;, &#x27;uu_tien&#x27;, &#x27;ly_do_uu_tien&#x27;, &#x27;ngay_mo_phong&#x27;, &#x27;ghi_chu&#x27;];
 
   function fail(msg) { throw new Error(msg); }
   function findP(ctx, id) {
@@ -2765,7 +2824,8 @@ var RT = (function () {
     g.id = p.id + &#x27;-G&#x27; + g.stt;
     g.bn_id = p.id;
     g.ngay_tao = ctx.today;
-    if (!g.uu_tien) g.uu_tien = p.uu_tien || &#x27;Thường&#x27;;
+    if (!g.uu_tien) { g.uu_tien = p.uu_tien || &#x27;Thường&#x27;; g.ly_do_uu_tien = p.ly_do_uu_tien || &#x27;&#x27;; }
+    checkPrio(g);
     if (buoc === &#x27;CUNG_LUC&#x27;) {
       g.di_cung = &#x27;Có&#x27;;
       buoc = p.trang_thai === &#x27;MO_PHONG&#x27; ? &#x27;MO_PHONG&#x27; : p.trang_thai === &#x27;CONTOUR&#x27; ? &#x27;CONTOUR&#x27; : &#x27;CHO_KH&#x27;;
@@ -2773,7 +2833,7 @@ var RT = (function () {
     g.trang_thai = buoc;
     if (buoc === &#x27;MO_PHONG&#x27; &amp;&amp; g.ngay_mo_phong &amp;&amp; !isDate(g.ngay_mo_phong)) fail(&#x27;Ngày mô phỏng không hợp lệ.&#x27;);
     if (buoc !== &#x27;MO_PHONG&#x27;) g.ngay_mo_phong = &#x27;&#x27;;
-    if (buoc === &#x27;CHO_KH&#x27; || buoc === &#x27;SAN_SANG&#x27;) g.ngay_contour_xong = ctx.today;
+    if (buoc === &#x27;CHO_KH&#x27; || buoc === &#x27;SAN_SANG&#x27;) { g.ngay_contour_xong = ctx.today; g.tg_nop_kh = ctx.now || &#x27;&#x27;; }
     if (buoc === &#x27;SAN_SANG&#x27;) { g.ngay_kh_xong = ctx.today; g.qa_ket_qua = &#x27;Nhập ban đầu&#x27;; }
     ctx.phases.push(g);
     return g;
@@ -2814,6 +2874,7 @@ var RT = (function () {
       setKhoa(ctx, p);
       p.nguoi_nhap = ctx.user.email;
       if (!p.uu_tien) p.uu_tien = &#x27;Thường&#x27;;
+      checkPrio(p);
       if (!p.igrt) p.igrt = &#x27;Không&#x27;;
       if (!p.sgrt) p.sgrt = &#x27;Không&#x27;;
       var step0 = a.trang_thai || &#x27;CONTOUR&#x27;;
@@ -2848,7 +2909,7 @@ var RT = (function () {
       }
       p.ngay_tao = ctx.today;
       p.trang_thai = step;
-      if (step !== &#x27;CONTOUR&#x27; &amp;&amp; step !== &#x27;MO_PHONG&#x27;) p.ngay_contour_xong = ctx.today;
+      if (step !== &#x27;CONTOUR&#x27; &amp;&amp; step !== &#x27;MO_PHONG&#x27;) { p.ngay_contour_xong = ctx.today; p.tg_nop_kh = ctx.now || &#x27;&#x27;; }
       if (step === &#x27;CHO_XA&#x27; || step === &#x27;DANG_XA&#x27;) { p.ngay_kh_xong = ctx.today; p.qa_ket_qua = &#x27;Nhập ban đầu&#x27;; }
       if (step === &#x27;DANG_XA&#x27;) { p.ngay_bat_dau = backfill[0]; p.ngay_du_kien = backfill[0]; }
       ctx.patients.push(p);
@@ -2871,6 +2932,10 @@ var RT = (function () {
       Object.keys(p).forEach(function (k) { merged[k] = p[k]; });
       Object.keys(o).forEach(function (k) { merged[k] = o[k]; });
       if (o.bs_email !== undefined || o.khoa !== undefined) { setKhoa(ctx, merged); o.khoa = merged.khoa; }
+      if (o.uu_tien !== undefined || o.ly_do_uu_tien !== undefined) {
+        checkPrio(merged, undefined, merged.uu_tien !== p.uu_tien || PLAN_STATES.indexOf(p.trang_thai) &gt;= 0);
+        o.ly_do_uu_tien = merged.ly_do_uu_tien;
+      }
       if (EARLY.indexOf(p.trang_thai) &gt;= 0) validateBasic(merged, ctx.today); else validate(merged, ctx.today);
       if (merged.icd !== (o.icd === undefined ? merged.icd : o.icd)) o.icd = merged.icd;
       if (o.icd !== undefined) o.icd = merged.icd;
@@ -2905,14 +2970,16 @@ var RT = (function () {
         Object.keys(add).forEach(function (k) { if (add[k] !== &#x27;&#x27;) t.p[k] = add[k]; });
       }
       if (a.uu_tien) t.x.uu_tien = a.uu_tien;
+      checkPrio(t.x, a.uu_tien ? a.ly_do_uu_tien : undefined);
       t.x.trang_thai = &#x27;CHO_KH&#x27;;
       t.x.ngay_contour_xong = ctx.today;
-      saveT(ctx, t, &#x27;Contour xong&#x27;, &#x27;Ưu tiên: &#x27; + t.x.uu_tien);
+      t.x.tg_nop_kh = ctx.now || &#x27;&#x27;;
+      saveT(ctx, t, &#x27;Contour xong&#x27;, &#x27;Ưu tiên: &#x27; + t.x.uu_tien + (t.x.ly_do_uu_tien ? &#x27; (&#x27; + t.x.ly_do_uu_tien + &#x27;)&#x27; : &#x27;&#x27;));
       var extra = 0;
       if (!t.g) {
         ctx.phases.forEach(function (g) {
           if (g.bn_id === t.p.id &amp;&amp; g.di_cung === &#x27;Có&#x27; &amp;&amp; g.trang_thai === &#x27;CONTOUR&#x27;) {
-            g.trang_thai = &#x27;CHO_KH&#x27;; g.ngay_contour_xong = ctx.today; if (a.uu_tien) g.uu_tien = a.uu_tien;
+            g.trang_thai = &#x27;CHO_KH&#x27;; g.ngay_contour_xong = ctx.today; g.tg_nop_kh = ctx.now || &#x27;&#x27;; if (a.uu_tien) { g.uu_tien = t.x.uu_tien; g.ly_do_uu_tien = t.x.ly_do_uu_tien; }
             saveT(ctx, { g: g, p: t.p, x: g }, &#x27;Contour xong&#x27;, &#x27;cùng GĐ1&#x27;); extra++;
           }
         });
@@ -2923,7 +2990,8 @@ var RT = (function () {
       var t = target(ctx, a.id);
       if (PRIORITY_RANK[a.uu_tien] == null) fail(&#x27;Mức ưu tiên không hợp lệ.&#x27;);
       t.x.uu_tien = a.uu_tien;
-      saveT(ctx, t, &#x27;Đổi ưu tiên&#x27;, a.uu_tien);
+      checkPrio(t.x, a.ly_do_uu_tien);
+      saveT(ctx, t, &#x27;Đổi ưu tiên&#x27;, a.uu_tien + (t.x.ly_do_uu_tien ? &#x27; (&#x27; + t.x.ly_do_uu_tien + &#x27;)&#x27; : &#x27;&#x27;));
       return &#x27;Đã đặt ưu tiên &quot;&#x27; + a.uu_tien + &#x27;&quot; cho &#x27; + t.name + &#x27;.&#x27;;
     },
     claimPlan: function (ctx, a) {
@@ -2988,6 +3056,10 @@ var RT = (function () {
       Object.keys(g).forEach(function (k) { merged[k] = g[k]; });
       Object.keys(o).forEach(function (k) { merged[k] = o[k]; });
       validateRx(merged, &#x27; của boost&#x27;);
+      if (o.uu_tien !== undefined || o.ly_do_uu_tien !== undefined) {
+        checkPrio(merged, undefined, merged.uu_tien !== g.uu_tien || PLAN_STATES.indexOf(g.trang_thai) &gt;= 0);
+        o.ly_do_uu_tien = merged.ly_do_uu_tien;
+      }
       var seg = segments(p, envOf(ctx)).filter(function (s) { return s.g === g; })[0];
       var deliveredIn = Math.max(0, Math.min(fxOf(p, ctx.fractions).length, seg.to) - seg.from);
       if (num(merged.so_buoi) &lt; deliveredIn) fail(&#x27;Số buổi boost không được nhỏ hơn số buổi boost đã xạ (&#x27; + deliveredIn + &#x27;).&#x27;);
@@ -3632,7 +3704,7 @@ var RT = (function () {
 
   return {
     VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, nurseKhoa: nurseKhoa, canByDoctor: canByDoctor, doctorKhoa: doctorKhoa, report: report, staffKhoa: staffKhoa, myDoctors: myDoctors,
-    normIcd: normIcd, isIcd: isIcd, icdName: icdName, summary: summary, findPatients: findPatients, scopePatients: scopePatients, fold: fold, indexRow: indexRow, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
+    normIcd: normIcd, isIcd: isIcd, icdName: icdName, summary: summary, findPatients: findPatients, scopePatients: scopePatients, fold: fold, indexRow: indexRow, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, planOrder: planOrder, submitTime: submitTime, DOW: DOW,
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
@@ -3698,7 +3770,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     if (list.length) setTimeout(function () { pushNotes(list.map(function (p) { return { pid: p.id, text: p.ho_ten + &#x27; (&#x27; + p.ma_his + &#x27;): vắng &#x27; + course(p).streak + &#x27; buổi liên tiếp&#x27;, time: &#x27;&#x27; }; })); if (S.data) renderShell(); }, 0);
   }
   /** Các &quot;việc lập kế hoạch&quot;: BN (GĐ1) và các boost đang ở bước mô phỏng → QA. Boost mượn thông tin hành chính của BN. */
-  var PH_FIELDS = [&#x27;ky_thuat&#x27;, &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;, &#x27;muc_lieu&#x27;, &#x27;uu_tien&#x27;, &#x27;trang_thai&#x27;, &#x27;ngay_tao&#x27;, &#x27;ngay_mo_phong&#x27;, &#x27;ngay_contour_xong&#x27;, &#x27;ks_email&#x27;, &#x27;ngay_nhan_kh&#x27;, &#x27;ngay_kh_xong&#x27;, &#x27;can_qa&#x27;, &#x27;qa_ket_qua&#x27;, &#x27;ngay_qa&#x27;, &#x27;ghi_chu&#x27;];
+  var PH_FIELDS = [&#x27;ky_thuat&#x27;, &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;, &#x27;muc_lieu&#x27;, &#x27;uu_tien&#x27;, &#x27;ly_do_uu_tien&#x27;, &#x27;tg_nop_kh&#x27;, &#x27;trang_thai&#x27;, &#x27;ngay_tao&#x27;, &#x27;ngay_mo_phong&#x27;, &#x27;ngay_contour_xong&#x27;, &#x27;ks_email&#x27;, &#x27;ngay_nhan_kh&#x27;, &#x27;ngay_kh_xong&#x27;, &#x27;can_qa&#x27;, &#x27;qa_ket_qua&#x27;, &#x27;ngay_qa&#x27;, &#x27;ghi_chu&#x27;];
   function phaseItem(g, p) {
     var it = {};
     Object.keys(p).forEach(function (k) { it[k] = p[k]; });
@@ -3751,7 +3823,21 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
   function daysSince(s) { return s ? RT.diffDays(s, today()) : 0; }
   function prRank(p) { var r = RT.PRIORITY_RANK[p.uu_tien]; return r == null ? 2 : r; }
   function stPill(p) { return &#x27;&lt;span class=&quot;pill st-&#x27; + p.trang_thai + &#x27;&quot;&gt;&#x27; + esc(RT.STATUS[p.trang_thai] || p.trang_thai) + &#x27;&lt;/span&gt;&#x27;; }
-  function prPill(p) { return &#x27;&lt;span class=&quot;pill pr-&#x27; + prRank(p) + &#x27;&quot;&gt;&#x27; + esc(p.uu_tien || &#x27;Thường&#x27;) + &#x27;&lt;/span&gt;&#x27;; }
+  function prPill(p) { return &#x27;&lt;span class=&quot;pill pr-&#x27; + prRank(p) + &#x27;&quot;&#x27; + (p.ly_do_uu_tien ? &#x27; title=&quot;&#x27; + esc(p.ly_do_uu_tien) + &#x27;&quot;&#x27; : &#x27;&#x27;) + &#x27;&gt;&#x27; + esc(p.uu_tien || &#x27;Thường&#x27;) + &#x27;&lt;/span&gt;&#x27;; }
+  function prCell(p) { return prPill(p) + (p.ly_do_uu_tien &amp;&amp; p.uu_tien !== &#x27;Thường&#x27; ? &#x27;&lt;span class=&quot;sub pr-why&quot;&gt;&#x27; + esc(p.ly_do_uu_tien) + &#x27;&lt;/span&gt;&#x27; : &#x27;&#x27;); }
+  /** Tô nền dòng BN đang trong quy trình chuẩn bị: cấp cứu đỏ, ưu tiên cam */
+  var PR_ROW_ST = [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;];
+  function prRowCls(p) { return p &amp;&amp; PR_ROW_ST.indexOf(p.trang_thai) &gt;= 0 ? (p.uu_tien === &#x27;Cấp cứu&#x27; ? &#x27; pr-row-0&#x27; : p.uu_tien === &#x27;Ưu tiên&#x27; ? &#x27; pr-row-1&#x27; : &#x27;&#x27;) : &#x27;&#x27;; }
+  var PRIO_PH = &#x27;VD: theo chỉ đạo Ban Giám đốc, người nhà nhân viên, BN ở xa…&#x27;;
+  function prioReasonField(val) {
+    return &#x27;&lt;div class=&quot;field full&quot; data-prio-why&gt;&lt;label&gt;Lý do ưu tiên &lt;span class=&quot;req&quot; data-prio-req&gt;*&lt;/span&gt;&lt;/label&gt;&lt;input type=&quot;text&quot; name=&quot;ly_do_uu_tien&quot; maxlength=&quot;200&quot; value=&quot;&#x27; + esc(val || &#x27;&#x27;) + &#x27;&quot; placeholder=&quot;&#x27; + PRIO_PH + &#x27;&quot;&gt;&lt;span class=&quot;help&quot;&gt;Bắt buộc với BN “Ưu tiên”; không bắt buộc với cấp cứu.&lt;/span&gt;&lt;/div&gt;&#x27;;
+  }
+  function bindPrio(form) {
+    var box = $(&#x27;[data-prio-why]&#x27;, form); if (!box) return;
+    var upd = function () { var v = formValues(form).uu_tien || &#x27;Thường&#x27;; box.hidden = v === &#x27;Thường&#x27;; $(&#x27;[data-prio-req]&#x27;, form).hidden = v !== &#x27;Ưu tiên&#x27;; };
+    $$(&#x27;[name=uu_tien]&#x27;, form).forEach(function (el) { el.addEventListener(&#x27;change&#x27;, upd); }); upd();
+  }
+  function prioError(v) { return v.uu_tien === &#x27;Ưu tiên&#x27; &amp;&amp; !String(v.ly_do_uu_tien || &#x27;&#x27;).trim() ? &#x27;BN “Ưu tiên” cần ghi rõ lý do ưu tiên.&#x27; : &#x27;&#x27;; }
   function rx(p) { if (!p._g &amp;&amp; RT.missingRx(p).length) return &#x27;&lt;span class=&quot;flag&quot;&gt;Chưa đủ chỉ định&lt;/span&gt;&#x27; + (p.ky_thuat ? &#x27; &#x27; + esc(p.ky_thuat) : &#x27;&#x27;); return esc(p.ky_thuat) + &#x27; · &lt;span class=&quot;num&quot;&gt;&#x27; + esc(p.tong_lieu) + &#x27; Gy/&#x27; + esc(p.so_buoi) + &#x27;&lt;/span&gt;&#x27;; }
   function ptCell(p) {
     return &#x27;&lt;div class=&quot;pt&quot;&gt;&lt;b&gt;&#x27; + esc(p.ho_ten) + &#x27;&lt;/b&gt;&#x27; + (p._g ? &#x27; &lt;span class=&quot;tag boost&quot;&gt;Boost GĐ&#x27; + esc(p._g.stt) + &#x27;&lt;/span&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;span class=&quot;sub&quot;&gt;&lt;span class=&quot;mono&quot;&gt;&#x27; + esc(p.ma_his) + &#x27;&lt;/span&gt;&#x27; +
@@ -4026,7 +4112,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     var lb = cols.map(function (c) { return esc(String(c.h || &#x27;&#x27;).replace(/&lt;[^&gt;]*&gt;/g, &#x27;&#x27;)); });
     return &#x27;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;tbl-wrap cards&quot;&gt;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&#x27; + cols.map(function (c) { return &#x27;&lt;th&gt;&#x27; + c.h + &#x27;&lt;/th&gt;&#x27;; }).join(&#x27;&#x27;) +
       &#x27;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&#x27; + rows.map(function (p, i) {
-        return &#x27;&lt;tr class=&quot;click&quot; tabindex=&quot;0&quot; data-open=&quot;&#x27; + esc(p._pid || p.id) + &#x27;&quot;&gt;&#x27; + cols.map(function (c, k) {
+        return &#x27;&lt;tr class=&quot;click&#x27; + prRowCls(p) + &#x27;&quot; tabindex=&quot;0&quot; data-open=&quot;&#x27; + esc(p._pid || p.id) + &#x27;&quot;&gt;&#x27; + cols.map(function (c, k) {
           return &#x27;&lt;td class=&quot;&#x27; + (c.cls || &#x27;&#x27;) + &#x27;&quot; data-l=&quot;&#x27; + lb[k] + &#x27;&quot;&gt;&#x27; + c.v(p, i) + &#x27;&lt;/td&gt;&#x27;;
         }).join(&#x27;&#x27;) + &#x27;&lt;/tr&gt;&#x27;;
       }).join(&#x27;&#x27;) + &#x27;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;&lt;/div&gt;&#x27;;
@@ -4045,7 +4131,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     dx: { h: &#x27;Chẩn đoán&#x27;, v: function (p) { return (p.icd ? &#x27;&lt;span class=&quot;icd-tag&quot;&gt;&#x27; + esc(p.icd) + &#x27;&lt;/span&gt; &#x27; : &#x27;&#x27;) + esc(p.chan_doan) + (p.vi_tri ? &#x27;&lt;span class=&quot;sub&quot;&gt;Vị trí: &#x27; + esc(p.vi_tri) + &#x27;&lt;/span&gt;&#x27; : &#x27;&#x27;); } },
     rx: { h: &#x27;Kỹ thuật · liều&#x27;, v: rx, cls: &#x27;nowrap&#x27; },
     bs: { h: &#x27;BS điều trị&#x27;, v: function (p) { return esc(nameOf(p.bs_email)); }, cls: &#x27;nowrap&#x27; },
-    pr: { h: &#x27;Ưu tiên&#x27;, v: prPill },
+    pr: { h: &#x27;Ưu tiên&#x27;, v: prCell },
     st: { h: &#x27;Trạng thái&#x27;, v: stPill },
     img: { h: &#x27;IGRT / SGRT&#x27;, v: igrtBadges, cls: &#x27;nowrap&#x27; },
     prog: { h: &#x27;Tiến độ&#x27;, v: progCell },
@@ -4263,7 +4349,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
         &#x27;Xếp: Cấp cứu → Ưu tiên → chờ lâu trước.&#x27;, &#x27;Không có BN chờ contour.&#x27;);
   }
   function renderQa() {
-    var list = byState([&#x27;CHO_QA&#x27;]).sort(function (a, b) { return prRank(a) - prRank(b) || (a.ngay_kh_xong &lt; b.ngay_kh_xong ? -1 : 1); });
+    var list = byState([&#x27;CHO_QA&#x27;]).sort(RT.planOrder);
     return stepHead(&#x27;QA&#x27;, &#x27;Kế hoạch đã lập xong, chờ đo kiểm tra (QA). QA đạt thì BN chuyển sang “Chờ vào xạ” để KTV xếp lịch.&#x27;) +
       group(&#x27;qa&#x27;, &#x27;Chờ QA&#x27;, list, [C.pt, C.pr,
         { h: &#x27;Kỹ sư · KH xong&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { return esc(nameOf(p.ks_email)) + &#x27;&lt;span class=&quot;sub&quot;&gt;&#x27; + fd(p.ngay_kh_xong) + &#x27; · &#x27; + daysSince(p.ngay_kh_xong) + &#x27; ngày&lt;/span&gt;&#x27;; } },
@@ -4284,8 +4370,8 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
   function renderKsMine() {
     var em = me().email;
     var queue = RT.planningQueue(items(), boostLeft);
-    var doing = byState([&#x27;DANG_KH&#x27;]).filter(function (p) { return p.ks_email === em; }).sort(function (a, b) { return prRank(a) - prRank(b) || (a.ngay_nhan_kh &lt; b.ngay_nhan_kh ? -1 : 1); });
-    var qa = byState([&#x27;CHO_QA&#x27;]).filter(function (p) { return p.ks_email === em; });
+    var doing = byState([&#x27;DANG_KH&#x27;]).filter(function (p) { return p.ks_email === em; }).sort(RT.planOrder);
+    var qa = byState([&#x27;CHO_QA&#x27;]).filter(function (p) { return p.ks_email === em; }).sort(RT.planOrder);
     var recent = items().concat([]).filter(function (p) { return p.ks_email === em &amp;&amp; p.ngay_kh_xong &amp;&amp; daysSince(p.ngay_kh_xong) &lt;= 7 &amp;&amp; [&#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;].indexOf(p.trang_thai) &gt;= 0; })
       .sort(function (a, b) { return a.ngay_kh_xong &lt; b.ngay_kh_xong ? 1 : -1; });
     var urgent = queue.filter(function (p) { return p.uu_tien === &#x27;Cấp cứu&#x27;; }).length;
@@ -4303,7 +4389,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
       { h: &#x27;Contour xong&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { var n = daysSince(p.ngay_contour_xong); return &#x27;&lt;span class=&quot;num&quot;&gt;&#x27; + fdw(p.ngay_contour_xong) + &#x27;&lt;/span&gt;&lt;span class=&quot;sub&quot;&#x27; + (n &gt;= 3 ? &#x27; style=&quot;color:var(--warn)&quot;&#x27; : &#x27;&#x27;) + &#x27;&gt;chờ &#x27; + n + &#x27; ngày&lt;/span&gt;&#x27;; } },
       C.dx, C.rx, { h: &#x27;Hạn&#x27;, v: deadline },
       { h: &#x27;&#x27;, cls: &#x27;act&#x27;, v: function (p) { return can(&#x27;claimPlan&#x27;) ? btn(&#x27;claimPlan&#x27;, p.id, &#x27;Nhận ca&#x27;, &#x27;primary&#x27;) : &#x27;&#x27;; } }
-    ], &#x27;Thứ tự: Cấp cứu → Ưu tiên → boost sắp tới lượt xạ → contour xong trước làm trước.&#x27;, &#x27;Không có ca nào chờ nhận.&#x27;);
+    ], &#x27;Thứ tự: Cấp cứu → boost sắp tới lượt xạ → nộp trước làm trước. Nền đỏ: cấp cứu, nền cam: ưu tiên.&#x27;, &#x27;Không có ca nào chờ nhận.&#x27;);
     html += group(&#x27;kd&#x27;, &#x27;Ca tôi đang lập kế hoạch&#x27;, doing, [C.pt, C.pr, C.bs,
       { h: &#x27;Nhận ca&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { var n = daysSince(p.ngay_nhan_kh); return &#x27;&lt;span class=&quot;num&quot;&gt;&#x27; + fdw(p.ngay_nhan_kh) + &#x27;&lt;/span&gt;&lt;span class=&quot;sub&quot;&#x27; + (n &gt;= 3 ? &#x27; style=&quot;color:var(--warn)&quot;&#x27; : &#x27;&#x27;) + &#x27;&gt;&#x27; + n + &#x27; ngày&lt;/span&gt;&#x27;; } },
       C.dx, C.rx, { h: &#x27;Hạn&#x27;, v: deadline },
@@ -4322,8 +4408,8 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
   // ---------- Kỹ sư ----------
   function renderPlanning() {
     var queue = RT.planningQueue(items(), boostLeft);
-    var doing = items().filter(function (p) { return p.trang_thai === &#x27;DANG_KH&#x27;; }).sort(function (a, b) { return prRank(a) - prRank(b) || (a.ngay_nhan_kh &lt; b.ngay_nhan_kh ? -1 : 1); });
-    var qa = items().filter(function (p) { return p.trang_thai === &#x27;CHO_QA&#x27;; }).sort(function (a, b) { return prRank(a) - prRank(b) || (a.ngay_kh_xong &lt; b.ngay_kh_xong ? -1 : 1); });
+    var doing = items().filter(function (p) { return p.trang_thai === &#x27;DANG_KH&#x27;; }).sort(RT.planOrder);
+    var qa = items().filter(function (p) { return p.trang_thai === &#x27;CHO_QA&#x27;; }).sort(RT.planOrder);
     var recent = pts().filter(function (p) { return p.ngay_kh_xong &amp;&amp; daysSince(p.ngay_kh_xong) &lt;= 7 &amp;&amp; [&#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;].indexOf(p.trang_thai) &gt;= 0; })
       .sort(function (a, b) { return a.ngay_kh_xong &lt; b.ngay_kh_xong ? 1 : -1; });
     var mine = doing.filter(function (p) { return p.ks_email === me().email; }).length;
@@ -4341,7 +4427,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
       { h: &#x27;Contour xong&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { return &#x27;&lt;span class=&quot;num&quot;&gt;&#x27; + fdw(p.ngay_contour_xong) + &#x27;&lt;/span&gt;&lt;span class=&quot;sub&quot;&gt;chờ &#x27; + daysSince(p.ngay_contour_xong) + &#x27; ngày&lt;/span&gt;&#x27;; } },
       C.dx, C.rx, { h: &#x27;Hạn&#x27;, v: function (p) { return boostFlag(p) || &#x27;&lt;span class=&quot;muted&quot;&gt;—&lt;/span&gt;&#x27;; } }, C.bs,
       { h: &#x27;&#x27;, cls: &#x27;act&#x27;, v: function (p) { return can(&#x27;claimPlan&#x27;) ? btn(&#x27;claimPlan&#x27;, p.id, &#x27;Nhận ca&#x27;) + btn(&#x27;planDone&#x27;, p.id, &#x27;Lập KH xong&#x27;, &#x27;primary&#x27;) : &#x27;&#x27;; } }
-    ], &#x27;Thứ tự: Cấp cứu → Ưu tiên → boost sắp tới lượt xạ → ca contour xong trước làm trước.&#x27;, &#x27;Không có ca nào chờ lập kế hoạch.&#x27;);
+    ], &#x27;Thứ tự: Cấp cứu → boost sắp tới lượt xạ → nộp trước làm trước. Nền đỏ: cấp cứu, nền cam: ưu tiên.&#x27;, &#x27;Không có ca nào chờ lập kế hoạch.&#x27;);
     html += group(&#x27;doing&#x27;, &#x27;Đang lập kế hoạch&#x27;, doing, [C.pt, C.pr,
       { h: &#x27;Kỹ sư&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { return esc(nameOf(p.ks_email)) + &#x27;&lt;span class=&quot;sub&quot;&gt;nhận &#x27; + fd(p.ngay_nhan_kh) + &#x27; · &#x27; + daysSince(p.ngay_nhan_kh) + &#x27; ngày&lt;/span&gt;&#x27;; } },
       C.dx, C.rx, { h: &#x27;Hạn&#x27;, v: function (p) { return boostFlag(p) || &#x27;&lt;span class=&quot;muted&quot;&gt;—&lt;/span&gt;&#x27;; } },
@@ -5136,7 +5222,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
 
     dr.innerHTML = &#x27;&lt;div class=&quot;scrim&quot; data-close&gt;&lt;/div&gt;&lt;aside class=&quot;drawer&quot; role=&quot;dialog&quot; aria-modal=&quot;true&quot; aria-labelledby=&quot;dr-t&quot;&gt;&#x27; +
       &#x27;&lt;div class=&quot;drawer-head&quot;&gt;&lt;div class=&quot;row&quot;&gt;&lt;h2 id=&quot;dr-t&quot;&gt;&#x27; + esc(p.ho_ten) + &#x27;&lt;/h2&gt;&lt;button class=&quot;x&quot; data-close aria-label=&quot;Đóng&quot;&gt;×&lt;/button&gt;&lt;/div&gt;&#x27; +
-      &#x27;&lt;div&gt;&#x27; + stPill(p) + &#x27; &#x27; + prPill(p) + &#x27; &lt;span class=&quot;muted&quot;&gt;· Mã HIS&lt;/span&gt; &lt;b class=&quot;mono&quot;&gt;&#x27; + esc(p.ma_his) + &#x27;&lt;/b&gt;&lt;button class=&quot;copy&quot; id=&quot;copy-his&quot;&gt;Sao chép&lt;/button&gt;&#x27; +
+      &#x27;&lt;div&gt;&#x27; + stPill(p) + &#x27; &#x27; + prPill(p) + (p.ly_do_uu_tien &amp;&amp; p.uu_tien !== &#x27;Thường&#x27; ? &#x27; &lt;span class=&quot;muted&quot;&gt;(&#x27; + esc(p.ly_do_uu_tien) + &#x27;)&lt;/span&gt;&#x27; : &#x27;&#x27;) + &#x27; &lt;span class=&quot;muted&quot;&gt;· Mã HIS&lt;/span&gt; &lt;b class=&quot;mono&quot;&gt;&#x27; + esc(p.ma_his) + &#x27;&lt;/b&gt;&lt;button class=&quot;copy&quot; id=&quot;copy-his&quot;&gt;Sao chép&lt;/button&gt;&#x27; +
       &#x27;&lt;span class=&quot;muted&quot;&gt; · &#x27; + [age(p), p.gioi, p.id].filter(Boolean).map(esc).join(&#x27; · &#x27;) + &#x27;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&#x27; +
       &#x27;&lt;div class=&quot;drawer-body&quot;&gt;&#x27; +
       (ro ? &#x27;&lt;div class=&quot;sec&quot; style=&quot;border-color:var(--blue)&quot;&gt;&lt;h3 style=&quot;color:var(--blue)&quot;&gt;Hồ sơ lưu trữ&lt;/h3&gt;&lt;p&gt;Đợt xạ đã kết thúc và được chuyển sang lưu trữ. Chỉ xem, không sửa.&lt;/p&gt;&lt;/div&gt;&#x27; : &#x27;&#x27;) +
@@ -5352,17 +5438,18 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     modal({ title: &#x27;Contour xong, chuyển kỹ sư&#x27;, ok: &#x27;Chuyển kỹ sư&#x27;, body: whoBox(p) + fill +
       &#x27;&lt;div class=&quot;field&quot;&gt;&lt;span class=&quot;lb&quot;&gt;Mức ưu tiên lập kế hoạch&lt;/span&gt;&lt;div class=&quot;radios&quot;&gt;&#x27; + [
         [&#x27;Cấp cứu&#x27;, &#x27;Chèn ép tủy, chảy máu, tắc nghẽn… Lập kế hoạch ngay.&#x27;],
-        [&#x27;Ưu tiên&#x27;, &#x27;Cần sớm hơn thứ tự thông thường.&#x27;],
+        [&#x27;Ưu tiên&#x27;, &#x27;Tô nền cam để kỹ sư chú ý. Cần ghi rõ lý do.&#x27;],
         [&#x27;Thường&#x27;, &#x27;Theo thứ tự contour xong trước làm trước.&#x27;]
-      ].map(function (x) { return &#x27;&lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;uu_tien&quot; value=&quot;&#x27; + x[0] + &#x27;&quot;&#x27; + ((p.uu_tien || &#x27;Thường&#x27;) === x[0] ? &#x27; checked&#x27; : &#x27;&#x27;) + &#x27;&gt;&lt;span&gt;&lt;b&gt;&#x27; + x[0] + &#x27;&lt;/b&gt;&lt;small&gt;&#x27; + x[1] + &#x27;&lt;/small&gt;&lt;/span&gt;&lt;/label&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;/div&gt;&lt;/div&gt;&#x27;,
-      onMount: bindIcd,
-      validate: function (v) { if (!miss.length) return &#x27;&#x27;; var m = RT.missingRx(v, true); return m.length ? &#x27;Cần nhập đủ: &#x27; + m.join(&#x27;, &#x27;) + &#x27;.&#x27; : &#x27;&#x27;; },
+      ].map(function (x) { return &#x27;&lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;uu_tien&quot; value=&quot;&#x27; + x[0] + &#x27;&quot;&#x27; + ((p.uu_tien || &#x27;Thường&#x27;) === x[0] ? &#x27; checked&#x27; : &#x27;&#x27;) + &#x27;&gt;&lt;span&gt;&lt;b&gt;&#x27; + x[0] + &#x27;&lt;/b&gt;&lt;small&gt;&#x27; + x[1] + &#x27;&lt;/small&gt;&lt;/span&gt;&lt;/label&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;/div&gt;&lt;/div&gt;&#x27; + prioReasonField(p.ly_do_uu_tien),
+      onMount: function (form) { bindIcd(form); bindPrio(form); },
+      validate: function (v) { var pe = prioError(v); if (pe) return pe; if (!miss.length) return &#x27;&#x27;; var m = RT.missingRx(v, true); return m.length ? &#x27;Cần nhập đủ: &#x27; + m.join(&#x27;, &#x27;) + &#x27;.&#x27; : &#x27;&#x27;; },
       onOk: function (v) { v.id = p.id; run(&#x27;contourDone&#x27;, v); } });
   }
   function priorityForm(p) {
     modal({ title: &#x27;Đổi mức ưu tiên&#x27;, ok: &#x27;Lưu&#x27;, body: whoBox(p) + &#x27;&lt;div class=&quot;radios&quot;&gt;&#x27; + [&#x27;Cấp cứu&#x27;, &#x27;Ưu tiên&#x27;, &#x27;Thường&#x27;].map(function (x) {
-      return &#x27;&lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;uu_tien&quot; value=&quot;&#x27; + x + &#x27;&quot;&#x27; + ((p.uu_tien || &#x27;Thường&#x27;) === x ? &#x27; checked&#x27; : &#x27;&#x27;) + &#x27;&gt;&lt;span&gt;&lt;b&gt;&#x27; + x + &#x27;&lt;/b&gt;&lt;/span&gt;&lt;/label&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;/div&gt;&#x27;,
-      onOk: function (v) { run(&#x27;setPriority&#x27;, { id: p.id, uu_tien: v.uu_tien }); } });
+      return &#x27;&lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;uu_tien&quot; value=&quot;&#x27; + x + &#x27;&quot;&#x27; + ((p.uu_tien || &#x27;Thường&#x27;) === x ? &#x27; checked&#x27; : &#x27;&#x27;) + &#x27;&gt;&lt;span&gt;&lt;b&gt;&#x27; + x + &#x27;&lt;/b&gt;&lt;/span&gt;&lt;/label&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;/div&gt;&#x27; + prioReasonField(p.ly_do_uu_tien),
+      onMount: bindPrio, validate: prioError,
+      onOk: function (v) { run(&#x27;setPriority&#x27;, { id: p.id, uu_tien: v.uu_tien, ly_do_uu_tien: v.ly_do_uu_tien }); } });
   }
   function ksSelect(sel) {
     return field(&#x27;Kỹ sư phụ trách &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&#x27;, &#x27;&lt;select name=&quot;ks_email&quot;&gt;&#x27; + opts(activeUsers(&#x27;KS&#x27;).map(function (u) { return { v: u.email, l: u.ho_ten }; }), sel || &#x27;&#x27;, &#x27;Chọn kỹ sư&#x27;) + &#x27;&lt;/select&gt;&#x27;, &#x27;full&#x27;);
@@ -5483,7 +5570,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
         field(&#x27;Vị trí xạ&#x27;, inp(&#x27;vi_tri&#x27;, &#x27;text&#x27;, &#x27;list=&quot;dl-vitri&quot; autocomplete=&quot;off&quot; placeholder=&quot;Chọn hoặc gõ, VD: Cột sống L2–L4&quot;&#x27;) + &#x27;&lt;datalist id=&quot;dl-vitri&quot;&gt;&#x27; + (d.VI_TRI || RT.DEFAULT_DM.VI_TRI).map(function (x) { return &#x27;&lt;option value=&quot;&#x27; + esc(x) + &#x27;&quot;&gt;&lt;/option&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;/datalist&gt;&#x27;, &#x27;&#x27;, &#x27;Bấm vào ô để chọn, hoặc gõ vị trí khác&#x27;) +
         field(&#x27;Mục đích&#x27;, &#x27;&lt;select name=&quot;muc_dich&quot;&gt;&#x27; + opts(mucDich, v0.muc_dich, &#x27;—&#x27;) + &#x27;&lt;/select&gt;&#x27;) +
         field(&#x27;Kỹ thuật &lt;span class=&quot;req rx-req&quot;&gt;*&lt;/span&gt;&#x27;, &#x27;&lt;select name=&quot;ky_thuat&quot;&gt;&#x27; + opts(d.KY_THUAT, v0.ky_thuat, &#x27;Chọn kỹ thuật&#x27;) + &#x27;&lt;/select&gt;&#x27;) +
-        field(&#x27;Ưu tiên&#x27;, &#x27;&lt;select name=&quot;uu_tien&quot;&gt;&#x27; + opts(d.UU_TIEN, v0.uu_tien) + &#x27;&lt;/select&gt;&#x27;) +
+        field(&#x27;Ưu tiên&#x27;, &#x27;&lt;select name=&quot;uu_tien&quot;&gt;&#x27; + opts(d.UU_TIEN, v0.uu_tien) + &#x27;&lt;/select&gt;&#x27;) + prioReasonField(v0.ly_do_uu_tien) +
         field(&#x27;Tổng liều (Gy) &lt;span class=&quot;req rx-req&quot;&gt;*&lt;/span&gt;&#x27;, inp(&#x27;tong_lieu&#x27;, &#x27;number&#x27;, &#x27;step=&quot;0.01&quot; min=&quot;0&quot;&#x27;)) +
         field(&#x27;Số buổi &lt;span class=&quot;req rx-req&quot;&gt;*&lt;/span&gt;&#x27;, inp(&#x27;so_buoi&#x27;, &#x27;number&#x27;, &#x27;step=&quot;1&quot; min=&quot;1&quot; max=&quot;60&quot;&#x27;), &#x27;&#x27;, &#x27;&lt;span id=&quot;dpf&quot;&gt;&lt;/span&gt;&#x27;) +
         field(&#x27;IGRT dự kiến&#x27;, &#x27;&lt;select name=&quot;igrt&quot;&gt;&#x27; + opts(d.IGRT, v0.igrt) + &#x27;&lt;/select&gt;&#x27;) +
@@ -5507,6 +5594,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
           kHelp.textContent = k ? &#x27;Theo khoa của bác sĩ điều trị&#x27; : bsSel.value ? &#x27;Bác sĩ này chưa ghi khoa trong Quản trị: chọn khoa&#x27; : &#x27;Chọn bác sĩ, khoa tự điền theo bác sĩ&#x27;;
         };
         bsSel.addEventListener(&#x27;change&#x27;, syncKhoa); syncKhoa();
+        bindPrio(form);
         var cb = $(&#x27;#co-boost&#x27;, form), more = $(&#x27;#more&#x27;, form);
         var step = function () {
           var st = (formValues(form).trang_thai) || &#x27;&#x27;;
@@ -5560,6 +5648,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
         if (isNew &amp;&amp; !v.trang_thai) return &#x27;Cần chọn bước hiện tại của bệnh nhân (chưa mô phỏng, đang contour…).&#x27;;
         if (!v.bs_email) return &#x27;Cần chọn bác sĩ điều trị.&#x27;;
         if (!v.khoa) return &#x27;Cần chọn khoa.&#x27;;
+        if (prioError(v)) return prioError(v);
         if (v.icd &amp;&amp; !RT.isIcd(RT.normIcd(v.icd))) return &#x27;Mã ICD-10 chưa đúng dạng (VD: C50.9).&#x27;;
         var early = isNew ? (!v.trang_thai || v.trang_thai === &#x27;MO_PHONG&#x27; || v.trang_thai === &#x27;CONTOUR&#x27;) &amp;&amp; !v.co_boost : [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;].indexOf(p.trang_thai) &gt;= 0;
         if (!early) {
@@ -5614,12 +5703,12 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     [&#x27;SAN_SANG&#x27;, &#x27;Đã có KH boost&#x27;, &#x27;Dùng khi nhập BN đã có sẵn kế hoạch boost&#x27;]
   ];
   function phaseForm(p, g) {
-    var isNew = !g, d = S.data.dm, v0 = g || { uu_tien: p.uu_tien || &#x27;Thường&#x27; };
+    var isNew = !g, d = S.data.dm, v0 = g || { uu_tien: p.uu_tien || &#x27;Thường&#x27;, ly_do_uu_tien: p.ly_do_uu_tien || &#x27;&#x27; };
     var inp = function (name, type, attrs) { return &#x27;&lt;input type=&quot;&#x27; + (type || &#x27;text&#x27;) + &#x27;&quot; name=&quot;&#x27; + name + &#x27;&quot; value=&quot;&#x27; + esc(v0[name] || &#x27;&#x27;) + &#x27;&quot; &#x27; + (attrs || &#x27;&#x27;) + &#x27;&gt;&#x27;; };
     modal({ title: isNew ? &#x27;Thêm boost (GĐ&#x27; + (course(p).segs.length + 1) + &#x27;)&#x27; : &#x27;Sửa boost GĐ&#x27; + g.stt, ok: isNew ? &#x27;Thêm boost&#x27; : &#x27;Lưu&#x27;,
       body: whoBox(p) + &#x27;&lt;div class=&quot;form&quot;&gt;&#x27; +
         field(&#x27;Kỹ thuật &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&#x27;, &#x27;&lt;select name=&quot;ky_thuat&quot;&gt;&#x27; + opts(d.KY_THUAT, v0.ky_thuat, &#x27;Chọn&#x27;) + &#x27;&lt;/select&gt;&#x27;) +
-        field(&#x27;Ưu tiên lập KH&#x27;, &#x27;&lt;select name=&quot;uu_tien&quot;&gt;&#x27; + opts(d.UU_TIEN, v0.uu_tien) + &#x27;&lt;/select&gt;&#x27;) +
+        field(&#x27;Ưu tiên lập KH&#x27;, &#x27;&lt;select name=&quot;uu_tien&quot;&gt;&#x27; + opts(d.UU_TIEN, v0.uu_tien) + &#x27;&lt;/select&gt;&#x27;) + prioReasonField(v0.ly_do_uu_tien) +
         field(&#x27;Tổng liều boost (Gy) &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&#x27;, inp(&#x27;tong_lieu&#x27;, &#x27;number&#x27;, &#x27;step=&quot;0.01&quot; min=&quot;0&quot;&#x27;)) +
         field(&#x27;Số buổi &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&#x27;, inp(&#x27;so_buoi&#x27;, &#x27;number&#x27;, &#x27;step=&quot;1&quot; min=&quot;1&quot; max=&quot;60&quot;&#x27;)) +
         field(&#x27;Các mức liều (nếu SIB)&#x27;, inp(&#x27;muc_lieu&#x27;), &#x27;full&#x27;) +
@@ -5631,9 +5720,11 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
       onMount: function (form) {
         var upd = function () { var v = formValues(form); $$(&#x27;[data-sim]&#x27;, form).forEach(function (el) { el.hidden = v.buoc !== &#x27;MO_PHONG&#x27;; }); };
         $$(&#x27;input[name=buoc]&#x27;, form).forEach(function (el) { el.addEventListener(&#x27;change&#x27;, upd); }); upd();
+        bindPrio(form);
       },
       validate: function (v) {
         if (!v.ky_thuat) return &#x27;Chọn kỹ thuật.&#x27;;
+        if (prioError(v)) return prioError(v);
         if (!(RT.num(v.tong_lieu) &gt; 0) || !(RT.num(v.so_buoi) &gt;= 1)) return &#x27;Nhập liều và số buổi boost.&#x27;;
         return &#x27;&#x27;;
       },

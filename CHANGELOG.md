@@ -9,6 +9,9 @@
 - **Điều dưỡng (kể cả ĐD trưởng) chỉ thấy BN khoa mình**: máy chủ chỉ gửi BN khoa đó, kể cả khi tìm lưu trữ; bỏ ô chọn khoa.
 - **Thêm / sửa BN: khoa theo bác sĩ điều trị.** Danh sách bác sĩ chia nhóm theo khoa; chọn bác sĩ thì khoa tự điền và khoá. Máy chủ cũng tự gán. Bác sĩ chưa ghi khoa thì chọn khoa bằng tay.
 - **Quản trị**: tài khoản bác sĩ và điều dưỡng bắt buộc chọn khoa.
+- **Lý do ưu tiên**: BN mức "Ưu tiên" bắt buộc ghi lý do (khi thêm BN, Contour xong, Đổi ưu tiên, sửa BN, boost); cấp cứu ghi tuỳ chọn. Lý do hiện dưới nhãn ưu tiên và trong chi tiết BN. Cột mới `ly_do_uu_tien`, `tg_nop_kh` (cần chạy `setup`).
+- **Tô màu BN đang chuẩn bị xạ** (mô phỏng → chờ vào xạ): cấp cứu nền đỏ, ưu tiên nền cam, thường để nguyên.
+- **Thứ tự trong Lập kế hoạch và QA**: cấp cứu lên trước, sau đó ai nộp trước (giờ bấm "Contour xong") làm trước; "Ưu tiên" không còn vượt lên trên, chỉ tô màu.
 
 ## v2.6
 - **Thống kê làm lại**: chọn loại trước (Lượt xạ trị · Vắng buổi xạ · Tìm danh sách BN), chọn khoảng thời gian, rồi xem.

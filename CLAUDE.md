@@ -33,6 +33,7 @@
 - Vai trò: BS, KS (kỹ sư vật lý), KTV, DD (điều dưỡng), ADMIN. Chức vụ: Trưởng khoa, Phó trưởng khoa (như BS thường), Điều dưỡng trưởng, KTV trưởng, Trưởng phòng, Tài khoản khoa. Trợ lý BS (chỉ BS) thấy BN và thống kê của BS chính.
 - Ai cũng thêm được BN (KTV, ĐD, KS nhập theo phiếu chỉ định). Lúc nhập chỉ bắt buộc thông tin hành chính và **bước hiện tại**. Đủ chuyên môn và **mã ICD-10** bắt buộc khi "Contour xong".
 - Nhận ca lập KH phải **chọn kỹ sư phụ trách**, có nút đổi kỹ sư.
+- Ưu tiên: "Ưu tiên" bắt buộc ghi lý do (`ly_do_uu_tien`). Nền đỏ = cấp cứu, nền cam = ưu tiên (BN chưa vào xạ). Lập KH / QA xếp: cấp cứu → (boost sắp tới lượt) → nộp trước (`tg_nop_kh`) làm trước.
 - Cảnh báo mã HIS: trùng đợt đang hoạt động, hoặc cùng mã mà khác tên (tra cả lưu trữ qua `ChiMuc`).
 - Khoa của BN theo khoa của BS điều trị (BS, ĐD bắt buộc có khoa). **ĐD (kể cả ĐD trưởng) chỉ thấy BN khoa mình** (lọc ở máy chủ).
 - Thống kê (v2.7):

@@ -35,10 +35,10 @@ var RT = (function () {
       'tong_lieu', 'so_buoi', 'igrt', 'sgrt', 'uu_tien', 'trang_thai', 'ngay_tao', 'ngay_contour_xong',
       'ks_email', 'ngay_nhan_kh', 'ngay_kh_xong', 'can_qa', 'qa_ket_qua', 'ngay_qa', 'ngay_du_kien',
       'ngay_nghi_tuan', 'may', 'ngay_bat_dau', 'ngay_ket_thuc', 'tam_ngung_tu', 'ly_do_tam_ngung',
-      'ghi_chu', 'cap_nhat_luc', 'cap_nhat_boi', 'ly_do_ket_thuc', 'muc_lieu', 'vi_tri', 'muc_dich', 'ngay_mo_phong', 'nguoi_nhap', 'icd'],
+      'ghi_chu', 'cap_nhat_luc', 'cap_nhat_boi', 'ly_do_ket_thuc', 'muc_lieu', 'vi_tri', 'muc_dich', 'ngay_mo_phong', 'nguoi_nhap', 'icd', 'ly_do_uu_tien', 'tg_nop_kh'],
     GiaiDoan: ['id', 'bn_id', 'stt', 'ky_thuat', 'tong_lieu', 'so_buoi', 'muc_lieu', 'trang_thai', 'di_cung',
       'uu_tien', 'ngay_tao', 'ngay_mo_phong', 'ngay_contour_xong', 'ks_email', 'ngay_nhan_kh', 'ngay_kh_xong',
-      'can_qa', 'qa_ket_qua', 'ngay_qa', 'ghi_chu', 'cap_nhat_luc', 'cap_nhat_boi'],
+      'can_qa', 'qa_ket_qua', 'ngay_qa', 'ghi_chu', 'cap_nhat_luc', 'cap_nhat_boi', 'ly_do_uu_tien', 'tg_nop_kh'],
     BuoiXa: ['id', 'bn_id', 'ngay', 'buoi_so', 'ktv_email', 'thoi_gian', 'hinh_anh', 'ghi_chu',
       'da_huy', 'huy_boi', 'ly_do_huy', 'gd', 'ghi_bu', 'ly_do_bu'],
     LichNgoaiLe: ['id', 'bn_id', 'may', 'ngay', 'loai', 'ghi_chu', 'nguoi', 'thoi_gian', 'da_xoa'],
@@ -261,24 +261,38 @@ var RT = (function () {
     };
   }
 
-  /** Hàng đợi lập kế hoạch (cả GĐ1 và boost). Cấp cứu → Ưu tiên → Thường; boost sắp hết GĐ trước lên trước; còn lại ai contour xong trước làm trước. */
+  /** Thời điểm nộp cho kỹ sư (contour xong); dữ liệu cũ chỉ có ngày */
+  function submitTime(x) { return x.tg_nop_kh || x.ngay_contour_xong || x.ngay_tao || ''; }
+  /** Thứ tự trong phần lập kế hoạch: Cấp cứu lên trước; còn lại (Ưu tiên, Thường) nộp trước làm trước */
+  function planOrder(a, b) {
+    var ra = a.uu_tien === 'Cấp cứu' ? 0 : 1, rb = b.uu_tien === 'Cấp cứu' ? 0 : 1;
+    if (ra !== rb) return ra - rb;
+    var da = submitTime(a), db = submitTime(b);
+    if (da !== db) return da < db ? -1 : 1;
+    return a.id < b.id ? -1 : 1;
+  }
+  /** Hàng đợi lập kế hoạch (cả GĐ1 và boost): Cấp cứu → boost sắp tới lượt xạ → nộp trước làm trước. */
   function planningQueue(items, urgentOf) {
     return items.filter(function (x) { return x.trang_thai === 'CHO_KH'; }).sort(function (a, b) {
-      var ra = PRIORITY_RANK[a.uu_tien] != null ? PRIORITY_RANK[a.uu_tien] : 2;
-      var rb = PRIORITY_RANK[b.uu_tien] != null ? PRIORITY_RANK[b.uu_tien] : 2;
+      var ra = a.uu_tien === 'Cấp cứu' ? 0 : 1, rb = b.uu_tien === 'Cấp cứu' ? 0 : 1;
       if (ra !== rb) return ra - rb;
       var ua = urgentOf ? urgentOf(a) : 99, ub = urgentOf ? urgentOf(b) : 99;
       if (ua !== ub) return ua - ub;
-      var da = a.ngay_contour_xong || a.ngay_tao, db = b.ngay_contour_xong || b.ngay_tao;
-      if (da !== db) return da < db ? -1 : 1;
-      return a.id < b.id ? -1 : 1;
+      return planOrder(a, b);
     });
+  }
+  /** Mức ưu tiên và lý do: "Ưu tiên" bắt buộc ghi lý do; "Thường" thì xoá lý do. */
+  function checkPrio(x, reason, strict) {
+    if (x.uu_tien && PRIORITY_RANK[x.uu_tien] == null) fail('Mức ưu tiên không hợp lệ.');
+    if (!x.uu_tien || x.uu_tien === 'Thường') { x.ly_do_uu_tien = ''; return; }
+    if (reason !== undefined) x.ly_do_uu_tien = String(reason || '').trim();
+    if (strict !== false && x.uu_tien === 'Ưu tiên' && !x.ly_do_uu_tien) fail('BN "Ưu tiên" cần ghi rõ lý do ưu tiên.');
   }
 
   // ---------- Thao tác ----------
   var EDIT_FIELDS = ['ma_his', 'ho_ten', 'nam_sinh', 'gioi', 'icd', 'chan_doan', 'vi_tri', 'muc_dich', 'ngay_mo_phong', 'khoa', 'bs_email', 'ky_thuat',
-    'tong_lieu', 'so_buoi', 'muc_lieu', 'igrt', 'sgrt', 'uu_tien', 'may', 'ghi_chu'];
-  var PHASE_FIELDS = ['ky_thuat', 'tong_lieu', 'so_buoi', 'muc_lieu', 'uu_tien', 'ngay_mo_phong', 'ghi_chu'];
+    'tong_lieu', 'so_buoi', 'muc_lieu', 'igrt', 'sgrt', 'uu_tien', 'ly_do_uu_tien', 'may', 'ghi_chu'];
+  var PHASE_FIELDS = ['ky_thuat', 'tong_lieu', 'so_buoi', 'muc_lieu', 'uu_tien', 'ly_do_uu_tien', 'ngay_mo_phong', 'ghi_chu'];
 
   function fail(msg) { throw new Error(msg); }
   function findP(ctx, id) {
@@ -420,7 +434,8 @@ var RT = (function () {
     g.id = p.id + '-G' + g.stt;
     g.bn_id = p.id;
     g.ngay_tao = ctx.today;
-    if (!g.uu_tien) g.uu_tien = p.uu_tien || 'Thường';
+    if (!g.uu_tien) { g.uu_tien = p.uu_tien || 'Thường'; g.ly_do_uu_tien = p.ly_do_uu_tien || ''; }
+    checkPrio(g);
     if (buoc === 'CUNG_LUC') {
       g.di_cung = 'Có';
       buoc = p.trang_thai === 'MO_PHONG' ? 'MO_PHONG' : p.trang_thai === 'CONTOUR' ? 'CONTOUR' : 'CHO_KH';
@@ -428,7 +443,7 @@ var RT = (function () {
     g.trang_thai = buoc;
     if (buoc === 'MO_PHONG' && g.ngay_mo_phong && !isDate(g.ngay_mo_phong)) fail('Ngày mô phỏng không hợp lệ.');
     if (buoc !== 'MO_PHONG') g.ngay_mo_phong = '';
-    if (buoc === 'CHO_KH' || buoc === 'SAN_SANG') g.ngay_contour_xong = ctx.today;
+    if (buoc === 'CHO_KH' || buoc === 'SAN_SANG') { g.ngay_contour_xong = ctx.today; g.tg_nop_kh = ctx.now || ''; }
     if (buoc === 'SAN_SANG') { g.ngay_kh_xong = ctx.today; g.qa_ket_qua = 'Nhập ban đầu'; }
     ctx.phases.push(g);
     return g;
@@ -469,6 +484,7 @@ var RT = (function () {
       setKhoa(ctx, p);
       p.nguoi_nhap = ctx.user.email;
       if (!p.uu_tien) p.uu_tien = 'Thường';
+      checkPrio(p);
       if (!p.igrt) p.igrt = 'Không';
       if (!p.sgrt) p.sgrt = 'Không';
       var step0 = a.trang_thai || 'CONTOUR';
@@ -503,7 +519,7 @@ var RT = (function () {
       }
       p.ngay_tao = ctx.today;
       p.trang_thai = step;
-      if (step !== 'CONTOUR' && step !== 'MO_PHONG') p.ngay_contour_xong = ctx.today;
+      if (step !== 'CONTOUR' && step !== 'MO_PHONG') { p.ngay_contour_xong = ctx.today; p.tg_nop_kh = ctx.now || ''; }
       if (step === 'CHO_XA' || step === 'DANG_XA') { p.ngay_kh_xong = ctx.today; p.qa_ket_qua = 'Nhập ban đầu'; }
       if (step === 'DANG_XA') { p.ngay_bat_dau = backfill[0]; p.ngay_du_kien = backfill[0]; }
       ctx.patients.push(p);
@@ -526,6 +542,10 @@ var RT = (function () {
       Object.keys(p).forEach(function (k) { merged[k] = p[k]; });
       Object.keys(o).forEach(function (k) { merged[k] = o[k]; });
       if (o.bs_email !== undefined || o.khoa !== undefined) { setKhoa(ctx, merged); o.khoa = merged.khoa; }
+      if (o.uu_tien !== undefined || o.ly_do_uu_tien !== undefined) {
+        checkPrio(merged, undefined, merged.uu_tien !== p.uu_tien || PLAN_STATES.indexOf(p.trang_thai) >= 0);
+        o.ly_do_uu_tien = merged.ly_do_uu_tien;
+      }
       if (EARLY.indexOf(p.trang_thai) >= 0) validateBasic(merged, ctx.today); else validate(merged, ctx.today);
       if (merged.icd !== (o.icd === undefined ? merged.icd : o.icd)) o.icd = merged.icd;
       if (o.icd !== undefined) o.icd = merged.icd;
@@ -560,14 +580,16 @@ var RT = (function () {
         Object.keys(add).forEach(function (k) { if (add[k] !== '') t.p[k] = add[k]; });
       }
       if (a.uu_tien) t.x.uu_tien = a.uu_tien;
+      checkPrio(t.x, a.uu_tien ? a.ly_do_uu_tien : undefined);
       t.x.trang_thai = 'CHO_KH';
       t.x.ngay_contour_xong = ctx.today;
-      saveT(ctx, t, 'Contour xong', 'Ưu tiên: ' + t.x.uu_tien);
+      t.x.tg_nop_kh = ctx.now || '';
+      saveT(ctx, t, 'Contour xong', 'Ưu tiên: ' + t.x.uu_tien + (t.x.ly_do_uu_tien ? ' (' + t.x.ly_do_uu_tien + ')' : ''));
       var extra = 0;
       if (!t.g) {
         ctx.phases.forEach(function (g) {
           if (g.bn_id === t.p.id && g.di_cung === 'Có' && g.trang_thai === 'CONTOUR') {
-            g.trang_thai = 'CHO_KH'; g.ngay_contour_xong = ctx.today; if (a.uu_tien) g.uu_tien = a.uu_tien;
+            g.trang_thai = 'CHO_KH'; g.ngay_contour_xong = ctx.today; g.tg_nop_kh = ctx.now || ''; if (a.uu_tien) { g.uu_tien = t.x.uu_tien; g.ly_do_uu_tien = t.x.ly_do_uu_tien; }
             saveT(ctx, { g: g, p: t.p, x: g }, 'Contour xong', 'cùng GĐ1'); extra++;
           }
         });
@@ -578,7 +600,8 @@ var RT = (function () {
       var t = target(ctx, a.id);
       if (PRIORITY_RANK[a.uu_tien] == null) fail('Mức ưu tiên không hợp lệ.');
       t.x.uu_tien = a.uu_tien;
-      saveT(ctx, t, 'Đổi ưu tiên', a.uu_tien);
+      checkPrio(t.x, a.ly_do_uu_tien);
+      saveT(ctx, t, 'Đổi ưu tiên', a.uu_tien + (t.x.ly_do_uu_tien ? ' (' + t.x.ly_do_uu_tien + ')' : ''));
       return 'Đã đặt ưu tiên "' + a.uu_tien + '" cho ' + t.name + '.';
     },
     claimPlan: function (ctx, a) {
@@ -643,6 +666,10 @@ var RT = (function () {
       Object.keys(g).forEach(function (k) { merged[k] = g[k]; });
       Object.keys(o).forEach(function (k) { merged[k] = o[k]; });
       validateRx(merged, ' của boost');
+      if (o.uu_tien !== undefined || o.ly_do_uu_tien !== undefined) {
+        checkPrio(merged, undefined, merged.uu_tien !== g.uu_tien || PLAN_STATES.indexOf(g.trang_thai) >= 0);
+        o.ly_do_uu_tien = merged.ly_do_uu_tien;
+      }
       var seg = segments(p, envOf(ctx)).filter(function (s) { return s.g === g; })[0];
       var deliveredIn = Math.max(0, Math.min(fxOf(p, ctx.fractions).length, seg.to) - seg.from);
       if (num(merged.so_buoi) < deliveredIn) fail('Số buổi boost không được nhỏ hơn số buổi boost đã xạ (' + deliveredIn + ').');
@@ -1287,7 +1314,7 @@ var RT = (function () {
 
   return {
     VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, nurseKhoa: nurseKhoa, canByDoctor: canByDoctor, doctorKhoa: doctorKhoa, report: report, staffKhoa: staffKhoa, myDoctors: myDoctors,
-    normIcd: normIcd, isIcd: isIcd, icdName: icdName, summary: summary, findPatients: findPatients, scopePatients: scopePatients, fold: fold, indexRow: indexRow, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
+    normIcd: normIcd, isIcd: isIcd, icdName: icdName, summary: summary, findPatients: findPatients, scopePatients: scopePatients, fold: fold, indexRow: indexRow, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, planOrder: planOrder, submitTime: submitTime, DOW: DOW,
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,

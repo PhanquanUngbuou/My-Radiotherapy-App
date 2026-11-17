@@ -60,6 +60,7 @@ window.DEMO = (function () {
     p.bs_email = 'bs.hai@demo';
     Object.keys(o).forEach(function (k) { p[k] = o[k]; });
     if (p.bs_email === 'bs.thu@demo' || p.bs_email === 'bs.chi@demo') p.khoa = 'Xạ trị';
+    if (p.uu_tien === 'Ưu tiên' && !p.ly_do_uu_tien) p.ly_do_uu_tien = ['Người nhà nhân viên bệnh viện', 'Theo chỉ đạo Ban Giám đốc', 'BN ở xa, cần xạ sớm để về'][seq % 3];
     if (p.chan_doan && !p.icd) demoIcd(p);
     patients.push(p);
     return p;
