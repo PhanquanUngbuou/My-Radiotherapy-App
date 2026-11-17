@@ -21,7 +21,7 @@ Cài đặt mất khoảng 15 phút và chỉ làm một lần.
 
 1. Ở thanh công cụ phía trên, chọn hàm **setup**, bấm **Chạy**.
 2. Google sẽ hỏi cấp quyền: chọn tài khoản của anh. Nếu hiện "Google chưa xác minh ứng dụng này", bấm **Nâng cao → Đi tới … (không an toàn)** → **Cho phép**. Cảnh báo này xuất hiện vì đây là ứng dụng anh tự viết, không phải ứng dụng công khai.
-3. Quay lại Google Sheet, sẽ thấy các trang tính: `BenhNhan`, `GiaiDoan` (boost), `BuoiXa`, `LichNgoaiLe` (đổi lịch, máy nghỉ), `NguoiDung`, `DanhMuc`, `NhatKy` và 4 trang `LuuTru_…` (lưu trữ).
+3. Quay lại Google Sheet, sẽ thấy các trang tính: `BenhNhan`, `GiaiDoan` (boost), `BuoiXa`, `LichNgoaiLe` (đổi lịch, máy nghỉ), `PhanCong`, `ChiMuc` (chỉ mục mọi đợt xạ, để tra mã HIS nhanh), `NguoiDung`, `DanhMuc`, `NhatKy` và các trang `LuuTru_…` (lưu trữ; buổi xạ lưu trữ tách theo năm).
 4. Hàm setup cũng cài lịch **tự động lưu trữ lúc 1 giờ sáng** mỗi ngày. Google sẽ hỏi thêm quyền "chạy khi bạn không có mặt", bấm Cho phép.
 
 ## Bước 4: Thêm người dùng
