@@ -41,21 +41,21 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
 </style>
 <div class="wrap">
   <div class="intro">
-    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v1.7</h1>
+    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v1.9</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v1.7 · bản lưu 678d45e · 17/11/2026 00:45. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v1.7”.</span>
+    <span class="rev">Phiên bản v1.9 · bản lưu bd1d6bd · 17/11/2026 00:50. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v1.9”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Code">Code.gs <span class="ver">· v1.7</span></h2>
+        <h2 id="h-Code">Code.gs <span class="ver">· v1.9</span></h2>
         <p>File có sẵn tên Code.gs: xoá hết nội dung cũ, dán vào.</p>
-        <span class="size">321 dòng · 15 KB</span>
+        <span class="size">331 dòng · 16 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v1.7)</button>
+      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v1.9)</button>
     </div>
-    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v1.7
+    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v1.9
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
@@ -65,7 +65,7 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
  */
 
 var TZ = &#x27;Asia/Ho_Chi_Minh&#x27;;
-var SHEET_NAMES = { BN: &#x27;BenhNhan&#x27;, GD: &#x27;GiaiDoan&#x27;, BUOI: &#x27;BuoiXa&#x27;, LICH: &#x27;LichNgoaiLe&#x27;, USER: &#x27;NguoiDung&#x27;, DM: &#x27;DanhMuc&#x27;, LOG: &#x27;NhatKy&#x27; };
+var SHEET_NAMES = { BN: &#x27;BenhNhan&#x27;, GD: &#x27;GiaiDoan&#x27;, BUOI: &#x27;BuoiXa&#x27;, LICH: &#x27;LichNgoaiLe&#x27;, PC: &#x27;PhanCong&#x27;, USER: &#x27;NguoiDung&#x27;, DM: &#x27;DanhMuc&#x27;, LOG: &#x27;NhatKy&#x27; };
 // Trang tính lưu trữ: đợt xạ đã kết thúc quá ARCHIVE_DAYS ngày được chuyển sang đây mỗi đêm
 var ARCHIVE = { BenhNhan: &#x27;LuuTru_BenhNhan&#x27;, GiaiDoan: &#x27;LuuTru_GiaiDoan&#x27;, BuoiXa: &#x27;LuuTru_BuoiXa&#x27;, LichNgoaiLe: &#x27;LuuTru_LichNgoaiLe&#x27; };
 var ARCHIVE_DAYS = 60;
@@ -137,21 +137,27 @@ function setup() {
 function api(action, payload) {
   var lock = null;
   try {
+    // Kiểm tra nhanh có thay đổi không (không đọc Google Sheet) để giao diện biết khi nào cần tải lại
+    if (action === &#x27;rev&#x27;) return JSON.stringify({ ok: true, rev: PropertiesService.getScriptProperties().getProperty(&#x27;REV&#x27;) || &#x27;0&#x27; });
     if (action === &#x27;searchArchive&#x27;) return JSON.stringify(searchArchive_(payload || {}));
-    if (action !== &#x27;bootstrap&#x27; &amp;&amp; action !== &#x27;getLog&#x27;) {
+    if (action !== &#x27;bootstrap&#x27; &amp;&amp; action !== &#x27;getLog&#x27; &amp;&amp; action !== &#x27;getRoster&#x27;) {
       lock = LockService.getScriptLock();
       lock.waitLock(30000);
     }
     var ctx = buildCtx_();
     var msg = &#x27;&#x27;, extra = {};
     if (action === &#x27;getLog&#x27;) {
-      if (ctx.user.vai_tro !== &#x27;ADMIN&#x27;) throw new Error(&#x27;Chỉ quản trị xem được nhật ký.&#x27;);
+      if (ctx.user.vai_tro !== &#x27;ADMIN&#x27; &amp;&amp; !RT.isLead(ctx.user)) throw new Error(&#x27;Chỉ quản trị và trưởng khoa/phòng xem được nhật ký.&#x27;);
       extra.log = readLog_(300);
+    } else if (action === &#x27;getRoster&#x27;) {
+      var a0 = (payload || {}).tu, b0 = (payload || {}).den;
+      extra.roster = ctx.roster.filter(function (r) { return r.ngay &gt;= a0 &amp;&amp; r.ngay &lt;= b0; }).map(function (r) { var o = {}; RT.COLS.PhanCong.forEach(function (c) { o[c] = r[c] || &#x27;&#x27;; }); return o; });
     } else if (action !== &#x27;bootstrap&#x27;) {
       msg = RT.handle(ctx, action, payload || {});
       SpreadsheetApp.flush();
+      PropertiesService.getScriptProperties().setProperty(&#x27;REV&#x27;, String(Date.now()));
     }
-    return JSON.stringify({ ok: true, msg: msg, data: RT.view(ctx), log: extra.log });
+    return JSON.stringify({ ok: true, msg: msg, data: RT.view(ctx), log: extra.log, roster: extra.roster, rev: PropertiesService.getScriptProperties().getProperty(&#x27;REV&#x27;) || &#x27;0&#x27; });
   } catch (e) {
     return JSON.stringify({ ok: false, error: String(e &amp;&amp; e.message || e) });
   } finally {
@@ -215,6 +221,7 @@ function buildCtx_() {
   var users = tU.rows.filter(function (u) { return u.email; }).map(function (u) {
     u.email = u.email.toLowerCase(); u.vai_tro = String(u.vai_tro).toUpperCase().trim();
     u.kich_hoat = u.kich_hoat === &#x27;Không&#x27; ? &#x27;Không&#x27; : &#x27;Có&#x27;;
+    u.chuc_vu = String(u.chuc_vu || &#x27;&#x27;).trim();
     return u;
   });
   var user = users.filter(function (u) { return u.email === email &amp;&amp; u.kich_hoat !== &#x27;Không&#x27;; })[0];
@@ -225,6 +232,7 @@ function buildCtx_() {
   var tGD = readTable_(ss, SHEET_NAMES.GD);
   var tBX = readTable_(ss, SHEET_NAMES.BUOI);
   var tLich = readTable_(ss, SHEET_NAMES.LICH);
+  var tPC = readTable_(ss, SHEET_NAMES.PC);
   var props = PropertiesService.getScriptProperties();
   var tDM = readTable_(ss, SHEET_NAMES.DM);
   var tLog = { sheet: ss.getSheetByName(SHEET_NAMES.LOG) };
@@ -258,6 +266,8 @@ function buildCtx_() {
     fractions: tBX.rows,
     phases: tGD.rows,
     exceptions: tLich.rows,
+    roster: tPC.rows,
+    saveRoster: function (r) { writeRow_(tPC, r); },
     idFloor: function (prefix) { return parseInt(props.getProperty(&#x27;ID_FLOOR_&#x27; + prefix) || &#x27;0&#x27;, 10); },
     savePatient: function (p) { writeRow_(tBN, p); },
     savePhase: function (g) { writeRow_(tGD, g); },
@@ -341,7 +351,7 @@ function archiveOld() {
       if ((p.trang_thai === &#x27;HOAN_THANH&#x27; || p.trang_thai === &#x27;HUY&#x27;) &amp;&amp; end &amp;&amp; end &lt; cutoff) move[p.id] = 1;
     });
     var n = Object.keys(move).length;
-    if (!n) return &#x27;Không có gì cần lưu trữ.&#x27;;
+    if (!n) { moveRows_(ss, SHEET_NAMES.LICH, ARCHIVE.LichNgoaiLe, function (r) { return (r.loai === &#x27;THONG_BAO&#x27; &amp;&amp; r.ngay &lt; today) || r.da_xoa === &#x27;Có&#x27;; }); return &#x27;Không có gì cần lưu trữ.&#x27;; }
     var props = PropertiesService.getScriptProperties();
     Object.keys(move).forEach(function (id) {
       var m = /^(XT\d\d-)(\d+)$/.exec(id);
@@ -353,7 +363,7 @@ function archiveOld() {
     moveRows_(ss, SHEET_NAMES.BN, ARCHIVE.BenhNhan, function (r) { return move[r.id]; });
     moveRows_(ss, SHEET_NAMES.GD, ARCHIVE.GiaiDoan, function (r) { return move[r.bn_id]; });
     moveRows_(ss, SHEET_NAMES.BUOI, ARCHIVE.BuoiXa, function (r) { return move[r.bn_id]; });
-    moveRows_(ss, SHEET_NAMES.LICH, ARCHIVE.LichNgoaiLe, function (r) { return move[r.bn_id] || (r.loai === &#x27;MAY_NGHI&#x27; &amp;&amp; r.ngay &lt; cutoff) || r.da_xoa === &#x27;Có&#x27;; });
+    moveRows_(ss, SHEET_NAMES.LICH, ARCHIVE.LichNgoaiLe, function (r) { return move[r.bn_id] || (r.loai === &#x27;MAY_NGHI&#x27; &amp;&amp; r.ngay &lt; cutoff) || (r.loai === &#x27;THONG_BAO&#x27; &amp;&amp; r.ngay &lt; today) || r.da_xoa === &#x27;Có&#x27;; });
     var log = ss.getSheetByName(SHEET_NAMES.LOG);
     log.getRange(log.getLastRow() + 1, 1, 1, 5).setNumberFormat(&#x27;@&#x27;)
       .setValues([[Utilities.formatDate(new Date(), TZ, &quot;yyyy-MM-dd&#x27;T&#x27;HH:mm:ss&quot;), &#x27;hệ thống&#x27;, &#x27;Lưu trữ&#x27;, &#x27;&#x27;, n + &#x27; đợt xạ&#x27;]]);
@@ -380,13 +390,13 @@ function moveRows_(ss, fromName, toName, pred) {
   <section class="card" aria-labelledby="h-Core">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Core">Core.gs <span class="ver">· v1.7</span></h2>
+        <h2 id="h-Core">Core.gs <span class="ver">· v1.9</span></h2>
         <p>Bấm + → Script (Tập lệnh), đặt tên Core.</p>
-        <span class="size">831 dòng · 47 KB</span>
+        <span class="size">909 dòng · 52 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v1.7)</button>
+      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v1.9)</button>
     </div>
-    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v1.7
+    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v1.9
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -397,7 +407,7 @@ function moveRows_(ss, fromName, toName, pred) {
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;1.7&#x27;;
+  var VERSION = &#x27;1.9&#x27;;
 
   var STATUS_ORDER = [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;];
   var STATUS = {
@@ -430,7 +440,8 @@ var RT = (function () {
     BuoiXa: [&#x27;id&#x27;, &#x27;bn_id&#x27;, &#x27;ngay&#x27;, &#x27;buoi_so&#x27;, &#x27;ktv_email&#x27;, &#x27;thoi_gian&#x27;, &#x27;hinh_anh&#x27;, &#x27;ghi_chu&#x27;,
       &#x27;da_huy&#x27;, &#x27;huy_boi&#x27;, &#x27;ly_do_huy&#x27;, &#x27;gd&#x27;],
     LichNgoaiLe: [&#x27;id&#x27;, &#x27;bn_id&#x27;, &#x27;may&#x27;, &#x27;ngay&#x27;, &#x27;loai&#x27;, &#x27;ghi_chu&#x27;, &#x27;nguoi&#x27;, &#x27;thoi_gian&#x27;, &#x27;da_xoa&#x27;],
-    NguoiDung: [&#x27;email&#x27;, &#x27;ho_ten&#x27;, &#x27;vai_tro&#x27;, &#x27;kich_hoat&#x27;],
+    NguoiDung: [&#x27;email&#x27;, &#x27;ho_ten&#x27;, &#x27;vai_tro&#x27;, &#x27;kich_hoat&#x27;, &#x27;chuc_vu&#x27;],
+    PhanCong: [&#x27;id&#x27;, &#x27;ngay&#x27;, &#x27;vi_tri&#x27;, &#x27;nhan_vien&#x27;, &#x27;ghi_chu&#x27;, &#x27;nguoi&#x27;, &#x27;thoi_gian&#x27;],
     DanhMuc: [&#x27;loai&#x27;, &#x27;gia_tri&#x27;],
     NhatKy: [&#x27;thoi_gian&#x27;, &#x27;email&#x27;, &#x27;thao_tac&#x27;, &#x27;bn_id&#x27;, &#x27;chi_tiet&#x27;]
   };
@@ -451,7 +462,9 @@ var RT = (function () {
     &#x27;Phổi&#x27;, &#x27;Thực quản&#x27;, &#x27;Trung thất&#x27;, &#x27;Dạ dày&#x27;, &#x27;Tuỵ&#x27;, &#x27;Gan&#x27;, &#x27;Trực tràng&#x27;, &#x27;Cổ tử cung&#x27;, &#x27;Nội mạc tử cung&#x27;,
     &#x27;Tuyến tiền liệt&#x27;, &#x27;Bàng quang&#x27;, &#x27;Tiểu khung&#x27;, &#x27;Cột sống cổ&#x27;, &#x27;Cột sống ngực&#x27;, &#x27;Cột sống thắt lưng&#x27;,
     &#x27;Xương chậu&#x27;, &#x27;Xương chi&#x27;, &#x27;Hạch&#x27;, &#x27;Da / mô mềm&#x27;];
-  var DM_EDITABLE = [&#x27;VI_TRI&#x27;, &#x27;MUC_DICH&#x27;, &#x27;MAY&#x27;, &#x27;NGAY_LE&#x27;, &#x27;KY_THUAT&#x27;, &#x27;IGRT&#x27;, &#x27;HINH_ANH&#x27;, &#x27;KHOA&#x27;, &#x27;LY_DO_TAM_NGUNG&#x27;, &#x27;TEN_DON_VI&#x27;];
+  DEFAULT_DM.VI_TRI_PC = [&#x27;Máy gia tốc 1 – ca sáng&#x27;, &#x27;Máy gia tốc 1 – ca chiều&#x27;, &#x27;Mô phỏng CT&#x27;, &#x27;Làm mặt nạ / cố định&#x27;, &#x27;Trực&#x27;];
+  var CHUC_VU = [&#x27;KTV trưởng&#x27;, &#x27;Điều dưỡng trưởng&#x27;, &#x27;Trưởng khoa&#x27;, &#x27;Phó trưởng khoa&#x27;, &#x27;Trưởng phòng&#x27;];
+  var DM_EDITABLE = [&#x27;VI_TRI_PC&#x27;, &#x27;VI_TRI&#x27;, &#x27;MUC_DICH&#x27;, &#x27;MAY&#x27;, &#x27;NGAY_LE&#x27;, &#x27;KY_THUAT&#x27;, &#x27;IGRT&#x27;, &#x27;HINH_ANH&#x27;, &#x27;KHOA&#x27;, &#x27;LY_DO_TAM_NGUNG&#x27;, &#x27;TEN_DON_VI&#x27;];
 
   var PERM = {
     createPatient: [&#x27;BS&#x27;, &#x27;KS&#x27;, &#x27;KTV&#x27;, &#x27;DD&#x27;, &#x27;ADMIN&#x27;],
@@ -480,7 +493,20 @@ var RT = (function () {
     dmAdd: [&#x27;ADMIN&#x27;],
     dmRemove: [&#x27;ADMIN&#x27;]
   };
-  function can(role, action) { return (PERM[action] || []).indexOf(role) &gt;= 0; }
+  PERM.setNotice = [&#x27;KTV&#x27;, &#x27;KS&#x27;, &#x27;ADMIN&#x27;];
+  PERM.clearNotice = [&#x27;KTV&#x27;, &#x27;KS&#x27;, &#x27;ADMIN&#x27;];
+  PERM.setRoster = [&#x27;ADMIN&#x27;];
+  PERM.copyRoster = [&#x27;ADMIN&#x27;];
+  // Quyền thêm theo chức vụ (ngoài quyền của vai trò)
+  var LEAD_PERM = {
+    setRoster: [&#x27;KTV trưởng&#x27;], copyRoster: [&#x27;KTV trưởng&#x27;], machineDown: [&#x27;KTV trưởng&#x27;], machineUp: [&#x27;KTV trưởng&#x27;],
+    setNotice: CHUC_VU, clearNotice: CHUC_VU
+  };
+  function isLead(u) { return !!(u &amp;&amp; u.chuc_vu &amp;&amp; CHUC_VU.indexOf(u.chuc_vu) &gt;= 0); }
+  function can(role, action, user) {
+    if ((PERM[action] || []).indexOf(role) &gt;= 0) return true;
+    return !!(user &amp;&amp; user.chuc_vu &amp;&amp; (LEAD_PERM[action] || []).indexOf(user.chuc_vu) &gt;= 0);
+  }
 
   // ---------- Ngày ----------
   function pad(n) { return (n &lt; 10 ? &#x27;0&#x27; : &#x27;&#x27;) + n; }
@@ -1061,7 +1087,7 @@ var RT = (function () {
     undoFraction: function (ctx, a) {
       var f = ctx.fractions.filter(function (x) { return x.id === a.id &amp;&amp; x.da_huy !== &#x27;Có&#x27;; })[0];
       if (!f) fail(&#x27;Không tìm thấy buổi xạ.&#x27;);
-      if (ctx.user.vai_tro !== &#x27;ADMIN&#x27; &amp;&amp; diffDays(f.ngay, ctx.today) &gt; 2) fail(&#x27;Chỉ huỷ được buổi xạ trong 2 ngày gần nhất. Liên hệ quản trị.&#x27;);
+      if (ctx.user.vai_tro !== &#x27;ADMIN&#x27; &amp;&amp; ctx.user.chuc_vu !== &#x27;KTV trưởng&#x27; &amp;&amp; diffDays(f.ngay, ctx.today) &gt; 2) fail(&#x27;Chỉ huỷ được buổi xạ trong 2 ngày gần nhất. Liên hệ KTV trưởng hoặc quản trị.&#x27;);
       if (!a.ly_do) fail(&#x27;Cần ghi lý do huỷ.&#x27;);
       f.da_huy = &#x27;Có&#x27;; f.huy_boi = ctx.user.email; f.ly_do_huy = a.ly_do;
       ctx.updateFraction(f);
@@ -1128,9 +1154,11 @@ var RT = (function () {
       var u = ctx.users.filter(function (x) { return x.email === email; })[0];
       var isNew = !u;
       if (isNew) { u = { email: email }; ctx.users.push(u); }
-      u.ho_ten = String(a.ho_ten).trim(); u.vai_tro = vt; u.kich_hoat = kh;
+      var cv = String(a.chuc_vu || &#x27;&#x27;);
+      if (cv &amp;&amp; CHUC_VU.indexOf(cv) &lt; 0) fail(&#x27;Chức vụ không hợp lệ.&#x27;);
+      u.ho_ten = String(a.ho_ten).trim(); u.vai_tro = vt; u.kich_hoat = kh; u.chuc_vu = cv;
       ctx.saveUser(u);
-      ctx.log(isNew ? &#x27;Thêm người dùng&#x27; : &#x27;Sửa người dùng&#x27;, &#x27;&#x27;, email + &#x27; · &#x27; + vt + &#x27; · &#x27; + kh);
+      ctx.log(isNew ? &#x27;Thêm người dùng&#x27; : &#x27;Sửa người dùng&#x27;, &#x27;&#x27;, email + &#x27; · &#x27; + vt + (cv ? &#x27; · &#x27; + cv : &#x27;&#x27;) + &#x27; · &#x27; + kh);
       return (isNew ? &#x27;Đã thêm &#x27; : &#x27;Đã cập nhật &#x27;) + u.ho_ten + &#x27;.&#x27;;
     },
     dmAdd: function (ctx, a) {
@@ -1147,6 +1175,57 @@ var RT = (function () {
       ctx.log(&#x27;Thêm danh mục&#x27;, &#x27;&#x27;, loai + &#x27;: &#x27; + v);
       return &#x27;Đã thêm &quot;&#x27; + v + &#x27;&quot;.&#x27;;
     },
+    setNotice: function (ctx, a) {
+      var may = String(a.may || &#x27;&#x27;).trim(), text = String(a.noi_dung || &#x27;&#x27;).trim();
+      if (!text) fail(&#x27;Cần nhập nội dung thông báo.&#x27;);
+      if (text.length &gt; 200) fail(&#x27;Thông báo tối đa 200 ký tự.&#x27;);
+      ctx.exceptions.forEach(function (e) {
+        if (e.loai === &#x27;THONG_BAO&#x27; &amp;&amp; e.ngay === ctx.today &amp;&amp; e.may === may &amp;&amp; e.da_xoa !== &#x27;Có&#x27;) { e.da_xoa = &#x27;Có&#x27;; ctx.saveEx(e); }
+      });
+      var e = blank(COLS.LichNgoaiLe);
+      e.id = uid(&#x27;T&#x27;); e.may = may; e.ngay = ctx.today; e.loai = &#x27;THONG_BAO&#x27;; e.ghi_chu = text; e.nguoi = ctx.user.email; e.thoi_gian = ctx.now;
+      ctx.exceptions.push(e); ctx.saveEx(e);
+      ctx.log(&#x27;Thông báo máy&#x27;, &#x27;&#x27;, (may ? may + &#x27;: &#x27; : &#x27;&#x27;) + text);
+      return &#x27;Đã đăng thông báo. Mọi người sẽ thấy khi mở ứng dụng.&#x27;;
+    },
+    clearNotice: function (ctx, a) {
+      var e = ctx.exceptions.filter(function (x) { return x.id === a.id &amp;&amp; x.loai === &#x27;THONG_BAO&#x27; &amp;&amp; x.da_xoa !== &#x27;Có&#x27;; })[0];
+      if (!e) fail(&#x27;Không tìm thấy thông báo.&#x27;);
+      e.da_xoa = &#x27;Có&#x27;; ctx.saveEx(e);
+      ctx.log(&#x27;Gỡ thông báo máy&#x27;, &#x27;&#x27;, e.ghi_chu);
+      return &#x27;Đã gỡ thông báo.&#x27;;
+    },
+    setRoster: function (ctx, a) {
+      if (!isDate(a.ngay)) fail(&#x27;Ngày không hợp lệ.&#x27;);
+      if ((ctx.dm.VI_TRI_PC || []).indexOf(a.vi_tri) &lt; 0) fail(&#x27;Vị trí phân công không có trong danh mục.&#x27;);
+      var emails = (a.nhan_vien || []).map(function (x) { return String(x).toLowerCase(); }).filter(Boolean);
+      emails.forEach(function (em) {
+        if (!ctx.users.some(function (u) { return u.email === em &amp;&amp; u.kich_hoat !== &#x27;Không&#x27;; })) fail(&#x27;Người được phân công không có trong danh sách người dùng.&#x27;);
+      });
+      var row = ctx.roster.filter(function (r) { return r.ngay === a.ngay &amp;&amp; r.vi_tri === a.vi_tri; })[0];
+      if (!row) { row = blank(COLS.PhanCong); row.id = uid(&#x27;P&#x27;); row.ngay = a.ngay; row.vi_tri = a.vi_tri; ctx.roster.push(row); }
+      row.nhan_vien = emails.join(&#x27;, &#x27;); row.ghi_chu = String(a.ghi_chu || &#x27;&#x27;).trim(); row.nguoi = ctx.user.email; row.thoi_gian = ctx.now;
+      ctx.saveRoster(row);
+      ctx.log(&#x27;Phân công&#x27;, &#x27;&#x27;, a.ngay + &#x27; · &#x27; + a.vi_tri + &#x27;: &#x27; + (row.nhan_vien || &#x27;trống&#x27;));
+      return &#x27;Đã lưu phân công &#x27; + a.vi_tri + &#x27; ngày &#x27; + a.ngay.slice(8) + &#x27;/&#x27; + a.ngay.slice(5, 7) + &#x27;.&#x27;;
+    },
+    copyRoster: function (ctx, a) {
+      if (!isDate(a.tu) || !isDate(a.den)) fail(&#x27;Tuần không hợp lệ.&#x27;);
+      var from = monday(a.tu), to = monday(a.den), n = 0;
+      if (from === to) fail(&#x27;Tuần nguồn và tuần đích trùng nhau.&#x27;);
+      for (var i = 0; i &lt; 7; i++) {
+        var dFrom = addDays(from, i), dTo = addDays(to, i);
+        ctx.roster.filter(function (r) { return r.ngay === dFrom; }).forEach(function (src) {
+          var row = ctx.roster.filter(function (r) { return r.ngay === dTo &amp;&amp; r.vi_tri === src.vi_tri; })[0];
+          if (!row) { row = blank(COLS.PhanCong); row.id = uid(&#x27;P&#x27;) + i; row.ngay = dTo; row.vi_tri = src.vi_tri; ctx.roster.push(row); }
+          row.nhan_vien = src.nhan_vien; row.ghi_chu = src.ghi_chu; row.nguoi = ctx.user.email; row.thoi_gian = ctx.now;
+          ctx.saveRoster(row); n++;
+        });
+      }
+      if (!n) fail(&#x27;Tuần nguồn chưa có phân công nào để sao chép.&#x27;);
+      ctx.log(&#x27;Sao chép phân công&#x27;, &#x27;&#x27;, from + &#x27; → &#x27; + to + &#x27; (&#x27; + n + &#x27; ô)&#x27;);
+      return &#x27;Đã sao chép &#x27; + n + &#x27; ô phân công sang tuần mới.&#x27;;
+    },
     dmRemove: function (ctx, a) {
       var loai = String(a.loai || &#x27;&#x27;), v = String(a.gia_tri || &#x27;&#x27;);
       if (DM_EDITABLE.indexOf(loai) &lt; 0 || !ctx.dm[loai] || ctx.dm[loai].indexOf(v) &lt; 0) fail(&#x27;Không tìm thấy giá trị trong danh mục.&#x27;);
@@ -1161,10 +1240,11 @@ var RT = (function () {
 
   function handle(ctx, action, a) {
     if (!H[action]) fail(&#x27;Thao tác không tồn tại: &#x27; + action);
-    if (!can(ctx.user.vai_tro, action) || ctx.user.kich_hoat === &#x27;Không&#x27;) fail(&#x27;Tài khoản &#x27; + ROLES[ctx.user.vai_tro] + &#x27; không có quyền thực hiện thao tác này.&#x27;);
+    if (!can(ctx.user.vai_tro, action, ctx.user) || ctx.user.kich_hoat === &#x27;Không&#x27;) fail(&#x27;Tài khoản &#x27; + ROLES[ctx.user.vai_tro] + &#x27; không có quyền thực hiện thao tác này.&#x27;);
     ctx.phases = ctx.phases || [];
     ctx.exceptions = ctx.exceptions || [];
-    [&#x27;savePhase&#x27;, &#x27;saveEx&#x27;].forEach(function (k) { if (!ctx[k]) ctx[k] = function () {}; });
+    ctx.roster = ctx.roster || [];
+    [&#x27;savePhase&#x27;, &#x27;saveEx&#x27;, &#x27;saveRoster&#x27;].forEach(function (k) { if (!ctx[k]) ctx[k] = function () {}; });
     return H[action](ctx, a || {});
   }
 
@@ -1179,20 +1259,28 @@ var RT = (function () {
     pts.forEach(function (p) { ids[p.id] = 1; });
     function pick(o, cols) { var r = {}; cols.forEach(function (c) { r[c] = o[c] == null ? &#x27;&#x27; : String(o[c]); }); return r; }
     return {
-      me: { email: ctx.user.email, ho_ten: ctx.user.ho_ten, vai_tro: ctx.user.vai_tro, kich_hoat: ctx.user.kich_hoat || &#x27;Có&#x27; },
+      me: { email: ctx.user.email, ho_ten: ctx.user.ho_ten, vai_tro: ctx.user.vai_tro, kich_hoat: ctx.user.kich_hoat || &#x27;Có&#x27;, chuc_vu: ctx.user.chuc_vu || &#x27;&#x27; },
       today: ctx.today,
-      users: ctx.users.map(function (u) { return { email: u.email, ho_ten: u.ho_ten, vai_tro: u.vai_tro, kich_hoat: u.kich_hoat === &#x27;Không&#x27; ? &#x27;Không&#x27; : &#x27;Có&#x27; }; }),
+      users: ctx.users.map(function (u) { return { email: u.email, ho_ten: u.ho_ten, vai_tro: u.vai_tro, kich_hoat: u.kich_hoat === &#x27;Không&#x27; ? &#x27;Không&#x27; : &#x27;Có&#x27;, chuc_vu: u.chuc_vu || &#x27;&#x27; }; }),
       dm: ctx.dm,
       holidays: ctx.holidays,
       patients: pts.map(function (p) { return pick(p, COLS.BenhNhan); }),
       phases: (ctx.phases || []).filter(function (g) { return ids[g.bn_id] &amp;&amp; g.trang_thai !== &#x27;HUY&#x27;; }).map(function (g) { return pick(g, COLS.GiaiDoan); }),
       fractions: ctx.fractions.filter(function (f) { return ids[f.bn_id] &amp;&amp; f.da_huy !== &#x27;Có&#x27;; }).map(function (f) { return pick(f, COLS.BuoiXa); }),
       exceptions: (ctx.exceptions || []).filter(function (e) {
-        return e.da_xoa !== &#x27;Có&#x27; &amp;&amp; (e.loai === &#x27;MAY_NGHI&#x27; ? e.ngay &gt;= cutoff : ids[e.bn_id]);
-      }).map(function (e) { return pick(e, COLS.LichNgoaiLe); })
+        if (e.da_xoa === &#x27;Có&#x27;) return false;
+        if (e.loai === &#x27;THONG_BAO&#x27;) return e.ngay === ctx.today;
+        return e.loai === &#x27;MAY_NGHI&#x27; ? e.ngay &gt;= cutoff : ids[e.bn_id];
+      }).map(function (e) { return pick(e, COLS.LichNgoaiLe); }),
+      roster: rosterWindow(ctx.roster || [], ctx.today).map(function (r) { return pick(r, COLS.PhanCong); })
     };
   }
 
+  /** Phân công gửi kèm: từ tuần trước tới 4 tuần sau (xa hơn thì tải riêng) */
+  function rosterWindow(rows, today) {
+    var a = addDays(monday(today), -7), b = addDays(monday(today), 34);
+    return rows.filter(function (r) { return r.ngay &gt;= a &amp;&amp; r.ngay &lt;= b &amp;&amp; (r.nhan_vien || r.ghi_chu); });
+  }
   /** Dựng ctx chạy ngay trên trình duyệt từ dữ liệu view (để màn hình cập nhật tức thì) */
   function localCtx(data, now) {
     var d = JSON.parse(JSON.stringify(data));
@@ -1200,14 +1288,14 @@ var RT = (function () {
     var noop = function () {};
     return {
       user: me, today: d.today, now: now, users: d.users, dm: d.dm, holidays: d.holidays,
-      patients: d.patients, phases: d.phases || [], fractions: d.fractions, exceptions: d.exceptions || [],
-      savePatient: noop, savePhase: noop, addFraction: noop, updateFraction: noop, saveEx: noop,
+      patients: d.patients, phases: d.phases || [], fractions: d.fractions, exceptions: d.exceptions || [], roster: d.roster || [],
+      savePatient: noop, savePhase: noop, addFraction: noop, updateFraction: noop, saveEx: noop, saveRoster: noop,
       saveUser: noop, addDmRow: noop, removeDmRow: noop, log: noop
     };
   }
 
   return {
-    VERSION: VERSION, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
+    VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
@@ -1221,14 +1309,14 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
   <section class="card" aria-labelledby="h-Index">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Index">Index.html <span class="ver">· v1.7</span></h2>
+        <h2 id="h-Index">Index.html <span class="ver">· v1.9</span></h2>
         <p>Bấm + → HTML, đặt tên Index (chữ I hoa).</p>
-        <span class="size">2,346 dòng · 174 KB</span>
+        <span class="size">2,637 dòng · 195 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v1.7)</button>
+      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v1.9)</button>
     </div>
     <textarea id="t-Index" readonly spellcheck="false" aria-label="Nội dung Index.html">&lt;!DOCTYPE html&gt;
-&lt;!-- Điều phối Xạ trị · phiên bản v1.7 --&gt;
+&lt;!-- Điều phối Xạ trị · phiên bản v1.9 --&gt;
 &lt;html lang=&quot;vi&quot;&gt;
 &lt;head&gt;
 &lt;base target=&quot;_top&quot;&gt;
@@ -1516,6 +1604,34 @@ button.wk:hover{border-color:var(--accent-2)}
 
 .sec-lb{font-size:13px;font-weight:700;color:var(--accent);padding-top:6px;border-top:1px solid var(--line)}
 
+/* Thông báo máy */
+.notice-bar{background:var(--warn-soft);color:var(--ink);font-size:13.5px;border-bottom:1px solid var(--line)}
+.notice-bar .util-in{display:grid;gap:4px}
+.nb-meta{color:var(--muted);font-size:12.5px}
+.nb-x{border:0;background:none;color:var(--warn);font-weight:600;cursor:pointer;padding:0 4px;font-size:12.5px}
+/* Chuông */
+.bell-wrap{position:relative}
+.bell{position:relative;border:1px solid var(--line);background:var(--surface);width:38px;height:38px;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:var(--muted)}
+.bell:hover{border-color:var(--accent-2);color:var(--accent)}
+.bell svg{width:18px;height:18px}
+.bell-n{position:absolute;top:-4px;right:-4px;background:var(--crit);color:#fff;font-size:11px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:grid;place-items:center;padding:0 4px}
+.bell-panel{position:absolute;right:0;top:46px;width:min(360px,calc(100vw - 32px));max-height:420px;overflow-y:auto;background:var(--surface);border-radius:12px;box-shadow:var(--shadow-lg);z-index:35;display:grid}
+.bp-head{display:flex;justify-content:space-between;align-items:baseline;padding:12px 14px;border-bottom:1px solid var(--line);font-size:13px}
+.bp-item{display:grid;grid-template-columns:1fr auto;gap:8px;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:10px 14px;cursor:pointer;font-size:13.5px}
+.bp-item:hover{background:var(--surface-3)}
+/* Phân công */
+.duty{background:var(--accent-soft);color:var(--ink);border-radius:10px;padding:10px 14px;font-size:14px}
+.duty b{color:var(--accent)}
+.rs-table th,.rs-table td{vertical-align:top}
+.rs-pos{font-weight:600;white-space:nowrap;background:var(--surface-3);text-align:left;font-size:13.5px;color:var(--ink);text-transform:none;letter-spacing:0}
+.rs-cell{width:100%;min-height:40px;border:1px dashed var(--line);background:none;border-radius:8px;padding:6px;display:flex;flex-wrap:wrap;gap:4px;align-content:flex-start;cursor:pointer;text-align:left}
+.rs-cell:hover{border-color:var(--accent-2)}
+.rs-name{background:var(--ktv-soft);color:var(--ktv);font-size:12.5px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.rs-name.me{background:var(--accent);color:var(--accent-ink)}
+.rs-note{display:block;width:100%;font-size:11.5px;color:var(--muted)}
+.rs-today{background:var(--accent-soft)}
+td.rs-today .rs-cell{border-color:var(--accent-2)}
+
 &lt;/style&gt;
 &lt;/head&gt;
 &lt;body&gt;
@@ -1536,7 +1652,7 @@ button.wk:hover{border-color:var(--accent-2)}
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;1.7&#x27;;
+  var VERSION = &#x27;1.9&#x27;;
 
   var STATUS_ORDER = [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;];
   var STATUS = {
@@ -1569,7 +1685,8 @@ var RT = (function () {
     BuoiXa: [&#x27;id&#x27;, &#x27;bn_id&#x27;, &#x27;ngay&#x27;, &#x27;buoi_so&#x27;, &#x27;ktv_email&#x27;, &#x27;thoi_gian&#x27;, &#x27;hinh_anh&#x27;, &#x27;ghi_chu&#x27;,
       &#x27;da_huy&#x27;, &#x27;huy_boi&#x27;, &#x27;ly_do_huy&#x27;, &#x27;gd&#x27;],
     LichNgoaiLe: [&#x27;id&#x27;, &#x27;bn_id&#x27;, &#x27;may&#x27;, &#x27;ngay&#x27;, &#x27;loai&#x27;, &#x27;ghi_chu&#x27;, &#x27;nguoi&#x27;, &#x27;thoi_gian&#x27;, &#x27;da_xoa&#x27;],
-    NguoiDung: [&#x27;email&#x27;, &#x27;ho_ten&#x27;, &#x27;vai_tro&#x27;, &#x27;kich_hoat&#x27;],
+    NguoiDung: [&#x27;email&#x27;, &#x27;ho_ten&#x27;, &#x27;vai_tro&#x27;, &#x27;kich_hoat&#x27;, &#x27;chuc_vu&#x27;],
+    PhanCong: [&#x27;id&#x27;, &#x27;ngay&#x27;, &#x27;vi_tri&#x27;, &#x27;nhan_vien&#x27;, &#x27;ghi_chu&#x27;, &#x27;nguoi&#x27;, &#x27;thoi_gian&#x27;],
     DanhMuc: [&#x27;loai&#x27;, &#x27;gia_tri&#x27;],
     NhatKy: [&#x27;thoi_gian&#x27;, &#x27;email&#x27;, &#x27;thao_tac&#x27;, &#x27;bn_id&#x27;, &#x27;chi_tiet&#x27;]
   };
@@ -1590,7 +1707,9 @@ var RT = (function () {
     &#x27;Phổi&#x27;, &#x27;Thực quản&#x27;, &#x27;Trung thất&#x27;, &#x27;Dạ dày&#x27;, &#x27;Tuỵ&#x27;, &#x27;Gan&#x27;, &#x27;Trực tràng&#x27;, &#x27;Cổ tử cung&#x27;, &#x27;Nội mạc tử cung&#x27;,
     &#x27;Tuyến tiền liệt&#x27;, &#x27;Bàng quang&#x27;, &#x27;Tiểu khung&#x27;, &#x27;Cột sống cổ&#x27;, &#x27;Cột sống ngực&#x27;, &#x27;Cột sống thắt lưng&#x27;,
     &#x27;Xương chậu&#x27;, &#x27;Xương chi&#x27;, &#x27;Hạch&#x27;, &#x27;Da / mô mềm&#x27;];
-  var DM_EDITABLE = [&#x27;VI_TRI&#x27;, &#x27;MUC_DICH&#x27;, &#x27;MAY&#x27;, &#x27;NGAY_LE&#x27;, &#x27;KY_THUAT&#x27;, &#x27;IGRT&#x27;, &#x27;HINH_ANH&#x27;, &#x27;KHOA&#x27;, &#x27;LY_DO_TAM_NGUNG&#x27;, &#x27;TEN_DON_VI&#x27;];
+  DEFAULT_DM.VI_TRI_PC = [&#x27;Máy gia tốc 1 – ca sáng&#x27;, &#x27;Máy gia tốc 1 – ca chiều&#x27;, &#x27;Mô phỏng CT&#x27;, &#x27;Làm mặt nạ / cố định&#x27;, &#x27;Trực&#x27;];
+  var CHUC_VU = [&#x27;KTV trưởng&#x27;, &#x27;Điều dưỡng trưởng&#x27;, &#x27;Trưởng khoa&#x27;, &#x27;Phó trưởng khoa&#x27;, &#x27;Trưởng phòng&#x27;];
+  var DM_EDITABLE = [&#x27;VI_TRI_PC&#x27;, &#x27;VI_TRI&#x27;, &#x27;MUC_DICH&#x27;, &#x27;MAY&#x27;, &#x27;NGAY_LE&#x27;, &#x27;KY_THUAT&#x27;, &#x27;IGRT&#x27;, &#x27;HINH_ANH&#x27;, &#x27;KHOA&#x27;, &#x27;LY_DO_TAM_NGUNG&#x27;, &#x27;TEN_DON_VI&#x27;];
 
   var PERM = {
     createPatient: [&#x27;BS&#x27;, &#x27;KS&#x27;, &#x27;KTV&#x27;, &#x27;DD&#x27;, &#x27;ADMIN&#x27;],
@@ -1619,7 +1738,20 @@ var RT = (function () {
     dmAdd: [&#x27;ADMIN&#x27;],
     dmRemove: [&#x27;ADMIN&#x27;]
   };
-  function can(role, action) { return (PERM[action] || []).indexOf(role) &gt;= 0; }
+  PERM.setNotice = [&#x27;KTV&#x27;, &#x27;KS&#x27;, &#x27;ADMIN&#x27;];
+  PERM.clearNotice = [&#x27;KTV&#x27;, &#x27;KS&#x27;, &#x27;ADMIN&#x27;];
+  PERM.setRoster = [&#x27;ADMIN&#x27;];
+  PERM.copyRoster = [&#x27;ADMIN&#x27;];
+  // Quyền thêm theo chức vụ (ngoài quyền của vai trò)
+  var LEAD_PERM = {
+    setRoster: [&#x27;KTV trưởng&#x27;], copyRoster: [&#x27;KTV trưởng&#x27;], machineDown: [&#x27;KTV trưởng&#x27;], machineUp: [&#x27;KTV trưởng&#x27;],
+    setNotice: CHUC_VU, clearNotice: CHUC_VU
+  };
+  function isLead(u) { return !!(u &amp;&amp; u.chuc_vu &amp;&amp; CHUC_VU.indexOf(u.chuc_vu) &gt;= 0); }
+  function can(role, action, user) {
+    if ((PERM[action] || []).indexOf(role) &gt;= 0) return true;
+    return !!(user &amp;&amp; user.chuc_vu &amp;&amp; (LEAD_PERM[action] || []).indexOf(user.chuc_vu) &gt;= 0);
+  }
 
   // ---------- Ngày ----------
   function pad(n) { return (n &lt; 10 ? &#x27;0&#x27; : &#x27;&#x27;) + n; }
@@ -2200,7 +2332,7 @@ var RT = (function () {
     undoFraction: function (ctx, a) {
       var f = ctx.fractions.filter(function (x) { return x.id === a.id &amp;&amp; x.da_huy !== &#x27;Có&#x27;; })[0];
       if (!f) fail(&#x27;Không tìm thấy buổi xạ.&#x27;);
-      if (ctx.user.vai_tro !== &#x27;ADMIN&#x27; &amp;&amp; diffDays(f.ngay, ctx.today) &gt; 2) fail(&#x27;Chỉ huỷ được buổi xạ trong 2 ngày gần nhất. Liên hệ quản trị.&#x27;);
+      if (ctx.user.vai_tro !== &#x27;ADMIN&#x27; &amp;&amp; ctx.user.chuc_vu !== &#x27;KTV trưởng&#x27; &amp;&amp; diffDays(f.ngay, ctx.today) &gt; 2) fail(&#x27;Chỉ huỷ được buổi xạ trong 2 ngày gần nhất. Liên hệ KTV trưởng hoặc quản trị.&#x27;);
       if (!a.ly_do) fail(&#x27;Cần ghi lý do huỷ.&#x27;);
       f.da_huy = &#x27;Có&#x27;; f.huy_boi = ctx.user.email; f.ly_do_huy = a.ly_do;
       ctx.updateFraction(f);
@@ -2267,9 +2399,11 @@ var RT = (function () {
       var u = ctx.users.filter(function (x) { return x.email === email; })[0];
       var isNew = !u;
       if (isNew) { u = { email: email }; ctx.users.push(u); }
-      u.ho_ten = String(a.ho_ten).trim(); u.vai_tro = vt; u.kich_hoat = kh;
+      var cv = String(a.chuc_vu || &#x27;&#x27;);
+      if (cv &amp;&amp; CHUC_VU.indexOf(cv) &lt; 0) fail(&#x27;Chức vụ không hợp lệ.&#x27;);
+      u.ho_ten = String(a.ho_ten).trim(); u.vai_tro = vt; u.kich_hoat = kh; u.chuc_vu = cv;
       ctx.saveUser(u);
-      ctx.log(isNew ? &#x27;Thêm người dùng&#x27; : &#x27;Sửa người dùng&#x27;, &#x27;&#x27;, email + &#x27; · &#x27; + vt + &#x27; · &#x27; + kh);
+      ctx.log(isNew ? &#x27;Thêm người dùng&#x27; : &#x27;Sửa người dùng&#x27;, &#x27;&#x27;, email + &#x27; · &#x27; + vt + (cv ? &#x27; · &#x27; + cv : &#x27;&#x27;) + &#x27; · &#x27; + kh);
       return (isNew ? &#x27;Đã thêm &#x27; : &#x27;Đã cập nhật &#x27;) + u.ho_ten + &#x27;.&#x27;;
     },
     dmAdd: function (ctx, a) {
@@ -2286,6 +2420,57 @@ var RT = (function () {
       ctx.log(&#x27;Thêm danh mục&#x27;, &#x27;&#x27;, loai + &#x27;: &#x27; + v);
       return &#x27;Đã thêm &quot;&#x27; + v + &#x27;&quot;.&#x27;;
     },
+    setNotice: function (ctx, a) {
+      var may = String(a.may || &#x27;&#x27;).trim(), text = String(a.noi_dung || &#x27;&#x27;).trim();
+      if (!text) fail(&#x27;Cần nhập nội dung thông báo.&#x27;);
+      if (text.length &gt; 200) fail(&#x27;Thông báo tối đa 200 ký tự.&#x27;);
+      ctx.exceptions.forEach(function (e) {
+        if (e.loai === &#x27;THONG_BAO&#x27; &amp;&amp; e.ngay === ctx.today &amp;&amp; e.may === may &amp;&amp; e.da_xoa !== &#x27;Có&#x27;) { e.da_xoa = &#x27;Có&#x27;; ctx.saveEx(e); }
+      });
+      var e = blank(COLS.LichNgoaiLe);
+      e.id = uid(&#x27;T&#x27;); e.may = may; e.ngay = ctx.today; e.loai = &#x27;THONG_BAO&#x27;; e.ghi_chu = text; e.nguoi = ctx.user.email; e.thoi_gian = ctx.now;
+      ctx.exceptions.push(e); ctx.saveEx(e);
+      ctx.log(&#x27;Thông báo máy&#x27;, &#x27;&#x27;, (may ? may + &#x27;: &#x27; : &#x27;&#x27;) + text);
+      return &#x27;Đã đăng thông báo. Mọi người sẽ thấy khi mở ứng dụng.&#x27;;
+    },
+    clearNotice: function (ctx, a) {
+      var e = ctx.exceptions.filter(function (x) { return x.id === a.id &amp;&amp; x.loai === &#x27;THONG_BAO&#x27; &amp;&amp; x.da_xoa !== &#x27;Có&#x27;; })[0];
+      if (!e) fail(&#x27;Không tìm thấy thông báo.&#x27;);
+      e.da_xoa = &#x27;Có&#x27;; ctx.saveEx(e);
+      ctx.log(&#x27;Gỡ thông báo máy&#x27;, &#x27;&#x27;, e.ghi_chu);
+      return &#x27;Đã gỡ thông báo.&#x27;;
+    },
+    setRoster: function (ctx, a) {
+      if (!isDate(a.ngay)) fail(&#x27;Ngày không hợp lệ.&#x27;);
+      if ((ctx.dm.VI_TRI_PC || []).indexOf(a.vi_tri) &lt; 0) fail(&#x27;Vị trí phân công không có trong danh mục.&#x27;);
+      var emails = (a.nhan_vien || []).map(function (x) { return String(x).toLowerCase(); }).filter(Boolean);
+      emails.forEach(function (em) {
+        if (!ctx.users.some(function (u) { return u.email === em &amp;&amp; u.kich_hoat !== &#x27;Không&#x27;; })) fail(&#x27;Người được phân công không có trong danh sách người dùng.&#x27;);
+      });
+      var row = ctx.roster.filter(function (r) { return r.ngay === a.ngay &amp;&amp; r.vi_tri === a.vi_tri; })[0];
+      if (!row) { row = blank(COLS.PhanCong); row.id = uid(&#x27;P&#x27;); row.ngay = a.ngay; row.vi_tri = a.vi_tri; ctx.roster.push(row); }
+      row.nhan_vien = emails.join(&#x27;, &#x27;); row.ghi_chu = String(a.ghi_chu || &#x27;&#x27;).trim(); row.nguoi = ctx.user.email; row.thoi_gian = ctx.now;
+      ctx.saveRoster(row);
+      ctx.log(&#x27;Phân công&#x27;, &#x27;&#x27;, a.ngay + &#x27; · &#x27; + a.vi_tri + &#x27;: &#x27; + (row.nhan_vien || &#x27;trống&#x27;));
+      return &#x27;Đã lưu phân công &#x27; + a.vi_tri + &#x27; ngày &#x27; + a.ngay.slice(8) + &#x27;/&#x27; + a.ngay.slice(5, 7) + &#x27;.&#x27;;
+    },
+    copyRoster: function (ctx, a) {
+      if (!isDate(a.tu) || !isDate(a.den)) fail(&#x27;Tuần không hợp lệ.&#x27;);
+      var from = monday(a.tu), to = monday(a.den), n = 0;
+      if (from === to) fail(&#x27;Tuần nguồn và tuần đích trùng nhau.&#x27;);
+      for (var i = 0; i &lt; 7; i++) {
+        var dFrom = addDays(from, i), dTo = addDays(to, i);
+        ctx.roster.filter(function (r) { return r.ngay === dFrom; }).forEach(function (src) {
+          var row = ctx.roster.filter(function (r) { return r.ngay === dTo &amp;&amp; r.vi_tri === src.vi_tri; })[0];
+          if (!row) { row = blank(COLS.PhanCong); row.id = uid(&#x27;P&#x27;) + i; row.ngay = dTo; row.vi_tri = src.vi_tri; ctx.roster.push(row); }
+          row.nhan_vien = src.nhan_vien; row.ghi_chu = src.ghi_chu; row.nguoi = ctx.user.email; row.thoi_gian = ctx.now;
+          ctx.saveRoster(row); n++;
+        });
+      }
+      if (!n) fail(&#x27;Tuần nguồn chưa có phân công nào để sao chép.&#x27;);
+      ctx.log(&#x27;Sao chép phân công&#x27;, &#x27;&#x27;, from + &#x27; → &#x27; + to + &#x27; (&#x27; + n + &#x27; ô)&#x27;);
+      return &#x27;Đã sao chép &#x27; + n + &#x27; ô phân công sang tuần mới.&#x27;;
+    },
     dmRemove: function (ctx, a) {
       var loai = String(a.loai || &#x27;&#x27;), v = String(a.gia_tri || &#x27;&#x27;);
       if (DM_EDITABLE.indexOf(loai) &lt; 0 || !ctx.dm[loai] || ctx.dm[loai].indexOf(v) &lt; 0) fail(&#x27;Không tìm thấy giá trị trong danh mục.&#x27;);
@@ -2300,10 +2485,11 @@ var RT = (function () {
 
   function handle(ctx, action, a) {
     if (!H[action]) fail(&#x27;Thao tác không tồn tại: &#x27; + action);
-    if (!can(ctx.user.vai_tro, action) || ctx.user.kich_hoat === &#x27;Không&#x27;) fail(&#x27;Tài khoản &#x27; + ROLES[ctx.user.vai_tro] + &#x27; không có quyền thực hiện thao tác này.&#x27;);
+    if (!can(ctx.user.vai_tro, action, ctx.user) || ctx.user.kich_hoat === &#x27;Không&#x27;) fail(&#x27;Tài khoản &#x27; + ROLES[ctx.user.vai_tro] + &#x27; không có quyền thực hiện thao tác này.&#x27;);
     ctx.phases = ctx.phases || [];
     ctx.exceptions = ctx.exceptions || [];
-    [&#x27;savePhase&#x27;, &#x27;saveEx&#x27;].forEach(function (k) { if (!ctx[k]) ctx[k] = function () {}; });
+    ctx.roster = ctx.roster || [];
+    [&#x27;savePhase&#x27;, &#x27;saveEx&#x27;, &#x27;saveRoster&#x27;].forEach(function (k) { if (!ctx[k]) ctx[k] = function () {}; });
     return H[action](ctx, a || {});
   }
 
@@ -2318,20 +2504,28 @@ var RT = (function () {
     pts.forEach(function (p) { ids[p.id] = 1; });
     function pick(o, cols) { var r = {}; cols.forEach(function (c) { r[c] = o[c] == null ? &#x27;&#x27; : String(o[c]); }); return r; }
     return {
-      me: { email: ctx.user.email, ho_ten: ctx.user.ho_ten, vai_tro: ctx.user.vai_tro, kich_hoat: ctx.user.kich_hoat || &#x27;Có&#x27; },
+      me: { email: ctx.user.email, ho_ten: ctx.user.ho_ten, vai_tro: ctx.user.vai_tro, kich_hoat: ctx.user.kich_hoat || &#x27;Có&#x27;, chuc_vu: ctx.user.chuc_vu || &#x27;&#x27; },
       today: ctx.today,
-      users: ctx.users.map(function (u) { return { email: u.email, ho_ten: u.ho_ten, vai_tro: u.vai_tro, kich_hoat: u.kich_hoat === &#x27;Không&#x27; ? &#x27;Không&#x27; : &#x27;Có&#x27; }; }),
+      users: ctx.users.map(function (u) { return { email: u.email, ho_ten: u.ho_ten, vai_tro: u.vai_tro, kich_hoat: u.kich_hoat === &#x27;Không&#x27; ? &#x27;Không&#x27; : &#x27;Có&#x27;, chuc_vu: u.chuc_vu || &#x27;&#x27; }; }),
       dm: ctx.dm,
       holidays: ctx.holidays,
       patients: pts.map(function (p) { return pick(p, COLS.BenhNhan); }),
       phases: (ctx.phases || []).filter(function (g) { return ids[g.bn_id] &amp;&amp; g.trang_thai !== &#x27;HUY&#x27;; }).map(function (g) { return pick(g, COLS.GiaiDoan); }),
       fractions: ctx.fractions.filter(function (f) { return ids[f.bn_id] &amp;&amp; f.da_huy !== &#x27;Có&#x27;; }).map(function (f) { return pick(f, COLS.BuoiXa); }),
       exceptions: (ctx.exceptions || []).filter(function (e) {
-        return e.da_xoa !== &#x27;Có&#x27; &amp;&amp; (e.loai === &#x27;MAY_NGHI&#x27; ? e.ngay &gt;= cutoff : ids[e.bn_id]);
-      }).map(function (e) { return pick(e, COLS.LichNgoaiLe); })
+        if (e.da_xoa === &#x27;Có&#x27;) return false;
+        if (e.loai === &#x27;THONG_BAO&#x27;) return e.ngay === ctx.today;
+        return e.loai === &#x27;MAY_NGHI&#x27; ? e.ngay &gt;= cutoff : ids[e.bn_id];
+      }).map(function (e) { return pick(e, COLS.LichNgoaiLe); }),
+      roster: rosterWindow(ctx.roster || [], ctx.today).map(function (r) { return pick(r, COLS.PhanCong); })
     };
   }
 
+  /** Phân công gửi kèm: từ tuần trước tới 4 tuần sau (xa hơn thì tải riêng) */
+  function rosterWindow(rows, today) {
+    var a = addDays(monday(today), -7), b = addDays(monday(today), 34);
+    return rows.filter(function (r) { return r.ngay &gt;= a &amp;&amp; r.ngay &lt;= b &amp;&amp; (r.nhan_vien || r.ghi_chu); });
+  }
   /** Dựng ctx chạy ngay trên trình duyệt từ dữ liệu view (để màn hình cập nhật tức thì) */
   function localCtx(data, now) {
     var d = JSON.parse(JSON.stringify(data));
@@ -2339,14 +2533,14 @@ var RT = (function () {
     var noop = function () {};
     return {
       user: me, today: d.today, now: now, users: d.users, dm: d.dm, holidays: d.holidays,
-      patients: d.patients, phases: d.phases || [], fractions: d.fractions, exceptions: d.exceptions || [],
-      savePatient: noop, savePhase: noop, addFraction: noop, updateFraction: noop, saveEx: noop,
+      patients: d.patients, phases: d.phases || [], fractions: d.fractions, exceptions: d.exceptions || [], roster: d.roster || [],
+      savePatient: noop, savePhase: noop, addFraction: noop, updateFraction: noop, saveEx: noop, saveRoster: noop,
       saveUser: noop, addDmRow: noop, removeDmRow: noop, log: noop
     };
   }
 
   return {
-    VERSION: VERSION, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
+    VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
@@ -2377,7 +2571,8 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
   function today() { return S.data.today; }
   function me() { return S.data.me; }
   function role() { return S.data.me.vai_tro; }
-  function can(a) { return RT.can(role(), a); }
+  function can(a) { return RT.can(role(), a, me()); }
+  function isLead() { return RT.isLead(me()); }
   function nameOf(email) { var u = S.data.users.filter(function (x) { return x.email === email; })[0]; return u ? u.ho_ten : (email || &#x27;&#x27;); }
   /** Bác sĩ: vai trò BS, hoặc Quản trị có tên bắt đầu bằng &quot;BS&quot; (bác sĩ kiêm quản trị) */
   function isDoctor(u) { return u &amp;&amp; (u.vai_tro === &#x27;BS&#x27; || (u.vai_tro === &#x27;ADMIN&#x27; &amp;&amp; /^\s*(BS|Bác sĩ|ThS|TS|PGS)/i.test(u.ho_ten || &#x27;&#x27;))); }
@@ -2484,6 +2679,8 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
       setBusy(1);
       return call(action, payload).then(function (r) {
         setData(r.data);
+        if (r.rev) S.rev = r.rev;
+        if (r.roster) S.rosterExtra = r.roster;
         if (r.log) S.log = r.log;
         if (r.msg) toast(r.msg);
         render();
@@ -2502,6 +2699,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     chain = chain.then(function () {
       return call(action, payload).then(function (r) {
         pending.shift();
+        if (r.rev) S.rev = r.rev;
         var d = r.data;
         pending.forEach(function (o) { try { d = applyLocal(d, o.action, o.payload).data; } catch (e) { /* bỏ qua, máy chủ sẽ báo */ } });
         setData(d); render();
@@ -2585,12 +2783,15 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     sched: { label: function () { return &#x27;Xếp lịch&#x27;; }, render: renderSchedule },
     week: { label: function () { return &#x27;Lịch tuần&#x27;; }, render: renderWeek },
     all: { label: function () { return &#x27;Tất cả BN&#x27;; }, render: renderAll },
+    roster: { label: function () { return &#x27;Phân công&#x27;; }, render: renderRoster },
+    log: { label: function () { return &#x27;Nhật ký&#x27;; }, render: function () { return &#x27;&lt;div class=&quot;page-head&quot;&gt;&lt;div&gt;&lt;h1&gt;Nhật ký thao tác&lt;/h1&gt;&lt;p&gt;Ai làm gì, lúc nào. Chỉ trưởng khoa/phòng và quản trị xem được.&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;&#x27; + logSection(); } },
     admin: { label: function () { return &#x27;Quản trị&#x27;; }, render: renderAdmin }
   };
-  var ROLE_TABS = { BS: [&#x27;home&#x27;, &#x27;all&#x27;], KS: [&#x27;plan&#x27;, &#x27;all&#x27;], KTV: [&#x27;today&#x27;, &#x27;week&#x27;, &#x27;sched&#x27;, &#x27;all&#x27;], DD: [&#x27;home&#x27;, &#x27;all&#x27;], ADMIN: [&#x27;home&#x27;, &#x27;plan&#x27;, &#x27;today&#x27;, &#x27;week&#x27;, &#x27;sched&#x27;, &#x27;all&#x27;, &#x27;admin&#x27;] };
+  var ROLE_TABS = { BS: [&#x27;home&#x27;, &#x27;all&#x27;, &#x27;roster&#x27;], KS: [&#x27;plan&#x27;, &#x27;all&#x27;, &#x27;roster&#x27;], KTV: [&#x27;today&#x27;, &#x27;week&#x27;, &#x27;roster&#x27;, &#x27;sched&#x27;, &#x27;all&#x27;], DD: [&#x27;home&#x27;, &#x27;all&#x27;, &#x27;roster&#x27;], ADMIN: [&#x27;home&#x27;, &#x27;plan&#x27;, &#x27;today&#x27;, &#x27;week&#x27;, &#x27;roster&#x27;, &#x27;sched&#x27;, &#x27;all&#x27;, &#x27;admin&#x27;] };
 
   function renderShell() {
-    var d = S.data, tabs = ROLE_TABS[role()] || [&#x27;all&#x27;];
+    var d = S.data, tabs = (ROLE_TABS[role()] || [&#x27;all&#x27;]).slice();
+    if (isLead() &amp;&amp; role() !== &#x27;ADMIN&#x27;) tabs.push(&#x27;log&#x27;);
     if (S.role !== d.me.email) { S.role = d.me.email; S.scope = isDoctor(d.me) ? &#x27;mine&#x27; : &#x27;all&#x27;; S.log = null; }
     if (tabs.indexOf(S.tab) &lt; 0) S.tab = tabs[0];
     var who;
@@ -2603,9 +2804,10 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     var t = today(), dowFull = [&#x27;Chủ nhật&#x27;, &#x27;Thứ Hai&#x27;, &#x27;Thứ Ba&#x27;, &#x27;Thứ Tư&#x27;, &#x27;Thứ Năm&#x27;, &#x27;Thứ Sáu&#x27;, &#x27;Thứ Bảy&#x27;][RT.dow(t)];
     $(&#x27;#top&#x27;).innerHTML =
       &#x27;&lt;div class=&quot;util&quot;&gt;&lt;div class=&quot;util-in&quot;&gt;&lt;span&gt;&lt;b&gt;&#x27; + esc(unitName()) + &#x27;&lt;/b&gt;&lt;/span&gt;&lt;span&gt;&#x27; + dowFull + &#x27;, &#x27; + fdy(t) + &#x27; · &lt;span title=&quot;Phiên bản ứng dụng&quot;&gt;v&#x27; + esc(RT.VERSION) + &#x27;&lt;/span&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&#x27; +
+      noticeBar() +
       &#x27;&lt;div class=&quot;top-in&quot;&gt;&lt;div class=&quot;brand&quot;&gt;&lt;span class=&quot;brand-mark&quot;&gt;&lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;#fff&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot;&gt;&lt;circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;3.2&quot;/&gt;&lt;path d=&quot;M12 2.5v4M12 17.5v4M2.5 12h4M17.5 12h4M5.3 5.3l2.8 2.8M15.9 15.9l2.8 2.8M18.7 5.3l-2.8 2.8M8.1 15.9l-2.8 2.8&quot;/&gt;&lt;/svg&gt;&lt;/span&gt;&lt;span&gt;Điều phối Xạ trị&lt;small&gt;Bác sĩ · Kỹ sư · KTV · Điều dưỡng&lt;/small&gt;&lt;/span&gt;&lt;/div&gt;&#x27; +
       &#x27;&lt;div class=&quot;search&quot;&gt;&lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke-width=&quot;2&quot;&gt;&lt;circle cx=&quot;11&quot; cy=&quot;11&quot; r=&quot;7&quot;/&gt;&lt;path d=&quot;m20 20-3.5-3.5&quot;/&gt;&lt;/svg&gt;&#x27; +
-      &#x27;&lt;input id=&quot;q&quot; type=&quot;search&quot; placeholder=&quot;Tìm theo mã HIS hoặc tên bệnh nhân&quot; value=&quot;&#x27; + esc(S.q) + &#x27;&quot; aria-label=&quot;Tìm bệnh nhân&quot; autocomplete=&quot;off&quot;&gt;&lt;/div&gt;&#x27; + who + &#x27;&lt;/div&gt;&#x27; +
+      &#x27;&lt;input id=&quot;q&quot; type=&quot;search&quot; placeholder=&quot;Tìm theo mã HIS hoặc tên bệnh nhân&quot; value=&quot;&#x27; + esc(S.q) + &#x27;&quot; aria-label=&quot;Tìm bệnh nhân&quot; autocomplete=&quot;off&quot;&gt;&lt;/div&gt;&#x27; + bell() + who + &#x27;&lt;/div&gt;&#x27; +
       &#x27;&lt;nav class=&quot;tabs&quot;&gt;&lt;div class=&quot;tabs-in&quot; role=&quot;tablist&quot;&gt;&#x27; + tabs.map(function (t) {
         return &#x27;&lt;button class=&quot;tab&quot; role=&quot;tab&quot; data-tab=&quot;&#x27; + t + &#x27;&quot; aria-selected=&quot;&#x27; + (S.tab === t) + &#x27;&quot;&gt;&#x27; + esc(TABS[t].label()) + &#x27;&lt;/button&gt;&#x27;;
       }).join(&#x27;&#x27;) + &#x27;&lt;span class=&quot;spacer&quot;&gt;&lt;/span&gt;&#x27; +
@@ -2618,6 +2820,8 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
       else renderMain();
     };
     if ($(&#x27;#add-bn&#x27;)) $(&#x27;#add-bn&#x27;).onclick = function () { patientForm(null); };
+    $$(&#x27;[data-clearnotice]&#x27;).forEach(function (b) { b.onclick = function () { run(&#x27;clearNotice&#x27;, { id: b.dataset.clearnotice }); }; });
+    bindBell();
     if ($(&#x27;#demo-user&#x27;)) $(&#x27;#demo-user&#x27;).onchange = function (e) { S.tab = null; run(&#x27;demoSwitch&#x27;, { email: e.target.value }); };
   }
 
@@ -2641,6 +2845,9 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     if (S.tab === &#x27;admin&#x27;) bindAdmin();
     if (S.tab === &#x27;week&#x27;) bindWeek();
     if (S.tab === &#x27;all&#x27;) bindAll();
+    if (S.tab === &#x27;roster&#x27;) bindRoster();
+    $$(&#x27;#main [data-admin=loadLog]&#x27;).forEach(function (b) { if (S.tab !== &#x27;admin&#x27;) b.onclick = function () { run(&#x27;getLog&#x27;); }; });
+    $$(&#x27;#main [data-notice]&#x27;).forEach(function (b) { b.onclick = noticeForm; });
   }
 
   // ---------- bảng ----------
@@ -2804,9 +3011,9 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     var noDate = pts().filter(function (p) { return p.trang_thai === &#x27;CHO_XA&#x27; &amp;&amp; !p.ngay_du_kien; }).length;
     var holiday = S.data.holidays.indexOf(t) &gt;= 0;
 
-    var html = &#x27;&lt;div class=&quot;page-head&quot;&gt;&lt;div&gt;&lt;h1&gt;Xạ hôm nay · &#x27; + fdw(t) + &#x27;/&#x27; + t.slice(0, 4) + &#x27;&lt;/h1&gt;&lt;p&gt;&#x27; +
+    var html = dutyBanner() + &#x27;&lt;div class=&quot;page-head&quot;&gt;&lt;div&gt;&lt;h1&gt;Xạ hôm nay · &#x27; + fdw(t) + &#x27;/&#x27; + t.slice(0, 4) + &#x27;&lt;/h1&gt;&lt;p&gt;&#x27; +
       (holiday ? &#x27;Hôm nay là ngày nghỉ lễ trong danh mục.&#x27; : RT.dow(t) === 6 ? &#x27;Thứ Bảy: xạ bù cho BN IMRT/VMAT có ngày nghỉ trong tuần.&#x27; : RT.dow(t) === 0 ? &#x27;Chủ nhật: không có lịch xạ.&#x27; : &#x27;Bấm “Xác nhận đã xạ” ngay sau khi BN xạ xong.&#x27;) + &#x27;&lt;/p&gt;&lt;/div&gt;&#x27; +
-      (machines.length &gt; 1 ? &#x27;&lt;div class=&quot;filters&quot;&gt;&lt;select data-filter=&quot;fMay&quot; aria-label=&quot;Lọc theo máy&quot;&gt;&#x27; + opts(machines, S.fMay, &#x27;Tất cả máy&#x27;) + &#x27;&lt;/select&gt;&lt;/div&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/div&gt;&#x27;;
+      &#x27;&lt;div class=&quot;filters&quot;&gt;&#x27; + noticeBtn() + (machines.length &gt; 1 ? &#x27;&lt;select data-filter=&quot;fMay&quot; aria-label=&quot;Lọc theo máy&quot;&gt;&#x27; + opts(machines, S.fMay, &#x27;Tất cả máy&#x27;) + &#x27;&lt;/select&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/div&gt;&lt;/div&gt;&#x27;;
     html += &#x27;&lt;div class=&quot;kpis&quot;&gt;&#x27; + kpi(&#x27;due&#x27;, due.length, &#x27;Cần xạ hôm nay&#x27;, &#x27;var(--accent)&#x27;) + kpi(&#x27;done&#x27;, done.length, &#x27;Đã xạ hôm nay&#x27;, &#x27;var(--ktv)&#x27;) +
       kpi(&#x27;off&#x27;, off.length, &#x27;Không có lịch hôm nay&#x27;, &#x27;var(--line)&#x27;) + kpi(&#x27;paused&#x27;, paused.length, &#x27;Tạm ngừng&#x27;, &#x27;var(--crit)&#x27;) + &#x27;&lt;/div&gt;&#x27;;
     if (noDate) html += &#x27;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;empty&quot;&gt;Có &lt;b&gt;&#x27; + noDate + &#x27;&lt;/b&gt; bệnh nhân chờ vào xạ chưa được xếp lịch. Vào tab &lt;b&gt;Xếp lịch&lt;/b&gt; để chọn ngày bắt đầu.&lt;/div&gt;&lt;/div&gt;&#x27;;
@@ -2882,7 +3089,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     var head = days.map(function (d) { return &#x27;&lt;th class=&quot;&#x27; + (d === t ? &#x27;wk-today&#x27; : &#x27;&#x27;) + &#x27;&quot;&gt;&#x27; + fdw(d) + &#x27;&lt;/th&gt;&#x27;; }).join(&#x27;&#x27;);
     var foot = counts.map(function (n, i) { return &#x27;&lt;td class=&quot;wk-count&#x27; + (days[i] === t ? &#x27; wk-today&#x27; : &#x27;&#x27;) + &#x27;&quot;&gt;&lt;b&gt;&#x27; + n + &#x27;&lt;/b&gt; ca&lt;/td&gt;&#x27;; }).join(&#x27;&#x27;);
     var html = &#x27;&lt;div class=&quot;page-head&quot;&gt;&lt;div&gt;&lt;h1&gt;Lịch tuần&lt;/h1&gt;&lt;p&gt;Bấm vào một ô để đổi ngày xạ ↔ nghỉ cho riêng tuần đó. Ngày nghỉ cố định hằng tuần đổi ở nút “Xếp lịch”.&lt;/p&gt;&lt;/div&gt;&#x27; +
-      &#x27;&lt;div class=&quot;filters&quot;&gt;&#x27; + (machines.length &gt; 1 ? &#x27;&lt;select data-filter=&quot;fMay&quot; aria-label=&quot;Chọn máy&quot;&gt;&#x27; + opts(machines, may) + &#x27;&lt;/select&gt;&#x27; : &#x27;&#x27;) +
+      &#x27;&lt;div class=&quot;filters&quot;&gt;&#x27; + noticeBtn() + (machines.length &gt; 1 ? &#x27;&lt;select data-filter=&quot;fMay&quot; aria-label=&quot;Chọn máy&quot;&gt;&#x27; + opts(machines, may) + &#x27;&lt;/select&gt;&#x27; : &#x27;&#x27;) +
       &#x27;&lt;div class=&quot;seg&quot;&gt;&lt;button data-wknav=&quot;-7&quot; aria-label=&quot;Tuần trước&quot;&gt;‹&lt;/button&gt;&lt;button data-wknav=&quot;0&quot;&gt;Tuần này&lt;/button&gt;&lt;button data-wknav=&quot;7&quot; aria-label=&quot;Tuần sau&quot;&gt;›&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&#x27;;
     html += &#x27;&lt;div class=&quot;card pad&quot;&gt;&lt;div class=&quot;group-head&quot;&gt;&lt;h3&gt;&#x27; + esc(may) + &#x27; · ngày máy nghỉ sắp tới&lt;/h3&gt;&#x27; + (can(&#x27;machineDown&#x27;) ? &#x27;&lt;button class=&quot;btn&quot; data-mdown=&quot;1&quot;&gt;+ Ghi ngày máy nghỉ&lt;/button&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/div&gt;&#x27; +
       (downs.length ? &#x27;&lt;div class=&quot;chips&quot;&gt;&#x27; + downs.map(function (x) { return &#x27;&lt;span class=&quot;chip&quot;&gt;&#x27; + fdw(x.ngay) + (x.ghi_chu ? &#x27; · &#x27; + esc(x.ghi_chu) : &#x27;&#x27;) + (can(&#x27;machineUp&#x27;) ? &#x27;&lt;button aria-label=&quot;Bỏ&quot; data-mup=&quot;&#x27; + esc(x.id) + &#x27;&quot;&gt;×&lt;/button&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/span&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;/div&gt;&#x27;
@@ -2993,16 +3200,176 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     });
   }
 
+  // ---------- Thông báo tình trạng máy (hiện cho mọi người, chỉ trong ngày) ----------
+  function notices() { return (S.data.exceptions || []).filter(function (e) { return e.loai === &#x27;THONG_BAO&#x27; &amp;&amp; e.ngay === today(); }); }
+  function noticeBar() {
+    var list = notices();
+    if (!list.length) return &#x27;&#x27;;
+    return &#x27;&lt;div class=&quot;notice-bar&quot; role=&quot;status&quot;&gt;&lt;div class=&quot;util-in&quot;&gt;&#x27; + list.map(function (n) {
+      return &#x27;&lt;span class=&quot;nb-item&quot;&gt;&lt;b&gt;&#x27; + esc(n.may || &#x27;Thông báo&#x27;) + &#x27;:&lt;/b&gt; &#x27; + esc(n.ghi_chu) +
+        &#x27; &lt;span class=&quot;nb-meta&quot;&gt;· &#x27; + esc(nameOf(n.nguoi)) + &#x27; &#x27; + String(n.thoi_gian).slice(11, 16) + &#x27;&lt;/span&gt;&#x27; +
+        (can(&#x27;clearNotice&#x27;) ? &#x27; &lt;button class=&quot;nb-x&quot; data-clearnotice=&quot;&#x27; + esc(n.id) + &#x27;&quot; aria-label=&quot;Gỡ thông báo&quot;&gt;Gỡ&lt;/button&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/span&gt;&#x27;;
+    }).join(&#x27;&#x27;) + &#x27;&lt;/div&gt;&lt;/div&gt;&#x27;;
+  }
+  function noticeBtn() { return can(&#x27;setNotice&#x27;) ? &#x27;&lt;button class=&quot;btn&quot; data-notice=&quot;1&quot;&gt;Thông báo tình trạng máy&lt;/button&gt;&#x27; : &#x27;&#x27;; }
+  function noticeForm() {
+    var machines = S.data.dm.MAY || [];
+    modal({ title: &#x27;Thông báo tình trạng máy&#x27;, ok: &#x27;Đăng thông báo&#x27;,
+      body: &#x27;&lt;p class=&quot;muted&quot;&gt;Thông báo hiện trên đầu ứng dụng của mọi người trong hôm nay. Đăng thông báo mới cho cùng máy sẽ thay thông báo cũ.&lt;/p&gt;&lt;div class=&quot;form&quot;&gt;&#x27; +
+        field(&#x27;Máy&#x27;, &#x27;&lt;select name=&quot;may&quot;&gt;&#x27; + opts([{ v: &#x27;&#x27;, l: &#x27;Chung (không theo máy)&#x27; }].concat(machines.map(function (m) { return { v: m, l: m }; })), machines[0] || &#x27;&#x27;) + &#x27;&lt;/select&gt;&#x27;, &#x27;full&#x27;) +
+        field(&#x27;Nội dung &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&#x27;, &#x27;&lt;input type=&quot;text&quot; name=&quot;noi_dung&quot; maxlength=&quot;200&quot; placeholder=&quot;VD: Máy lỗi MLC, đang sửa, BN chờ khoảng 2 giờ&quot;&gt;&#x27;, &#x27;full&#x27;) + &#x27;&lt;/div&gt;&#x27;,
+      validate: function (v) { return v.noi_dung ? &#x27;&#x27; : &#x27;Nhập nội dung thông báo.&#x27;; },
+      onOk: function (v) { run(&#x27;setNotice&#x27;, v); } });
+  }
+
+  // ---------- Chuông: việc mới liên quan đến tôi (khi ứng dụng đang mở) ----------
+  S.notes = []; S.unread = 0;
+  function bell() {
+    return &#x27;&lt;div class=&quot;bell-wrap&quot;&gt;&lt;button class=&quot;bell&quot; id=&quot;bell&quot; aria-label=&quot;Việc mới&quot; title=&quot;Việc mới&quot;&gt;&#x27; +
+      &#x27;&lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot;&gt;&lt;path d=&quot;M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8&quot;/&gt;&lt;path d=&quot;M10 21a2 2 0 0 0 4 0&quot;/&gt;&lt;/svg&gt;&#x27; +
+      (S.unread ? &#x27;&lt;span class=&quot;bell-n&quot;&gt;&#x27; + S.unread + &#x27;&lt;/span&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/button&gt;&#x27; +
+      &#x27;&lt;div class=&quot;bell-panel&quot; id=&quot;bell-panel&quot; hidden&gt;&lt;div class=&quot;bp-head&quot;&gt;&lt;b&gt;Việc mới&lt;/b&gt;&lt;span class=&quot;muted&quot;&gt;khi ứng dụng đang mở&lt;/span&gt;&lt;/div&gt;&#x27; +
+      (S.notes.length ? S.notes.slice(0, 30).map(function (n) {
+        return &#x27;&lt;button class=&quot;bp-item&quot; data-note=&quot;&#x27; + esc(n.pid || &#x27;&#x27;) + &#x27;&quot;&gt;&lt;span&gt;&#x27; + esc(n.text) + &#x27;&lt;/span&gt;&lt;span class=&quot;muted&quot;&gt;&#x27; + n.time + &#x27;&lt;/span&gt;&lt;/button&gt;&#x27;;
+      }).join(&#x27;&#x27;) : &#x27;&lt;div class=&quot;empty&quot;&gt;Chưa có việc mới.&lt;/div&gt;&#x27;) + &#x27;&lt;/div&gt;&lt;/div&gt;&#x27;;
+  }
+  function bindBell() {
+    var b = $(&#x27;#bell&#x27;), p = $(&#x27;#bell-panel&#x27;);
+    if (!b) return;
+    b.onclick = function (e) { e.stopPropagation(); p.hidden = !p.hidden; if (!p.hidden &amp;&amp; S.unread) { S.unread = 0; var n = $(&#x27;.bell-n&#x27;); if (n) n.remove(); } };
+    $$(&#x27;[data-note]&#x27;, p).forEach(function (x) { x.onclick = function () { p.hidden = true; if (x.dataset.note) openDetail(x.dataset.note); }; });
+    document.addEventListener(&#x27;click&#x27;, function (e) { if (!p.hidden &amp;&amp; !e.target.closest(&#x27;.bell-wrap&#x27;)) p.hidden = true; }, { once: true });
+  }
+  /** So sánh dữ liệu cũ và mới (do người khác cập nhật) để báo việc mới cho đúng người */
+  function computeNotes(oldD, newD) {
+    var meU = newD.me, mine = function (p) { return p.bs_email === meU.email; };
+    var r = meU.vai_tro, out = [];
+    var st = {}, gst = {};
+    oldD.patients.forEach(function (p) { st[p.id] = p.trang_thai; });
+    (oldD.phases || []).forEach(function (g) { gst[g.id] = g.trang_thai; });
+    var name = function (p) { return p.ho_ten + &#x27; (&#x27; + p.ma_his + &#x27;)&#x27;; };
+    newD.patients.forEach(function (p) {
+      var o = st[p.id], n = p.trang_thai;
+      if (o === n) return;
+      var doc = (r === &#x27;BS&#x27; || (r === &#x27;ADMIN&#x27; &amp;&amp; /^\s*(BS|ThS|TS|PGS)/i.test(meU.ho_ten || &#x27;&#x27;))) &amp;&amp; mine(p);
+      if (doc) {
+        if (n === &#x27;CHO_XA&#x27; &amp;&amp; o) out.push({ pid: p.id, text: name(p) + &#x27;: kế hoạch xong, chờ vào xạ&#x27; });
+        else if (n === &#x27;DANG_KH&#x27; &amp;&amp; o === &#x27;CHO_QA&#x27;) out.push({ pid: p.id, text: name(p) + &#x27;: QA không đạt, kỹ sư lập lại KH&#x27; });
+        else if (n === &#x27;CONTOUR&#x27; &amp;&amp; (o === &#x27;CHO_KH&#x27; || o === &#x27;DANG_KH&#x27;)) out.push({ pid: p.id, text: name(p) + &#x27;: kỹ sư trả lại contour&#x27; });
+        else if (n === &#x27;CONTOUR&#x27; &amp;&amp; o === &#x27;MO_PHONG&#x27;) out.push({ pid: p.id, text: name(p) + &#x27;: đã mô phỏng, chờ bác sĩ contour&#x27; });
+        else if (n === &#x27;TAM_NGUNG&#x27;) out.push({ pid: p.id, text: name(p) + &#x27;: tạm ngừng xạ&#x27; });
+        else if (!o &amp;&amp; n !== &#x27;HOAN_THANH&#x27;) out.push({ pid: p.id, text: &#x27;BN mới của bạn: &#x27; + name(p) });
+      }
+      if ((r === &#x27;KS&#x27;) &amp;&amp; n === &#x27;CHO_KH&#x27;) out.push({ pid: p.id, text: (p.uu_tien === &#x27;Cấp cứu&#x27; ? &#x27;CẤP CỨU · &#x27; : &#x27;&#x27;) + name(p) + &#x27;: contour xong, chờ lập KH&#x27; });
+      if (r === &#x27;KTV&#x27; &amp;&amp; n === &#x27;CHO_XA&#x27;) out.push({ pid: p.id, text: name(p) + &#x27;: chờ vào xạ, cần xếp lịch&#x27; });
+      if (r === &#x27;KTV&#x27; &amp;&amp; n === &#x27;MO_PHONG&#x27; &amp;&amp; !o) out.push({ pid: p.id, text: name(p) + &#x27;: chờ mô phỏng&#x27; });
+    });
+    (newD.phases || []).forEach(function (g) {
+      var o = gst[g.id], n = g.trang_thai;
+      if (o === n) return;
+      var p = newD.patients.filter(function (x) { return x.id === g.bn_id; })[0];
+      if (!p) return;
+      if (r === &#x27;KS&#x27; &amp;&amp; n === &#x27;CHO_KH&#x27;) out.push({ pid: p.id, text: name(p) + &#x27;: boost GĐ&#x27; + g.stt + &#x27; chờ lập KH&#x27; });
+      if ((r === &#x27;BS&#x27; || r === &#x27;ADMIN&#x27;) &amp;&amp; mine(p) &amp;&amp; n === &#x27;SAN_SANG&#x27;) out.push({ pid: p.id, text: name(p) + &#x27;: KH boost GĐ&#x27; + g.stt + &#x27; đã sẵn sàng&#x27; });
+      if (r === &#x27;KTV&#x27; &amp;&amp; n === &#x27;MO_PHONG&#x27;) out.push({ pid: p.id, text: name(p) + &#x27;: boost cần mô phỏng lại&#x27; });
+    });
+    var oldN = {};
+    (oldD.exceptions || []).forEach(function (e) { if (e.loai === &#x27;THONG_BAO&#x27;) oldN[e.id] = 1; });
+    (newD.exceptions || []).forEach(function (e) {
+      if (e.loai === &#x27;THONG_BAO&#x27; &amp;&amp; !oldN[e.id] &amp;&amp; e.nguoi !== meU.email) out.push({ pid: &#x27;&#x27;, text: &#x27;Thông báo&#x27; + (e.may ? &#x27; &#x27; + e.may : &#x27;&#x27;) + &#x27;: &#x27; + e.ghi_chu });
+    });
+    var tm = new Date(), hh = (tm.getHours() &lt; 10 ? &#x27;0&#x27; : &#x27;&#x27;) + tm.getHours() + &#x27;:&#x27; + (tm.getMinutes() &lt; 10 ? &#x27;0&#x27; : &#x27;&#x27;) + tm.getMinutes();
+    out.forEach(function (x) { x.time = hh; });
+    return out;
+  }
+  function pushNotes(list) {
+    if (!list.length) return;
+    S.notes = list.concat(S.notes).slice(0, 50);
+    S.unread += list.length;
+    toast(list.length === 1 ? &#x27;Việc mới: &#x27; + list[0].text : list.length + &#x27; việc mới. Bấm chuông để xem.&#x27;);
+  }
+
+  // ---------- Bảng phân công ----------
+  function rosterRows() { return S.rosterExtra ? S.data.roster.concat(S.rosterExtra) : S.data.roster; }
+  function rosterCell(ngay, vt) { return rosterRows().filter(function (r) { return r.ngay === ngay &amp;&amp; r.vi_tri === vt; })[0]; }
+  function shortName(email) { var n = nameOf(email); return n.replace(/^(KTV|BS|KS|ĐD|ThS|TS)\.?\s*/i, &#x27;&#x27;); }
+  function myDuty(day) {
+    return rosterRows().filter(function (r) { return r.ngay === day &amp;&amp; RT.splitList(r.nhan_vien).indexOf(me().email) &gt;= 0; }).map(function (r) { return r.vi_tri; });
+  }
+  function dutyBanner() {
+    var d = myDuty(today());
+    return d.length ? &#x27;&lt;div class=&quot;duty&quot;&gt;Hôm nay bạn: &lt;b&gt;&#x27; + d.map(esc).join(&#x27; · &#x27;) + &#x27;&lt;/b&gt;&lt;/div&gt;&#x27; : &#x27;&#x27;;
+  }
+  function renderRoster() {
+    var t = today();
+    if (!S.rweek) S.rweek = RT.monday(t);
+    var days = [0, 1, 2, 3, 4, 5, 6].map(function (i) { return RT.addDays(S.rweek, i); });
+    var pos = S.data.dm.VI_TRI_PC || [];
+    var edit = can(&#x27;setRoster&#x27;);
+    var winA = RT.addDays(RT.monday(t), -7), winB = RT.addDays(RT.monday(t), 34);
+    var outside = days[0] &lt; winA || days[6] &gt; winB;
+    if (outside &amp;&amp; S.rosterWeekLoaded !== S.rweek) {
+      S.rosterWeekLoaded = S.rweek;
+      setBusy(1);
+      call(&#x27;getRoster&#x27;, { tu: days[0], den: days[6] }).then(function (r) { S.rosterExtra = (S.rosterExtra || []).concat(r.roster || []); renderMain(); }, function () {}).finally(function () { setBusy(-1); });
+    }
+    var html = &#x27;&lt;div class=&quot;page-head&quot;&gt;&lt;div&gt;&lt;h1&gt;Phân công&lt;/h1&gt;&lt;p&gt;Tuần &#x27; + fd(days[0]) + &#x27; – &#x27; + fd(days[6]) + &#x27;/&#x27; + days[6].slice(0, 4) +
+      (edit ? &#x27;. Bấm vào ô để chọn người.&#x27; : &#x27;. Chỉ KTV trưởng và quản trị sửa được.&#x27;) + &#x27;&lt;/p&gt;&lt;/div&gt;&#x27; +
+      &#x27;&lt;div class=&quot;filters&quot;&gt;&#x27; + (edit ? &#x27;&lt;button class=&quot;btn&quot; data-rcopy=&quot;1&quot;&gt;Sao chép từ tuần trước&lt;/button&gt;&#x27; : &#x27;&#x27;) +
+      &#x27;&lt;div class=&quot;seg&quot;&gt;&lt;button data-rnav=&quot;-7&quot; aria-label=&quot;Tuần trước&quot;&gt;‹&lt;/button&gt;&lt;button data-rnav=&quot;0&quot;&gt;Tuần này&lt;/button&gt;&lt;button data-rnav=&quot;7&quot; aria-label=&quot;Tuần sau&quot;&gt;›&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&#x27;;
+    html += dutyBanner();
+    if (!pos.length) return html + &#x27;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;empty&quot;&gt;Chưa có vị trí phân công. Quản trị thêm ở tab Quản trị → Vị trí phân công.&lt;/div&gt;&lt;/div&gt;&#x27;;
+    html += &#x27;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;tbl-wrap&quot;&gt;&lt;table class=&quot;rs-table&quot;&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Vị trí&lt;/th&gt;&#x27; + days.map(function (d) { return &#x27;&lt;th class=&quot;&#x27; + (d === t ? &#x27;wk-today&#x27; : &#x27;&#x27;) + &#x27;&quot;&gt;&#x27; + fdw(d) + &#x27;&lt;/th&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&#x27; +
+      pos.map(function (vt) {
+        return &#x27;&lt;tr&gt;&lt;th scope=&quot;row&quot; class=&quot;rs-pos&quot;&gt;&#x27; + esc(vt) + &#x27;&lt;/th&gt;&#x27; + days.map(function (d) {
+          var c = rosterCell(d, vt), em = c ? RT.splitList(c.nhan_vien) : [];
+          var inner = em.map(function (x) { return &#x27;&lt;span class=&quot;rs-name&#x27; + (x === me().email ? &#x27; me&#x27; : &#x27;&#x27;) + &#x27;&quot;&gt;&#x27; + esc(shortName(x)) + &#x27;&lt;/span&gt;&#x27;; }).join(&#x27;&#x27;) +
+            (c &amp;&amp; c.ghi_chu ? &#x27;&lt;span class=&quot;rs-note&quot;&gt;&#x27; + esc(c.ghi_chu) + &#x27;&lt;/span&gt;&#x27; : &#x27;&#x27;) || &#x27;&lt;span class=&quot;muted&quot;&gt;–&lt;/span&gt;&#x27;;
+          return &#x27;&lt;td class=&quot;&#x27; + (d === t ? &#x27;rs-today&#x27; : &#x27;&#x27;) + &#x27;&quot;&gt;&#x27; + (edit ? &#x27;&lt;button class=&quot;rs-cell&quot; data-rcell=&quot;1&quot; data-d=&quot;&#x27; + d + &#x27;&quot; data-v=&quot;&#x27; + esc(vt) + &#x27;&quot;&gt;&#x27; + inner + &#x27;&lt;/button&gt;&#x27; : inner) + &#x27;&lt;/td&gt;&#x27;;
+        }).join(&#x27;&#x27;) + &#x27;&lt;/tr&gt;&#x27;;
+      }).join(&#x27;&#x27;) + &#x27;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;&lt;/div&gt;&#x27;;
+    return html;
+  }
+  function bindRoster() {
+    $$(&#x27;#main [data-rnav]&#x27;).forEach(function (b) { b.onclick = function () { var n = +b.dataset.rnav; S.rweek = n ? RT.addDays(S.rweek, n) : RT.monday(today()); renderMain(); }; });
+    $$(&#x27;#main [data-rcopy]&#x27;).forEach(function (b) {
+      b.onclick = function () {
+        modal({ title: &#x27;Sao chép phân công&#x27;, ok: &#x27;Sao chép&#x27;, body: &#x27;&lt;p&gt;Sao chép toàn bộ phân công của tuần &lt;b&gt;&#x27; + fd(RT.addDays(S.rweek, -7)) + &#x27; – &#x27; + fd(RT.addDays(S.rweek, -1)) + &#x27;&lt;/b&gt; sang tuần đang xem (&lt;b&gt;&#x27; + fd(S.rweek) + &#x27; – &#x27; + fd(RT.addDays(S.rweek, 6)) + &#x27;&lt;/b&gt;). Các ô đã có ở tuần đang xem sẽ bị ghi đè.&lt;/p&gt;&#x27;,
+          onOk: function () { run(&#x27;copyRoster&#x27;, { tu: RT.addDays(S.rweek, -7), den: S.rweek }); } });
+      };
+    });
+    $$(&#x27;#main [data-rcell]&#x27;).forEach(function (b) {
+      b.onclick = function () {
+        var d = b.dataset.d, vt = b.dataset.v, c = rosterCell(d, vt), cur = c ? RT.splitList(c.nhan_vien) : [];
+        var staff = activeUsers().filter(function (u) { return u.vai_tro === &#x27;KTV&#x27;; });
+        var others = activeUsers().filter(function (u) { return u.vai_tro !== &#x27;KTV&#x27; &amp;&amp; cur.indexOf(u.email) &gt;= 0; });
+        modal({ title: vt + &#x27; · &#x27; + fdw(d), ok: &#x27;Lưu&#x27;,
+          body: &#x27;&lt;div class=&quot;field&quot;&gt;&lt;span class=&quot;lb&quot;&gt;Chọn người phụ trách&lt;/span&gt;&lt;div class=&quot;checks&quot;&gt;&#x27; +
+            staff.concat(others).map(function (u) { return &#x27;&lt;label&gt;&lt;input type=&quot;checkbox&quot; name=&quot;nv&quot; data-multi=&quot;1&quot; value=&quot;&#x27; + esc(u.email) + &#x27;&quot;&#x27; + (cur.indexOf(u.email) &gt;= 0 ? &#x27; checked&#x27; : &#x27;&#x27;) + &#x27;&gt;&lt;span&gt;&#x27; + esc(u.ho_ten) + &#x27;&lt;/span&gt;&lt;/label&gt;&#x27;; }).join(&#x27;&#x27;) +
+            &#x27;&lt;/div&gt;&lt;/div&gt;&#x27; + field(&#x27;Ghi chú&#x27;, &#x27;&lt;input type=&quot;text&quot; name=&quot;ghi_chu&quot; value=&quot;&#x27; + esc(c ? c.ghi_chu : &#x27;&#x27;) + &#x27;&quot; placeholder=&quot;VD: 7h–11h30&quot;&gt;&#x27;),
+          onOk: function (v) { run(&#x27;setRoster&#x27;, { ngay: d, vi_tri: vt, nhan_vien: v.nv || [], ghi_chu: v.ghi_chu }); } });
+      };
+    });
+  }
+
+  // ---------- Nhật ký (quản trị và các trưởng) ----------
+  function logSection() {
+    return &#x27;&lt;section class=&quot;group&quot;&gt;&lt;div class=&quot;group-head&quot;&gt;&lt;h2&gt;Nhật ký thao tác&lt;/h2&gt;&lt;span class=&quot;hint&quot;&gt;300 thao tác gần nhất&lt;/span&gt;&lt;button class=&quot;btn&quot; data-admin=&quot;loadLog&quot;&gt;&#x27; + (S.log ? &#x27;Tải lại&#x27; : &#x27;Xem nhật ký&#x27;) + &#x27;&lt;/button&gt;&lt;/div&gt;&#x27; +
+      (S.log ? (S.log.length ? &#x27;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;tbl-wrap&quot;&gt;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Thời gian&lt;/th&gt;&lt;th&gt;Người thực hiện&lt;/th&gt;&lt;th&gt;Thao tác&lt;/th&gt;&lt;th&gt;Bệnh nhân&lt;/th&gt;&lt;th&gt;Chi tiết&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&#x27; +
+        S.log.map(function (l) { var p = byId(l.bn_id); return &#x27;&lt;tr&gt;&lt;td class=&quot;num nowrap&quot;&gt;&#x27; + esc(fdy(String(l.thoi_gian).slice(0, 10)) + &#x27; &#x27; + String(l.thoi_gian).slice(11, 16)) + &#x27;&lt;/td&gt;&lt;td class=&quot;nowrap&quot;&gt;&#x27; + esc(nameOf(l.email)) + &#x27;&lt;/td&gt;&lt;td class=&quot;nowrap&quot;&gt;&#x27; + esc(l.thao_tac) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + (p ? esc(p.ho_ten) : esc(l.bn_id)) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + esc(l.chi_tiet) + &#x27;&lt;/td&gt;&lt;/tr&gt;&#x27;; }).join(&#x27;&#x27;) +
+        &#x27;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;&lt;/div&gt;&#x27; : &#x27;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;empty&quot;&gt;Chưa có thao tác nào.&lt;/div&gt;&lt;/div&gt;&#x27;) : &#x27;&#x27;) + &#x27;&lt;/section&gt;&#x27;;
+  }
+
   // ---------- Quản trị ----------
   function renderAdmin() {
     var d = S.data;
     var users = d.users.slice().sort(function (a, b) { return (a.kich_hoat === &#x27;Không&#x27;) - (b.kich_hoat === &#x27;Không&#x27;) || [&#x27;ADMIN&#x27;, &#x27;BS&#x27;, &#x27;KS&#x27;, &#x27;KTV&#x27;, &#x27;DD&#x27;].indexOf(a.vai_tro) - [&#x27;ADMIN&#x27;, &#x27;BS&#x27;, &#x27;KS&#x27;, &#x27;KTV&#x27;, &#x27;DD&#x27;].indexOf(b.vai_tro) || a.ho_ten.localeCompare(b.ho_ten, &#x27;vi&#x27;); });
     var html = &#x27;&lt;div class=&quot;page-head&quot;&gt;&lt;div&gt;&lt;h1&gt;Quản trị&lt;/h1&gt;&lt;p&gt;Người dùng, danh mục và nhật ký thao tác.&lt;/p&gt;&lt;/div&gt;&lt;button class=&quot;btn primary&quot; data-admin=&quot;addUser&quot;&gt;+ Thêm người dùng&lt;/button&gt;&lt;/div&gt;&#x27;;
     html += &#x27;&lt;section class=&quot;group&quot;&gt;&lt;div class=&quot;group-head&quot;&gt;&lt;h2&gt;Người dùng&lt;/h2&gt;&lt;span class=&quot;count&quot;&gt;&#x27; + activeUsers().length + &#x27; đang hoạt động&lt;/span&gt;&#x27; +
-      &#x27;&lt;span class=&quot;hint&quot;&gt;Người dùng cần có tài khoản Google. Với Gmail cá nhân, nhớ chia sẻ Google Sheet cho họ.&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;tbl-wrap&quot;&gt;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Họ tên&lt;/th&gt;&lt;th&gt;Email&lt;/th&gt;&lt;th&gt;Vai trò&lt;/th&gt;&lt;th&gt;Trạng thái&lt;/th&gt;&lt;th&gt;&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&#x27; +
+      &#x27;&lt;span class=&quot;hint&quot;&gt;Người dùng cần có tài khoản Google. Với Gmail cá nhân, nhớ chia sẻ Google Sheet cho họ.&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;tbl-wrap&quot;&gt;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Họ tên&lt;/th&gt;&lt;th&gt;Email&lt;/th&gt;&lt;th&gt;Vai trò&lt;/th&gt;&lt;th&gt;Chức vụ&lt;/th&gt;&lt;th&gt;Trạng thái&lt;/th&gt;&lt;th&gt;&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&#x27; +
       users.map(function (u) {
         return &#x27;&lt;tr class=&quot;&#x27; + (u.kich_hoat === &#x27;Không&#x27; ? &#x27;off-user&#x27; : &#x27;&#x27;) + &#x27;&quot;&gt;&lt;td&gt;&lt;b&gt;&#x27; + esc(u.ho_ten) + &#x27;&lt;/b&gt;&lt;/td&gt;&lt;td class=&quot;mono&quot;&gt;&#x27; + esc(u.email) + &#x27;&lt;/td&gt;&lt;td&gt;&lt;span class=&quot;role role-&#x27; + esc(u.vai_tro) + &#x27;&quot;&gt;&#x27; + esc(RT.ROLES[u.vai_tro] || u.vai_tro) + &#x27;&lt;/span&gt;&lt;/td&gt;&#x27; +
-          &#x27;&lt;td&gt;&#x27; + (u.kich_hoat === &#x27;Không&#x27; ? &#x27;Đã khoá&#x27; : &#x27;Hoạt động&#x27;) + &#x27;&lt;/td&gt;&lt;td class=&quot;act&quot;&gt;&lt;button class=&quot;btn&quot; data-admin=&quot;editUser&quot; data-email=&quot;&#x27; + esc(u.email) + &#x27;&quot;&gt;Sửa&lt;/button&gt;&lt;/td&gt;&lt;/tr&gt;&#x27;;
+          &#x27;&lt;td&gt;&#x27; + esc(u.chuc_vu || &#x27;&#x27;) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + (u.kich_hoat === &#x27;Không&#x27; ? &#x27;Đã khoá&#x27; : &#x27;Hoạt động&#x27;) + &#x27;&lt;/td&gt;&lt;td class=&quot;act&quot;&gt;&lt;button class=&quot;btn&quot; data-admin=&quot;editUser&quot; data-email=&quot;&#x27; + esc(u.email) + &#x27;&quot;&gt;Sửa&lt;/button&gt;&lt;/td&gt;&lt;/tr&gt;&#x27;;
       }).join(&#x27;&#x27;) + &#x27;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;&lt;/div&gt;&lt;/section&gt;&#x27;;
     var dmBox = function (loai, title, help, ph, type) {
       var list = d.dm[loai] || [];
@@ -3016,15 +3383,13 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
       dmBox(&#x27;NGAY_LE&#x27;, &#x27;Ngày nghỉ lễ&#x27;, &#x27;Không tính vào lịch xạ.&#x27;, &#x27;&#x27;, &#x27;date&#x27;) +
       dmBox(&#x27;KY_THUAT&#x27;, &#x27;Kỹ thuật xạ&#x27;, &#x27;&#x27;, &#x27;VD: Brachytherapy&#x27;) +
       dmBox(&#x27;MUC_DICH&#x27;, &#x27;Mục đích xạ&#x27;, &#x27;&#x27;, &#x27;VD: Dự phòng&#x27;) +
+      dmBox(&#x27;VI_TRI_PC&#x27;, &#x27;Vị trí phân công KTV&#x27;, &#x27;Các dòng của bảng phân công.&#x27;, &#x27;VD: Máy gia tốc 2 – ca sáng&#x27;) +
       dmBox(&#x27;VI_TRI&#x27;, &#x27;Vị trí xạ (gợi ý khi nhập)&#x27;, &#x27;Bác sĩ vẫn gõ được vị trí khác.&#x27;, &#x27;VD: Hố yên&#x27;) +
       dmBox(&#x27;HINH_ANH&#x27;, &#x27;Hình ảnh / định vị mỗi buổi&#x27;, &#x27;KTV tích khi ghi buổi xạ.&#x27;, &#x27;VD: ExacTrac&#x27;) +
       dmBox(&#x27;IGRT&#x27;, &#x27;Phác đồ IGRT dự kiến&#x27;, &#x27;&#x27;, &#x27;VD: CBCT 5 buổi đầu&#x27;) +
       dmBox(&#x27;LY_DO_TAM_NGUNG&#x27;, &#x27;Lý do tạm ngừng&#x27;, &#x27;&#x27;, &#x27;VD: Hết thuốc hoá trị đồng thời&#x27;) +
       dmBox(&#x27;KHOA&#x27;, &#x27;Khoa&#x27;, &#x27;&#x27;, &#x27;VD: Xạ trị&#x27;) + &#x27;&lt;/div&gt;&lt;/section&gt;&#x27;;
-    html += &#x27;&lt;section class=&quot;group&quot;&gt;&lt;div class=&quot;group-head&quot;&gt;&lt;h2&gt;Nhật ký thao tác&lt;/h2&gt;&lt;span class=&quot;hint&quot;&gt;300 thao tác gần nhất&lt;/span&gt;&lt;button class=&quot;btn&quot; data-admin=&quot;loadLog&quot;&gt;&#x27; + (S.log ? &#x27;Tải lại&#x27; : &#x27;Xem nhật ký&#x27;) + &#x27;&lt;/button&gt;&lt;/div&gt;&#x27; +
-      (S.log ? (S.log.length ? &#x27;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;tbl-wrap&quot;&gt;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Thời gian&lt;/th&gt;&lt;th&gt;Người thực hiện&lt;/th&gt;&lt;th&gt;Thao tác&lt;/th&gt;&lt;th&gt;Bệnh nhân&lt;/th&gt;&lt;th&gt;Chi tiết&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&#x27; +
-        S.log.map(function (l) { var p = byId(l.bn_id); return &#x27;&lt;tr&gt;&lt;td class=&quot;num nowrap&quot;&gt;&#x27; + esc(fdy(String(l.thoi_gian).slice(0, 10)) + &#x27; &#x27; + String(l.thoi_gian).slice(11, 16)) + &#x27;&lt;/td&gt;&lt;td class=&quot;nowrap&quot;&gt;&#x27; + esc(nameOf(l.email)) + &#x27;&lt;/td&gt;&lt;td class=&quot;nowrap&quot;&gt;&#x27; + esc(l.thao_tac) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + (p ? esc(p.ho_ten) : esc(l.bn_id)) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + esc(l.chi_tiet) + &#x27;&lt;/td&gt;&lt;/tr&gt;&#x27;; }).join(&#x27;&#x27;) +
-        &#x27;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;&lt;/div&gt;&#x27; : &#x27;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;empty&quot;&gt;Chưa có thao tác nào.&lt;/div&gt;&lt;/div&gt;&#x27;) : &#x27;&#x27;) + &#x27;&lt;/section&gt;&#x27;;
+    html += logSection();
     return html;
   }
   function bindAdmin() {
@@ -3047,7 +3412,8 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
       body: &#x27;&lt;div class=&quot;form&quot;&gt;&#x27; + field(&#x27;Họ và tên &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&#x27;, &#x27;&lt;input type=&quot;text&quot; name=&quot;ho_ten&quot; value=&quot;&#x27; + esc(u.ho_ten || &#x27;&#x27;) + &#x27;&quot; placeholder=&quot;VD: BS. Nguyễn Văn A&quot;&gt;&#x27;, &#x27;full&#x27;) +
         field(&#x27;Email Google &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&#x27;, &#x27;&lt;input type=&quot;email&quot; name=&quot;email&quot; value=&quot;&#x27; + esc(u.email || &#x27;&#x27;) + &#x27;&quot;&#x27; + (isNew ? &#x27;&#x27; : &#x27; readonly&#x27;) + &#x27; placeholder=&quot;ten@gmail.com&quot;&gt;&#x27;, &#x27;full&#x27;) +
         field(&#x27;Vai trò&#x27;, &#x27;&lt;select name=&quot;vai_tro&quot;&gt;&#x27; + opts([&#x27;BS&#x27;, &#x27;KS&#x27;, &#x27;KTV&#x27;, &#x27;DD&#x27;, &#x27;ADMIN&#x27;].map(function (r) { return { v: r, l: RT.ROLES[r] }; }), u.vai_tro) + &#x27;&lt;/select&gt;&#x27;) +
-        field(&#x27;Trạng thái&#x27;, &#x27;&lt;select name=&quot;kich_hoat&quot;&gt;&#x27; + opts([{ v: &#x27;Có&#x27;, l: &#x27;Hoạt động&#x27; }, { v: &#x27;Không&#x27;, l: &#x27;Khoá tài khoản&#x27; }], u.kich_hoat) + &#x27;&lt;/select&gt;&#x27;) + &#x27;&lt;/div&gt;&#x27;,
+        field(&#x27;Trạng thái&#x27;, &#x27;&lt;select name=&quot;kich_hoat&quot;&gt;&#x27; + opts([{ v: &#x27;Có&#x27;, l: &#x27;Hoạt động&#x27; }, { v: &#x27;Không&#x27;, l: &#x27;Khoá tài khoản&#x27; }], u.kich_hoat) + &#x27;&lt;/select&gt;&#x27;) +
+        field(&#x27;Chức vụ&#x27;, &#x27;&lt;select name=&quot;chuc_vu&quot;&gt;&#x27; + opts(RT.CHUC_VU, u.chuc_vu || &#x27;&#x27;, &#x27;Không&#x27;) + &#x27;&lt;/select&gt;&#x27;, &#x27;full&#x27;, &#x27;KTV trưởng: lập bảng phân công, huỷ buổi xạ ghi nhầm, ghi máy nghỉ. Mọi chức vụ: xem nhật ký, đăng thông báo.&#x27;) + &#x27;&lt;/div&gt;&#x27;,
       validate: function (v) { if (!v.ho_ten) return &#x27;Cần nhập họ tên.&#x27;; if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.email)) return &#x27;Email không hợp lệ.&#x27;; return &#x27;&#x27;; },
       onOk: function (v) { run(&#x27;saveUser&#x27;, v); } });
   }
@@ -3541,16 +3907,29 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
       if (!$(&#x27;#modal&#x27;).hidden) closeModal(); else if (S.detail) closeDetail();
     });
     // Tự tải lại dữ liệu mỗi 60 giây và khi quay lại tab, để thấy cập nhật của người khác
+    // Mỗi 30 giây hỏi máy chủ &quot;có ai vừa sửa gì không&quot; (rất nhẹ); chỉ khi có thay đổi mới tải lại dữ liệu
+    var fullReload = function () {
+      var y = window.scrollY;
+      call(&#x27;bootstrap&#x27;).then(function (r) {
+        if (pending.length) return;
+        var notes = S.data ? computeNotes(S.data, r.data) : [];
+        setData(r.data); if (r.rev) S.rev = r.rev;
+        pushNotes(notes);
+        render(); window.scrollTo(0, y);
+      }, function () {});
+    };
     var refresh = function () {
       if (!S.data || S.busy &gt; 0 || pending.length || document.hidden || !$(&#x27;#modal&#x27;).hidden) return;
       if (document.activeElement &amp;&amp; /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) return;
-      var y = window.scrollY;
-      call(&#x27;bootstrap&#x27;).then(function (r) { if (pending.length) return; setData(r.data); render(); window.scrollTo(0, y); }, function () {});
+      call(&#x27;rev&#x27;).then(function (r) {
+        if (r.rev &amp;&amp; r.rev === S.rev) return;
+        fullReload();
+      }, function () { if (Date.now() - S.lastLoad &gt; 60000) fullReload(); });
     };
-    setInterval(refresh, 60000);
-    document.addEventListener(&#x27;visibilitychange&#x27;, function () { if (!document.hidden &amp;&amp; Date.now() - S.lastLoad &gt; 20000) refresh(); });
+    setInterval(refresh, 30000);
+    document.addEventListener(&#x27;visibilitychange&#x27;, function () { if (!document.hidden) refresh(); });
     setBusy(1);
-    call(&#x27;bootstrap&#x27;).then(function (r) { setData(r.data); render(); }, function (e) {
+    call(&#x27;bootstrap&#x27;).then(function (r) { setData(r.data); if (r.rev) S.rev = r.rev; render(); }, function (e) {
       var msg = String(e.error || &#x27;&#x27;);
       var html;
       if (msg.indexOf(&#x27;NO_ACCESS:&#x27;) === 0) html = &#x27;&lt;h1&gt;Tài khoản chưa được cấp quyền&lt;/h1&gt;&lt;p&gt;Tài khoản &lt;b class=&quot;mono&quot;&gt;&#x27; + esc(msg.slice(10)) + &#x27;&lt;/b&gt; chưa có trong danh sách người dùng.&lt;/p&gt;&lt;p class=&quot;muted&quot;&gt;Gửi địa chỉ email này cho quản trị để được thêm vào trang tính &lt;b&gt;NguoiDung&lt;/b&gt;, rồi tải lại trang.&lt;/p&gt;&#x27;;

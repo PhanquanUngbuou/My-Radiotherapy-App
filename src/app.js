@@ -17,7 +17,8 @@
   function today() { return S.data.today; }
   function me() { return S.data.me; }
   function role() { return S.data.me.vai_tro; }
-  function can(a) { return RT.can(role(), a); }
+  function can(a) { return RT.can(role(), a, me()); }
+  function isLead() { return RT.isLead(me()); }
   function nameOf(email) { var u = S.data.users.filter(function (x) { return x.email === email; })[0]; return u ? u.ho_ten : (email || ''); }
   /** Bác sĩ: vai trò BS, hoặc Quản trị có tên bắt đầu bằng "BS" (bác sĩ kiêm quản trị) */
   function isDoctor(u) { return u && (u.vai_tro === 'BS' || (u.vai_tro === 'ADMIN' && /^\s*(BS|Bác sĩ|ThS|TS|PGS)/i.test(u.ho_ten || ''))); }
@@ -124,6 +125,8 @@
       setBusy(1);
       return call(action, payload).then(function (r) {
         setData(r.data);
+        if (r.rev) S.rev = r.rev;
+        if (r.roster) S.rosterExtra = r.roster;
         if (r.log) S.log = r.log;
         if (r.msg) toast(r.msg);
         render();
@@ -142,6 +145,7 @@
     chain = chain.then(function () {
       return call(action, payload).then(function (r) {
         pending.shift();
+        if (r.rev) S.rev = r.rev;
         var d = r.data;
         pending.forEach(function (o) { try { d = applyLocal(d, o.action, o.payload).data; } catch (e) { /* bỏ qua, máy chủ sẽ báo */ } });
         setData(d); render();
@@ -225,12 +229,15 @@
     sched: { label: function () { return 'Xếp lịch'; }, render: renderSchedule },
     week: { label: function () { return 'Lịch tuần'; }, render: renderWeek },
     all: { label: function () { return 'Tất cả BN'; }, render: renderAll },
+    roster: { label: function () { return 'Phân công'; }, render: renderRoster },
+    log: { label: function () { return 'Nhật ký'; }, render: function () { return '<div class="page-head"><div><h1>Nhật ký thao tác</h1><p>Ai làm gì, lúc nào. Chỉ trưởng khoa/phòng và quản trị xem được.</p></div></div>' + logSection(); } },
     admin: { label: function () { return 'Quản trị'; }, render: renderAdmin }
   };
-  var ROLE_TABS = { BS: ['home', 'all'], KS: ['plan', 'all'], KTV: ['today', 'week', 'sched', 'all'], DD: ['home', 'all'], ADMIN: ['home', 'plan', 'today', 'week', 'sched', 'all', 'admin'] };
+  var ROLE_TABS = { BS: ['home', 'all', 'roster'], KS: ['plan', 'all', 'roster'], KTV: ['today', 'week', 'roster', 'sched', 'all'], DD: ['home', 'all', 'roster'], ADMIN: ['home', 'plan', 'today', 'week', 'roster', 'sched', 'all', 'admin'] };
 
   function renderShell() {
-    var d = S.data, tabs = ROLE_TABS[role()] || ['all'];
+    var d = S.data, tabs = (ROLE_TABS[role()] || ['all']).slice();
+    if (isLead() && role() !== 'ADMIN') tabs.push('log');
     if (S.role !== d.me.email) { S.role = d.me.email; S.scope = isDoctor(d.me) ? 'mine' : 'all'; S.log = null; }
     if (tabs.indexOf(S.tab) < 0) S.tab = tabs[0];
     var who;
@@ -243,9 +250,10 @@
     var t = today(), dowFull = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'][RT.dow(t)];
     $('#top').innerHTML =
       '<div class="util"><div class="util-in"><span><b>' + esc(unitName()) + '</b></span><span>' + dowFull + ', ' + fdy(t) + ' · <span title="Phiên bản ứng dụng">v' + esc(RT.VERSION) + '</span></span></div></div>' +
+      noticeBar() +
       '<div class="top-in"><div class="brand"><span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v4M12 17.5v4M2.5 12h4M17.5 12h4M5.3 5.3l2.8 2.8M15.9 15.9l2.8 2.8M18.7 5.3l-2.8 2.8M8.1 15.9l-2.8 2.8"/></svg></span><span>Điều phối Xạ trị<small>Bác sĩ · Kỹ sư · KTV · Điều dưỡng</small></span></div>' +
       '<div class="search"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>' +
-      '<input id="q" type="search" placeholder="Tìm theo mã HIS hoặc tên bệnh nhân" value="' + esc(S.q) + '" aria-label="Tìm bệnh nhân" autocomplete="off"></div>' + who + '</div>' +
+      '<input id="q" type="search" placeholder="Tìm theo mã HIS hoặc tên bệnh nhân" value="' + esc(S.q) + '" aria-label="Tìm bệnh nhân" autocomplete="off"></div>' + bell() + who + '</div>' +
       '<nav class="tabs"><div class="tabs-in" role="tablist">' + tabs.map(function (t) {
         return '<button class="tab" role="tab" data-tab="' + t + '" aria-selected="' + (S.tab === t) + '">' + esc(TABS[t].label()) + '</button>';
       }).join('') + '<span class="spacer"></span>' +
@@ -258,6 +266,8 @@
       else renderMain();
     };
     if ($('#add-bn')) $('#add-bn').onclick = function () { patientForm(null); };
+    $$('[data-clearnotice]').forEach(function (b) { b.onclick = function () { run('clearNotice', { id: b.dataset.clearnotice }); }; });
+    bindBell();
     if ($('#demo-user')) $('#demo-user').onchange = function (e) { S.tab = null; run('demoSwitch', { email: e.target.value }); };
   }
 
@@ -281,6 +291,9 @@
     if (S.tab === 'admin') bindAdmin();
     if (S.tab === 'week') bindWeek();
     if (S.tab === 'all') bindAll();
+    if (S.tab === 'roster') bindRoster();
+    $$('#main [data-admin=loadLog]').forEach(function (b) { if (S.tab !== 'admin') b.onclick = function () { run('getLog'); }; });
+    $$('#main [data-notice]').forEach(function (b) { b.onclick = noticeForm; });
   }
 
   // ---------- bảng ----------
@@ -444,9 +457,9 @@
     var noDate = pts().filter(function (p) { return p.trang_thai === 'CHO_XA' && !p.ngay_du_kien; }).length;
     var holiday = S.data.holidays.indexOf(t) >= 0;
 
-    var html = '<div class="page-head"><div><h1>Xạ hôm nay · ' + fdw(t) + '/' + t.slice(0, 4) + '</h1><p>' +
+    var html = dutyBanner() + '<div class="page-head"><div><h1>Xạ hôm nay · ' + fdw(t) + '/' + t.slice(0, 4) + '</h1><p>' +
       (holiday ? 'Hôm nay là ngày nghỉ lễ trong danh mục.' : RT.dow(t) === 6 ? 'Thứ Bảy: xạ bù cho BN IMRT/VMAT có ngày nghỉ trong tuần.' : RT.dow(t) === 0 ? 'Chủ nhật: không có lịch xạ.' : 'Bấm “Xác nhận đã xạ” ngay sau khi BN xạ xong.') + '</p></div>' +
-      (machines.length > 1 ? '<div class="filters"><select data-filter="fMay" aria-label="Lọc theo máy">' + opts(machines, S.fMay, 'Tất cả máy') + '</select></div>' : '') + '</div>';
+      '<div class="filters">' + noticeBtn() + (machines.length > 1 ? '<select data-filter="fMay" aria-label="Lọc theo máy">' + opts(machines, S.fMay, 'Tất cả máy') + '</select>' : '') + '</div></div>';
     html += '<div class="kpis">' + kpi('due', due.length, 'Cần xạ hôm nay', 'var(--accent)') + kpi('done', done.length, 'Đã xạ hôm nay', 'var(--ktv)') +
       kpi('off', off.length, 'Không có lịch hôm nay', 'var(--line)') + kpi('paused', paused.length, 'Tạm ngừng', 'var(--crit)') + '</div>';
     if (noDate) html += '<div class="card"><div class="empty">Có <b>' + noDate + '</b> bệnh nhân chờ vào xạ chưa được xếp lịch. Vào tab <b>Xếp lịch</b> để chọn ngày bắt đầu.</div></div>';
@@ -522,7 +535,7 @@
     var head = days.map(function (d) { return '<th class="' + (d === t ? 'wk-today' : '') + '">' + fdw(d) + '</th>'; }).join('');
     var foot = counts.map(function (n, i) { return '<td class="wk-count' + (days[i] === t ? ' wk-today' : '') + '"><b>' + n + '</b> ca</td>'; }).join('');
     var html = '<div class="page-head"><div><h1>Lịch tuần</h1><p>Bấm vào một ô để đổi ngày xạ ↔ nghỉ cho riêng tuần đó. Ngày nghỉ cố định hằng tuần đổi ở nút “Xếp lịch”.</p></div>' +
-      '<div class="filters">' + (machines.length > 1 ? '<select data-filter="fMay" aria-label="Chọn máy">' + opts(machines, may) + '</select>' : '') +
+      '<div class="filters">' + noticeBtn() + (machines.length > 1 ? '<select data-filter="fMay" aria-label="Chọn máy">' + opts(machines, may) + '</select>' : '') +
       '<div class="seg"><button data-wknav="-7" aria-label="Tuần trước">‹</button><button data-wknav="0">Tuần này</button><button data-wknav="7" aria-label="Tuần sau">›</button></div></div></div>';
     html += '<div class="card pad"><div class="group-head"><h3>' + esc(may) + ' · ngày máy nghỉ sắp tới</h3>' + (can('machineDown') ? '<button class="btn" data-mdown="1">+ Ghi ngày máy nghỉ</button>' : '') + '</div>' +
       (downs.length ? '<div class="chips">' + downs.map(function (x) { return '<span class="chip">' + fdw(x.ngay) + (x.ghi_chu ? ' · ' + esc(x.ghi_chu) : '') + (can('machineUp') ? '<button aria-label="Bỏ" data-mup="' + esc(x.id) + '">×</button>' : '') + '</span>'; }).join('') + '</div>'
@@ -633,16 +646,176 @@
     });
   }
 
+  // ---------- Thông báo tình trạng máy (hiện cho mọi người, chỉ trong ngày) ----------
+  function notices() { return (S.data.exceptions || []).filter(function (e) { return e.loai === 'THONG_BAO' && e.ngay === today(); }); }
+  function noticeBar() {
+    var list = notices();
+    if (!list.length) return '';
+    return '<div class="notice-bar" role="status"><div class="util-in">' + list.map(function (n) {
+      return '<span class="nb-item"><b>' + esc(n.may || 'Thông báo') + ':</b> ' + esc(n.ghi_chu) +
+        ' <span class="nb-meta">· ' + esc(nameOf(n.nguoi)) + ' ' + String(n.thoi_gian).slice(11, 16) + '</span>' +
+        (can('clearNotice') ? ' <button class="nb-x" data-clearnotice="' + esc(n.id) + '" aria-label="Gỡ thông báo">Gỡ</button>' : '') + '</span>';
+    }).join('') + '</div></div>';
+  }
+  function noticeBtn() { return can('setNotice') ? '<button class="btn" data-notice="1">Thông báo tình trạng máy</button>' : ''; }
+  function noticeForm() {
+    var machines = S.data.dm.MAY || [];
+    modal({ title: 'Thông báo tình trạng máy', ok: 'Đăng thông báo',
+      body: '<p class="muted">Thông báo hiện trên đầu ứng dụng của mọi người trong hôm nay. Đăng thông báo mới cho cùng máy sẽ thay thông báo cũ.</p><div class="form">' +
+        field('Máy', '<select name="may">' + opts([{ v: '', l: 'Chung (không theo máy)' }].concat(machines.map(function (m) { return { v: m, l: m }; })), machines[0] || '') + '</select>', 'full') +
+        field('Nội dung <span class="req">*</span>', '<input type="text" name="noi_dung" maxlength="200" placeholder="VD: Máy lỗi MLC, đang sửa, BN chờ khoảng 2 giờ">', 'full') + '</div>',
+      validate: function (v) { return v.noi_dung ? '' : 'Nhập nội dung thông báo.'; },
+      onOk: function (v) { run('setNotice', v); } });
+  }
+
+  // ---------- Chuông: việc mới liên quan đến tôi (khi ứng dụng đang mở) ----------
+  S.notes = []; S.unread = 0;
+  function bell() {
+    return '<div class="bell-wrap"><button class="bell" id="bell" aria-label="Việc mới" title="Việc mới">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>' +
+      (S.unread ? '<span class="bell-n">' + S.unread + '</span>' : '') + '</button>' +
+      '<div class="bell-panel" id="bell-panel" hidden><div class="bp-head"><b>Việc mới</b><span class="muted">khi ứng dụng đang mở</span></div>' +
+      (S.notes.length ? S.notes.slice(0, 30).map(function (n) {
+        return '<button class="bp-item" data-note="' + esc(n.pid || '') + '"><span>' + esc(n.text) + '</span><span class="muted">' + n.time + '</span></button>';
+      }).join('') : '<div class="empty">Chưa có việc mới.</div>') + '</div></div>';
+  }
+  function bindBell() {
+    var b = $('#bell'), p = $('#bell-panel');
+    if (!b) return;
+    b.onclick = function (e) { e.stopPropagation(); p.hidden = !p.hidden; if (!p.hidden && S.unread) { S.unread = 0; var n = $('.bell-n'); if (n) n.remove(); } };
+    $$('[data-note]', p).forEach(function (x) { x.onclick = function () { p.hidden = true; if (x.dataset.note) openDetail(x.dataset.note); }; });
+    document.addEventListener('click', function (e) { if (!p.hidden && !e.target.closest('.bell-wrap')) p.hidden = true; }, { once: true });
+  }
+  /** So sánh dữ liệu cũ và mới (do người khác cập nhật) để báo việc mới cho đúng người */
+  function computeNotes(oldD, newD) {
+    var meU = newD.me, mine = function (p) { return p.bs_email === meU.email; };
+    var r = meU.vai_tro, out = [];
+    var st = {}, gst = {};
+    oldD.patients.forEach(function (p) { st[p.id] = p.trang_thai; });
+    (oldD.phases || []).forEach(function (g) { gst[g.id] = g.trang_thai; });
+    var name = function (p) { return p.ho_ten + ' (' + p.ma_his + ')'; };
+    newD.patients.forEach(function (p) {
+      var o = st[p.id], n = p.trang_thai;
+      if (o === n) return;
+      var doc = (r === 'BS' || (r === 'ADMIN' && /^\s*(BS|ThS|TS|PGS)/i.test(meU.ho_ten || ''))) && mine(p);
+      if (doc) {
+        if (n === 'CHO_XA' && o) out.push({ pid: p.id, text: name(p) + ': kế hoạch xong, chờ vào xạ' });
+        else if (n === 'DANG_KH' && o === 'CHO_QA') out.push({ pid: p.id, text: name(p) + ': QA không đạt, kỹ sư lập lại KH' });
+        else if (n === 'CONTOUR' && (o === 'CHO_KH' || o === 'DANG_KH')) out.push({ pid: p.id, text: name(p) + ': kỹ sư trả lại contour' });
+        else if (n === 'CONTOUR' && o === 'MO_PHONG') out.push({ pid: p.id, text: name(p) + ': đã mô phỏng, chờ bác sĩ contour' });
+        else if (n === 'TAM_NGUNG') out.push({ pid: p.id, text: name(p) + ': tạm ngừng xạ' });
+        else if (!o && n !== 'HOAN_THANH') out.push({ pid: p.id, text: 'BN mới của bạn: ' + name(p) });
+      }
+      if ((r === 'KS') && n === 'CHO_KH') out.push({ pid: p.id, text: (p.uu_tien === 'Cấp cứu' ? 'CẤP CỨU · ' : '') + name(p) + ': contour xong, chờ lập KH' });
+      if (r === 'KTV' && n === 'CHO_XA') out.push({ pid: p.id, text: name(p) + ': chờ vào xạ, cần xếp lịch' });
+      if (r === 'KTV' && n === 'MO_PHONG' && !o) out.push({ pid: p.id, text: name(p) + ': chờ mô phỏng' });
+    });
+    (newD.phases || []).forEach(function (g) {
+      var o = gst[g.id], n = g.trang_thai;
+      if (o === n) return;
+      var p = newD.patients.filter(function (x) { return x.id === g.bn_id; })[0];
+      if (!p) return;
+      if (r === 'KS' && n === 'CHO_KH') out.push({ pid: p.id, text: name(p) + ': boost GĐ' + g.stt + ' chờ lập KH' });
+      if ((r === 'BS' || r === 'ADMIN') && mine(p) && n === 'SAN_SANG') out.push({ pid: p.id, text: name(p) + ': KH boost GĐ' + g.stt + ' đã sẵn sàng' });
+      if (r === 'KTV' && n === 'MO_PHONG') out.push({ pid: p.id, text: name(p) + ': boost cần mô phỏng lại' });
+    });
+    var oldN = {};
+    (oldD.exceptions || []).forEach(function (e) { if (e.loai === 'THONG_BAO') oldN[e.id] = 1; });
+    (newD.exceptions || []).forEach(function (e) {
+      if (e.loai === 'THONG_BAO' && !oldN[e.id] && e.nguoi !== meU.email) out.push({ pid: '', text: 'Thông báo' + (e.may ? ' ' + e.may : '') + ': ' + e.ghi_chu });
+    });
+    var tm = new Date(), hh = (tm.getHours() < 10 ? '0' : '') + tm.getHours() + ':' + (tm.getMinutes() < 10 ? '0' : '') + tm.getMinutes();
+    out.forEach(function (x) { x.time = hh; });
+    return out;
+  }
+  function pushNotes(list) {
+    if (!list.length) return;
+    S.notes = list.concat(S.notes).slice(0, 50);
+    S.unread += list.length;
+    toast(list.length === 1 ? 'Việc mới: ' + list[0].text : list.length + ' việc mới. Bấm chuông để xem.');
+  }
+
+  // ---------- Bảng phân công ----------
+  function rosterRows() { return S.rosterExtra ? S.data.roster.concat(S.rosterExtra) : S.data.roster; }
+  function rosterCell(ngay, vt) { return rosterRows().filter(function (r) { return r.ngay === ngay && r.vi_tri === vt; })[0]; }
+  function shortName(email) { var n = nameOf(email); return n.replace(/^(KTV|BS|KS|ĐD|ThS|TS)\.?\s*/i, ''); }
+  function myDuty(day) {
+    return rosterRows().filter(function (r) { return r.ngay === day && RT.splitList(r.nhan_vien).indexOf(me().email) >= 0; }).map(function (r) { return r.vi_tri; });
+  }
+  function dutyBanner() {
+    var d = myDuty(today());
+    return d.length ? '<div class="duty">Hôm nay bạn: <b>' + d.map(esc).join(' · ') + '</b></div>' : '';
+  }
+  function renderRoster() {
+    var t = today();
+    if (!S.rweek) S.rweek = RT.monday(t);
+    var days = [0, 1, 2, 3, 4, 5, 6].map(function (i) { return RT.addDays(S.rweek, i); });
+    var pos = S.data.dm.VI_TRI_PC || [];
+    var edit = can('setRoster');
+    var winA = RT.addDays(RT.monday(t), -7), winB = RT.addDays(RT.monday(t), 34);
+    var outside = days[0] < winA || days[6] > winB;
+    if (outside && S.rosterWeekLoaded !== S.rweek) {
+      S.rosterWeekLoaded = S.rweek;
+      setBusy(1);
+      call('getRoster', { tu: days[0], den: days[6] }).then(function (r) { S.rosterExtra = (S.rosterExtra || []).concat(r.roster || []); renderMain(); }, function () {}).finally(function () { setBusy(-1); });
+    }
+    var html = '<div class="page-head"><div><h1>Phân công</h1><p>Tuần ' + fd(days[0]) + ' – ' + fd(days[6]) + '/' + days[6].slice(0, 4) +
+      (edit ? '. Bấm vào ô để chọn người.' : '. Chỉ KTV trưởng và quản trị sửa được.') + '</p></div>' +
+      '<div class="filters">' + (edit ? '<button class="btn" data-rcopy="1">Sao chép từ tuần trước</button>' : '') +
+      '<div class="seg"><button data-rnav="-7" aria-label="Tuần trước">‹</button><button data-rnav="0">Tuần này</button><button data-rnav="7" aria-label="Tuần sau">›</button></div></div></div>';
+    html += dutyBanner();
+    if (!pos.length) return html + '<div class="card"><div class="empty">Chưa có vị trí phân công. Quản trị thêm ở tab Quản trị → Vị trí phân công.</div></div>';
+    html += '<div class="card"><div class="tbl-wrap"><table class="rs-table"><thead><tr><th>Vị trí</th>' + days.map(function (d) { return '<th class="' + (d === t ? 'wk-today' : '') + '">' + fdw(d) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      pos.map(function (vt) {
+        return '<tr><th scope="row" class="rs-pos">' + esc(vt) + '</th>' + days.map(function (d) {
+          var c = rosterCell(d, vt), em = c ? RT.splitList(c.nhan_vien) : [];
+          var inner = em.map(function (x) { return '<span class="rs-name' + (x === me().email ? ' me' : '') + '">' + esc(shortName(x)) + '</span>'; }).join('') +
+            (c && c.ghi_chu ? '<span class="rs-note">' + esc(c.ghi_chu) + '</span>' : '') || '<span class="muted">–</span>';
+          return '<td class="' + (d === t ? 'rs-today' : '') + '">' + (edit ? '<button class="rs-cell" data-rcell="1" data-d="' + d + '" data-v="' + esc(vt) + '">' + inner + '</button>' : inner) + '</td>';
+        }).join('') + '</tr>';
+      }).join('') + '</tbody></table></div></div>';
+    return html;
+  }
+  function bindRoster() {
+    $$('#main [data-rnav]').forEach(function (b) { b.onclick = function () { var n = +b.dataset.rnav; S.rweek = n ? RT.addDays(S.rweek, n) : RT.monday(today()); renderMain(); }; });
+    $$('#main [data-rcopy]').forEach(function (b) {
+      b.onclick = function () {
+        modal({ title: 'Sao chép phân công', ok: 'Sao chép', body: '<p>Sao chép toàn bộ phân công của tuần <b>' + fd(RT.addDays(S.rweek, -7)) + ' – ' + fd(RT.addDays(S.rweek, -1)) + '</b> sang tuần đang xem (<b>' + fd(S.rweek) + ' – ' + fd(RT.addDays(S.rweek, 6)) + '</b>). Các ô đã có ở tuần đang xem sẽ bị ghi đè.</p>',
+          onOk: function () { run('copyRoster', { tu: RT.addDays(S.rweek, -7), den: S.rweek }); } });
+      };
+    });
+    $$('#main [data-rcell]').forEach(function (b) {
+      b.onclick = function () {
+        var d = b.dataset.d, vt = b.dataset.v, c = rosterCell(d, vt), cur = c ? RT.splitList(c.nhan_vien) : [];
+        var staff = activeUsers().filter(function (u) { return u.vai_tro === 'KTV'; });
+        var others = activeUsers().filter(function (u) { return u.vai_tro !== 'KTV' && cur.indexOf(u.email) >= 0; });
+        modal({ title: vt + ' · ' + fdw(d), ok: 'Lưu',
+          body: '<div class="field"><span class="lb">Chọn người phụ trách</span><div class="checks">' +
+            staff.concat(others).map(function (u) { return '<label><input type="checkbox" name="nv" data-multi="1" value="' + esc(u.email) + '"' + (cur.indexOf(u.email) >= 0 ? ' checked' : '') + '><span>' + esc(u.ho_ten) + '</span></label>'; }).join('') +
+            '</div></div>' + field('Ghi chú', '<input type="text" name="ghi_chu" value="' + esc(c ? c.ghi_chu : '') + '" placeholder="VD: 7h–11h30">'),
+          onOk: function (v) { run('setRoster', { ngay: d, vi_tri: vt, nhan_vien: v.nv || [], ghi_chu: v.ghi_chu }); } });
+      };
+    });
+  }
+
+  // ---------- Nhật ký (quản trị và các trưởng) ----------
+  function logSection() {
+    return '<section class="group"><div class="group-head"><h2>Nhật ký thao tác</h2><span class="hint">300 thao tác gần nhất</span><button class="btn" data-admin="loadLog">' + (S.log ? 'Tải lại' : 'Xem nhật ký') + '</button></div>' +
+      (S.log ? (S.log.length ? '<div class="card"><div class="tbl-wrap"><table><thead><tr><th>Thời gian</th><th>Người thực hiện</th><th>Thao tác</th><th>Bệnh nhân</th><th>Chi tiết</th></tr></thead><tbody>' +
+        S.log.map(function (l) { var p = byId(l.bn_id); return '<tr><td class="num nowrap">' + esc(fdy(String(l.thoi_gian).slice(0, 10)) + ' ' + String(l.thoi_gian).slice(11, 16)) + '</td><td class="nowrap">' + esc(nameOf(l.email)) + '</td><td class="nowrap">' + esc(l.thao_tac) + '</td><td>' + (p ? esc(p.ho_ten) : esc(l.bn_id)) + '</td><td>' + esc(l.chi_tiet) + '</td></tr>'; }).join('') +
+        '</tbody></table></div></div>' : '<div class="card"><div class="empty">Chưa có thao tác nào.</div></div>') : '') + '</section>';
+  }
+
   // ---------- Quản trị ----------
   function renderAdmin() {
     var d = S.data;
     var users = d.users.slice().sort(function (a, b) { return (a.kich_hoat === 'Không') - (b.kich_hoat === 'Không') || ['ADMIN', 'BS', 'KS', 'KTV', 'DD'].indexOf(a.vai_tro) - ['ADMIN', 'BS', 'KS', 'KTV', 'DD'].indexOf(b.vai_tro) || a.ho_ten.localeCompare(b.ho_ten, 'vi'); });
     var html = '<div class="page-head"><div><h1>Quản trị</h1><p>Người dùng, danh mục và nhật ký thao tác.</p></div><button class="btn primary" data-admin="addUser">+ Thêm người dùng</button></div>';
     html += '<section class="group"><div class="group-head"><h2>Người dùng</h2><span class="count">' + activeUsers().length + ' đang hoạt động</span>' +
-      '<span class="hint">Người dùng cần có tài khoản Google. Với Gmail cá nhân, nhớ chia sẻ Google Sheet cho họ.</span></div><div class="card"><div class="tbl-wrap"><table><thead><tr><th>Họ tên</th><th>Email</th><th>Vai trò</th><th>Trạng thái</th><th></th></tr></thead><tbody>' +
+      '<span class="hint">Người dùng cần có tài khoản Google. Với Gmail cá nhân, nhớ chia sẻ Google Sheet cho họ.</span></div><div class="card"><div class="tbl-wrap"><table><thead><tr><th>Họ tên</th><th>Email</th><th>Vai trò</th><th>Chức vụ</th><th>Trạng thái</th><th></th></tr></thead><tbody>' +
       users.map(function (u) {
         return '<tr class="' + (u.kich_hoat === 'Không' ? 'off-user' : '') + '"><td><b>' + esc(u.ho_ten) + '</b></td><td class="mono">' + esc(u.email) + '</td><td><span class="role role-' + esc(u.vai_tro) + '">' + esc(RT.ROLES[u.vai_tro] || u.vai_tro) + '</span></td>' +
-          '<td>' + (u.kich_hoat === 'Không' ? 'Đã khoá' : 'Hoạt động') + '</td><td class="act"><button class="btn" data-admin="editUser" data-email="' + esc(u.email) + '">Sửa</button></td></tr>';
+          '<td>' + esc(u.chuc_vu || '') + '</td><td>' + (u.kich_hoat === 'Không' ? 'Đã khoá' : 'Hoạt động') + '</td><td class="act"><button class="btn" data-admin="editUser" data-email="' + esc(u.email) + '">Sửa</button></td></tr>';
       }).join('') + '</tbody></table></div></div></section>';
     var dmBox = function (loai, title, help, ph, type) {
       var list = d.dm[loai] || [];
@@ -656,15 +829,13 @@
       dmBox('NGAY_LE', 'Ngày nghỉ lễ', 'Không tính vào lịch xạ.', '', 'date') +
       dmBox('KY_THUAT', 'Kỹ thuật xạ', '', 'VD: Brachytherapy') +
       dmBox('MUC_DICH', 'Mục đích xạ', '', 'VD: Dự phòng') +
+      dmBox('VI_TRI_PC', 'Vị trí phân công KTV', 'Các dòng của bảng phân công.', 'VD: Máy gia tốc 2 – ca sáng') +
       dmBox('VI_TRI', 'Vị trí xạ (gợi ý khi nhập)', 'Bác sĩ vẫn gõ được vị trí khác.', 'VD: Hố yên') +
       dmBox('HINH_ANH', 'Hình ảnh / định vị mỗi buổi', 'KTV tích khi ghi buổi xạ.', 'VD: ExacTrac') +
       dmBox('IGRT', 'Phác đồ IGRT dự kiến', '', 'VD: CBCT 5 buổi đầu') +
       dmBox('LY_DO_TAM_NGUNG', 'Lý do tạm ngừng', '', 'VD: Hết thuốc hoá trị đồng thời') +
       dmBox('KHOA', 'Khoa', '', 'VD: Xạ trị') + '</div></section>';
-    html += '<section class="group"><div class="group-head"><h2>Nhật ký thao tác</h2><span class="hint">300 thao tác gần nhất</span><button class="btn" data-admin="loadLog">' + (S.log ? 'Tải lại' : 'Xem nhật ký') + '</button></div>' +
-      (S.log ? (S.log.length ? '<div class="card"><div class="tbl-wrap"><table><thead><tr><th>Thời gian</th><th>Người thực hiện</th><th>Thao tác</th><th>Bệnh nhân</th><th>Chi tiết</th></tr></thead><tbody>' +
-        S.log.map(function (l) { var p = byId(l.bn_id); return '<tr><td class="num nowrap">' + esc(fdy(String(l.thoi_gian).slice(0, 10)) + ' ' + String(l.thoi_gian).slice(11, 16)) + '</td><td class="nowrap">' + esc(nameOf(l.email)) + '</td><td class="nowrap">' + esc(l.thao_tac) + '</td><td>' + (p ? esc(p.ho_ten) : esc(l.bn_id)) + '</td><td>' + esc(l.chi_tiet) + '</td></tr>'; }).join('') +
-        '</tbody></table></div></div>' : '<div class="card"><div class="empty">Chưa có thao tác nào.</div></div>') : '') + '</section>';
+    html += logSection();
     return html;
   }
   function bindAdmin() {
@@ -687,7 +858,8 @@
       body: '<div class="form">' + field('Họ và tên <span class="req">*</span>', '<input type="text" name="ho_ten" value="' + esc(u.ho_ten || '') + '" placeholder="VD: BS. Nguyễn Văn A">', 'full') +
         field('Email Google <span class="req">*</span>', '<input type="email" name="email" value="' + esc(u.email || '') + '"' + (isNew ? '' : ' readonly') + ' placeholder="ten@gmail.com">', 'full') +
         field('Vai trò', '<select name="vai_tro">' + opts(['BS', 'KS', 'KTV', 'DD', 'ADMIN'].map(function (r) { return { v: r, l: RT.ROLES[r] }; }), u.vai_tro) + '</select>') +
-        field('Trạng thái', '<select name="kich_hoat">' + opts([{ v: 'Có', l: 'Hoạt động' }, { v: 'Không', l: 'Khoá tài khoản' }], u.kich_hoat) + '</select>') + '</div>',
+        field('Trạng thái', '<select name="kich_hoat">' + opts([{ v: 'Có', l: 'Hoạt động' }, { v: 'Không', l: 'Khoá tài khoản' }], u.kich_hoat) + '</select>') +
+        field('Chức vụ', '<select name="chuc_vu">' + opts(RT.CHUC_VU, u.chuc_vu || '', 'Không') + '</select>', 'full', 'KTV trưởng: lập bảng phân công, huỷ buổi xạ ghi nhầm, ghi máy nghỉ. Mọi chức vụ: xem nhật ký, đăng thông báo.') + '</div>',
       validate: function (v) { if (!v.ho_ten) return 'Cần nhập họ tên.'; if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.email)) return 'Email không hợp lệ.'; return ''; },
       onOk: function (v) { run('saveUser', v); } });
   }
@@ -1181,16 +1353,29 @@
       if (!$('#modal').hidden) closeModal(); else if (S.detail) closeDetail();
     });
     // Tự tải lại dữ liệu mỗi 60 giây và khi quay lại tab, để thấy cập nhật của người khác
+    // Mỗi 30 giây hỏi máy chủ "có ai vừa sửa gì không" (rất nhẹ); chỉ khi có thay đổi mới tải lại dữ liệu
+    var fullReload = function () {
+      var y = window.scrollY;
+      call('bootstrap').then(function (r) {
+        if (pending.length) return;
+        var notes = S.data ? computeNotes(S.data, r.data) : [];
+        setData(r.data); if (r.rev) S.rev = r.rev;
+        pushNotes(notes);
+        render(); window.scrollTo(0, y);
+      }, function () {});
+    };
     var refresh = function () {
       if (!S.data || S.busy > 0 || pending.length || document.hidden || !$('#modal').hidden) return;
       if (document.activeElement && /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) return;
-      var y = window.scrollY;
-      call('bootstrap').then(function (r) { if (pending.length) return; setData(r.data); render(); window.scrollTo(0, y); }, function () {});
+      call('rev').then(function (r) {
+        if (r.rev && r.rev === S.rev) return;
+        fullReload();
+      }, function () { if (Date.now() - S.lastLoad > 60000) fullReload(); });
     };
-    setInterval(refresh, 60000);
-    document.addEventListener('visibilitychange', function () { if (!document.hidden && Date.now() - S.lastLoad > 20000) refresh(); });
+    setInterval(refresh, 30000);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) refresh(); });
     setBusy(1);
-    call('bootstrap').then(function (r) { setData(r.data); render(); }, function (e) {
+    call('bootstrap').then(function (r) { setData(r.data); if (r.rev) S.rev = r.rev; render(); }, function (e) {
       var msg = String(e.error || '');
       var html;
       if (msg.indexOf('NO_ACCESS:') === 0) html = '<h1>Tài khoản chưa được cấp quyền</h1><p>Tài khoản <b class="mono">' + esc(msg.slice(10)) + '</b> chưa có trong danh sách người dùng.</p><p class="muted">Gửi địa chỉ email này cho quản trị để được thêm vào trang tính <b>NguoiDung</b>, rồi tải lại trang.</p>';

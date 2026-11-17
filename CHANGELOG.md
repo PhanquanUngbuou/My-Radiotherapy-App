@@ -1,5 +1,17 @@
 # Lịch sử phiên bản
 
+## v1.9
+- **Bảng phân công** theo tuần (tab Phân công): vị trí × ngày, KTV trưởng bấm ô để chọn người, sao chép từ tuần trước; ai cũng xem được.
+- KTV thấy "Hôm nay bạn: …" ở đầu trang Xạ hôm nay.
+- Danh mục "Vị trí phân công" sửa trong tab Quản trị.
+
+## v1.8
+- **Chức vụ** (KTV trưởng, Điều dưỡng trưởng, Trưởng khoa, Phó trưởng khoa, Trưởng phòng): xem nhật ký, đăng thông báo.
+- KTV trưởng: huỷ buổi xạ ghi nhầm không giới hạn 2 ngày, ghi ngày máy nghỉ, lập phân công.
+- **Thông báo tình trạng máy** hiện trên đầu ứng dụng của mọi người trong ngày.
+- **Chuông việc mới** khi ứng dụng đang mở: báo đúng người (BS, kỹ sư, KTV) khi có thay đổi do người khác làm.
+- Tự cập nhật nhẹ hơn: 30 giây kiểm tra nhanh, chỉ tải lại khi có thay đổi.
+
 ## v1.7
 - Bác sĩ và kỹ sư (ngoài KTV) bấm được "Đã mô phỏng xong" để chuyển BN từ Chờ mô phỏng sang Đang contour; nút có ngay trong danh sách.
 - Trang Lập kế hoạch của kỹ sư có thêm mục "Sắp tới: chờ mô phỏng / bác sĩ đang contour".

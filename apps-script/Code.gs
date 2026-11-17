@@ -1,4 +1,4 @@
-// Điều phối Xạ trị · phiên bản v1.7
+// Điều phối Xạ trị · phiên bản v1.9
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
@@ -8,7 +8,7 @@
  */
 
 var TZ = 'Asia/Ho_Chi_Minh';
-var SHEET_NAMES = { BN: 'BenhNhan', GD: 'GiaiDoan', BUOI: 'BuoiXa', LICH: 'LichNgoaiLe', USER: 'NguoiDung', DM: 'DanhMuc', LOG: 'NhatKy' };
+var SHEET_NAMES = { BN: 'BenhNhan', GD: 'GiaiDoan', BUOI: 'BuoiXa', LICH: 'LichNgoaiLe', PC: 'PhanCong', USER: 'NguoiDung', DM: 'DanhMuc', LOG: 'NhatKy' };
 // Trang tính lưu trữ: đợt xạ đã kết thúc quá ARCHIVE_DAYS ngày được chuyển sang đây mỗi đêm
 var ARCHIVE = { BenhNhan: 'LuuTru_BenhNhan', GiaiDoan: 'LuuTru_GiaiDoan', BuoiXa: 'LuuTru_BuoiXa', LichNgoaiLe: 'LuuTru_LichNgoaiLe' };
 var ARCHIVE_DAYS = 60;
@@ -80,21 +80,27 @@ function setup() {
 function api(action, payload) {
   var lock = null;
   try {
+    // Kiểm tra nhanh có thay đổi không (không đọc Google Sheet) để giao diện biết khi nào cần tải lại
+    if (action === 'rev') return JSON.stringify({ ok: true, rev: PropertiesService.getScriptProperties().getProperty('REV') || '0' });
     if (action === 'searchArchive') return JSON.stringify(searchArchive_(payload || {}));
-    if (action !== 'bootstrap' && action !== 'getLog') {
+    if (action !== 'bootstrap' && action !== 'getLog' && action !== 'getRoster') {
       lock = LockService.getScriptLock();
       lock.waitLock(30000);
     }
     var ctx = buildCtx_();
     var msg = '', extra = {};
     if (action === 'getLog') {
-      if (ctx.user.vai_tro !== 'ADMIN') throw new Error('Chỉ quản trị xem được nhật ký.');
+      if (ctx.user.vai_tro !== 'ADMIN' && !RT.isLead(ctx.user)) throw new Error('Chỉ quản trị và trưởng khoa/phòng xem được nhật ký.');
       extra.log = readLog_(300);
+    } else if (action === 'getRoster') {
+      var a0 = (payload || {}).tu, b0 = (payload || {}).den;
+      extra.roster = ctx.roster.filter(function (r) { return r.ngay >= a0 && r.ngay <= b0; }).map(function (r) { var o = {}; RT.COLS.PhanCong.forEach(function (c) { o[c] = r[c] || ''; }); return o; });
     } else if (action !== 'bootstrap') {
       msg = RT.handle(ctx, action, payload || {});
       SpreadsheetApp.flush();
+      PropertiesService.getScriptProperties().setProperty('REV', String(Date.now()));
     }
-    return JSON.stringify({ ok: true, msg: msg, data: RT.view(ctx), log: extra.log });
+    return JSON.stringify({ ok: true, msg: msg, data: RT.view(ctx), log: extra.log, roster: extra.roster, rev: PropertiesService.getScriptProperties().getProperty('REV') || '0' });
   } catch (e) {
     return JSON.stringify({ ok: false, error: String(e && e.message || e) });
   } finally {
@@ -158,6 +164,7 @@ function buildCtx_() {
   var users = tU.rows.filter(function (u) { return u.email; }).map(function (u) {
     u.email = u.email.toLowerCase(); u.vai_tro = String(u.vai_tro).toUpperCase().trim();
     u.kich_hoat = u.kich_hoat === 'Không' ? 'Không' : 'Có';
+    u.chuc_vu = String(u.chuc_vu || '').trim();
     return u;
   });
   var user = users.filter(function (u) { return u.email === email && u.kich_hoat !== 'Không'; })[0];
@@ -168,6 +175,7 @@ function buildCtx_() {
   var tGD = readTable_(ss, SHEET_NAMES.GD);
   var tBX = readTable_(ss, SHEET_NAMES.BUOI);
   var tLich = readTable_(ss, SHEET_NAMES.LICH);
+  var tPC = readTable_(ss, SHEET_NAMES.PC);
   var props = PropertiesService.getScriptProperties();
   var tDM = readTable_(ss, SHEET_NAMES.DM);
   var tLog = { sheet: ss.getSheetByName(SHEET_NAMES.LOG) };
@@ -201,6 +209,8 @@ function buildCtx_() {
     fractions: tBX.rows,
     phases: tGD.rows,
     exceptions: tLich.rows,
+    roster: tPC.rows,
+    saveRoster: function (r) { writeRow_(tPC, r); },
     idFloor: function (prefix) { return parseInt(props.getProperty('ID_FLOOR_' + prefix) || '0', 10); },
     savePatient: function (p) { writeRow_(tBN, p); },
     savePhase: function (g) { writeRow_(tGD, g); },
@@ -284,7 +294,7 @@ function archiveOld() {
       if ((p.trang_thai === 'HOAN_THANH' || p.trang_thai === 'HUY') && end && end < cutoff) move[p.id] = 1;
     });
     var n = Object.keys(move).length;
-    if (!n) return 'Không có gì cần lưu trữ.';
+    if (!n) { moveRows_(ss, SHEET_NAMES.LICH, ARCHIVE.LichNgoaiLe, function (r) { return (r.loai === 'THONG_BAO' && r.ngay < today) || r.da_xoa === 'Có'; }); return 'Không có gì cần lưu trữ.'; }
     var props = PropertiesService.getScriptProperties();
     Object.keys(move).forEach(function (id) {
       var m = /^(XT\d\d-)(\d+)$/.exec(id);
@@ -296,7 +306,7 @@ function archiveOld() {
     moveRows_(ss, SHEET_NAMES.BN, ARCHIVE.BenhNhan, function (r) { return move[r.id]; });
     moveRows_(ss, SHEET_NAMES.GD, ARCHIVE.GiaiDoan, function (r) { return move[r.bn_id]; });
     moveRows_(ss, SHEET_NAMES.BUOI, ARCHIVE.BuoiXa, function (r) { return move[r.bn_id]; });
-    moveRows_(ss, SHEET_NAMES.LICH, ARCHIVE.LichNgoaiLe, function (r) { return move[r.bn_id] || (r.loai === 'MAY_NGHI' && r.ngay < cutoff) || r.da_xoa === 'Có'; });
+    moveRows_(ss, SHEET_NAMES.LICH, ARCHIVE.LichNgoaiLe, function (r) { return move[r.bn_id] || (r.loai === 'MAY_NGHI' && r.ngay < cutoff) || (r.loai === 'THONG_BAO' && r.ngay < today) || r.da_xoa === 'Có'; });
     var log = ss.getSheetByName(SHEET_NAMES.LOG);
     log.getRange(log.getLastRow() + 1, 1, 1, 5).setNumberFormat('@')
       .setValues([[Utilities.formatDate(new Date(), TZ, "yyyy-MM-dd'T'HH:mm:ss"), 'hệ thống', 'Lưu trữ', '', n + ' đợt xạ']]);

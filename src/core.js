@@ -41,7 +41,8 @@ var RT = (function () {
     BuoiXa: ['id', 'bn_id', 'ngay', 'buoi_so', 'ktv_email', 'thoi_gian', 'hinh_anh', 'ghi_chu',
       'da_huy', 'huy_boi', 'ly_do_huy', 'gd'],
     LichNgoaiLe: ['id', 'bn_id', 'may', 'ngay', 'loai', 'ghi_chu', 'nguoi', 'thoi_gian', 'da_xoa'],
-    NguoiDung: ['email', 'ho_ten', 'vai_tro', 'kich_hoat'],
+    NguoiDung: ['email', 'ho_ten', 'vai_tro', 'kich_hoat', 'chuc_vu'],
+    PhanCong: ['id', 'ngay', 'vi_tri', 'nhan_vien', 'ghi_chu', 'nguoi', 'thoi_gian'],
     DanhMuc: ['loai', 'gia_tri'],
     NhatKy: ['thoi_gian', 'email', 'thao_tac', 'bn_id', 'chi_tiet']
   };
@@ -62,7 +63,9 @@ var RT = (function () {
     'Phổi', 'Thực quản', 'Trung thất', 'Dạ dày', 'Tuỵ', 'Gan', 'Trực tràng', 'Cổ tử cung', 'Nội mạc tử cung',
     'Tuyến tiền liệt', 'Bàng quang', 'Tiểu khung', 'Cột sống cổ', 'Cột sống ngực', 'Cột sống thắt lưng',
     'Xương chậu', 'Xương chi', 'Hạch', 'Da / mô mềm'];
-  var DM_EDITABLE = ['VI_TRI', 'MUC_DICH', 'MAY', 'NGAY_LE', 'KY_THUAT', 'IGRT', 'HINH_ANH', 'KHOA', 'LY_DO_TAM_NGUNG', 'TEN_DON_VI'];
+  DEFAULT_DM.VI_TRI_PC = ['Máy gia tốc 1 – ca sáng', 'Máy gia tốc 1 – ca chiều', 'Mô phỏng CT', 'Làm mặt nạ / cố định', 'Trực'];
+  var CHUC_VU = ['KTV trưởng', 'Điều dưỡng trưởng', 'Trưởng khoa', 'Phó trưởng khoa', 'Trưởng phòng'];
+  var DM_EDITABLE = ['VI_TRI_PC', 'VI_TRI', 'MUC_DICH', 'MAY', 'NGAY_LE', 'KY_THUAT', 'IGRT', 'HINH_ANH', 'KHOA', 'LY_DO_TAM_NGUNG', 'TEN_DON_VI'];
 
   var PERM = {
     createPatient: ['BS', 'KS', 'KTV', 'DD', 'ADMIN'],
@@ -91,7 +94,20 @@ var RT = (function () {
     dmAdd: ['ADMIN'],
     dmRemove: ['ADMIN']
   };
-  function can(role, action) { return (PERM[action] || []).indexOf(role) >= 0; }
+  PERM.setNotice = ['KTV', 'KS', 'ADMIN'];
+  PERM.clearNotice = ['KTV', 'KS', 'ADMIN'];
+  PERM.setRoster = ['ADMIN'];
+  PERM.copyRoster = ['ADMIN'];
+  // Quyền thêm theo chức vụ (ngoài quyền của vai trò)
+  var LEAD_PERM = {
+    setRoster: ['KTV trưởng'], copyRoster: ['KTV trưởng'], machineDown: ['KTV trưởng'], machineUp: ['KTV trưởng'],
+    setNotice: CHUC_VU, clearNotice: CHUC_VU
+  };
+  function isLead(u) { return !!(u && u.chuc_vu && CHUC_VU.indexOf(u.chuc_vu) >= 0); }
+  function can(role, action, user) {
+    if ((PERM[action] || []).indexOf(role) >= 0) return true;
+    return !!(user && user.chuc_vu && (LEAD_PERM[action] || []).indexOf(user.chuc_vu) >= 0);
+  }
 
   // ---------- Ngày ----------
   function pad(n) { return (n < 10 ? '0' : '') + n; }
@@ -672,7 +688,7 @@ var RT = (function () {
     undoFraction: function (ctx, a) {
       var f = ctx.fractions.filter(function (x) { return x.id === a.id && x.da_huy !== 'Có'; })[0];
       if (!f) fail('Không tìm thấy buổi xạ.');
-      if (ctx.user.vai_tro !== 'ADMIN' && diffDays(f.ngay, ctx.today) > 2) fail('Chỉ huỷ được buổi xạ trong 2 ngày gần nhất. Liên hệ quản trị.');
+      if (ctx.user.vai_tro !== 'ADMIN' && ctx.user.chuc_vu !== 'KTV trưởng' && diffDays(f.ngay, ctx.today) > 2) fail('Chỉ huỷ được buổi xạ trong 2 ngày gần nhất. Liên hệ KTV trưởng hoặc quản trị.');
       if (!a.ly_do) fail('Cần ghi lý do huỷ.');
       f.da_huy = 'Có'; f.huy_boi = ctx.user.email; f.ly_do_huy = a.ly_do;
       ctx.updateFraction(f);
@@ -739,9 +755,11 @@ var RT = (function () {
       var u = ctx.users.filter(function (x) { return x.email === email; })[0];
       var isNew = !u;
       if (isNew) { u = { email: email }; ctx.users.push(u); }
-      u.ho_ten = String(a.ho_ten).trim(); u.vai_tro = vt; u.kich_hoat = kh;
+      var cv = String(a.chuc_vu || '');
+      if (cv && CHUC_VU.indexOf(cv) < 0) fail('Chức vụ không hợp lệ.');
+      u.ho_ten = String(a.ho_ten).trim(); u.vai_tro = vt; u.kich_hoat = kh; u.chuc_vu = cv;
       ctx.saveUser(u);
-      ctx.log(isNew ? 'Thêm người dùng' : 'Sửa người dùng', '', email + ' · ' + vt + ' · ' + kh);
+      ctx.log(isNew ? 'Thêm người dùng' : 'Sửa người dùng', '', email + ' · ' + vt + (cv ? ' · ' + cv : '') + ' · ' + kh);
       return (isNew ? 'Đã thêm ' : 'Đã cập nhật ') + u.ho_ten + '.';
     },
     dmAdd: function (ctx, a) {
@@ -758,6 +776,57 @@ var RT = (function () {
       ctx.log('Thêm danh mục', '', loai + ': ' + v);
       return 'Đã thêm "' + v + '".';
     },
+    setNotice: function (ctx, a) {
+      var may = String(a.may || '').trim(), text = String(a.noi_dung || '').trim();
+      if (!text) fail('Cần nhập nội dung thông báo.');
+      if (text.length > 200) fail('Thông báo tối đa 200 ký tự.');
+      ctx.exceptions.forEach(function (e) {
+        if (e.loai === 'THONG_BAO' && e.ngay === ctx.today && e.may === may && e.da_xoa !== 'Có') { e.da_xoa = 'Có'; ctx.saveEx(e); }
+      });
+      var e = blank(COLS.LichNgoaiLe);
+      e.id = uid('T'); e.may = may; e.ngay = ctx.today; e.loai = 'THONG_BAO'; e.ghi_chu = text; e.nguoi = ctx.user.email; e.thoi_gian = ctx.now;
+      ctx.exceptions.push(e); ctx.saveEx(e);
+      ctx.log('Thông báo máy', '', (may ? may + ': ' : '') + text);
+      return 'Đã đăng thông báo. Mọi người sẽ thấy khi mở ứng dụng.';
+    },
+    clearNotice: function (ctx, a) {
+      var e = ctx.exceptions.filter(function (x) { return x.id === a.id && x.loai === 'THONG_BAO' && x.da_xoa !== 'Có'; })[0];
+      if (!e) fail('Không tìm thấy thông báo.');
+      e.da_xoa = 'Có'; ctx.saveEx(e);
+      ctx.log('Gỡ thông báo máy', '', e.ghi_chu);
+      return 'Đã gỡ thông báo.';
+    },
+    setRoster: function (ctx, a) {
+      if (!isDate(a.ngay)) fail('Ngày không hợp lệ.');
+      if ((ctx.dm.VI_TRI_PC || []).indexOf(a.vi_tri) < 0) fail('Vị trí phân công không có trong danh mục.');
+      var emails = (a.nhan_vien || []).map(function (x) { return String(x).toLowerCase(); }).filter(Boolean);
+      emails.forEach(function (em) {
+        if (!ctx.users.some(function (u) { return u.email === em && u.kich_hoat !== 'Không'; })) fail('Người được phân công không có trong danh sách người dùng.');
+      });
+      var row = ctx.roster.filter(function (r) { return r.ngay === a.ngay && r.vi_tri === a.vi_tri; })[0];
+      if (!row) { row = blank(COLS.PhanCong); row.id = uid('P'); row.ngay = a.ngay; row.vi_tri = a.vi_tri; ctx.roster.push(row); }
+      row.nhan_vien = emails.join(', '); row.ghi_chu = String(a.ghi_chu || '').trim(); row.nguoi = ctx.user.email; row.thoi_gian = ctx.now;
+      ctx.saveRoster(row);
+      ctx.log('Phân công', '', a.ngay + ' · ' + a.vi_tri + ': ' + (row.nhan_vien || 'trống'));
+      return 'Đã lưu phân công ' + a.vi_tri + ' ngày ' + a.ngay.slice(8) + '/' + a.ngay.slice(5, 7) + '.';
+    },
+    copyRoster: function (ctx, a) {
+      if (!isDate(a.tu) || !isDate(a.den)) fail('Tuần không hợp lệ.');
+      var from = monday(a.tu), to = monday(a.den), n = 0;
+      if (from === to) fail('Tuần nguồn và tuần đích trùng nhau.');
+      for (var i = 0; i < 7; i++) {
+        var dFrom = addDays(from, i), dTo = addDays(to, i);
+        ctx.roster.filter(function (r) { return r.ngay === dFrom; }).forEach(function (src) {
+          var row = ctx.roster.filter(function (r) { return r.ngay === dTo && r.vi_tri === src.vi_tri; })[0];
+          if (!row) { row = blank(COLS.PhanCong); row.id = uid('P') + i; row.ngay = dTo; row.vi_tri = src.vi_tri; ctx.roster.push(row); }
+          row.nhan_vien = src.nhan_vien; row.ghi_chu = src.ghi_chu; row.nguoi = ctx.user.email; row.thoi_gian = ctx.now;
+          ctx.saveRoster(row); n++;
+        });
+      }
+      if (!n) fail('Tuần nguồn chưa có phân công nào để sao chép.');
+      ctx.log('Sao chép phân công', '', from + ' → ' + to + ' (' + n + ' ô)');
+      return 'Đã sao chép ' + n + ' ô phân công sang tuần mới.';
+    },
     dmRemove: function (ctx, a) {
       var loai = String(a.loai || ''), v = String(a.gia_tri || '');
       if (DM_EDITABLE.indexOf(loai) < 0 || !ctx.dm[loai] || ctx.dm[loai].indexOf(v) < 0) fail('Không tìm thấy giá trị trong danh mục.');
@@ -772,10 +841,11 @@ var RT = (function () {
 
   function handle(ctx, action, a) {
     if (!H[action]) fail('Thao tác không tồn tại: ' + action);
-    if (!can(ctx.user.vai_tro, action) || ctx.user.kich_hoat === 'Không') fail('Tài khoản ' + ROLES[ctx.user.vai_tro] + ' không có quyền thực hiện thao tác này.');
+    if (!can(ctx.user.vai_tro, action, ctx.user) || ctx.user.kich_hoat === 'Không') fail('Tài khoản ' + ROLES[ctx.user.vai_tro] + ' không có quyền thực hiện thao tác này.');
     ctx.phases = ctx.phases || [];
     ctx.exceptions = ctx.exceptions || [];
-    ['savePhase', 'saveEx'].forEach(function (k) { if (!ctx[k]) ctx[k] = function () {}; });
+    ctx.roster = ctx.roster || [];
+    ['savePhase', 'saveEx', 'saveRoster'].forEach(function (k) { if (!ctx[k]) ctx[k] = function () {}; });
     return H[action](ctx, a || {});
   }
 
@@ -790,20 +860,28 @@ var RT = (function () {
     pts.forEach(function (p) { ids[p.id] = 1; });
     function pick(o, cols) { var r = {}; cols.forEach(function (c) { r[c] = o[c] == null ? '' : String(o[c]); }); return r; }
     return {
-      me: { email: ctx.user.email, ho_ten: ctx.user.ho_ten, vai_tro: ctx.user.vai_tro, kich_hoat: ctx.user.kich_hoat || 'Có' },
+      me: { email: ctx.user.email, ho_ten: ctx.user.ho_ten, vai_tro: ctx.user.vai_tro, kich_hoat: ctx.user.kich_hoat || 'Có', chuc_vu: ctx.user.chuc_vu || '' },
       today: ctx.today,
-      users: ctx.users.map(function (u) { return { email: u.email, ho_ten: u.ho_ten, vai_tro: u.vai_tro, kich_hoat: u.kich_hoat === 'Không' ? 'Không' : 'Có' }; }),
+      users: ctx.users.map(function (u) { return { email: u.email, ho_ten: u.ho_ten, vai_tro: u.vai_tro, kich_hoat: u.kich_hoat === 'Không' ? 'Không' : 'Có', chuc_vu: u.chuc_vu || '' }; }),
       dm: ctx.dm,
       holidays: ctx.holidays,
       patients: pts.map(function (p) { return pick(p, COLS.BenhNhan); }),
       phases: (ctx.phases || []).filter(function (g) { return ids[g.bn_id] && g.trang_thai !== 'HUY'; }).map(function (g) { return pick(g, COLS.GiaiDoan); }),
       fractions: ctx.fractions.filter(function (f) { return ids[f.bn_id] && f.da_huy !== 'Có'; }).map(function (f) { return pick(f, COLS.BuoiXa); }),
       exceptions: (ctx.exceptions || []).filter(function (e) {
-        return e.da_xoa !== 'Có' && (e.loai === 'MAY_NGHI' ? e.ngay >= cutoff : ids[e.bn_id]);
-      }).map(function (e) { return pick(e, COLS.LichNgoaiLe); })
+        if (e.da_xoa === 'Có') return false;
+        if (e.loai === 'THONG_BAO') return e.ngay === ctx.today;
+        return e.loai === 'MAY_NGHI' ? e.ngay >= cutoff : ids[e.bn_id];
+      }).map(function (e) { return pick(e, COLS.LichNgoaiLe); }),
+      roster: rosterWindow(ctx.roster || [], ctx.today).map(function (r) { return pick(r, COLS.PhanCong); })
     };
   }
 
+  /** Phân công gửi kèm: từ tuần trước tới 4 tuần sau (xa hơn thì tải riêng) */
+  function rosterWindow(rows, today) {
+    var a = addDays(monday(today), -7), b = addDays(monday(today), 34);
+    return rows.filter(function (r) { return r.ngay >= a && r.ngay <= b && (r.nhan_vien || r.ghi_chu); });
+  }
   /** Dựng ctx chạy ngay trên trình duyệt từ dữ liệu view (để màn hình cập nhật tức thì) */
   function localCtx(data, now) {
     var d = JSON.parse(JSON.stringify(data));
@@ -811,14 +889,14 @@ var RT = (function () {
     var noop = function () {};
     return {
       user: me, today: d.today, now: now, users: d.users, dm: d.dm, holidays: d.holidays,
-      patients: d.patients, phases: d.phases || [], fractions: d.fractions, exceptions: d.exceptions || [],
-      savePatient: noop, savePhase: noop, addFraction: noop, updateFraction: noop, saveEx: noop,
+      patients: d.patients, phases: d.phases || [], fractions: d.fractions, exceptions: d.exceptions || [], roster: d.roster || [],
+      savePatient: noop, savePhase: noop, addFraction: noop, updateFraction: noop, saveEx: noop, saveRoster: noop,
       saveUser: noop, addDmRow: noop, removeDmRow: noop, log: noop
     };
   }
 
   return {
-    VERSION: VERSION, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
+    VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,

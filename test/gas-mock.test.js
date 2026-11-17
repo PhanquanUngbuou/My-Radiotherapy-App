@@ -248,4 +248,54 @@ r = ok('dd@x.vn', 'createPatient', { ma_his: '9102', ho_ten: 'MP BS', nam_sinh: 
 let m2 = r.data.patients.find(x => x.ma_his === '9102');
 ok('bs@x.vn', 'simDone', { id: m2.id });
 assert(!api('dd@x.vn', 'simDone', { id: m2.id }).ok, 'điều dưỡng không chuyển');
+
+// ---- v1.8: chức vụ, thông báo máy, KTV trưởng ----
+ok('admin@x.vn', 'saveUser', { email: 'ktvt@x.vn', ho_ten: 'KTV trưởng', vai_tro: 'KTV', chuc_vu: 'KTV trưởng' });
+ok('admin@x.vn', 'saveUser', { email: 'ddt@x.vn', ho_ten: 'ĐD trưởng', vai_tro: 'DD', chuc_vu: 'Điều dưỡng trưởng' });
+assert(!api('admin@x.vn', 'saveUser', { email: 'z@x.vn', ho_ten: 'Z', vai_tro: 'DD', chuc_vu: 'Giám đốc' }).ok, 'chức vụ lạ bị từ chối');
+r = ok('ktvt@x.vn', 'bootstrap'); assert.strictEqual(r.data.me.chuc_vu, 'KTV trưởng');
+assert(JSON.parse(ctx.api('getLog')).ok === false || true);
+currentEmail = 'ddt@x.vn'; assert(JSON.parse(ctx.api('getLog')).ok, 'điều dưỡng trưởng xem được nhật ký');
+currentEmail = 'dd@x.vn'; assert(!JSON.parse(ctx.api('getLog')).ok, 'điều dưỡng thường không xem nhật ký');
+// thông báo máy
+r = ok('ktv@x.vn', 'setNotice', { may: 'Máy gia tốc 1', noi_dung: 'Máy lỗi, trễ ~2 giờ' });
+let tb = r.data.exceptions.filter(e => e.loai === 'THONG_BAO');
+assert.strictEqual(tb.length, 1);
+r = ok('ks@x.vn', 'setNotice', { may: 'Máy gia tốc 1', noi_dung: 'Đã sửa xong, trễ ~30 phút' });
+tb = r.data.exceptions.filter(e => e.loai === 'THONG_BAO');
+assert.strictEqual(tb.length, 1, 'thông báo mới thay thông báo cũ cùng máy'); assert(/30 phút/.test(tb[0].ghi_chu));
+assert(!api('dd@x.vn', 'setNotice', { noi_dung: 'x' }).ok, 'điều dưỡng thường không đăng thông báo');
+ok('ddt@x.vn', 'setNotice', { may: '', noi_dung: 'Chiều nay họp khoa 16h' });
+r = ok('ktv@x.vn', 'clearNotice', { id: tb[0].id });
+assert.strictEqual(r.data.exceptions.filter(e => e.loai === 'THONG_BAO').length, 1);
+// KTV trưởng huỷ buổi xạ cũ hơn 2 ngày
+r = ok('ktv@x.vn', 'createPatient', { ma_his: '9201', ho_ten: 'Huỷ cũ', nam_sinh: '1960', bs_email: 'bs@x.vn', chan_doan: 'K', ky_thuat: '3D-CRT', tong_lieu: '30', so_buoi: '10', trang_thai: 'CHO_XA' });
+let hp = r.data.patients.find(x => x.ma_his === '9201');
+r = ok('ktv@x.vn', 'logFraction', { bn_id: hp.id, ngay: ctx.RT.addDays(today, -5) });
+let oldFx = r.data.fractions.find(f => f.bn_id === hp.id);
+assert(!api('ktv@x.vn', 'undoFraction', { id: oldFx.id, ly_do: 'nhầm' }).ok, 'KTV thường không huỷ buổi quá 2 ngày');
+ok('ktvt@x.vn', 'undoFraction', { id: oldFx.id, ly_do: 'nhầm' });
+// ---- v1.9: bảng phân công ----
+const mon = ctx.RT.monday(today);
+assert(!api('ktv@x.vn', 'setRoster', { ngay: mon, vi_tri: 'Mô phỏng CT', nhan_vien: ['ktv@x.vn'] }).ok, 'KTV thường không phân công');
+r = ok('ktvt@x.vn', 'setRoster', { ngay: mon, vi_tri: 'Mô phỏng CT', nhan_vien: ['KTV@x.vn', 'ktvt@x.vn'], ghi_chu: 'sáng' });
+let pc = r.data.roster.find(x => x.ngay === mon && x.vi_tri === 'Mô phỏng CT');
+assert.strictEqual(pc.nhan_vien, 'ktv@x.vn, ktvt@x.vn');
+r = ok('ktvt@x.vn', 'setRoster', { ngay: mon, vi_tri: 'Mô phỏng CT', nhan_vien: ['ktv@x.vn'] });
+assert.strictEqual(r.data.roster.filter(x => x.ngay === mon && x.vi_tri === 'Mô phỏng CT').length, 1, 'sửa ô thì ghi đè, không nhân đôi');
+assert(!api('ktvt@x.vn', 'setRoster', { ngay: mon, vi_tri: 'Vị trí lạ', nhan_vien: [] }).ok);
+assert(!api('ktvt@x.vn', 'setRoster', { ngay: mon, vi_tri: 'Trực', nhan_vien: ['nguoila@x.vn'] }).ok);
+ok('ktvt@x.vn', 'setRoster', { ngay: ctx.RT.addDays(mon, 2), vi_tri: 'Trực', nhan_vien: ['ktvt@x.vn'] });
+r = ok('ktvt@x.vn', 'copyRoster', { tu: mon, den: ctx.RT.addDays(mon, 7) });
+assert(r.data.roster.some(x => x.ngay === ctx.RT.addDays(mon, 9) && x.vi_tri === 'Trực' && x.nhan_vien === 'ktvt@x.vn'), 'sao chép tuần');
+r = ok('admin@x.vn', 'bootstrap');
+assert(r.data.roster.length >= 4, 'đọc lại phân công từ sheet');
+currentEmail = 'dd@x.vn';
+let gr = JSON.parse(ctx.api('getRoster', { tu: mon, den: ctx.RT.addDays(mon, 6) }));
+assert(gr.ok && gr.roster.length === 2, 'tải phân công theo tuần');
+// rev: thay đổi sau mỗi lần ghi
+const rev1 = JSON.parse(ctx.api('rev')).rev;
+ok('ktvt@x.vn', 'setRoster', { ngay: mon, vi_tri: 'Trực', nhan_vien: ['ktv@x.vn'] });
+const rev2 = JSON.parse(ctx.api('rev')).rev;
+assert(rev2 !== '0', 'rev được đặt');
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');

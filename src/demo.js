@@ -12,11 +12,14 @@ window.DEMO = (function () {
     { email: 'bs.thu@demo', ho_ten: 'BS. Lê Thu', vai_tro: 'BS' },
     { email: 'ks.nam@demo', ho_ten: 'KS. Đỗ Nam', vai_tro: 'KS' },
     { email: 'ks.ha@demo', ho_ten: 'KS. Vũ Hà', vai_tro: 'KS' },
-    { email: 'ktv.linh@demo', ho_ten: 'KTV. Hoàng Linh', vai_tro: 'KTV' },
+    { email: 'ktv.linh@demo', ho_ten: 'KTV. Hoàng Linh', vai_tro: 'KTV', chuc_vu: 'KTV trưởng' },
+    { email: 'ktv.son@demo', ho_ten: 'KTV. Trần Sơn', vai_tro: 'KTV' },
+    { email: 'ktv.ha@demo', ho_ten: 'KTV. Lê Hà', vai_tro: 'KTV' },
     { email: 'dd.mai@demo', ho_ten: 'ĐD. Mai Anh', vai_tro: 'DD' },
     { email: 'quantri@demo', ho_ten: 'Quản trị khoa', vai_tro: 'ADMIN' }
   ];
-  users.forEach(function (u) { u.kich_hoat = 'Có'; });
+  users.forEach(function (u) { u.kich_hoat = 'Có'; u.chuc_vu = u.chuc_vu || ''; });
+  var roster = [], rev = 1;
   var logs = [];
   var dm = JSON.parse(JSON.stringify(RT.DEFAULT_DM));
   var holidays = [];
@@ -152,6 +155,19 @@ window.DEMO = (function () {
     mk({ ho_ten: 'Văn Đình Quý', nam_sinh: '1950', gioi: 'Nam', chan_doan: 'K bàng quang cT2N0', ky_thuat: 'VMAT', tong_lieu: '64', so_buoi: '32', igrt: 'CBCT hằng ngày', trang_thai: 'CONTOUR', ngay_tao: today, bs_email: 'bs.thu@demo' });
   }
   seed();
+  // Bảng phân công mẫu tuần này
+  (function () {
+    var mon = RT.monday(today), plan = {
+      'Máy gia tốc 1 – ca sáng': ['ktv.linh@demo, ktv.son@demo', 'ktv.son@demo, ktv.ha@demo', 'ktv.linh@demo, ktv.ha@demo', 'ktv.linh@demo, ktv.son@demo', 'ktv.son@demo, ktv.ha@demo', 'ktv.ha@demo'],
+      'Máy gia tốc 1 – ca chiều': ['ktv.ha@demo', 'ktv.linh@demo', 'ktv.son@demo', 'ktv.ha@demo', 'ktv.linh@demo', ''],
+      'Mô phỏng CT': ['ktv.ha@demo', 'ktv.linh@demo', 'ktv.son@demo', 'ktv.ha@demo', 'ktv.linh@demo', ''],
+      'Làm mặt nạ / cố định': ['ktv.son@demo', 'ktv.ha@demo', 'ktv.linh@demo', 'ktv.son@demo', 'ktv.ha@demo', ''],
+      'Trực': ['ktv.linh@demo', 'ktv.son@demo', 'ktv.ha@demo', 'ktv.linh@demo', 'ktv.son@demo', 'ktv.ha@demo']
+    };
+    Object.keys(plan).forEach(function (vt) {
+      plan[vt].forEach(function (nv, i) { if (nv) roster.push({ id: 'P' + vt.length + i, ngay: RT.addDays(mon, i), vi_tri: vt, nhan_vien: nv, ghi_chu: '', nguoi: 'ktv.linh@demo', thoi_gian: today + 'T07:00:00' }); });
+    });
+  })();
   // Lịch ngoại lệ & máy nghỉ
   (function () {
     var hung = patients[0], d = fwd(2);
@@ -175,7 +191,8 @@ window.DEMO = (function () {
     var t = new Date();
     return {
       user: u, today: today, now: today + 'T' + pad(t.getHours()) + ':' + pad(t.getMinutes()) + ':' + pad(t.getSeconds()),
-      patients: patients, fractions: fractions, phases: phases, exceptions: exceptions, users: users, dm: dm, holidays: holidays,
+      patients: patients, fractions: fractions, phases: phases, exceptions: exceptions, users: users, dm: dm, holidays: holidays, roster: roster,
+      saveRoster: function () {},
       savePatient: function () {}, addFraction: function () {}, updateFraction: function () {}, savePhase: function () {}, saveEx: function () {},
       idFloor: function () { return 1; },
       saveUser: function () {}, addDmRow: function () {}, removeDmRow: function () {},
@@ -194,11 +211,17 @@ window.DEMO = (function () {
         var ps = archive.patients.filter(function (p) { return q.length >= 2 && (f(p.ma_his).indexOf(q) >= 0 || f(p.ho_ten).indexOf(q) >= 0); });
         var ids = ps.map(function (p) { return p.id; });
         return JSON.stringify({ ok: true, archive: { patients: ps, phases: [], fractions: archive.fractions.filter(function (x) { return ids.indexOf(x.bn_id) >= 0; }) } });
+      } else if (action === 'rev') {
+        return JSON.stringify({ ok: true, rev: String(rev) });
+      } else if (action === 'getRoster') {
+        return JSON.stringify({ ok: true, data: RT.view(c), roster: roster.filter(function (r) { return r.ngay >= payload.tu && r.ngay <= payload.den; }), rev: String(rev) });
       } else if (action === 'getLog') {
-        if (c.user.vai_tro !== 'ADMIN') throw new Error('Chỉ quản trị xem được nhật ký.');
-      } else if (action !== 'bootstrap') msg = RT.handle(c, action, payload || {});
-      return JSON.stringify({ ok: true, msg: msg, data: RT.view(c), log: action === 'getLog' ? logs.slice(0, 300) : undefined });
+        if (c.user.vai_tro !== 'ADMIN' && !RT.isLead(c.user)) throw new Error('Chỉ quản trị và trưởng khoa/phòng xem được nhật ký.');
+      } else if (action !== 'bootstrap') { msg = RT.handle(c, action, payload || {}); rev++; }
+      return JSON.stringify({ ok: true, msg: msg, data: RT.view(c), log: action === 'getLog' ? logs.slice(0, 300) : undefined, rev: String(rev) });
     } catch (e) { return JSON.stringify({ ok: false, error: String(e && e.message || e) }); }
   }
-  return { api: api, today: today, shifted: shifted };
+  /** Mô phỏng một người khác thao tác (dùng khi thử chuông việc mới) */
+  function asOther(email, action, payload) { var save = current; current = email; try { return api(action, payload); } finally { current = save; } }
+  return { api: api, today: today, shifted: shifted, asOther: asOther };
 })();
