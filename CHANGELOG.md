@@ -9,9 +9,14 @@
 - **Điều dưỡng (kể cả ĐD trưởng) chỉ thấy BN khoa mình**: máy chủ chỉ gửi BN khoa đó, kể cả khi tìm lưu trữ; bỏ ô chọn khoa.
 - **Thêm / sửa BN: khoa theo bác sĩ điều trị.** Danh sách bác sĩ chia nhóm theo khoa; chọn bác sĩ thì khoa tự điền và khoá. Máy chủ cũng tự gán. Bác sĩ chưa ghi khoa thì chọn khoa bằng tay.
 - **Quản trị**: tài khoản bác sĩ và điều dưỡng bắt buộc chọn khoa.
-- **Lý do ưu tiên / cấp cứu**: BN "Ưu tiên" và "Cấp cứu" bắt buộc ghi lý do (khi thêm BN, Contour xong, Đổi ưu tiên, sửa BN, boost). Lý do hiện dưới nhãn ưu tiên và trong chi tiết BN. Cột mới `ly_do_uu_tien`, `tg_nop_kh` (cần chạy `setup`).
+- **Lý do ưu tiên / cấp cứu**: BN "Ưu tiên" và "Cấp cứu" bắt buộc ghi lý do (khi thêm BN, Contour xong, Đổi ưu tiên, sửa BN, boost). Lý do hiện dưới nhãn ưu tiên và trong chi tiết BN. Cột mới `ly_do_uu_tien`, `tg_nop_kh`, `de_xuat_lich`, `de_xuat_boi`, `de_xuat_luc`, `xn_tam_ngung` (cần chạy `setup`).
 - **Tô màu BN đang chuẩn bị xạ** (mô phỏng → chờ vào xạ): cấp cứu nền đỏ, ưu tiên nền cam, thường để nguyên.
 - **Xếp lịch xạ** (Chờ vào xạ chưa có lịch, Sắp chuyển xạ): xếp theo nhóm Cấp cứu → Boost → Thường / Ưu tiên, trong nhóm ai sẵn sàng trước xếp trước; có chú thích màu (đỏ cấp cứu, tím boost, cam ưu tiên). "Sắp chuyển xạ" có cả KH boost.
+- **Chỉ tiêu số BN đang xạ của mỗi khoa** (danh mục CHI_TIEU trong Quản trị, mặc định Xạ trị 90–100, Xạ trị theo yêu cầu 80–90). Bảng "Chỗ theo chỉ tiêu khoa" 10 ngày tới ở Chờ xếp lịch / Duyệt lịch: số BN chiếm chỗ, còn bao nhiêu chỗ, số BN kết thúc. BN vắng, tạm ngừng vẫn giữ chỗ; chỗ "có thể" trống (BN gần đây có vắng) tách riêng. Điều dưỡng chỉ thấy khoa mình.
+- **Xếp lịch có duyệt**: KTV trưởng xếp lịch trực tiếp. KTV và điều dưỡng các khoa gửi **đề xuất lịch**; KTV trưởng nhận thông báo trên chuông, mục **Xạ trị › Duyệt lịch** (có số đếm trên tab) hiện người đề xuất, lúc nào, chỗ của khoa ngày đó; KTV trưởng sửa nếu cần rồi duyệt, hoặc trả lại kèm lý do (người đề xuất được báo). KTV vẫn đổi lịch tuần cho BN đang xạ.
+- **Khi khoa đủ chỉ tiêu**: form xếp lịch báo số chỗ của khoa ngày đó và gợi ý "ngày sớm nhất còn chỗ"; vượt chỉ tiêu thì phải đánh dấu "Vẫn xếp, đồng ý vượt chỉ tiêu" (người duyệt cũng phải đồng ý). BN cấp cứu luôn được xếp.
+- **BN vắng từ 3 buổi liên tiếp**: báo bác sĩ cân nhắc chuyển Tạm ngừng (nút ngay trong danh sách).
+- **BN tạm ngừng từ 7 ngày**: hỏi bác sĩ "còn xạ tiếp không?" (chuông + mục trong Bệnh nhân của tôi); bấm "Vẫn xạ tiếp" thì 7 ngày sau hỏi lại, hoặc "Kết thúc đợt". BN tạm ngừng không bị nhả chỗ.
 - **Thứ tự trong Lập kế hoạch và QA**: cấp cứu lên trước, sau đó ai nộp trước (giờ bấm "Contour xong") làm trước; "Ưu tiên" không còn vượt lên trên, chỉ tô màu.
 
 ## v2.6

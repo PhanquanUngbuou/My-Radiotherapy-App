@@ -45,6 +45,8 @@
   - Ghi vắng bằng loại `VANG` trong `LichNgoaiLe`, lý do lấy từ danh mục `LY_DO_VANG`. Có lịch mà không ghi gì thì tính "vắng chưa rõ lý do".
   - BN vắng từ 2 buổi liên tiếp thì báo BS điều trị.
   - Ghi bù buổi quên tích (trong 7 ngày) bắt buộc lý do, lưu `ghi_bu` / `ly_do_bu`, ngày đó hiện màu vàng trên lịch.
+- Chỉ tiêu khoa (`CHI_TIEU`, "Khoa: min-max"): BN chiếm chỗ từ ngày bắt đầu tới hết đợt (kể cả boost, vắng, tạm ngừng). Đủ chỉ tiêu thì chỉ cảnh báo, đồng ý thì xếp; cấp cứu luôn được xếp; không tô màu bảng chỉ tiêu.
+- Xếp lịch: KTV trưởng xếp thẳng; KTV, ĐD đề xuất (`de_xuat_lich`) → KTV trưởng duyệt / sửa / trả lại (Xạ trị › Duyệt lịch). Vắng ≥ 3 buổi liên tiếp: gợi ý tạm ngừng. Tạm ngừng ≥ 7 ngày: hỏi BS mỗi 7 ngày (`xn_tam_ngung`), không nhả chỗ.
 - Lịch: 3D-CRT xạ T2–T6. IMRT/VMAT nghỉ 1 ngày trong tuần, bù Thứ Bảy. Boost: tuần tự (lên kế hoạch cùng lúc / contour trên CT cũ / mô phỏng lại).
 
 ## Trạng thái

@@ -78,7 +78,7 @@ ok('ks@x.vn', 'claimPlan', { id, ks_email: 'ks@x.vn' });
 ok('ks@x.vn', 'planDone', { id, can_qa: true });
 r = ok('ks@x.vn', 'qaResult', { id, dat: true });
 assert.strictEqual(r.data.patients[0].trang_thai, 'CHO_XA');
-ok('ktv@x.vn', 'schedule', { id, ngay_du_kien: r.data.today, ngay_nghi_tuan: '3', may: 'Máy gia tốc 1' });
+ok('admin@x.vn', 'schedule', { id, ngay_du_kien: r.data.today, ngay_nghi_tuan: '3', may: 'Máy gia tốc 1' });
 const today = r.data.today;
 r = ok('ktv@x.vn', 'logFraction', { bn_id: id, ngay: today, hinh_anh: ['CBCT', 'SGRT (C-RAD)'] });
 assert.strictEqual(r.data.patients[0].trang_thai, 'DANG_XA');
@@ -489,5 +489,55 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   assert(!api('bs@x.vn', 'createPatient', { ma_his: 'UT4', ho_ten: 'UT4', nam_sinh: '1960', uu_tien: 'Ưu tiên', trang_thai: 'CONTOUR' }).ok, 'thêm BN ưu tiên phải có lý do');
   assert(!api('bs@x.vn', 'updatePatient', { id: q1.id, uu_tien: 'Ưu tiên', ly_do_uu_tien: '' }).ok, 'không xoá được lý do của BN đang chờ lập KH');
   assert(sheets.BenhNhan.data[0].includes('ly_do_uu_tien') && sheets.BenhNhan.data[0].includes('tg_nop_kh'), 'cột mới');
+}
+// ---- v2.7: chỉ tiêu khoa, đề xuất / duyệt lịch, BN tạm ngừng ----
+{
+  assert.strictEqual(JSON.stringify(ctx.RT.parseQuota('Xạ trị: 90-100')), JSON.stringify({ khoa: 'Xạ trị', min: 90, max: 100 }));
+  assert(!api('admin@x.vn', 'dmAdd', { loai: 'CHI_TIEU', gia_tri: 'Xạ trị 90' }).ok, 'chỉ tiêu sai dạng');
+  r = ok('admin@x.vn', 'dmAdd', { loai: 'CHI_TIEU', gia_tri: 'Xạ trị: 1-2' });
+  assert(r.data.dm.CHI_TIEU.includes('Xạ trị: 1-2') && !r.data.dm.CHI_TIEU.includes('Xạ trị: 90-100'), 'thay chỉ tiêu cũ của khoa');
+  const mk = (his, uu) => ok('admin@x.vn', 'createPatient', { ma_his: his, ho_ten: 'CT ' + his, nam_sinh: '1960', bs_email: 'tk@x.vn', icd: 'C50.9', chan_doan: 'K', ky_thuat: '3D-CRT', tong_lieu: '20', so_buoi: '10', trang_thai: 'CHO_XA', uu_tien: uu || 'Thường', ly_do_uu_tien: uu ? 'lý do' : '' }).data.patients.find(x => x.ma_his === his);
+  const d1 = ctx.RT.addDays(today, 30);
+  const c1 = mk('CT1'), c2 = mk('CT2'), c3 = mk('CT3'), cc = mk('CT4', 'Cấp cứu');
+  ok('ktvt@x.vn', 'schedule', { id: c1.id, ngay_du_kien: d1 });
+  ok('ktvt@x.vn', 'schedule', { id: c2.id, ngay_du_kien: d1 });
+  // ĐD đề xuất: khoa đã đủ 2/2 → cảnh báo, đồng ý thì gửi đề xuất
+  r = api('dd2@x.vn', 'schedule', { id: c3.id, ngay_du_kien: d1 });
+  assert(!r.ok && /^QUOTA:/.test(r.error), 'cảnh báo vượt chỉ tiêu: ' + r.error);
+  r = ok('dd2@x.vn', 'schedule', { id: c3.id, ngay_du_kien: d1, ngay_nghi_tuan: '', vuot_chi_tieu: true });
+  let p3 = r.data.patients.find(x => x.id === c3.id);
+  assert(!p3.ngay_du_kien && p3.de_xuat_lich && p3.de_xuat_boi === 'dd2@x.vn', 'ĐD chỉ đề xuất, chưa có lịch');
+  assert(!api('ktv@x.vn', 'approveSchedule', { id: c3.id, vuot_chi_tieu: true }).ok, 'KTV thường không duyệt');
+  assert(!api('ktvt@x.vn', 'approveSchedule', { id: c3.id }).ok, 'người duyệt cũng phải đồng ý vượt chỉ tiêu');
+  const d2 = ctx.RT.addDays(d1, 1);
+  r = ok('ktvt@x.vn', 'approveSchedule', { id: c3.id, ngay_du_kien: d2, vuot_chi_tieu: true });
+  p3 = r.data.patients.find(x => x.id === c3.id);
+  assert(p3.ngay_du_kien === d2 && !p3.de_xuat_lich, 'KTV trưởng sửa ngày và duyệt');
+  assert(sheets.NhatKy.data.some(row => row.includes('Duyệt lịch') && row.join(' ').includes('ĐD Hai')), 'nhật ký ghi người đề xuất');
+  // KTV thường cũng chỉ đề xuất; trả lại đề xuất
+  const c5 = mk('CT5');
+  r = ok('ktv@x.vn', 'schedule', { id: c5.id, ngay_du_kien: ctx.RT.addDays(today, 60) });
+  assert(!r.data.patients.find(x => x.id === c5.id).ngay_du_kien, 'KTV thường đề xuất');
+  assert(!api('ktvt@x.vn', 'rejectSchedule', { id: c5.id }).ok, 'trả lại cần lý do');
+  r = ok('ktvt@x.vn', 'rejectSchedule', { id: c5.id, ly_do: 'Máy kín lịch' });
+  assert(!r.data.patients.find(x => x.id === c5.id).de_xuat_lich);
+  // cấp cứu luôn được xếp
+  ok('ktvt@x.vn', 'schedule', { id: cc.id, ngay_du_kien: d1 });
+  // đếm chỗ
+  const bt = ok('admin@x.vn', 'bootstrap').data;
+  const occ = ctx.RT.occupancy(bt.patients, bt.fractions, ctx.RT.makeEnv(today, bt.holidays, bt.exceptions, bt.phases, 'Máy gia tốc 1'), [d1], today);
+  assert(occ['Xạ trị'].ngay[d1].n >= 3, 'đếm BN chiếm chỗ ngày ' + d1);
+  // ĐD khoa khác không đề xuất được
+  ok('admin@x.vn', 'saveUser', { email: 'dd3@x.vn', ho_ten: 'ĐD Ba', vai_tro: 'DD', khoa: 'Xạ trị theo yêu cầu' });
+  assert(!api('dd3@x.vn', 'schedule', { id: c5.id, ngay_du_kien: d1, vuot_chi_tieu: true }).ok, 'ĐD khoa khác không xếp');
+  // tạm ngừng ≥ 7 ngày: hỏi BS, xác nhận thì hỏi lại sau 7 ngày
+  ok('admin@x.vn', 'logFraction', { bn_id: c1.id, ngay: today });
+  ok('tk@x.vn', 'pause', { id: c1.id, ly_do: 'Tác dụng phụ', tu_ngay: ctx.RT.addDays(today, -8) });
+  let pp = ok('tk@x.vn', 'bootstrap').data.patients.find(x => x.id === c1.id);
+  assert(ctx.RT.pauseAsk(pp, today), 'tạm ngừng 8 ngày: hỏi BS');
+  assert(!api('ktv@x.vn', 'confirmPause', { id: c1.id }).ok, 'chỉ BS xác nhận');
+  pp = ok('tk@x.vn', 'confirmPause', { id: c1.id }).data.patients.find(x => x.id === c1.id);
+  assert(!ctx.RT.pauseAsk(pp, today) && ctx.RT.pauseAsk(pp, ctx.RT.addDays(today, 7)), 'hỏi lại sau 7 ngày');
+  ok('admin@x.vn', 'dmAdd', { loai: 'CHI_TIEU', gia_tri: 'Xạ trị: 90-100' });
 }
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');

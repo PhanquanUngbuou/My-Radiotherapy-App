@@ -24,6 +24,7 @@ window.DEMO = (function () {
   var roster = [], rev = 1;
   var logs = [];
   var dm = JSON.parse(JSON.stringify(RT.DEFAULT_DM));
+  dm.CHI_TIEU = ['Xạ trị: 4-5', 'Xạ trị theo yêu cầu: 12-14']; // bản demo ít BN nên đặt chỉ tiêu nhỏ để thấy cảnh báo
   var holidays = [];
   var patients = [], fractions = [], phases = [], exceptions = [];
   var archive = { patients: [], phases: [], fractions: [] };
@@ -137,7 +138,7 @@ window.DEMO = (function () {
     // Tạm ngừng
     p = mk({ ho_ten: 'Đinh Văn Sơn', nam_sinh: '1963', gioi: 'Nam', chan_doan: 'K hạ họng T3N1', ky_thuat: 'VMAT', tong_lieu: '70', so_buoi: '35', igrt: 'CBCT hằng tuần', ngay_nghi_tuan: '1', trang_thai: 'DANG_XA', uu_tien: 'Ưu tiên' });
     var ps = back(p, 4); treat(p, back(p, 21), RT.addDays(ps, -1));
-    p.trang_thai = 'TAM_NGUNG'; p.tam_ngung_tu = ps; p.ly_do_tam_ngung = 'Tác dụng phụ: viêm niêm mạc độ 3, nuôi ăn qua sonde';
+    p.trang_thai = 'TAM_NGUNG'; p.tam_ngung_tu = RT.addDays(today, -9); p.ly_do_tam_ngung = 'Tác dụng phụ: viêm niêm mạc độ 3, nuôi ăn qua sonde';
     p = mk({ ho_ten: 'Lý Thị Thảo', nam_sinh: '1958', gioi: 'Nữ', chan_doan: 'K nội mạc tử cung sau phẫu thuật', ky_thuat: '3D-CRT', tong_lieu: '45', so_buoi: '25', trang_thai: 'DANG_XA', bs_email: 'bs.thu@demo' });
     var ps2 = back(p, 1); treat(p, back(p, 13), RT.addDays(ps2, -1));
     p.trang_thai = 'TAM_NGUNG'; p.tam_ngung_tu = ps2; p.ly_do_tam_ngung = 'Không liên lạc được';
@@ -149,6 +150,8 @@ window.DEMO = (function () {
     function w(o) { var x = {}; Object.keys(base).forEach(function (k) { x[k] = base[k]; }); Object.keys(o).forEach(function (k) { x[k] = o[k]; }); return x; }
     mk(w({ ho_ten: 'Cao Thị Hằng', nam_sinh: '1981', gioi: 'Nữ', chan_doan: 'K vú trái sau cắt toàn bộ', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25', igrt: 'CBCT hằng tuần', sgrt: 'Có', trang_thai: 'CHO_XA', can_qa: 'Có', qa_ket_qua: 'Đạt', ngay_qa: wdAgo(1), ngay_du_kien: today, ngay_nghi_tuan: '2' }));
     mk(w({ ho_ten: 'Tạ Văn Minh', nam_sinh: '1959', gioi: 'Nam', chan_doan: 'K phổi T2N0, SBRT', ky_thuat: 'SRS/SBRT', tong_lieu: '50', so_buoi: '5', igrt: 'CBCT hằng ngày', trang_thai: 'CHO_XA', can_qa: 'Có', qa_ket_qua: 'Đạt', ngay_qa: wdAgo(1), ngay_du_kien: fwd(1), bs_email: 'bs.thu@demo' }));
+    var dxp = mk(w({ ho_ten: 'Nghiêm Thị Hoa', nam_sinh: '1975', gioi: 'Nữ', chan_doan: 'K vú phải sau bảo tồn', ky_thuat: '3D-CRT', tong_lieu: '40.05', so_buoi: '15', trang_thai: 'CHO_XA', can_qa: 'Không', qa_ket_qua: 'Không cần', bs_email: 'bs.thu@demo' }));
+    dxp.de_xuat_lich = JSON.stringify({ ngay_du_kien: fwd(2), ngay_nghi_tuan: '', may: 'Máy gia tốc 1', vuot: 0 }); dxp.de_xuat_boi = 'dd.lan@demo'; dxp.de_xuat_luc = today + 'T08:15:00';
     mk(w({ ho_ten: 'Phan Thị Yến', nam_sinh: '1970', gioi: 'Nữ', chan_doan: 'K cổ tử cung IIIB', ky_thuat: 'VMAT', tong_lieu: '50.4', so_buoi: '28', igrt: 'CBCT 3 buổi đầu, sau đó hằng tuần', trang_thai: 'CHO_XA', can_qa: 'Có', qa_ket_qua: 'Đạt', ngay_qa: wdAgo(1), uu_tien: 'Ưu tiên' }));
     mk(w({ ho_ten: 'Kiều Văn Thắng', nam_sinh: '1952', gioi: 'Nam', chan_doan: 'Di căn não đa ổ', ky_thuat: '3D-CRT', tong_lieu: '30', so_buoi: '10', trang_thai: 'CHO_XA', can_qa: 'Không', qa_ket_qua: 'Không cần', ngay_du_kien: fwd(2) }));
     // Chờ QA

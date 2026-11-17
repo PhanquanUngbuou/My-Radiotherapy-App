@@ -453,3 +453,9 @@ tbody tr.pr-row-b td:first-child{box-shadow:inset 4px 0 0 var(--ks)}
   .cards tr.pr-row-b{box-shadow:inset 5px 0 0 var(--ks)}
   .cards tr.pr-row-b td:first-child{box-shadow:none}
 }
+
+/* v2.7: chỉ tiêu khoa, duyệt lịch */
+.quota-info{margin:10px 0 4px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);font-size:14px}
+.quota-info:empty{display:none}
+table.quota td .sub{white-space:nowrap}
+.approve-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;border-left:4px solid var(--accent)}
