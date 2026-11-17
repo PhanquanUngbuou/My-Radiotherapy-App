@@ -1,5 +1,15 @@
 # Lịch sử phiên bản
 
+## v2.7
+- **Thống kê theo từng bác sĩ chỉ dành cho Trưởng khoa, Điều dưỡng trưởng và Quản trị.** Bảng "Theo bác sĩ" là một mục trong "Lượt xạ trị": số BN được xạ, lượt xạ, BN bắt đầu, BN kết thúc, lượt vắng, dòng cộng; bấm một bác sĩ để xem danh sách BN. Có trong trang Excel.
+- **Tài khoản khoa** chỉ còn số tổng của khoa, không còn số theo từng bác sĩ.
+- **Bác sĩ**: chọn phạm vi "Của tôi" hoặc "Cả khoa" (số tổng của khoa, không chia theo bác sĩ).
+- **Tìm danh sách BN để nghiên cứu**: bác sĩ tìm trên toàn bộ BN hai khoa, lọc theo mã ICD, vị trí, kỹ thuật, khoa, mục đích, trạng thái; không có ô lọc theo từng bác sĩ. Kỹ sư, KTV vẫn chỉ tìm ca của mình; điều dưỡng tìm trong khoa mình.
+- **Ô lọc theo bác sĩ** trong "Tất cả BN" và các bước chỉ còn cho lãnh đạo khoa; bác sĩ thường có lựa chọn "BN của tôi".
+- **Điều dưỡng (kể cả ĐD trưởng) chỉ thấy BN khoa mình**: máy chủ chỉ gửi BN khoa đó, kể cả khi tìm lưu trữ; bỏ ô chọn khoa.
+- **Thêm / sửa BN: khoa theo bác sĩ điều trị.** Danh sách bác sĩ chia nhóm theo khoa; chọn bác sĩ thì khoa tự điền và khoá. Máy chủ cũng tự gán. Bác sĩ chưa ghi khoa thì chọn khoa bằng tay.
+- **Quản trị**: tài khoản bác sĩ và điều dưỡng bắt buộc chọn khoa.
+
 ## v2.6
 - **Thống kê làm lại**: chọn loại trước (Lượt xạ trị · Vắng buổi xạ · Tìm danh sách BN), chọn khoảng thời gian, rồi xem.
   - Lượt xạ trị: tổng lượt, BN được xạ, bắt đầu / kết thúc, lượt vắng, theo kỹ thuật, bảng theo từng ngày (khoảng ≤ 2 tháng), theo khoa, máy, người, ICD, vị trí.

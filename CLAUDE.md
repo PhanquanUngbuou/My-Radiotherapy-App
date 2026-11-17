@@ -34,9 +34,12 @@
 - Ai cũng thêm được BN (KTV, ĐD, KS nhập theo phiếu chỉ định). Lúc nhập chỉ bắt buộc thông tin hành chính và **bước hiện tại**. Đủ chuyên môn và **mã ICD-10** bắt buộc khi "Contour xong".
 - Nhận ca lập KH phải **chọn kỹ sư phụ trách**, có nút đổi kỹ sư.
 - Cảnh báo mã HIS: trùng đợt đang hoạt động, hoặc cùng mã mà khác tên (tra cả lưu trữ qua `ChiMuc`).
-- Thống kê:
-  - Quản trị xem cả hai khoa. Trưởng khoa, ĐD trưởng, tài khoản khoa xem cả khoa theo từng BS. **ĐD thường xem số liệu khoa mình**. BS, KTV, KS xem của mình. KTV trưởng xem cả nhóm KTV; trưởng khoa Vật lý xạ trị xem cả nhóm KS.
-  - Danh sách công việc vẫn hiện tên BS cho mọi người.
+- Khoa của BN theo khoa của BS điều trị (BS, ĐD bắt buộc có khoa). **ĐD (kể cả ĐD trưởng) chỉ thấy BN khoa mình** (lọc ở máy chủ).
+- Thống kê (v2.7):
+  - **Chỉ Quản trị, Trưởng khoa, ĐD trưởng** thống kê / lọc theo từng BS (Quản trị cả hai khoa). Tài khoản khoa và ĐD thường: số tổng của khoa.
+  - BS: "Của tôi" hoặc "Cả khoa" (số tổng, không chia theo BS). Tìm danh sách BN để nghiên cứu: BS tìm trên toàn bộ BN hai khoa, lọc mọi tiêu chí trừ từng BS.
+  - KS, KTV xem việc của mình (danh sách công việc vẫn thấy cả hai khoa). KTV trưởng xem nhóm KTV; trưởng khoa Vật lý xạ trị xem nhóm KS.
+  - Danh sách công việc vẫn hiện tên BS cho mọi người; ô lọc theo BS chỉ cho lãnh đạo khoa.
 - Vắng buổi xạ:
   - Ghi vắng bằng loại `VANG` trong `LichNgoaiLe`, lý do lấy từ danh mục `LY_DO_VANG`. Có lịch mà không ghi gì thì tính "vắng chưa rõ lý do".
   - BN vắng từ 2 buổi liên tiếp thì báo BS điều trị.

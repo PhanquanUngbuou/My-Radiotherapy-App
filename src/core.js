@@ -70,6 +70,8 @@ var RT = (function () {
   var CHUC_VU = ['KTV trưởng', 'Điều dưỡng trưởng', 'Trưởng khoa', 'Phó trưởng khoa', 'Trưởng phòng', 'Tài khoản khoa'];
   /** Chức vụ được xem thống kê theo người của cả khoa mình */
   var KHOA_STATS = ['Trưởng khoa', 'Điều dưỡng trưởng', 'Tài khoản khoa'];
+  /** Lãnh đạo khoa: thống kê và lọc theo từng bác sĩ trong khoa mình (v2.7: tài khoản khoa không còn quyền này) */
+  var KHOA_LEAD = ['Trưởng khoa', 'Điều dưỡng trưởng'];
   /** Đơn vị của nhân viên: các khoa điều trị (danh mục KHOA) + khoa không nhận bệnh nhân */
   var KHOA_KHAC = ['Vật lý xạ trị'];
   function staffKhoa(dm) { return (dm.KHOA || []).concat(KHOA_KHAC.filter(function (k) { return (dm.KHOA || []).indexOf(k) < 0; })); }
@@ -442,6 +444,17 @@ var RT = (function () {
     return false;
   }
 
+  /** Khoa của BN đi theo khoa của bác sĩ điều trị; BS chưa ghi khoa thì dùng khoa chọn tay */
+  function doctorKhoa(users, dm, email) {
+    var u = (users || []).filter(function (x) { return x.email === email; })[0];
+    return u && u.khoa && ((dm || {}).KHOA || []).indexOf(u.khoa) >= 0 ? u.khoa : '';
+  }
+  function setKhoa(ctx, p) {
+    var k = doctorKhoa(ctx.users, ctx.dm, p.bs_email);
+    if (k) p.khoa = k;
+    else if (p.khoa && (ctx.dm.KHOA || []).indexOf(p.khoa) < 0) fail('Khoa "' + p.khoa + '" không có trong danh mục khoa điều trị.');
+  }
+
   var H = {
     createPatient: function (ctx, a) {
       var o = clean(a, EDIT_FIELDS);
@@ -452,6 +465,7 @@ var RT = (function () {
       if (!p.bs_email) fail('Cần chọn bác sĩ điều trị (bác sĩ ghi trên phiếu chỉ định).');
       var bsU = ctx.users.filter(function (u) { return u.email === p.bs_email && u.kich_hoat !== 'Không'; })[0];
       if (!bsU || (bsU.vai_tro !== 'BS' && bsU.vai_tro !== 'ADMIN')) fail('Bác sĩ điều trị không có trong danh sách bác sĩ.');
+      setKhoa(ctx, p);
       p.nguoi_nhap = ctx.user.email;
       if (!p.uu_tien) p.uu_tien = 'Thường';
       if (!p.igrt) p.igrt = 'Không';
@@ -510,6 +524,7 @@ var RT = (function () {
       var p = findP(ctx, a.id), o = clean(a, EDIT_FIELDS), merged = {};
       Object.keys(p).forEach(function (k) { merged[k] = p[k]; });
       Object.keys(o).forEach(function (k) { merged[k] = o[k]; });
+      if (o.bs_email !== undefined || o.khoa !== undefined) { setKhoa(ctx, merged); o.khoa = merged.khoa; }
       if (EARLY.indexOf(p.trang_thai) >= 0) validateBasic(merged, ctx.today); else validate(merged, ctx.today);
       if (merged.icd !== (o.icd === undefined ? merged.icd : o.icd)) o.icd = merged.icd;
       if (o.icd !== undefined) o.icd = merged.icd;
@@ -865,6 +880,7 @@ var RT = (function () {
       }
       if (kh2 && staffKhoa(ctx.dm).indexOf(kh2) < 0) fail('Khoa không có trong danh mục.');
       if (KHOA_STATS.indexOf(cv) >= 0 && !kh2) fail('Chức vụ "' + cv + '" cần chọn khoa.');
+      if ((vt === 'BS' || vt === 'DD') && kh !== 'Không' && (ctx.dm.KHOA || []).indexOf(kh2) < 0) fail((vt === 'BS' ? 'Bác sĩ' : 'Điều dưỡng') + ' cần chọn khoa (' + (ctx.dm.KHOA || []).join(' / ') + ').');
       if (cv && CHUC_VU.indexOf(cv) < 0) fail('Chức vụ không hợp lệ.');
       u.ho_ten = String(a.ho_ten).trim(); u.vai_tro = vt; u.kich_hoat = kh; u.chuc_vu = cv; u.khoa = kh2; u.tro_ly_cho = tl;
       ctx.saveUser(u);
@@ -961,8 +977,10 @@ var RT = (function () {
   /** Dữ liệu gửi xuống giao diện. */
   function view(ctx) {
     var cutoff = addDays(ctx.today, -60);
+    var nk = nurseKhoa(ctx.user, ctx.dm);
     var pts = ctx.patients.filter(function (p) {
       if (p.trang_thai === 'HUY') return false;
+      if (nk && p.khoa !== nk) return false;
       return p.trang_thai !== 'HOAN_THANH' || !p.ngay_ket_thuc || p.ngay_ket_thuc >= cutoff;
     });
     var ids = {};
@@ -988,17 +1006,28 @@ var RT = (function () {
 
 
   // ---------- Thống kê ----------
+  /** Điều dưỡng chỉ thấy BN khoa mình (chưa ghi khoa thì thấy cả hai khoa) */
+  function nurseKhoa(u, dm) { return u && u.vai_tro === 'DD' && u.khoa && ((dm || {}).KHOA || []).indexOf(u.khoa) >= 0 ? u.khoa : ''; }
+  /** Được lọc / thống kê theo từng bác sĩ: quản trị, trưởng khoa, ĐD trưởng */
+  function canByDoctor(u) { var s = statsScope(u); return !!(s && s.byDoctor); }
   /** Phạm vi thống kê của một người */
-  function statsScope(u) {
+  function statsScope(u, pv) {
     if (!u) return null;
-    var s = { all: false, khoa: '', self: u.email, byDoctor: false, byKtv: false, byKs: false, label: '' };
+    var s = { all: false, khoa: '', self: u.email, byDoctor: false, byKtv: false, byKs: false, label: '', khoaOpt: '' };
     if (u.vai_tro === 'ADMIN') { s.all = true; s.byDoctor = s.byKtv = s.byKs = true; s.self = ''; s.label = 'Cả hai khoa'; return s; }
     // Trưởng khoa / tài khoản khoa Vật lý xạ trị (vai trò kỹ sư): thống kê theo từng kỹ sư
     if (u.vai_tro === 'KS' && (u.chuc_vu === 'Trưởng khoa' || u.chuc_vu === 'Tài khoản khoa' || u.chuc_vu === 'Trưởng phòng')) { s.byKs = true; s.label = 'Khoa ' + (u.khoa || 'Vật lý xạ trị') + ' (theo kỹ sư)'; return s; }
-    if (KHOA_STATS.indexOf(u.chuc_vu) >= 0 && u.khoa) { s.khoa = u.khoa; s.byDoctor = true; s.self = ''; s.label = 'Khoa ' + u.khoa; return s; }
+    if (KHOA_LEAD.indexOf(u.chuc_vu) >= 0 && u.khoa) { s.khoa = u.khoa; s.byDoctor = true; s.self = ''; s.label = 'Khoa ' + u.khoa; return s; }
+    if (u.chuc_vu === 'Tài khoản khoa' && u.khoa) { s.khoa = u.khoa; s.self = ''; s.label = 'Khoa ' + u.khoa; return s; }
     if (u.chuc_vu === 'KTV trưởng') { s.byKtv = true; s.label = 'Nhóm KTV'; return s; }
     if (u.chuc_vu === 'Trưởng phòng') { s.byKs = true; s.label = 'Nhóm kỹ sư'; return s; }
-    if (u.vai_tro === 'BS' || u.vai_tro === 'KTV' || u.vai_tro === 'KS' || u.vai_tro === 'ADMIN') { s.label = 'Của tôi'; return s; }
+    // Bác sĩ: số của mình, hoặc tổng của cả khoa mình (không chia theo từng bác sĩ)
+    if (u.vai_tro === 'BS') {
+      s.khoaOpt = u.khoa || '';
+      if (pv === 'khoa' && u.khoa) { s.khoa = u.khoa; s.self = ''; s.label = 'Cả khoa ' + u.khoa; return s; }
+      s.label = 'Của tôi'; return s;
+    }
+    if (u.vai_tro === 'KTV' || u.vai_tro === 'KS') { s.label = 'Của tôi'; return s; }
     if (u.vai_tro === 'DD') { if (u.khoa) { s.khoa = u.khoa; s.self = ''; s.label = 'Khoa ' + u.khoa; } else { s.all = true; s.self = ''; s.label = 'Cả hai khoa'; } return s; }
     return null;
   }
@@ -1066,8 +1095,13 @@ var RT = (function () {
    * Tìm danh sách BN theo điều kiện. f = { tu, den, moc: xa|bat_dau|ket_thuc|nhap, icd: [..], vi_tri, ky_thuat, bs_email, khoa, muc_dich, trang_thai }
    */
   function findPatients(data, f, u) {
-    var sc = statsScope(u);
+    var sc = statsScope(u, f.pv);
     if (!sc) fail('Tài khoản của bạn không có quyền xem thống kê.');
+    // Bác sĩ tìm BN để nghiên cứu: trên toàn bộ BN hai khoa, lọc mọi tiêu chí trừ từng bác sĩ
+    var research = u.vai_tro === 'BS' && !sc.byDoctor;
+    if (research) sc = { all: true, khoa: '', label: 'Toàn bộ BN hai khoa (tìm để nghiên cứu)' };
+    if (!sc.byDoctor) f.bs_email = '';
+    if (!sc.all) f.khoa = '';
     var tu = f.tu, den = f.den;
     if (!isDate(tu) || !isDate(den) || tu > den) fail('Khoảng ngày không hợp lệ.');
     if (diffDays(tu, den) > 1500) fail('Khoảng thời gian quá dài (tối đa khoảng 4 năm).');
@@ -1096,8 +1130,8 @@ var RT = (function () {
     var luot = rows.reduce(function (s, r) { return s + r.luot_trong_ky; }, 0);
     return { tu: tu, den: den, pham_vi: sc.label, so_bn: rows.length, luot: luot, rows: rows.slice(0, 3000), cat_bot: rows.length > 3000 };
   }
-  function report(data, tu, den, u, detail) {
-    var sc = statsScope(u);
+  function report(data, tu, den, u, detail, pv) {
+    var sc = statsScope(u, pv);
     if (!sc) fail('Tài khoản của bạn không có quyền xem thống kê.');
     if (!isDate(tu) || !isDate(den) || tu > den) fail('Khoảng ngày không hợp lệ.');
     if (diffDays(tu, den) > 400) fail('Chỉ thống kê tối đa 400 ngày một lần.');
@@ -1175,7 +1209,8 @@ var RT = (function () {
     vt.forEach(function (r) { r.ma = label[r.ma] || r.ma; });
     out.theo_vi_tri = vt;
     if (detail && detail.loai && detail.ma) {
-      var match = detail.loai === 'icd' ? function (p) { return icd3(p) === detail.ma; } : function (p) { return vtKey(p) === detail.ma || (fold(p.vi_tri) || '~') === fold(detail.ma); };
+      if (detail.loai === 'bs' && !sc.byDoctor && myDoctors(u).indexOf(detail.ma) < 0) fail('Bạn không có quyền xem danh sách BN của bác sĩ khác.');
+      var match = detail.loai === 'bs' ? function (p) { return p.bs_email === detail.ma; } : detail.loai === 'icd' ? function (p) { return icd3(p) === detail.ma; } : function (p) { return vtKey(p) === detail.ma || (fold(p.vi_tri) || '~') === fold(detail.ma); };
       var ids = {};
       scopePts.forEach(function (p) { if (inRange(p.ngay_bat_dau) && match(p)) ids[p.id] = 1; });
       Object.keys(ovIds).forEach(function (id) { if (match(P[id])) ids[id] = 1; });
@@ -1186,8 +1221,19 @@ var RT = (function () {
       }).sort(function (a, b) { return (a.ngay_bat_dau || '9') < (b.ngay_bat_dau || '9') ? -1 : 1; });
     }
     // Theo bác sĩ: trưởng khoa / ĐD trưởng / tài khoản khoa / quản trị thấy cả khoa; bác sĩ chỉ thấy dòng của mình
-    if (sc.byDoctor) out.theo_bac_si = rows(function (f) { return P[f.bn_id].bs_email; }, function (f) { return inKhoa(P[f.bn_id]); });
-    else if (u.vai_tro === 'BS') out.theo_bac_si = rows(function (f) { return P[f.bn_id].bs_email; }, function (f, k) { return myDoctors(u).indexOf(k) >= 0; });
+    if (sc.byDoctor || u.vai_tro === 'BS') {
+      var okBs = sc.byDoctor ? function () { return true; } : function (k) { return myDoctors(u).indexOf(k) >= 0; };
+      var bsRows = rows(function (f) { return P[f.bn_id].bs_email; }, function (f, k) { return inKhoa(P[f.bn_id]) && okBs(k); });
+      var bsMap = {}; bsRows.forEach(function (x) { x.bn_bat_dau = 0; x.bn_ket_thuc = 0; x.vang_luot = 0; bsMap[x.email] = x; });
+      var bsRow = function (k) { return bsMap[k] || (bsMap[k] = bsRows[bsRows.push({ email: k, ten: name0(k), luot_xa: 0, bn_xa: 0, bn_bat_dau: 0, bn_ket_thuc: 0, vang_luot: 0 }) - 1]); };
+      ovPts.forEach(function (p) {
+        if (!p.bs_email || !okBs(p.bs_email)) return;
+        if (inRange(p.ngay_bat_dau)) bsRow(p.bs_email).bn_bat_dau++;
+        if (p.trang_thai === 'HOAN_THANH' && inRange(p.ngay_ket_thuc)) bsRow(p.bs_email).bn_ket_thuc++;
+      });
+      sm.vang.forEach(function (v) { var p = P[v.bn_id]; if (p && p.bs_email && okBs(p.bs_email) && inKhoa(p)) bsRow(p.bs_email).vang_luot++; });
+      out.theo_bac_si = bsRows.sort(function (a, b) { return b.luot_xa - a.luot_xa || b.bn_bat_dau - a.bn_bat_dau; });
+    }
     if (sc.byKtv) out.theo_ktv = rows(function (f) { return f.ktv_email; });
     else if (u.vai_tro === 'KTV') out.theo_ktv = rows(function (f) { return f.ktv_email; }, function (f, k) { return k === u.email; });
     if (sc.byKs || u.vai_tro === 'KS') {
@@ -1239,7 +1285,7 @@ var RT = (function () {
   }
 
   return {
-    VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, report: report, staffKhoa: staffKhoa, myDoctors: myDoctors,
+    VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, nurseKhoa: nurseKhoa, canByDoctor: canByDoctor, doctorKhoa: doctorKhoa, report: report, staffKhoa: staffKhoa, myDoctors: myDoctors,
     normIcd: normIcd, isIcd: isIcd, icdName: icdName, summary: summary, findPatients: findPatients, scopePatients: scopePatients, fold: fold, indexRow: indexRow, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,

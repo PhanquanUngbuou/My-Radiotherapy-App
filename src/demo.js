@@ -9,14 +9,15 @@ window.DEMO = (function () {
 
   var users = [
     { email: 'bs.hai@demo', ho_ten: 'BS. Trần Hải', vai_tro: 'BS', chuc_vu: 'Trưởng khoa', khoa: 'Xạ trị theo yêu cầu' },
-    { email: 'bs.thu@demo', ho_ten: 'BS. Lê Thu', vai_tro: 'BS' },
-    { email: 'bs.chi@demo', ho_ten: 'BS. Vũ Chi', vai_tro: 'BS', tro_ly_cho: 'bs.thu@demo' },
+    { email: 'bs.thu@demo', ho_ten: 'BS. Lê Thu', vai_tro: 'BS', khoa: 'Xạ trị' },
+    { email: 'bs.chi@demo', ho_ten: 'BS. Vũ Chi', vai_tro: 'BS', khoa: 'Xạ trị', tro_ly_cho: 'bs.thu@demo' },
     { email: 'ks.nam@demo', ho_ten: 'KS. Đỗ Nam', vai_tro: 'KS' },
     { email: 'ks.ha@demo', ho_ten: 'KS. Vũ Hà', vai_tro: 'KS' },
     { email: 'ktv.linh@demo', ho_ten: 'KTV. Hoàng Linh', vai_tro: 'KTV', chuc_vu: 'KTV trưởng' },
     { email: 'ktv.son@demo', ho_ten: 'KTV. Trần Sơn', vai_tro: 'KTV' },
     { email: 'ktv.ha@demo', ho_ten: 'KTV. Lê Hà', vai_tro: 'KTV' },
     { email: 'dd.mai@demo', ho_ten: 'ĐD. Mai Anh', vai_tro: 'DD', chuc_vu: 'Điều dưỡng trưởng', khoa: 'Xạ trị theo yêu cầu' },
+    { email: 'dd.lan@demo', ho_ten: 'ĐD. Phạm Lan', vai_tro: 'DD', khoa: 'Xạ trị' },
     { email: 'quantri@demo', ho_ten: 'Quản trị khoa', vai_tro: 'ADMIN' }
   ];
   users.forEach(function (u) { u.kich_hoat = 'Có'; u.chuc_vu = u.chuc_vu || ''; u.khoa = u.khoa || ''; u.tro_ly_cho = u.tro_ly_cho || ''; });
@@ -58,6 +59,7 @@ window.DEMO = (function () {
     p.khoa = 'Xạ trị theo yêu cầu'; p.may = 'Máy gia tốc 1'; p.uu_tien = 'Thường'; p.igrt = 'Không'; p.sgrt = 'Không';
     p.bs_email = 'bs.hai@demo';
     Object.keys(o).forEach(function (k) { p[k] = o[k]; });
+    if (p.bs_email === 'bs.thu@demo' || p.bs_email === 'bs.chi@demo') p.khoa = 'Xạ trị';
     if (p.chan_doan && !p.icd) demoIcd(p);
     patients.push(p);
     return p;
@@ -250,7 +252,7 @@ window.DEMO = (function () {
       } else if (action === 'report') {
         var who = payload.as ? users.filter(function (x) { return x.email === payload.as; })[0] || c.user : c.user;
         var dta = { patients: patients.concat(archive.patients), phases: phases, fractions: fractions.concat(archive.fractions), exceptions: exceptions, holidays: holidays, users: users, dm: dm, today: today };
-        return JSON.stringify({ ok: true, report: RT.report(dta, payload.tu, payload.den, who, payload.chi_tiet) });
+        return JSON.stringify({ ok: true, report: RT.report(dta, payload.tu, payload.den, who, payload.chi_tiet, payload.pv) });
       } else if (action === 'findPatients') {
         var who2 = payload.as ? users.filter(function (x) { return x.email === payload.as; })[0] || c.user : c.user;
         var arc = archive.patients.map(function (x) { var o = JSON.parse(JSON.stringify(x)); o._luu = 1; return o; });

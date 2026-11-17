@@ -1,4 +1,4 @@
-// Điều phối Xạ trị · phiên bản v2.6
+// Điều phối Xạ trị · phiên bản v2.7
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
@@ -99,6 +99,8 @@ function api(action, payload) {
       extra.his = ctx.hisLookup(String((payload || {}).ma_his || '').trim()).map(stripRow_);
     } else if (action === 'archiveCourse') {
       extra.course = archiveCourse_(String((payload || {}).id || ''));
+      var nk0 = RT.nurseKhoa(ctx.user, ctx.dm);
+      if (nk0 && extra.course.patients[0].khoa !== nk0) throw new Error('Bệnh nhân này thuộc khoa khác.');
     } else if (action === 'report' || action === 'exportReport' || action === 'findPatients' || action === 'exportPatients') {
       var p0 = payload || {};
       var data = statsData_(ctx, p0.tu, p0.den);
@@ -109,7 +111,7 @@ function api(action, payload) {
         extra.found = RT.findPatients(data, p0, who);
         if (action === 'exportPatients') extra.sheet = writePatients_(extra.found, ctx.user);
       } else {
-        extra.report = RT.report(data, p0.tu, p0.den, who, p0.chi_tiet);
+        extra.report = RT.report(data, p0.tu, p0.den, who, p0.chi_tiet, p0.pv);
         if (action === 'exportReport') extra.sheet = writeReport_(extra.report, ctx.user);
       }
     } else if (action === 'getRoster') {
@@ -303,7 +305,7 @@ function writeReport_(r, user) {
     rows.push(['', '', '', '']); rows.push([title].concat(head));
     list.forEach(function (x) { rows.push(f(x)); });
   };
-  addRows('THEO BÁC SĨ', ['Số BN xạ', 'Số lượt xạ', ''], r.theo_bac_si, function (x) { return [x.ten, x.bn_xa, x.luot_xa, '']; });
+  addRows('THEO BÁC SĨ', ['Số BN xạ', 'Số lượt xạ', 'BN bắt đầu / kết thúc / lượt vắng'], r.theo_bac_si, function (x) { return [x.ten, x.bn_xa, x.luot_xa, (x.bn_bat_dau || 0) + ' / ' + (x.bn_ket_thuc || 0) + ' / ' + (x.vang_luot || 0)]; });
   addRows('THEO KTV', ['Số BN', 'Số buổi ghi', ''], r.theo_ktv, function (x) { return [x.ten, x.bn_xa, x.luot_xa, '']; });
   addRows('THEO KỸ SƯ', ['Số kế hoạch', 'Có QA', ''], r.theo_ky_su, function (x) { return [x.ten, x.ke_hoach, x.co_qa, '']; });
   rows.push(['', '', '', '']); rows.push(['VẮNG BUỔI XẠ', 'Số lượt', '', '']);
@@ -345,12 +347,13 @@ function fold_(s) {
 /** Tìm bệnh nhân đã chuyển sang lưu trữ (theo mã HIS, tên hoặc mã đợt): chỉ đọc trang chỉ mục nên luôn nhanh. */
 function searchArchive_(a) {
   try {
-    currentUser_();
+    var me = currentUser_();
+    var nk = me.vai_tro === 'DD' ? String(me.khoa || '') : '';
     var q = fold_(a.q).trim();
     if (q.length < 2) return { ok: true, archive: { patients: [], phases: [], fractions: [] } };
     var ss = ss_();
     var pts = readTable_(ss, SHEET_NAMES.IDX).rows.filter(function (p) {
-      return p.luu_tru === 'Có' && p.trang_thai !== 'HUY' && (fold_(p.ma_his).indexOf(q) >= 0 || (p.ten_kd || fold_(p.ho_ten)).indexOf(q) >= 0 || fold_(p.id).indexOf(q) >= 0);
+      return p.luu_tru === 'Có' && p.trang_thai !== 'HUY' && (!nk || p.khoa === nk) && (fold_(p.ma_his).indexOf(q) >= 0 || (p.ten_kd || fold_(p.ho_ten)).indexOf(q) >= 0 || fold_(p.id).indexOf(q) >= 0);
     }).slice(0, 50).map(function (p) { p = stripRow_(p); p._idx = true; return p; });
     return { ok: true, archive: { patients: pts, phases: [], fractions: [] } };
   } catch (e) {

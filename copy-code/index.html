@@ -41,21 +41,21 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
 </style>
 <div class="wrap">
   <div class="intro">
-    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v2.6</h1>
+    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v2.7</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v2.6 · bản lưu 62205d6 · 17/11/2026 14:28. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v2.6”.</span>
+    <span class="rev">Phiên bản v2.7 · bản lưu 3234acf · 17/11/2026 14:49. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v2.7”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Code">Code.gs <span class="ver">· v2.6</span></h2>
+        <h2 id="h-Code">Code.gs <span class="ver">· v2.7</span></h2>
         <p>File có sẵn tên Code.gs: xoá hết nội dung cũ, dán vào.</p>
-        <span class="size">514 dòng · 28 KB</span>
+        <span class="size">517 dòng · 28 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v2.6)</button>
+      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v2.7)</button>
     </div>
-    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v2.6
+    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v2.7
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
@@ -156,6 +156,8 @@ function api(action, payload) {
       extra.his = ctx.hisLookup(String((payload || {}).ma_his || &#x27;&#x27;).trim()).map(stripRow_);
     } else if (action === &#x27;archiveCourse&#x27;) {
       extra.course = archiveCourse_(String((payload || {}).id || &#x27;&#x27;));
+      var nk0 = RT.nurseKhoa(ctx.user, ctx.dm);
+      if (nk0 &amp;&amp; extra.course.patients[0].khoa !== nk0) throw new Error(&#x27;Bệnh nhân này thuộc khoa khác.&#x27;);
     } else if (action === &#x27;report&#x27; || action === &#x27;exportReport&#x27; || action === &#x27;findPatients&#x27; || action === &#x27;exportPatients&#x27;) {
       var p0 = payload || {};
       var data = statsData_(ctx, p0.tu, p0.den);
@@ -166,7 +168,7 @@ function api(action, payload) {
         extra.found = RT.findPatients(data, p0, who);
         if (action === &#x27;exportPatients&#x27;) extra.sheet = writePatients_(extra.found, ctx.user);
       } else {
-        extra.report = RT.report(data, p0.tu, p0.den, who, p0.chi_tiet);
+        extra.report = RT.report(data, p0.tu, p0.den, who, p0.chi_tiet, p0.pv);
         if (action === &#x27;exportReport&#x27;) extra.sheet = writeReport_(extra.report, ctx.user);
       }
     } else if (action === &#x27;getRoster&#x27;) {
@@ -360,7 +362,7 @@ function writeReport_(r, user) {
     rows.push([&#x27;&#x27;, &#x27;&#x27;, &#x27;&#x27;, &#x27;&#x27;]); rows.push([title].concat(head));
     list.forEach(function (x) { rows.push(f(x)); });
   };
-  addRows(&#x27;THEO BÁC SĨ&#x27;, [&#x27;Số BN xạ&#x27;, &#x27;Số lượt xạ&#x27;, &#x27;&#x27;], r.theo_bac_si, function (x) { return [x.ten, x.bn_xa, x.luot_xa, &#x27;&#x27;]; });
+  addRows(&#x27;THEO BÁC SĨ&#x27;, [&#x27;Số BN xạ&#x27;, &#x27;Số lượt xạ&#x27;, &#x27;BN bắt đầu / kết thúc / lượt vắng&#x27;], r.theo_bac_si, function (x) { return [x.ten, x.bn_xa, x.luot_xa, (x.bn_bat_dau || 0) + &#x27; / &#x27; + (x.bn_ket_thuc || 0) + &#x27; / &#x27; + (x.vang_luot || 0)]; });
   addRows(&#x27;THEO KTV&#x27;, [&#x27;Số BN&#x27;, &#x27;Số buổi ghi&#x27;, &#x27;&#x27;], r.theo_ktv, function (x) { return [x.ten, x.bn_xa, x.luot_xa, &#x27;&#x27;]; });
   addRows(&#x27;THEO KỸ SƯ&#x27;, [&#x27;Số kế hoạch&#x27;, &#x27;Có QA&#x27;, &#x27;&#x27;], r.theo_ky_su, function (x) { return [x.ten, x.ke_hoach, x.co_qa, &#x27;&#x27;]; });
   rows.push([&#x27;&#x27;, &#x27;&#x27;, &#x27;&#x27;, &#x27;&#x27;]); rows.push([&#x27;VẮNG BUỔI XẠ&#x27;, &#x27;Số lượt&#x27;, &#x27;&#x27;, &#x27;&#x27;]);
@@ -402,12 +404,13 @@ function fold_(s) {
 /** Tìm bệnh nhân đã chuyển sang lưu trữ (theo mã HIS, tên hoặc mã đợt): chỉ đọc trang chỉ mục nên luôn nhanh. */
 function searchArchive_(a) {
   try {
-    currentUser_();
+    var me = currentUser_();
+    var nk = me.vai_tro === &#x27;DD&#x27; ? String(me.khoa || &#x27;&#x27;) : &#x27;&#x27;;
     var q = fold_(a.q).trim();
     if (q.length &lt; 2) return { ok: true, archive: { patients: [], phases: [], fractions: [] } };
     var ss = ss_();
     var pts = readTable_(ss, SHEET_NAMES.IDX).rows.filter(function (p) {
-      return p.luu_tru === &#x27;Có&#x27; &amp;&amp; p.trang_thai !== &#x27;HUY&#x27; &amp;&amp; (fold_(p.ma_his).indexOf(q) &gt;= 0 || (p.ten_kd || fold_(p.ho_ten)).indexOf(q) &gt;= 0 || fold_(p.id).indexOf(q) &gt;= 0);
+      return p.luu_tru === &#x27;Có&#x27; &amp;&amp; p.trang_thai !== &#x27;HUY&#x27; &amp;&amp; (!nk || p.khoa === nk) &amp;&amp; (fold_(p.ma_his).indexOf(q) &gt;= 0 || (p.ten_kd || fold_(p.ho_ten)).indexOf(q) &gt;= 0 || fold_(p.id).indexOf(q) &gt;= 0);
     }).slice(0, 50).map(function (p) { p = stripRow_(p); p._idx = true; return p; });
     return { ok: true, archive: { patients: pts, phases: [], fractions: [] } };
   } catch (e) {
@@ -573,13 +576,13 @@ function writePatients_(r, user) {
   <section class="card" aria-labelledby="h-Core">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Core">Core.gs <span class="ver">· v2.6</span></h2>
+        <h2 id="h-Core">Core.gs <span class="ver">· v2.7</span></h2>
         <p>Bấm + → Script (Tập lệnh), đặt tên Core.</p>
-        <span class="size">1,257 dòng · 144 KB</span>
+        <span class="size">1,303 dòng · 147 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v2.6)</button>
+      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v2.7)</button>
     </div>
-    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v2.6
+    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v2.7
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -590,7 +593,7 @@ function writePatients_(r, user) {
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;2.6&#x27;;
+  var VERSION = &#x27;2.7&#x27;;
 
   var STATUS_ORDER = [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;];
   var STATUS = {
@@ -652,6 +655,8 @@ var RT = (function () {
   var CHUC_VU = [&#x27;KTV trưởng&#x27;, &#x27;Điều dưỡng trưởng&#x27;, &#x27;Trưởng khoa&#x27;, &#x27;Phó trưởng khoa&#x27;, &#x27;Trưởng phòng&#x27;, &#x27;Tài khoản khoa&#x27;];
   /** Chức vụ được xem thống kê theo người của cả khoa mình */
   var KHOA_STATS = [&#x27;Trưởng khoa&#x27;, &#x27;Điều dưỡng trưởng&#x27;, &#x27;Tài khoản khoa&#x27;];
+  /** Lãnh đạo khoa: thống kê và lọc theo từng bác sĩ trong khoa mình (v2.7: tài khoản khoa không còn quyền này) */
+  var KHOA_LEAD = [&#x27;Trưởng khoa&#x27;, &#x27;Điều dưỡng trưởng&#x27;];
   /** Đơn vị của nhân viên: các khoa điều trị (danh mục KHOA) + khoa không nhận bệnh nhân */
   var KHOA_KHAC = [&#x27;Vật lý xạ trị&#x27;];
   function staffKhoa(dm) { return (dm.KHOA || []).concat(KHOA_KHAC.filter(function (k) { return (dm.KHOA || []).indexOf(k) &lt; 0; })); }
@@ -1024,6 +1029,17 @@ var RT = (function () {
     return false;
   }
 
+  /** Khoa của BN đi theo khoa của bác sĩ điều trị; BS chưa ghi khoa thì dùng khoa chọn tay */
+  function doctorKhoa(users, dm, email) {
+    var u = (users || []).filter(function (x) { return x.email === email; })[0];
+    return u &amp;&amp; u.khoa &amp;&amp; ((dm || {}).KHOA || []).indexOf(u.khoa) &gt;= 0 ? u.khoa : &#x27;&#x27;;
+  }
+  function setKhoa(ctx, p) {
+    var k = doctorKhoa(ctx.users, ctx.dm, p.bs_email);
+    if (k) p.khoa = k;
+    else if (p.khoa &amp;&amp; (ctx.dm.KHOA || []).indexOf(p.khoa) &lt; 0) fail(&#x27;Khoa &quot;&#x27; + p.khoa + &#x27;&quot; không có trong danh mục khoa điều trị.&#x27;);
+  }
+
   var H = {
     createPatient: function (ctx, a) {
       var o = clean(a, EDIT_FIELDS);
@@ -1034,6 +1050,7 @@ var RT = (function () {
       if (!p.bs_email) fail(&#x27;Cần chọn bác sĩ điều trị (bác sĩ ghi trên phiếu chỉ định).&#x27;);
       var bsU = ctx.users.filter(function (u) { return u.email === p.bs_email &amp;&amp; u.kich_hoat !== &#x27;Không&#x27;; })[0];
       if (!bsU || (bsU.vai_tro !== &#x27;BS&#x27; &amp;&amp; bsU.vai_tro !== &#x27;ADMIN&#x27;)) fail(&#x27;Bác sĩ điều trị không có trong danh sách bác sĩ.&#x27;);
+      setKhoa(ctx, p);
       p.nguoi_nhap = ctx.user.email;
       if (!p.uu_tien) p.uu_tien = &#x27;Thường&#x27;;
       if (!p.igrt) p.igrt = &#x27;Không&#x27;;
@@ -1092,6 +1109,7 @@ var RT = (function () {
       var p = findP(ctx, a.id), o = clean(a, EDIT_FIELDS), merged = {};
       Object.keys(p).forEach(function (k) { merged[k] = p[k]; });
       Object.keys(o).forEach(function (k) { merged[k] = o[k]; });
+      if (o.bs_email !== undefined || o.khoa !== undefined) { setKhoa(ctx, merged); o.khoa = merged.khoa; }
       if (EARLY.indexOf(p.trang_thai) &gt;= 0) validateBasic(merged, ctx.today); else validate(merged, ctx.today);
       if (merged.icd !== (o.icd === undefined ? merged.icd : o.icd)) o.icd = merged.icd;
       if (o.icd !== undefined) o.icd = merged.icd;
@@ -1447,6 +1465,7 @@ var RT = (function () {
       }
       if (kh2 &amp;&amp; staffKhoa(ctx.dm).indexOf(kh2) &lt; 0) fail(&#x27;Khoa không có trong danh mục.&#x27;);
       if (KHOA_STATS.indexOf(cv) &gt;= 0 &amp;&amp; !kh2) fail(&#x27;Chức vụ &quot;&#x27; + cv + &#x27;&quot; cần chọn khoa.&#x27;);
+      if ((vt === &#x27;BS&#x27; || vt === &#x27;DD&#x27;) &amp;&amp; kh !== &#x27;Không&#x27; &amp;&amp; (ctx.dm.KHOA || []).indexOf(kh2) &lt; 0) fail((vt === &#x27;BS&#x27; ? &#x27;Bác sĩ&#x27; : &#x27;Điều dưỡng&#x27;) + &#x27; cần chọn khoa (&#x27; + (ctx.dm.KHOA || []).join(&#x27; / &#x27;) + &#x27;).&#x27;);
       if (cv &amp;&amp; CHUC_VU.indexOf(cv) &lt; 0) fail(&#x27;Chức vụ không hợp lệ.&#x27;);
       u.ho_ten = String(a.ho_ten).trim(); u.vai_tro = vt; u.kich_hoat = kh; u.chuc_vu = cv; u.khoa = kh2; u.tro_ly_cho = tl;
       ctx.saveUser(u);
@@ -1543,8 +1562,10 @@ var RT = (function () {
   /** Dữ liệu gửi xuống giao diện. */
   function view(ctx) {
     var cutoff = addDays(ctx.today, -60);
+    var nk = nurseKhoa(ctx.user, ctx.dm);
     var pts = ctx.patients.filter(function (p) {
       if (p.trang_thai === &#x27;HUY&#x27;) return false;
+      if (nk &amp;&amp; p.khoa !== nk) return false;
       return p.trang_thai !== &#x27;HOAN_THANH&#x27; || !p.ngay_ket_thuc || p.ngay_ket_thuc &gt;= cutoff;
     });
     var ids = {};
@@ -1570,17 +1591,28 @@ var RT = (function () {
 
 
   // ---------- Thống kê ----------
+  /** Điều dưỡng chỉ thấy BN khoa mình (chưa ghi khoa thì thấy cả hai khoa) */
+  function nurseKhoa(u, dm) { return u &amp;&amp; u.vai_tro === &#x27;DD&#x27; &amp;&amp; u.khoa &amp;&amp; ((dm || {}).KHOA || []).indexOf(u.khoa) &gt;= 0 ? u.khoa : &#x27;&#x27;; }
+  /** Được lọc / thống kê theo từng bác sĩ: quản trị, trưởng khoa, ĐD trưởng */
+  function canByDoctor(u) { var s = statsScope(u); return !!(s &amp;&amp; s.byDoctor); }
   /** Phạm vi thống kê của một người */
-  function statsScope(u) {
+  function statsScope(u, pv) {
     if (!u) return null;
-    var s = { all: false, khoa: &#x27;&#x27;, self: u.email, byDoctor: false, byKtv: false, byKs: false, label: &#x27;&#x27; };
+    var s = { all: false, khoa: &#x27;&#x27;, self: u.email, byDoctor: false, byKtv: false, byKs: false, label: &#x27;&#x27;, khoaOpt: &#x27;&#x27; };
     if (u.vai_tro === &#x27;ADMIN&#x27;) { s.all = true; s.byDoctor = s.byKtv = s.byKs = true; s.self = &#x27;&#x27;; s.label = &#x27;Cả hai khoa&#x27;; return s; }
     // Trưởng khoa / tài khoản khoa Vật lý xạ trị (vai trò kỹ sư): thống kê theo từng kỹ sư
     if (u.vai_tro === &#x27;KS&#x27; &amp;&amp; (u.chuc_vu === &#x27;Trưởng khoa&#x27; || u.chuc_vu === &#x27;Tài khoản khoa&#x27; || u.chuc_vu === &#x27;Trưởng phòng&#x27;)) { s.byKs = true; s.label = &#x27;Khoa &#x27; + (u.khoa || &#x27;Vật lý xạ trị&#x27;) + &#x27; (theo kỹ sư)&#x27;; return s; }
-    if (KHOA_STATS.indexOf(u.chuc_vu) &gt;= 0 &amp;&amp; u.khoa) { s.khoa = u.khoa; s.byDoctor = true; s.self = &#x27;&#x27;; s.label = &#x27;Khoa &#x27; + u.khoa; return s; }
+    if (KHOA_LEAD.indexOf(u.chuc_vu) &gt;= 0 &amp;&amp; u.khoa) { s.khoa = u.khoa; s.byDoctor = true; s.self = &#x27;&#x27;; s.label = &#x27;Khoa &#x27; + u.khoa; return s; }
+    if (u.chuc_vu === &#x27;Tài khoản khoa&#x27; &amp;&amp; u.khoa) { s.khoa = u.khoa; s.self = &#x27;&#x27;; s.label = &#x27;Khoa &#x27; + u.khoa; return s; }
     if (u.chuc_vu === &#x27;KTV trưởng&#x27;) { s.byKtv = true; s.label = &#x27;Nhóm KTV&#x27;; return s; }
     if (u.chuc_vu === &#x27;Trưởng phòng&#x27;) { s.byKs = true; s.label = &#x27;Nhóm kỹ sư&#x27;; return s; }
-    if (u.vai_tro === &#x27;BS&#x27; || u.vai_tro === &#x27;KTV&#x27; || u.vai_tro === &#x27;KS&#x27; || u.vai_tro === &#x27;ADMIN&#x27;) { s.label = &#x27;Của tôi&#x27;; return s; }
+    // Bác sĩ: số của mình, hoặc tổng của cả khoa mình (không chia theo từng bác sĩ)
+    if (u.vai_tro === &#x27;BS&#x27;) {
+      s.khoaOpt = u.khoa || &#x27;&#x27;;
+      if (pv === &#x27;khoa&#x27; &amp;&amp; u.khoa) { s.khoa = u.khoa; s.self = &#x27;&#x27;; s.label = &#x27;Cả khoa &#x27; + u.khoa; return s; }
+      s.label = &#x27;Của tôi&#x27;; return s;
+    }
+    if (u.vai_tro === &#x27;KTV&#x27; || u.vai_tro === &#x27;KS&#x27;) { s.label = &#x27;Của tôi&#x27;; return s; }
     if (u.vai_tro === &#x27;DD&#x27;) { if (u.khoa) { s.khoa = u.khoa; s.self = &#x27;&#x27;; s.label = &#x27;Khoa &#x27; + u.khoa; } else { s.all = true; s.self = &#x27;&#x27;; s.label = &#x27;Cả hai khoa&#x27;; } return s; }
     return null;
   }
@@ -1648,8 +1680,13 @@ var RT = (function () {
    * Tìm danh sách BN theo điều kiện. f = { tu, den, moc: xa|bat_dau|ket_thuc|nhap, icd: [..], vi_tri, ky_thuat, bs_email, khoa, muc_dich, trang_thai }
    */
   function findPatients(data, f, u) {
-    var sc = statsScope(u);
+    var sc = statsScope(u, f.pv);
     if (!sc) fail(&#x27;Tài khoản của bạn không có quyền xem thống kê.&#x27;);
+    // Bác sĩ tìm BN để nghiên cứu: trên toàn bộ BN hai khoa, lọc mọi tiêu chí trừ từng bác sĩ
+    var research = u.vai_tro === &#x27;BS&#x27; &amp;&amp; !sc.byDoctor;
+    if (research) sc = { all: true, khoa: &#x27;&#x27;, label: &#x27;Toàn bộ BN hai khoa (tìm để nghiên cứu)&#x27; };
+    if (!sc.byDoctor) f.bs_email = &#x27;&#x27;;
+    if (!sc.all) f.khoa = &#x27;&#x27;;
     var tu = f.tu, den = f.den;
     if (!isDate(tu) || !isDate(den) || tu &gt; den) fail(&#x27;Khoảng ngày không hợp lệ.&#x27;);
     if (diffDays(tu, den) &gt; 1500) fail(&#x27;Khoảng thời gian quá dài (tối đa khoảng 4 năm).&#x27;);
@@ -1678,8 +1715,8 @@ var RT = (function () {
     var luot = rows.reduce(function (s, r) { return s + r.luot_trong_ky; }, 0);
     return { tu: tu, den: den, pham_vi: sc.label, so_bn: rows.length, luot: luot, rows: rows.slice(0, 3000), cat_bot: rows.length &gt; 3000 };
   }
-  function report(data, tu, den, u, detail) {
-    var sc = statsScope(u);
+  function report(data, tu, den, u, detail, pv) {
+    var sc = statsScope(u, pv);
     if (!sc) fail(&#x27;Tài khoản của bạn không có quyền xem thống kê.&#x27;);
     if (!isDate(tu) || !isDate(den) || tu &gt; den) fail(&#x27;Khoảng ngày không hợp lệ.&#x27;);
     if (diffDays(tu, den) &gt; 400) fail(&#x27;Chỉ thống kê tối đa 400 ngày một lần.&#x27;);
@@ -1757,7 +1794,8 @@ var RT = (function () {
     vt.forEach(function (r) { r.ma = label[r.ma] || r.ma; });
     out.theo_vi_tri = vt;
     if (detail &amp;&amp; detail.loai &amp;&amp; detail.ma) {
-      var match = detail.loai === &#x27;icd&#x27; ? function (p) { return icd3(p) === detail.ma; } : function (p) { return vtKey(p) === detail.ma || (fold(p.vi_tri) || &#x27;~&#x27;) === fold(detail.ma); };
+      if (detail.loai === &#x27;bs&#x27; &amp;&amp; !sc.byDoctor &amp;&amp; myDoctors(u).indexOf(detail.ma) &lt; 0) fail(&#x27;Bạn không có quyền xem danh sách BN của bác sĩ khác.&#x27;);
+      var match = detail.loai === &#x27;bs&#x27; ? function (p) { return p.bs_email === detail.ma; } : detail.loai === &#x27;icd&#x27; ? function (p) { return icd3(p) === detail.ma; } : function (p) { return vtKey(p) === detail.ma || (fold(p.vi_tri) || &#x27;~&#x27;) === fold(detail.ma); };
       var ids = {};
       scopePts.forEach(function (p) { if (inRange(p.ngay_bat_dau) &amp;&amp; match(p)) ids[p.id] = 1; });
       Object.keys(ovIds).forEach(function (id) { if (match(P[id])) ids[id] = 1; });
@@ -1768,8 +1806,19 @@ var RT = (function () {
       }).sort(function (a, b) { return (a.ngay_bat_dau || &#x27;9&#x27;) &lt; (b.ngay_bat_dau || &#x27;9&#x27;) ? -1 : 1; });
     }
     // Theo bác sĩ: trưởng khoa / ĐD trưởng / tài khoản khoa / quản trị thấy cả khoa; bác sĩ chỉ thấy dòng của mình
-    if (sc.byDoctor) out.theo_bac_si = rows(function (f) { return P[f.bn_id].bs_email; }, function (f) { return inKhoa(P[f.bn_id]); });
-    else if (u.vai_tro === &#x27;BS&#x27;) out.theo_bac_si = rows(function (f) { return P[f.bn_id].bs_email; }, function (f, k) { return myDoctors(u).indexOf(k) &gt;= 0; });
+    if (sc.byDoctor || u.vai_tro === &#x27;BS&#x27;) {
+      var okBs = sc.byDoctor ? function () { return true; } : function (k) { return myDoctors(u).indexOf(k) &gt;= 0; };
+      var bsRows = rows(function (f) { return P[f.bn_id].bs_email; }, function (f, k) { return inKhoa(P[f.bn_id]) &amp;&amp; okBs(k); });
+      var bsMap = {}; bsRows.forEach(function (x) { x.bn_bat_dau = 0; x.bn_ket_thuc = 0; x.vang_luot = 0; bsMap[x.email] = x; });
+      var bsRow = function (k) { return bsMap[k] || (bsMap[k] = bsRows[bsRows.push({ email: k, ten: name0(k), luot_xa: 0, bn_xa: 0, bn_bat_dau: 0, bn_ket_thuc: 0, vang_luot: 0 }) - 1]); };
+      ovPts.forEach(function (p) {
+        if (!p.bs_email || !okBs(p.bs_email)) return;
+        if (inRange(p.ngay_bat_dau)) bsRow(p.bs_email).bn_bat_dau++;
+        if (p.trang_thai === &#x27;HOAN_THANH&#x27; &amp;&amp; inRange(p.ngay_ket_thuc)) bsRow(p.bs_email).bn_ket_thuc++;
+      });
+      sm.vang.forEach(function (v) { var p = P[v.bn_id]; if (p &amp;&amp; p.bs_email &amp;&amp; okBs(p.bs_email) &amp;&amp; inKhoa(p)) bsRow(p.bs_email).vang_luot++; });
+      out.theo_bac_si = bsRows.sort(function (a, b) { return b.luot_xa - a.luot_xa || b.bn_bat_dau - a.bn_bat_dau; });
+    }
     if (sc.byKtv) out.theo_ktv = rows(function (f) { return f.ktv_email; });
     else if (u.vai_tro === &#x27;KTV&#x27;) out.theo_ktv = rows(function (f) { return f.ktv_email; }, function (f, k) { return k === u.email; });
     if (sc.byKs || u.vai_tro === &#x27;KS&#x27;) {
@@ -1821,7 +1870,7 @@ var RT = (function () {
   }
 
   return {
-    VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, report: report, staffKhoa: staffKhoa, myDoctors: myDoctors,
+    VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, nurseKhoa: nurseKhoa, canByDoctor: canByDoctor, doctorKhoa: doctorKhoa, report: report, staffKhoa: staffKhoa, myDoctors: myDoctors,
     normIcd: normIcd, isIcd: isIcd, icdName: icdName, summary: summary, findPatients: findPatients, scopePatients: scopePatients, fold: fold, indexRow: indexRow, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
@@ -1840,14 +1889,14 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
   <section class="card" aria-labelledby="h-Index">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Index">Index.html <span class="ver">· v2.6</span></h2>
+        <h2 id="h-Index">Index.html <span class="ver">· v2.7</span></h2>
         <p>Bấm + → HTML, đặt tên Index (chữ I hoa).</p>
-        <span class="size">3,709 dòng · 356 KB</span>
+        <span class="size">3,800 dòng · 365 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v2.6)</button>
+      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v2.7)</button>
     </div>
     <textarea id="t-Index" readonly spellcheck="false" aria-label="Nội dung Index.html">&lt;!DOCTYPE html&gt;
-&lt;!-- Điều phối Xạ trị · phiên bản v2.6 --&gt;
+&lt;!-- Điều phối Xạ trị · phiên bản v2.7 --&gt;
 &lt;html lang=&quot;vi&quot;&gt;
 &lt;head&gt;
 &lt;base target=&quot;_top&quot;&gt;
@@ -2305,7 +2354,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;2.6&#x27;;
+  var VERSION = &#x27;2.7&#x27;;
 
   var STATUS_ORDER = [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;];
   var STATUS = {
@@ -2367,6 +2416,8 @@ var RT = (function () {
   var CHUC_VU = [&#x27;KTV trưởng&#x27;, &#x27;Điều dưỡng trưởng&#x27;, &#x27;Trưởng khoa&#x27;, &#x27;Phó trưởng khoa&#x27;, &#x27;Trưởng phòng&#x27;, &#x27;Tài khoản khoa&#x27;];
   /** Chức vụ được xem thống kê theo người của cả khoa mình */
   var KHOA_STATS = [&#x27;Trưởng khoa&#x27;, &#x27;Điều dưỡng trưởng&#x27;, &#x27;Tài khoản khoa&#x27;];
+  /** Lãnh đạo khoa: thống kê và lọc theo từng bác sĩ trong khoa mình (v2.7: tài khoản khoa không còn quyền này) */
+  var KHOA_LEAD = [&#x27;Trưởng khoa&#x27;, &#x27;Điều dưỡng trưởng&#x27;];
   /** Đơn vị của nhân viên: các khoa điều trị (danh mục KHOA) + khoa không nhận bệnh nhân */
   var KHOA_KHAC = [&#x27;Vật lý xạ trị&#x27;];
   function staffKhoa(dm) { return (dm.KHOA || []).concat(KHOA_KHAC.filter(function (k) { return (dm.KHOA || []).indexOf(k) &lt; 0; })); }
@@ -2739,6 +2790,17 @@ var RT = (function () {
     return false;
   }
 
+  /** Khoa của BN đi theo khoa của bác sĩ điều trị; BS chưa ghi khoa thì dùng khoa chọn tay */
+  function doctorKhoa(users, dm, email) {
+    var u = (users || []).filter(function (x) { return x.email === email; })[0];
+    return u &amp;&amp; u.khoa &amp;&amp; ((dm || {}).KHOA || []).indexOf(u.khoa) &gt;= 0 ? u.khoa : &#x27;&#x27;;
+  }
+  function setKhoa(ctx, p) {
+    var k = doctorKhoa(ctx.users, ctx.dm, p.bs_email);
+    if (k) p.khoa = k;
+    else if (p.khoa &amp;&amp; (ctx.dm.KHOA || []).indexOf(p.khoa) &lt; 0) fail(&#x27;Khoa &quot;&#x27; + p.khoa + &#x27;&quot; không có trong danh mục khoa điều trị.&#x27;);
+  }
+
   var H = {
     createPatient: function (ctx, a) {
       var o = clean(a, EDIT_FIELDS);
@@ -2749,6 +2811,7 @@ var RT = (function () {
       if (!p.bs_email) fail(&#x27;Cần chọn bác sĩ điều trị (bác sĩ ghi trên phiếu chỉ định).&#x27;);
       var bsU = ctx.users.filter(function (u) { return u.email === p.bs_email &amp;&amp; u.kich_hoat !== &#x27;Không&#x27;; })[0];
       if (!bsU || (bsU.vai_tro !== &#x27;BS&#x27; &amp;&amp; bsU.vai_tro !== &#x27;ADMIN&#x27;)) fail(&#x27;Bác sĩ điều trị không có trong danh sách bác sĩ.&#x27;);
+      setKhoa(ctx, p);
       p.nguoi_nhap = ctx.user.email;
       if (!p.uu_tien) p.uu_tien = &#x27;Thường&#x27;;
       if (!p.igrt) p.igrt = &#x27;Không&#x27;;
@@ -2807,6 +2870,7 @@ var RT = (function () {
       var p = findP(ctx, a.id), o = clean(a, EDIT_FIELDS), merged = {};
       Object.keys(p).forEach(function (k) { merged[k] = p[k]; });
       Object.keys(o).forEach(function (k) { merged[k] = o[k]; });
+      if (o.bs_email !== undefined || o.khoa !== undefined) { setKhoa(ctx, merged); o.khoa = merged.khoa; }
       if (EARLY.indexOf(p.trang_thai) &gt;= 0) validateBasic(merged, ctx.today); else validate(merged, ctx.today);
       if (merged.icd !== (o.icd === undefined ? merged.icd : o.icd)) o.icd = merged.icd;
       if (o.icd !== undefined) o.icd = merged.icd;
@@ -3162,6 +3226,7 @@ var RT = (function () {
       }
       if (kh2 &amp;&amp; staffKhoa(ctx.dm).indexOf(kh2) &lt; 0) fail(&#x27;Khoa không có trong danh mục.&#x27;);
       if (KHOA_STATS.indexOf(cv) &gt;= 0 &amp;&amp; !kh2) fail(&#x27;Chức vụ &quot;&#x27; + cv + &#x27;&quot; cần chọn khoa.&#x27;);
+      if ((vt === &#x27;BS&#x27; || vt === &#x27;DD&#x27;) &amp;&amp; kh !== &#x27;Không&#x27; &amp;&amp; (ctx.dm.KHOA || []).indexOf(kh2) &lt; 0) fail((vt === &#x27;BS&#x27; ? &#x27;Bác sĩ&#x27; : &#x27;Điều dưỡng&#x27;) + &#x27; cần chọn khoa (&#x27; + (ctx.dm.KHOA || []).join(&#x27; / &#x27;) + &#x27;).&#x27;);
       if (cv &amp;&amp; CHUC_VU.indexOf(cv) &lt; 0) fail(&#x27;Chức vụ không hợp lệ.&#x27;);
       u.ho_ten = String(a.ho_ten).trim(); u.vai_tro = vt; u.kich_hoat = kh; u.chuc_vu = cv; u.khoa = kh2; u.tro_ly_cho = tl;
       ctx.saveUser(u);
@@ -3258,8 +3323,10 @@ var RT = (function () {
   /** Dữ liệu gửi xuống giao diện. */
   function view(ctx) {
     var cutoff = addDays(ctx.today, -60);
+    var nk = nurseKhoa(ctx.user, ctx.dm);
     var pts = ctx.patients.filter(function (p) {
       if (p.trang_thai === &#x27;HUY&#x27;) return false;
+      if (nk &amp;&amp; p.khoa !== nk) return false;
       return p.trang_thai !== &#x27;HOAN_THANH&#x27; || !p.ngay_ket_thuc || p.ngay_ket_thuc &gt;= cutoff;
     });
     var ids = {};
@@ -3285,17 +3352,28 @@ var RT = (function () {
 
 
   // ---------- Thống kê ----------
+  /** Điều dưỡng chỉ thấy BN khoa mình (chưa ghi khoa thì thấy cả hai khoa) */
+  function nurseKhoa(u, dm) { return u &amp;&amp; u.vai_tro === &#x27;DD&#x27; &amp;&amp; u.khoa &amp;&amp; ((dm || {}).KHOA || []).indexOf(u.khoa) &gt;= 0 ? u.khoa : &#x27;&#x27;; }
+  /** Được lọc / thống kê theo từng bác sĩ: quản trị, trưởng khoa, ĐD trưởng */
+  function canByDoctor(u) { var s = statsScope(u); return !!(s &amp;&amp; s.byDoctor); }
   /** Phạm vi thống kê của một người */
-  function statsScope(u) {
+  function statsScope(u, pv) {
     if (!u) return null;
-    var s = { all: false, khoa: &#x27;&#x27;, self: u.email, byDoctor: false, byKtv: false, byKs: false, label: &#x27;&#x27; };
+    var s = { all: false, khoa: &#x27;&#x27;, self: u.email, byDoctor: false, byKtv: false, byKs: false, label: &#x27;&#x27;, khoaOpt: &#x27;&#x27; };
     if (u.vai_tro === &#x27;ADMIN&#x27;) { s.all = true; s.byDoctor = s.byKtv = s.byKs = true; s.self = &#x27;&#x27;; s.label = &#x27;Cả hai khoa&#x27;; return s; }
     // Trưởng khoa / tài khoản khoa Vật lý xạ trị (vai trò kỹ sư): thống kê theo từng kỹ sư
     if (u.vai_tro === &#x27;KS&#x27; &amp;&amp; (u.chuc_vu === &#x27;Trưởng khoa&#x27; || u.chuc_vu === &#x27;Tài khoản khoa&#x27; || u.chuc_vu === &#x27;Trưởng phòng&#x27;)) { s.byKs = true; s.label = &#x27;Khoa &#x27; + (u.khoa || &#x27;Vật lý xạ trị&#x27;) + &#x27; (theo kỹ sư)&#x27;; return s; }
-    if (KHOA_STATS.indexOf(u.chuc_vu) &gt;= 0 &amp;&amp; u.khoa) { s.khoa = u.khoa; s.byDoctor = true; s.self = &#x27;&#x27;; s.label = &#x27;Khoa &#x27; + u.khoa; return s; }
+    if (KHOA_LEAD.indexOf(u.chuc_vu) &gt;= 0 &amp;&amp; u.khoa) { s.khoa = u.khoa; s.byDoctor = true; s.self = &#x27;&#x27;; s.label = &#x27;Khoa &#x27; + u.khoa; return s; }
+    if (u.chuc_vu === &#x27;Tài khoản khoa&#x27; &amp;&amp; u.khoa) { s.khoa = u.khoa; s.self = &#x27;&#x27;; s.label = &#x27;Khoa &#x27; + u.khoa; return s; }
     if (u.chuc_vu === &#x27;KTV trưởng&#x27;) { s.byKtv = true; s.label = &#x27;Nhóm KTV&#x27;; return s; }
     if (u.chuc_vu === &#x27;Trưởng phòng&#x27;) { s.byKs = true; s.label = &#x27;Nhóm kỹ sư&#x27;; return s; }
-    if (u.vai_tro === &#x27;BS&#x27; || u.vai_tro === &#x27;KTV&#x27; || u.vai_tro === &#x27;KS&#x27; || u.vai_tro === &#x27;ADMIN&#x27;) { s.label = &#x27;Của tôi&#x27;; return s; }
+    // Bác sĩ: số của mình, hoặc tổng của cả khoa mình (không chia theo từng bác sĩ)
+    if (u.vai_tro === &#x27;BS&#x27;) {
+      s.khoaOpt = u.khoa || &#x27;&#x27;;
+      if (pv === &#x27;khoa&#x27; &amp;&amp; u.khoa) { s.khoa = u.khoa; s.self = &#x27;&#x27;; s.label = &#x27;Cả khoa &#x27; + u.khoa; return s; }
+      s.label = &#x27;Của tôi&#x27;; return s;
+    }
+    if (u.vai_tro === &#x27;KTV&#x27; || u.vai_tro === &#x27;KS&#x27;) { s.label = &#x27;Của tôi&#x27;; return s; }
     if (u.vai_tro === &#x27;DD&#x27;) { if (u.khoa) { s.khoa = u.khoa; s.self = &#x27;&#x27;; s.label = &#x27;Khoa &#x27; + u.khoa; } else { s.all = true; s.self = &#x27;&#x27;; s.label = &#x27;Cả hai khoa&#x27;; } return s; }
     return null;
   }
@@ -3363,8 +3441,13 @@ var RT = (function () {
    * Tìm danh sách BN theo điều kiện. f = { tu, den, moc: xa|bat_dau|ket_thuc|nhap, icd: [..], vi_tri, ky_thuat, bs_email, khoa, muc_dich, trang_thai }
    */
   function findPatients(data, f, u) {
-    var sc = statsScope(u);
+    var sc = statsScope(u, f.pv);
     if (!sc) fail(&#x27;Tài khoản của bạn không có quyền xem thống kê.&#x27;);
+    // Bác sĩ tìm BN để nghiên cứu: trên toàn bộ BN hai khoa, lọc mọi tiêu chí trừ từng bác sĩ
+    var research = u.vai_tro === &#x27;BS&#x27; &amp;&amp; !sc.byDoctor;
+    if (research) sc = { all: true, khoa: &#x27;&#x27;, label: &#x27;Toàn bộ BN hai khoa (tìm để nghiên cứu)&#x27; };
+    if (!sc.byDoctor) f.bs_email = &#x27;&#x27;;
+    if (!sc.all) f.khoa = &#x27;&#x27;;
     var tu = f.tu, den = f.den;
     if (!isDate(tu) || !isDate(den) || tu &gt; den) fail(&#x27;Khoảng ngày không hợp lệ.&#x27;);
     if (diffDays(tu, den) &gt; 1500) fail(&#x27;Khoảng thời gian quá dài (tối đa khoảng 4 năm).&#x27;);
@@ -3393,8 +3476,8 @@ var RT = (function () {
     var luot = rows.reduce(function (s, r) { return s + r.luot_trong_ky; }, 0);
     return { tu: tu, den: den, pham_vi: sc.label, so_bn: rows.length, luot: luot, rows: rows.slice(0, 3000), cat_bot: rows.length &gt; 3000 };
   }
-  function report(data, tu, den, u, detail) {
-    var sc = statsScope(u);
+  function report(data, tu, den, u, detail, pv) {
+    var sc = statsScope(u, pv);
     if (!sc) fail(&#x27;Tài khoản của bạn không có quyền xem thống kê.&#x27;);
     if (!isDate(tu) || !isDate(den) || tu &gt; den) fail(&#x27;Khoảng ngày không hợp lệ.&#x27;);
     if (diffDays(tu, den) &gt; 400) fail(&#x27;Chỉ thống kê tối đa 400 ngày một lần.&#x27;);
@@ -3472,7 +3555,8 @@ var RT = (function () {
     vt.forEach(function (r) { r.ma = label[r.ma] || r.ma; });
     out.theo_vi_tri = vt;
     if (detail &amp;&amp; detail.loai &amp;&amp; detail.ma) {
-      var match = detail.loai === &#x27;icd&#x27; ? function (p) { return icd3(p) === detail.ma; } : function (p) { return vtKey(p) === detail.ma || (fold(p.vi_tri) || &#x27;~&#x27;) === fold(detail.ma); };
+      if (detail.loai === &#x27;bs&#x27; &amp;&amp; !sc.byDoctor &amp;&amp; myDoctors(u).indexOf(detail.ma) &lt; 0) fail(&#x27;Bạn không có quyền xem danh sách BN của bác sĩ khác.&#x27;);
+      var match = detail.loai === &#x27;bs&#x27; ? function (p) { return p.bs_email === detail.ma; } : detail.loai === &#x27;icd&#x27; ? function (p) { return icd3(p) === detail.ma; } : function (p) { return vtKey(p) === detail.ma || (fold(p.vi_tri) || &#x27;~&#x27;) === fold(detail.ma); };
       var ids = {};
       scopePts.forEach(function (p) { if (inRange(p.ngay_bat_dau) &amp;&amp; match(p)) ids[p.id] = 1; });
       Object.keys(ovIds).forEach(function (id) { if (match(P[id])) ids[id] = 1; });
@@ -3483,8 +3567,19 @@ var RT = (function () {
       }).sort(function (a, b) { return (a.ngay_bat_dau || &#x27;9&#x27;) &lt; (b.ngay_bat_dau || &#x27;9&#x27;) ? -1 : 1; });
     }
     // Theo bác sĩ: trưởng khoa / ĐD trưởng / tài khoản khoa / quản trị thấy cả khoa; bác sĩ chỉ thấy dòng của mình
-    if (sc.byDoctor) out.theo_bac_si = rows(function (f) { return P[f.bn_id].bs_email; }, function (f) { return inKhoa(P[f.bn_id]); });
-    else if (u.vai_tro === &#x27;BS&#x27;) out.theo_bac_si = rows(function (f) { return P[f.bn_id].bs_email; }, function (f, k) { return myDoctors(u).indexOf(k) &gt;= 0; });
+    if (sc.byDoctor || u.vai_tro === &#x27;BS&#x27;) {
+      var okBs = sc.byDoctor ? function () { return true; } : function (k) { return myDoctors(u).indexOf(k) &gt;= 0; };
+      var bsRows = rows(function (f) { return P[f.bn_id].bs_email; }, function (f, k) { return inKhoa(P[f.bn_id]) &amp;&amp; okBs(k); });
+      var bsMap = {}; bsRows.forEach(function (x) { x.bn_bat_dau = 0; x.bn_ket_thuc = 0; x.vang_luot = 0; bsMap[x.email] = x; });
+      var bsRow = function (k) { return bsMap[k] || (bsMap[k] = bsRows[bsRows.push({ email: k, ten: name0(k), luot_xa: 0, bn_xa: 0, bn_bat_dau: 0, bn_ket_thuc: 0, vang_luot: 0 }) - 1]); };
+      ovPts.forEach(function (p) {
+        if (!p.bs_email || !okBs(p.bs_email)) return;
+        if (inRange(p.ngay_bat_dau)) bsRow(p.bs_email).bn_bat_dau++;
+        if (p.trang_thai === &#x27;HOAN_THANH&#x27; &amp;&amp; inRange(p.ngay_ket_thuc)) bsRow(p.bs_email).bn_ket_thuc++;
+      });
+      sm.vang.forEach(function (v) { var p = P[v.bn_id]; if (p &amp;&amp; p.bs_email &amp;&amp; okBs(p.bs_email) &amp;&amp; inKhoa(p)) bsRow(p.bs_email).vang_luot++; });
+      out.theo_bac_si = bsRows.sort(function (a, b) { return b.luot_xa - a.luot_xa || b.bn_bat_dau - a.bn_bat_dau; });
+    }
     if (sc.byKtv) out.theo_ktv = rows(function (f) { return f.ktv_email; });
     else if (u.vai_tro === &#x27;KTV&#x27;) out.theo_ktv = rows(function (f) { return f.ktv_email; }, function (f, k) { return k === u.email; });
     if (sc.byKs || u.vai_tro === &#x27;KS&#x27;) {
@@ -3536,7 +3631,7 @@ var RT = (function () {
   }
 
   return {
-    VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, report: report, staffKhoa: staffKhoa, myDoctors: myDoctors,
+    VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, nurseKhoa: nurseKhoa, canByDoctor: canByDoctor, doctorKhoa: doctorKhoa, report: report, staffKhoa: staffKhoa, myDoctors: myDoctors,
     normIcd: normIcd, isIcd: isIcd, icdName: icdName, summary: summary, findPatients: findPatients, scopePatients: scopePatients, fold: fold, indexRow: indexRow, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
@@ -3634,7 +3729,15 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     if (n === 99) return &#x27;&#x27;;
     return &#x27;&lt;span class=&quot;flag&#x27; + (n &lt;= 3 ? &#x27; crit&#x27; : &#x27;&#x27;) + &#x27;&quot;&gt;&#x27; + (n === 0 ? &#x27;BN đang chờ boost!&#x27; : &#x27;GĐ trước còn &#x27; + n + &#x27; buổi&#x27;) + &#x27;&lt;/span&gt;&#x27;;
   }
-  function pts() { return S.data.patients; }
+  function pts() {
+    var nk = RT.nurseKhoa(me(), S.data.dm);
+    if (!nk) return S.data.patients;
+    if (S.ptsSrc !== S.data.patients || S.ptsKhoa !== nk) { S.ptsSrc = S.data.patients; S.ptsKhoa = nk; S.ptsNk = S.data.patients.filter(function (p) { return p.khoa === nk; }); }
+    return S.ptsNk;
+  }
+  /** Ô chọn khoa: điều dưỡng chỉ có khoa mình nên không hiện */
+  function khoaFilterOn() { return S.data.dm.KHOA.length &gt; 1 &amp;&amp; !RT.nurseKhoa(me(), S.data.dm); }
+  function byDoctorOn() { return RT.canByDoctor(me()); }
   function byId(id) {
     var p = pts().filter(function (x) { return x.id === id; })[0];
     if (p) return p;
@@ -3841,7 +3944,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     var d = S.data, tabs = (ROLE_TABS[role()] || [&#x27;all&#x27;]).slice();
     if (RT.statsScope(me())) tabs.splice(tabs.indexOf(&#x27;admin&#x27;) &gt;= 0 ? tabs.indexOf(&#x27;admin&#x27;) : tabs.length, 0, &#x27;stats&#x27;);
     if (isLead() &amp;&amp; role() !== &#x27;ADMIN&#x27;) tabs.push(&#x27;log&#x27;);
-    if (S.role !== me().email) { S.role = me().email; S.scope = isDoctor(me()) ? &#x27;mine&#x27; : &#x27;all&#x27;; S.stRes = null; S.found = null; S.log = null; S.fKhoa = null; S.fBs = &#x27;&#x27;; }
+    if (S.role !== me().email) { S.role = me().email; S.scope = isDoctor(me()) ? &#x27;mine&#x27; : &#x27;all&#x27;; S.stRes = null; S.found = null; S.log = null; S.fKhoa = null; S.fBs = &#x27;&#x27;; S.stPv = &#x27;&#x27;; S.itemsCache = null; }
     if (tabs.indexOf(S.tab) &lt; 0) S.tab = role() === &#x27;KTV&#x27; ? &#x27;tx&#x27; : tabs[0];  // KTV gắn với máy và ca: mở thẳng Xạ hôm nay
     var who;
     if (window.DEMO) {
@@ -3987,7 +4090,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     g.tx.sort(function (a, b) { return (course(b).missed.length - course(a).missed.length) || (course(a).end &lt; course(b).end ? -1 : 1); });
     var doneSoon = list.filter(function (p) { return p.trang_thai === &#x27;DANG_XA&#x27; &amp;&amp; course(p).end &amp;&amp; RT.diffDays(today(), course(p).end) &lt;= 6; }).length;
 
-    var khoaSel = scope === &#x27;all&#x27; &amp;&amp; !sub &amp;&amp; S.data.dm.KHOA.length &gt; 1 ? &#x27;&lt;select data-filter=&quot;fKhoa&quot; aria-label=&quot;Lọc theo khoa&quot;&gt;&#x27; + opts(S.data.dm.KHOA, S.fKhoa, &#x27;Cả hai khoa&#x27;) + &#x27;&lt;/select&gt;&#x27; : &#x27;&#x27;;
+    var khoaSel = scope === &#x27;all&#x27; &amp;&amp; !sub &amp;&amp; khoaFilterOn() ? &#x27;&lt;select data-filter=&quot;fKhoa&quot; aria-label=&quot;Lọc theo khoa&quot;&gt;&#x27; + opts(S.data.dm.KHOA, S.fKhoa, &#x27;Cả hai khoa&#x27;) + &#x27;&lt;/select&gt;&#x27; : &#x27;&#x27;;
     var html = sub ? &#x27;&lt;div class=&quot;page-head sub&quot;&gt;&lt;div&gt;&lt;h2 class=&quot;h1-sub&quot;&gt;Bệnh nhân theo từng bước&lt;/h2&gt;&lt;/div&gt;&lt;/div&gt;&#x27; : &#x27;&lt;div class=&quot;page-head&quot;&gt;&lt;div&gt;&lt;h1&gt;&#x27; + (scope === &#x27;all&#x27; ? (role() === &#x27;DD&#x27; ? &#x27;Tổng quan &#x27; + esc(S.fKhoa ? &#x27;khoa &#x27; + S.fKhoa : &#x27;hai khoa&#x27;) : &#x27;Toàn bộ bệnh nhân&#x27; + (S.fKhoa ? &#x27; · &#x27; + esc(S.fKhoa) : &#x27;&#x27;)) : &#x27;Bệnh nhân của &#x27; + esc(me().ho_ten) + (me().tro_ly_cho ? &#x27; và &#x27; + esc(nameOf(me().tro_ly_cho)) + &#x27; &lt;span class=&quot;tag&quot;&gt;Trợ lý&lt;/span&gt;&#x27; : &#x27;&#x27;)) + &#x27;&lt;/h1&gt;&#x27; +
       &#x27;&lt;p&gt;&#x27; + fdw(today()) + &#x27;/&#x27; + today().slice(0, 4) + &#x27; · &#x27; + list.filter(function (p) { return p.trang_thai !== &#x27;HOAN_THANH&#x27;; }).length + &#x27; bệnh nhân đang trong quy trình&lt;/p&gt;&lt;/div&gt;&#x27; +
       &#x27;&lt;div class=&quot;filters&quot;&gt;&#x27; + khoaSel + (isBs ? &#x27;&lt;div class=&quot;seg&quot; role=&quot;group&quot; aria-label=&quot;Phạm vi&quot;&gt;&lt;button data-scope=&quot;mine&quot; aria-pressed=&quot;&#x27; + (scope === &#x27;mine&#x27;) + &#x27;&quot;&gt;Của tôi&lt;/button&gt;&lt;button data-scope=&quot;all&quot; aria-pressed=&quot;&#x27; + (scope === &#x27;all&#x27;) + &#x27;&quot;&gt;Cả khoa&lt;/button&gt;&lt;/div&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/div&gt;&lt;/div&gt;&#x27;;
@@ -4065,7 +4168,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     techs = techs.filter(function (k) { return sums.some(function (x) { return x.ky_thuat[k]; }); });
     var cell = function (i, key, n) { return &#x27;&lt;td class=&quot;num&quot;&gt;&#x27; + (n &amp;&amp; key ? &#x27;&lt;button class=&quot;lnk&quot; data-nlist=&quot;&#x27; + i + &#x27;|&#x27; + key + &#x27;&quot;&gt;&#x27; + n + &#x27;&lt;/button&gt;&#x27; : (n || &#x27;&lt;span class=&quot;muted&quot;&gt;0&lt;/span&gt;&#x27;)) + &#x27;&lt;/td&gt;&#x27;; };
     var row = function (label, f, key, cls) { return &#x27;&lt;tr class=&quot;&#x27; + (cls || &#x27;&#x27;) + &#x27;&quot;&gt;&lt;td&gt;&#x27; + label + &#x27;&lt;/td&gt;&#x27; + sums.map(function (x, i) { return cell(i, key, f(x)); }).join(&#x27;&#x27;) + &#x27;&lt;/tr&gt;&#x27;; };
-    var khoaSel = S.data.dm.KHOA.length &gt; 1 ? &#x27;&lt;select data-filter=&quot;fKhoa&quot; aria-label=&quot;Lọc theo khoa&quot;&gt;&#x27; + opts(S.data.dm.KHOA, S.fKhoa, &#x27;Cả hai khoa&#x27;) + &#x27;&lt;/select&gt;&#x27; : &#x27;&#x27;;
+    var khoaSel = khoaFilterOn() ? &#x27;&lt;select data-filter=&quot;fKhoa&quot; aria-label=&quot;Lọc theo khoa&quot;&gt;&#x27; + opts(S.data.dm.KHOA, S.fKhoa, &#x27;Cả hai khoa&#x27;) + &#x27;&lt;/select&gt;&#x27; : &#x27;&#x27;;
     var html = &#x27;&lt;div class=&quot;page-head&quot;&gt;&lt;div&gt;&lt;h1&gt;Tổng quan &#x27; + esc(S.fKhoa ? &#x27;khoa &#x27; + S.fKhoa : &#x27;hai khoa&#x27;) + &#x27;&lt;/h1&gt;&lt;p&gt;&#x27; + fdw(t) + &#x27;/&#x27; + t.slice(0, 4) + &#x27; · Bấm vào con số để xem danh sách bệnh nhân.&lt;/p&gt;&lt;/div&gt;&lt;div class=&quot;filters&quot;&gt;&#x27; + khoaSel + &#x27;&lt;/div&gt;&lt;/div&gt;&#x27;;
     var now = { tx: list.filter(function (p) { return p.trang_thai === &#x27;DANG_XA&#x27;; }), pause: list.filter(function (p) { return p.trang_thai === &#x27;TAM_NGUNG&#x27;; }), wait: list.filter(function (p) { return p.trang_thai === &#x27;CHO_XA&#x27;; }) };
     S.nurseNow = now;
@@ -4120,11 +4223,12 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
       onMount: function (f) { $$(&#x27;[data-openp]&#x27;, f).forEach(function (b) { b.onclick = function () { closeModal(); openDetail(b.dataset.openp); }; }); }, onOk: function () {} });
   }
   function bsFilter(list) {
-    var docs = doctors();
-    var f = S.fBs === &#x27;mine&#x27; ? RT.myDoctors(me()) : S.fBs ? [S.fBs] : null;
+    var on = byDoctorOn(), docs = on ? doctors() : [];
+    var f = S.fBs === &#x27;mine&#x27; &amp;&amp; isDoctor(me()) ? RT.myDoctors(me()) : S.fBs &amp;&amp; on ? [S.fBs] : null;
+    var choices = (isDoctor(me()) ? [{ v: &#x27;mine&#x27;, l: &#x27;BN của tôi&#x27; }] : []).concat(docs.map(function (u) { return { v: u.email, l: u.ho_ten }; }));
     return {
       list: f ? list.filter(function (p) { return f.indexOf(p.bs_email) &gt;= 0; }) : list,
-      ui: &#x27;&lt;select data-filter=&quot;fBs&quot; aria-label=&quot;Lọc theo bác sĩ&quot;&gt;&#x27; + opts((isDoctor(me()) ? [{ v: &#x27;mine&#x27;, l: &#x27;BN của tôi&#x27; }] : []).concat(docs.map(function (u) { return { v: u.email, l: u.ho_ten }; })), S.fBs, &#x27;Tất cả bác sĩ&#x27;) + &#x27;&lt;/select&gt;&#x27;
+      ui: choices.length ? &#x27;&lt;select data-filter=&quot;fBs&quot; aria-label=&quot;Lọc theo bác sĩ&quot;&gt;&#x27; + opts(choices, S.fBs, &#x27;Tất cả bác sĩ&#x27;) + &#x27;&lt;/select&gt;&#x27; : &#x27;&#x27;
     };
   }
   function stepHead(title, desc, filterUi) {
@@ -4432,19 +4536,19 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
 
   // ---------- Tất cả ----------
   function renderAll() {
-    var q = fold(S.q);
+    var q = fold(S.q), bsOn = byDoctorOn();
     var list = pts().filter(function (p) {
       if (q &amp;&amp; fold(p.ho_ten).indexOf(q) &lt; 0 &amp;&amp; fold(p.ma_his).indexOf(q) &lt; 0 &amp;&amp; fold(p.id).indexOf(q) &lt; 0) return false;
       if (S.fStatus &amp;&amp; p.trang_thai !== S.fStatus) return false;
-      if (S.fBs &amp;&amp; p.bs_email !== S.fBs) return false;
+      if (bsOn &amp;&amp; S.fBs &amp;&amp; p.bs_email !== S.fBs) return false;
       if (S.fKhoa &amp;&amp; p.khoa !== S.fKhoa) return false;
       return true;
     }).sort(function (a, b) { return RT.STATUS_ORDER.indexOf(a.trang_thai) - RT.STATUS_ORDER.indexOf(b.trang_thai) || a.ho_ten.localeCompare(b.ho_ten, &#x27;vi&#x27;); });
     var bsList = doctors().map(function (u) { return { v: u.email, l: u.ho_ten }; });
     var html = &#x27;&lt;div class=&quot;page-head&quot;&gt;&lt;div&gt;&lt;h1&gt;Tất cả bệnh nhân&lt;/h1&gt;&lt;p&gt;&#x27; + list.length + &#x27; kết quả&#x27; + (S.q ? &#x27; cho “&#x27; + esc(S.q) + &#x27;”&#x27; : &#x27;&#x27;) + &#x27;. Gồm BN đang trong quy trình và BN kết thúc xạ trong 60 ngày qua.&lt;/p&gt;&lt;/div&gt;&#x27; +
       &#x27;&lt;div class=&quot;filters&quot;&gt;&lt;select data-filter=&quot;fStatus&quot; aria-label=&quot;Lọc trạng thái&quot;&gt;&#x27; + opts(RT.STATUS_ORDER.map(function (s) { return { v: s, l: RT.STATUS[s] }; }), S.fStatus, &#x27;Mọi trạng thái&#x27;) + &#x27;&lt;/select&gt;&#x27; +
-      &#x27;&lt;select data-filter=&quot;fBs&quot; aria-label=&quot;Lọc bác sĩ&quot;&gt;&#x27; + opts(bsList, S.fBs, &#x27;Mọi bác sĩ&#x27;) + &#x27;&lt;/select&gt;&#x27; +
-      (S.data.dm.KHOA.length &gt; 1 ? &#x27;&lt;select data-filter=&quot;fKhoa&quot; aria-label=&quot;Lọc khoa&quot;&gt;&#x27; + opts(S.data.dm.KHOA, S.fKhoa, &#x27;Mọi khoa&#x27;) + &#x27;&lt;/select&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/div&gt;&lt;/div&gt;&#x27;;
+      (bsOn ? &#x27;&lt;select data-filter=&quot;fBs&quot; aria-label=&quot;Lọc bác sĩ&quot;&gt;&#x27; + opts(bsList, S.fBs, &#x27;Mọi bác sĩ&#x27;) + &#x27;&lt;/select&gt;&#x27; : &#x27;&#x27;) +
+      (khoaFilterOn() ? &#x27;&lt;select data-filter=&quot;fKhoa&quot; aria-label=&quot;Lọc khoa&quot;&gt;&#x27; + opts(S.data.dm.KHOA, S.fKhoa, &#x27;Mọi khoa&#x27;) + &#x27;&lt;/select&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/div&gt;&lt;/div&gt;&#x27;;
     html += table(list, [C.pt, C.dx, C.rx, C.bs, C.st,
       { h: &#x27;Tiến độ / ngày dự kiến&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) {
         if ([&#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;].indexOf(p.trang_thai) &gt;= 0) return progCell(p) + (p.ly_do_ket_thuc ? &#x27;&lt;span class=&quot;ended&quot;&gt;Kết thúc sớm&lt;/span&gt;&#x27; : &#x27;&#x27;);
@@ -4573,14 +4677,17 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     return [S.stTu || RT.addDays(t, -30), S.stDen || t];
   }
   function renderStats() {
-    var sc = RT.statsScope(me());
+    var sc = RT.statsScope(me(), S.stPv);
     if (!S.stKey) S.stKey = &#x27;month&#x27;;
     var rg = statsRange(S.stKey);
     var r = S.stRes &amp;&amp; S.stRes.tu === rg[0] &amp;&amp; S.stRes.den === rg[1] ? S.stRes : null;
     var keys = [[&#x27;today&#x27;, &#x27;Hôm nay&#x27;], [&#x27;week&#x27;, &#x27;Tuần này&#x27;], [&#x27;month&#x27;, &#x27;Tháng này&#x27;], [&#x27;prev&#x27;, &#x27;Tháng trước&#x27;], [&#x27;custom&#x27;, &#x27;Tuỳ chọn&#x27;]];
     if (!S.stMode) S.stMode = &#x27;luot&#x27;;
-    var MODES = [[&#x27;luot&#x27;, &#x27;Lượt xạ trị&#x27;, &#x27;Tổng lượt, theo kỹ thuật, theo ngày, BN mới vào / kết thúc&#x27;], [&#x27;vang&#x27;, &#x27;Vắng buổi xạ&#x27;, &#x27;Số lượt, số BN vắng, theo lý do, danh sách&#x27;], [&#x27;tim&#x27;, &#x27;Tìm danh sách BN&#x27;, &#x27;Theo mặt bệnh (ICD), vị trí, kỹ thuật, BS… trong khoảng thời gian&#x27;]];
-    var html = &#x27;&lt;div class=&quot;page-head&quot;&gt;&lt;div&gt;&lt;h1&gt;Thống kê&lt;/h1&gt;&lt;p&gt;Phạm vi: &lt;b&gt;&#x27; + esc(sc.label) + &#x27;&lt;/b&gt;. Chọn loại thống kê, khoảng thời gian, rồi bấm xem.&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;&#x27; +
+    var MODES = [[&#x27;luot&#x27;, &#x27;Lượt xạ trị&#x27;, &#x27;Tổng lượt, theo kỹ thuật, theo ngày, BN mới vào / kết thúc&#x27; + (sc.byDoctor ? &#x27;, theo từng bác sĩ&#x27; : &#x27;&#x27;)], [&#x27;vang&#x27;, &#x27;Vắng buổi xạ&#x27;, &#x27;Số lượt, số BN vắng, theo lý do, danh sách&#x27;], [&#x27;tim&#x27;, &#x27;Tìm danh sách BN&#x27;, &#x27;Theo mặt bệnh (ICD), vị trí, kỹ thuật&#x27; + (sc.byDoctor ? &#x27;, BS&#x27; : &#x27;&#x27;) + &#x27;… trong khoảng thời gian&#x27;]];
+    var research = S.stMode === &#x27;tim&#x27; &amp;&amp; role() === &#x27;BS&#x27; &amp;&amp; !sc.byDoctor;
+    if (research) sc = { label: &#x27;Toàn bộ BN hai khoa (tìm để nghiên cứu, không lọc theo từng bác sĩ)&#x27; };
+    var pvSeg = sc.khoaOpt ? &#x27;&lt;div class=&quot;seg&quot; role=&quot;group&quot; aria-label=&quot;Phạm vi&quot;&gt;&lt;button data-stpv=&quot;&quot; aria-pressed=&quot;&#x27; + (!S.stPv) + &#x27;&quot;&gt;Của tôi&lt;/button&gt;&lt;button data-stpv=&quot;khoa&quot; aria-pressed=&quot;&#x27; + (S.stPv === &#x27;khoa&#x27;) + &#x27;&quot;&gt;Cả khoa &#x27; + esc(sc.khoaOpt) + &#x27;&lt;/button&gt;&lt;/div&gt;&#x27; : &#x27;&#x27;;
+    var html = &#x27;&lt;div class=&quot;page-head&quot;&gt;&lt;div&gt;&lt;h1&gt;Thống kê&lt;/h1&gt;&lt;p&gt;Phạm vi: &lt;b&gt;&#x27; + esc(sc.label) + &#x27;&lt;/b&gt;. Chọn loại thống kê, khoảng thời gian, rồi bấm xem.&lt;/p&gt;&lt;/div&gt;&#x27; + (pvSeg ? &#x27;&lt;div class=&quot;filters&quot;&gt;&#x27; + pvSeg + &#x27;&lt;/div&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/div&gt;&#x27; +
       &#x27;&lt;div class=&quot;st-modes&quot;&gt;&#x27; + MODES.map(function (m) { return &#x27;&lt;button class=&quot;st-mode&quot; data-stmode=&quot;&#x27; + m[0] + &#x27;&quot; aria-pressed=&quot;&#x27; + (S.stMode === m[0]) + &#x27;&quot;&gt;&lt;b&gt;&#x27; + m[1] + &#x27;&lt;/b&gt;&lt;small&gt;&#x27; + m[2] + &#x27;&lt;/small&gt;&lt;/button&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;/div&gt;&#x27;;
     html += &#x27;&lt;div class=&quot;card pad&quot;&gt;&lt;div class=&quot;filters&quot;&gt;&lt;div class=&quot;seg&quot; role=&quot;group&quot; aria-label=&quot;Khoảng thời gian&quot;&gt;&#x27; +
       keys.map(function (k) { return &#x27;&lt;button data-stkey=&quot;&#x27; + k[0] + &#x27;&quot; aria-pressed=&quot;&#x27; + (S.stKey === k[0]) + &#x27;&quot;&gt;&#x27; + k[1] + &#x27;&lt;/button&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;/div&gt;&#x27; +
@@ -4617,7 +4724,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
           : &#x27;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;empty&quot;&gt;Không có số liệu trong khoảng này.&lt;/div&gt;&lt;/div&gt;&#x27;) + &#x27;&lt;/section&gt;&#x27;;
     };
     html += &#x27;&lt;div class=&quot;admin-grid&quot;&gt;&#x27; + mapTable(&#x27;Theo kỹ thuật&#x27;, o.theo_ky_thuat) + mapTable(&#x27;Theo máy&#x27;, o.theo_may) + mapTable(&#x27;Theo khoa&#x27;, o.theo_khoa) + &#x27;&lt;/div&gt;&#x27;;
-    html += listTable(sc.byDoctor ? &#x27;Theo bác sĩ&#x27; : &#x27;Của tôi (bác sĩ)&#x27;, r.theo_bac_si, [[&#x27;Số BN xạ&#x27;, &#x27;bn_xa&#x27;], [&#x27;Số lượt xạ&#x27;, &#x27;luot_xa&#x27;]]);
+    html += doctorTable(sc, r.theo_bac_si);
     html += listTable(sc.byKtv ? &#x27;Theo KTV&#x27; : &#x27;Của tôi (KTV)&#x27;, r.theo_ktv, [[&#x27;Số BN&#x27;, &#x27;bn_xa&#x27;], [&#x27;Số buổi đã ghi&#x27;, &#x27;luot_xa&#x27;]]);
     html += listTable(sc.byKs ? &#x27;Theo kỹ sư&#x27; : &#x27;Của tôi (kỹ sư)&#x27;, r.theo_ky_su, [[&#x27;Số kế hoạch&#x27;, &#x27;ke_hoach&#x27;], [&#x27;Có QA&#x27;, &#x27;co_qa&#x27;]]);
     var grpTable = function (title, list, loai) {
@@ -4633,6 +4740,19 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     html += grpTable(&#x27;Theo mã ICD-10 (3 ký tự)&#x27;, r.theo_icd, &#x27;icd&#x27;);
     html += grpTable(&#x27;Theo vị trí xạ&#x27;, r.theo_vi_tri, &#x27;vi_tri&#x27;);
     return html;
+  }
+  /** Theo bác sĩ: lãnh đạo khoa thấy từng bác sĩ trong khoa, bác sĩ thấy dòng của mình. Bấm dòng để xem danh sách BN. */
+  function doctorTable(sc, list) {
+    if (!list) return &#x27;&#x27;;
+    var cols = [[&#x27;BN được xạ&#x27;, &#x27;bn_xa&#x27;], [&#x27;Lượt xạ&#x27;, &#x27;luot_xa&#x27;], [&#x27;BN bắt đầu xạ&#x27;, &#x27;bn_bat_dau&#x27;], [&#x27;BN kết thúc xạ&#x27;, &#x27;bn_ket_thuc&#x27;], [&#x27;Lượt vắng&#x27;, &#x27;vang_luot&#x27;]];
+    var tot = {}; cols.forEach(function (c) { tot[c[1]] = list.reduce(function (s, x) { return s + (x[c[1]] || 0); }, 0); });
+    return &#x27;&lt;section class=&quot;group&quot;&gt;&lt;div class=&quot;group-head&quot;&gt;&lt;h2&gt;&#x27; + (sc.byDoctor ? &#x27;Theo bác sĩ&#x27; : &#x27;Của tôi (bác sĩ)&#x27;) + &#x27;&lt;/h2&gt;&lt;span class=&quot;count&quot;&gt;&#x27; + list.length + &#x27;&lt;/span&gt;&lt;span class=&quot;hint&quot;&gt;Bấm một dòng để xem danh sách bệnh nhân&lt;/span&gt;&lt;/div&gt;&#x27; +
+      (list.length ? &#x27;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;tbl-wrap cards&quot;&gt;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Bác sĩ&lt;/th&gt;&#x27; + cols.map(function (c) { return &#x27;&lt;th class=&quot;num&quot;&gt;&#x27; + c[0] + &#x27;&lt;/th&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&#x27; +
+        list.map(function (x) {
+          return &#x27;&lt;tr class=&quot;click&quot; data-stdet=&quot;bs&quot; data-ma=&quot;&#x27; + esc(x.email) + &#x27;&quot;&gt;&lt;td data-l=&quot;Bác sĩ&quot;&gt;&lt;b&gt;&#x27; + esc(x.ten) + &#x27;&lt;/b&gt;&lt;/td&gt;&#x27; + cols.map(function (c) { return &#x27;&lt;td data-l=&quot;&#x27; + c[0] + &#x27;&quot; class=&quot;num&quot;&gt;&#x27; + (x[c[1]] || 0) + &#x27;&lt;/td&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;/tr&gt;&#x27;;
+        }).join(&#x27;&#x27;) +
+        (list.length &gt; 1 ? &#x27;&lt;tr class=&quot;total&quot;&gt;&lt;td data-l=&quot;Bác sĩ&quot;&gt;&lt;b&gt;Cộng&lt;/b&gt;&lt;/td&gt;&#x27; + cols.map(function (c) { return &#x27;&lt;td data-l=&quot;&#x27; + c[0] + &#x27;&quot; class=&quot;num&quot;&gt;&lt;b&gt;&#x27; + tot[c[1]] + &#x27;&lt;/b&gt;&lt;/td&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;/tr&gt;&#x27; : &#x27;&#x27;) +
+        &#x27;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;&lt;/div&gt;&#x27; : &#x27;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;empty&quot;&gt;Không có số liệu trong khoảng này.&lt;/div&gt;&lt;/div&gt;&#x27;) + &#x27;&lt;/section&gt;&#x27;;
   }
   function renderAbsStats(r) {
     var o = r.tong_quan, lst = r.vang || [];
@@ -4652,7 +4772,8 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
   // ---------- Tìm danh sách BN theo điều kiện ----------
   var MOC = [{ v: &#x27;xa&#x27;, l: &#x27;Có buổi xạ trong khoảng&#x27; }, { v: &#x27;bat_dau&#x27;, l: &#x27;Bắt đầu xạ trong khoảng&#x27; }, { v: &#x27;ket_thuc&#x27;, l: &#x27;Kết thúc xạ trong khoảng&#x27; }, { v: &#x27;nhap&#x27;, l: &#x27;Nhập vào ứng dụng trong khoảng&#x27; }];
   function renderFind(rg) {
-    var f = S.ff = S.ff || { moc: &#x27;bat_dau&#x27;, icd: [] }, d = S.data.dm;
+    var f = S.ff = S.ff || { moc: &#x27;bat_dau&#x27;, icd: [] }, d = S.data.dm, sc = RT.statsScope(me(), S.stPv);
+    if (role() === &#x27;BS&#x27; &amp;&amp; !sc.byDoctor) sc = { all: true };
     var st = Object.keys(RT.STATUS).filter(function (k) { return k !== &#x27;HUY&#x27;; }).map(function (k) { return { v: k, l: RT.STATUS[k] }; });
     var html = &#x27;&lt;div class=&quot;card pad&quot;&gt;&lt;div class=&quot;form ff&quot;&gt;&#x27; +
       field(&#x27;Tính theo&#x27;, &#x27;&lt;select id=&quot;ff-moc&quot;&gt;&#x27; + opts(MOC, f.moc) + &#x27;&lt;/select&gt;&#x27;) +
@@ -4660,8 +4781,8 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
         &#x27;&lt;div style=&quot;display:flex;gap:6px&quot;&gt;&lt;input type=&quot;text&quot; id=&quot;ff-icd&quot; list=&quot;dl-icd&quot; autocomplete=&quot;off&quot; placeholder=&quot;Gõ mã hoặc 3 ký tự đầu, VD: C50&quot;&gt;&lt;button type=&quot;button&quot; class=&quot;btn&quot; id=&quot;ff-add&quot;&gt;Thêm&lt;/button&gt;&lt;/div&gt;&#x27; + icdList(), &#x27;full&#x27;, &#x27;Để trống = mọi mặt bệnh. Gõ C50 lấy tất cả mã C50.x&#x27;) +
       field(&#x27;Vị trí xạ (chứa chữ)&#x27;, &#x27;&lt;input type=&quot;text&quot; id=&quot;ff-vt&quot; value=&quot;&#x27; + esc(f.vi_tri || &#x27;&#x27;) + &#x27;&quot; placeholder=&quot;VD: vú, cột sống&quot;&gt;&#x27;) +
       field(&#x27;Kỹ thuật&#x27;, &#x27;&lt;select id=&quot;ff-kt&quot;&gt;&#x27; + opts(d.KY_THUAT, f.ky_thuat, &#x27;Tất cả&#x27;) + &#x27;&lt;/select&gt;&#x27;) +
-      field(&#x27;Bác sĩ điều trị&#x27;, &#x27;&lt;select id=&quot;ff-bs&quot;&gt;&#x27; + opts(doctors().map(function (u) { return { v: u.email, l: u.ho_ten }; }), f.bs_email, &#x27;Tất cả&#x27;) + &#x27;&lt;/select&gt;&#x27;) +
-      field(&#x27;Khoa&#x27;, &#x27;&lt;select id=&quot;ff-khoa&quot;&gt;&#x27; + opts(d.KHOA, f.khoa, &#x27;Tất cả&#x27;) + &#x27;&lt;/select&gt;&#x27;) +
+      (sc.byDoctor ? field(&#x27;Bác sĩ điều trị&#x27;, &#x27;&lt;select id=&quot;ff-bs&quot;&gt;&#x27; + opts(doctors().filter(function (u) { return sc.all || u.khoa === sc.khoa; }).map(function (u) { return { v: u.email, l: u.ho_ten }; }), f.bs_email, &#x27;Tất cả&#x27;) + &#x27;&lt;/select&gt;&#x27;) : &#x27;&#x27;) +
+      (sc.all ? field(&#x27;Khoa&#x27;, &#x27;&lt;select id=&quot;ff-khoa&quot;&gt;&#x27; + opts(d.KHOA, f.khoa, &#x27;Tất cả&#x27;) + &#x27;&lt;/select&gt;&#x27;) : &#x27;&#x27;) +
       field(&#x27;Mục đích&#x27;, &#x27;&lt;select id=&quot;ff-md&quot;&gt;&#x27; + opts(d.MUC_DICH || RT.DEFAULT_DM.MUC_DICH, f.muc_dich, &#x27;Tất cả&#x27;) + &#x27;&lt;/select&gt;&#x27;) +
       field(&#x27;Trạng thái hiện tại&#x27;, &#x27;&lt;select id=&quot;ff-tt&quot;&gt;&#x27; + opts(st, f.trang_thai, &#x27;Tất cả&#x27;) + &#x27;&lt;/select&gt;&#x27;) + &#x27;&lt;/div&gt;&#x27; +
       &#x27;&lt;div style=&quot;margin-top:12px&quot;&gt;&lt;button class=&quot;btn primary&quot; data-stload=&quot;1&quot;&gt;Tìm bệnh nhân&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;&#x27;;
@@ -4695,7 +4816,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
   }
   function findGo(action) {
     var f = readFind(), rg = statsRange(S.stKey);
-    var payload = asParam({ tu: rg[0], den: rg[1], moc: f.moc, icd: f.icd, vi_tri: f.vi_tri, ky_thuat: f.ky_thuat, bs_email: f.bs_email, khoa: f.khoa, muc_dich: f.muc_dich, trang_thai: f.trang_thai });
+    var payload = asParam({ tu: rg[0], den: rg[1], pv: S.stPv || &#x27;&#x27;, moc: f.moc, icd: f.icd, vi_tri: f.vi_tri, ky_thuat: f.ky_thuat, bs_email: f.bs_email, khoa: f.khoa, muc_dich: f.muc_dich, trang_thai: f.trang_thai });
     setBusy(1);
     call(action, payload).then(function (r) {
       S.found = r.found; if (r.sheet) { S.stSheet = r.sheet; toast(&#x27;Đã tạo trang danh sách trong Google Sheet.&#x27;); }
@@ -4705,6 +4826,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
   function bindStats() {
     $$(&#x27;#main [data-stkey]&#x27;).forEach(function (b) { b.onclick = function () { S.stKey = b.dataset.stkey; S.stSheet = null; renderMain(); }; });
     $$(&#x27;#main [data-stmode]&#x27;).forEach(function (b) { b.onclick = function () { S.stMode = b.dataset.stmode; S.stSheet = null; renderMain(); }; });
+    $$(&#x27;#main [data-stpv]&#x27;).forEach(function (b) { b.onclick = function () { S.stPv = b.dataset.stpv; S.stRes = null; S.found = null; S.stSheet = null; renderMain(); }; });
     bindFind();
     var tu = $(&#x27;#st-tu&#x27;), den = $(&#x27;#st-den&#x27;);
     if (tu) tu.onchange = function () { S.stTu = tu.value; };
@@ -4712,7 +4834,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     var go = function (action) {
       var rg = statsRange(S.stKey);
       setBusy(1);
-      call(action, asParam({ tu: rg[0], den: rg[1] })).then(function (r) {
+      call(action, asParam({ tu: rg[0], den: rg[1], pv: S.stPv || &#x27;&#x27; })).then(function (r) {
         S.stRes = r.report; if (r.sheet) { S.stSheet = r.sheet; toast(&#x27;Đã tạo trang báo cáo trong Google Sheet.&#x27;); }
         renderMain();
       }, function (e) { toast(e.error || &#x27;Không tính được thống kê.&#x27;, true); }).finally(function () { setBusy(-1); });
@@ -4723,9 +4845,9 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
       tr.onclick = function () {
         var rg = statsRange(S.stKey), loai = tr.dataset.stdet, ma = tr.dataset.ma;
         setBusy(1);
-        call(&#x27;report&#x27;, asParam({ tu: rg[0], den: rg[1], chi_tiet: { loai: loai, ma: ma } })).then(function (r) {
+        call(&#x27;report&#x27;, asParam({ tu: rg[0], den: rg[1], pv: S.stPv || &#x27;&#x27;, chi_tiet: { loai: loai, ma: ma } })).then(function (r) {
           var list = r.report.chi_tiet || [], nm = loai === &#x27;icd&#x27; ? RT.icdName(ma) : &#x27;&#x27;;
-          modal({ title: (loai === &#x27;icd&#x27; ? &#x27;Mã &#x27; + ma + (nm ? &#x27; · &#x27; + nm : &#x27;&#x27;) : &#x27;Vị trí xạ: &#x27; + ma) + &#x27; (&#x27; + list.length + &#x27; đợt)&#x27;, ok: &#x27;Đóng&#x27;, noFocus: true, wide: true, noCancel: true,
+          modal({ title: (loai === &#x27;bs&#x27; ? &#x27;BN của &#x27; + nameOf(ma) : loai === &#x27;icd&#x27; ? &#x27;Mã &#x27; + ma + (nm ? &#x27; · &#x27; + nm : &#x27;&#x27;) : &#x27;Vị trí xạ: &#x27; + ma) + &#x27; (&#x27; + list.length + &#x27; đợt)&#x27;, ok: &#x27;Đóng&#x27;, noFocus: true, wide: true, noCancel: true,
             body: &#x27;&lt;p class=&quot;muted&quot;&gt;Từ &#x27; + fdy(rg[0]) + &#x27; đến &#x27; + fdy(rg[1]) + &#x27;: các đợt xạ bắt đầu trong kỳ hoặc có buổi xạ trong kỳ.&lt;/p&gt;&#x27; +
               (list.length ? &#x27;&lt;div class=&quot;tbl-wrap&quot;&gt;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Bệnh nhân&lt;/th&gt;&lt;th&gt;Chẩn đoán&lt;/th&gt;&lt;th&gt;Kỹ thuật · liều&lt;/th&gt;&lt;th&gt;BS&lt;/th&gt;&lt;th&gt;Thời gian xạ&lt;/th&gt;&lt;th&gt;Lượt trong kỳ&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&#x27; +
                 list.map(function (x) {
@@ -4864,15 +4986,15 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
         field(&#x27;Email Google &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&#x27;, &#x27;&lt;input type=&quot;email&quot; name=&quot;email&quot; value=&quot;&#x27; + esc(u.email || &#x27;&#x27;) + &#x27;&quot;&#x27; + (isNew ? &#x27;&#x27; : &#x27; readonly&#x27;) + &#x27; placeholder=&quot;ten@gmail.com&quot;&gt;&#x27;, &#x27;full&#x27;) +
         field(&#x27;Vai trò&#x27;, &#x27;&lt;select name=&quot;vai_tro&quot;&gt;&#x27; + opts([&#x27;BS&#x27;, &#x27;KS&#x27;, &#x27;KTV&#x27;, &#x27;DD&#x27;, &#x27;ADMIN&#x27;].map(function (r) { return { v: r, l: RT.ROLES[r] }; }), u.vai_tro) + &#x27;&lt;/select&gt;&#x27;) +
         field(&#x27;Trạng thái&#x27;, &#x27;&lt;select name=&quot;kich_hoat&quot;&gt;&#x27; + opts([{ v: &#x27;Có&#x27;, l: &#x27;Hoạt động&#x27; }, { v: &#x27;Không&#x27;, l: &#x27;Khoá tài khoản&#x27; }], u.kich_hoat) + &#x27;&lt;/select&gt;&#x27;) +
-        field(&#x27;Chức vụ&#x27;, &#x27;&lt;select name=&quot;chuc_vu&quot;&gt;&#x27; + opts(RT.CHUC_VU, u.chuc_vu || &#x27;&#x27;, &#x27;Không&#x27;) + &#x27;&lt;/select&gt;&#x27;, &#x27;&#x27;, &#x27;Trưởng khoa, ĐD trưởng, tài khoản khoa: xem thống kê cả khoa. KTV trưởng: phân công, huỷ buổi xạ ghi nhầm.&#x27;) +
-        field(&#x27;Khoa&#x27;, &#x27;&lt;select name=&quot;khoa&quot;&gt;&#x27; + opts(RT.staffKhoa(S.data.dm), u.khoa || &#x27;&#x27;, &#x27;—&#x27;) + &#x27;&lt;/select&gt;&#x27;, &#x27;&#x27;, &#x27;Bắt buộc với trưởng khoa, ĐD trưởng, tài khoản khoa&#x27;) +
+        field(&#x27;Chức vụ&#x27;, &#x27;&lt;select name=&quot;chuc_vu&quot;&gt;&#x27; + opts(RT.CHUC_VU, u.chuc_vu || &#x27;&#x27;, &#x27;Không&#x27;) + &#x27;&lt;/select&gt;&#x27;, &#x27;&#x27;, &#x27;Trưởng khoa, ĐD trưởng: thống kê cả khoa theo từng bác sĩ. Tài khoản khoa: số tổng của khoa. KTV trưởng: phân công, huỷ buổi xạ ghi nhầm.&#x27;) +
+        field(&#x27;Khoa&#x27;, &#x27;&lt;select name=&quot;khoa&quot;&gt;&#x27; + opts(RT.staffKhoa(S.data.dm), u.khoa || &#x27;&#x27;, &#x27;—&#x27;) + &#x27;&lt;/select&gt;&#x27;, &#x27;&#x27;, &#x27;Bắt buộc với bác sĩ, điều dưỡng, trưởng khoa, tài khoản khoa. BN mới nhận khoa theo bác sĩ điều trị; điều dưỡng chỉ thấy BN khoa mình.&#x27;) +
         field(&#x27;Trợ lý cho bác sĩ&#x27;, &#x27;&lt;select name=&quot;tro_ly_cho&quot; id=&quot;tl-sel&quot;&gt;&#x27; + opts(S.data.users.filter(function (x) { return x.kich_hoat !== &#x27;Không&#x27; &amp;&amp; x.email !== u.email &amp;&amp; !x.tro_ly_cho &amp;&amp; (x.vai_tro === &#x27;BS&#x27; || isDoctor(x)); }).map(function (x) { return { v: x.email, l: x.ho_ten }; }), u.tro_ly_cho || &#x27;&#x27;, &#x27;Không (bác sĩ bình thường)&#x27;) + &#x27;&lt;/select&gt;&#x27;, &#x27;full&#x27;, &#x27;Chỉ cho bác sĩ trợ lý: thấy và làm việc trên BN của bác sĩ chính, xem được thống kê của bác sĩ chính. BN vẫn đứng tên bác sĩ chính.&#x27;) + &#x27;&lt;/div&gt;&#x27;,
       onMount: function (form) {
         var vt = $(&#x27;select[name=vai_tro]&#x27;, form), tl = $(&#x27;#tl-sel&#x27;, form), box = tl &amp;&amp; tl.closest(&#x27;.field&#x27;);
         var upd = function () { if (!box) return; box.hidden = vt.value !== &#x27;BS&#x27;; if (vt.value !== &#x27;BS&#x27;) tl.value = &#x27;&#x27;; };
         vt.addEventListener(&#x27;change&#x27;, upd); upd();
       },
-      validate: function (v) { if (!v.ho_ten) return &#x27;Cần nhập họ tên.&#x27;; if (v.tro_ly_cho &amp;&amp; v.vai_tro !== &#x27;BS&#x27;) return &#x27;Chỉ bác sĩ mới được gán làm trợ lý.&#x27;; if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.email)) return &#x27;Email không hợp lệ.&#x27;; if ([&#x27;Trưởng khoa&#x27;, &#x27;Điều dưỡng trưởng&#x27;, &#x27;Tài khoản khoa&#x27;].indexOf(v.chuc_vu) &gt;= 0 &amp;&amp; !v.khoa) return &#x27;Chức vụ này cần chọn khoa.&#x27;; return &#x27;&#x27;; },
+      validate: function (v) { if (!v.ho_ten) return &#x27;Cần nhập họ tên.&#x27;; if (v.tro_ly_cho &amp;&amp; v.vai_tro !== &#x27;BS&#x27;) return &#x27;Chỉ bác sĩ mới được gán làm trợ lý.&#x27;; if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.email)) return &#x27;Email không hợp lệ.&#x27;; if ([&#x27;Trưởng khoa&#x27;, &#x27;Điều dưỡng trưởng&#x27;, &#x27;Tài khoản khoa&#x27;].indexOf(v.chuc_vu) &gt;= 0 &amp;&amp; !v.khoa) return &#x27;Chức vụ này cần chọn khoa.&#x27;; if ((v.vai_tro === &#x27;BS&#x27; || v.vai_tro === &#x27;DD&#x27;) &amp;&amp; v.kich_hoat !== &#x27;Không&#x27; &amp;&amp; S.data.dm.KHOA.indexOf(v.khoa) &lt; 0) return (v.vai_tro === &#x27;BS&#x27; ? &#x27;Bác sĩ&#x27; : &#x27;Điều dưỡng&#x27;) + &#x27; cần chọn khoa: &#x27; + S.data.dm.KHOA.join(&#x27; hoặc &#x27;) + &#x27;.&#x27;; return &#x27;&#x27;; },
       onOk: function (v) { run(&#x27;saveUser&#x27;, v); } });
   }
 
@@ -5323,8 +5445,17 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     if (!ma || ma in S.hisCache) return Promise.resolve();
     return call(&#x27;lookupHis&#x27;, { ma_his: ma }).then(function (r) { S.hisCache[ma] = r.his || []; }, function () { S.hisCache[ma] = []; });
   }
+  /** Danh sách bác sĩ chia nhóm theo khoa */
+  function bsOptions(bsList, sel) {
+    var d = S.data.dm, kOf = function (e) { return RT.doctorKhoa(S.data.users, d, e); };
+    if (sel &amp;&amp; !bsList.some(function (x) { return x.v === sel; })) bsList = bsList.concat([{ v: sel, l: nameOf(sel) }]);
+    return &#x27;&lt;option value=&quot;&quot;&gt;Chọn bác sĩ&lt;/option&gt;&#x27; + d.KHOA.concat([&#x27;&#x27;]).map(function (k) {
+      var ds = bsList.filter(function (x) { return kOf(x.v) === k; });
+      return ds.length ? &#x27;&lt;optgroup label=&quot;&#x27; + esc(k ? &#x27;Khoa &#x27; + k : &#x27;Chưa ghi khoa&#x27;) + &#x27;&quot;&gt;&#x27; + opts(ds, sel) + &#x27;&lt;/optgroup&gt;&#x27; : &#x27;&#x27;;
+    }).join(&#x27;&#x27;);
+  }
   function patientForm(p, prefill) {
-    var isNew = !p, d = S.data.dm, v0 = p || prefill || { bs_email: isDoctor(me()) ? (me().tro_ly_cho || me().email) : &#x27;&#x27;, khoa: d.KHOA[0], uu_tien: &#x27;Thường&#x27;, igrt: &#x27;Không&#x27;, sgrt: &#x27;Không&#x27; };
+    var isNew = !p, d = S.data.dm, v0 = p || prefill || { bs_email: isDoctor(me()) ? (me().tro_ly_cho || me().email) : &#x27;&#x27;, khoa: &#x27;&#x27;, uu_tien: &#x27;Thường&#x27;, igrt: &#x27;Không&#x27;, sgrt: &#x27;Không&#x27; };
     var mucDich = d.MUC_DICH || RT.DEFAULT_DM.MUC_DICH;
     var bsList = doctors().map(function (u) { return { v: u.email, l: u.ho_ten }; });
     var inp = function (name, type, attrs) { return &#x27;&lt;input type=&quot;&#x27; + (type || &#x27;text&#x27;) + &#x27;&quot; name=&quot;&#x27; + name + &#x27;&quot; value=&quot;&#x27; + esc(v0[name] || &#x27;&#x27;) + &#x27;&quot; &#x27; + (attrs || &#x27;&#x27;) + &#x27;&gt;&#x27;; };
@@ -5344,8 +5475,8 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
           &#x27;&lt;div class=&quot;field&quot; data-for=&quot;DANG_XA&quot;&gt;&lt;label&gt;Ngày bắt đầu xạ &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&lt;/label&gt;&lt;input type=&quot;date&quot; name=&quot;ngay_bat_dau&quot; max=&quot;&#x27; + today() + &#x27;&quot;&gt;&lt;/div&gt;&#x27; +
           &#x27;&lt;div class=&quot;field&quot; data-for=&quot;DANG_XA&quot;&gt;&lt;label&gt;Số buổi đã xạ &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&lt;/label&gt;&lt;input type=&quot;number&quot; name=&quot;da_xa&quot; min=&quot;1&quot; step=&quot;1&quot;&gt;&lt;span class=&quot;help&quot;&gt;Tính cả buổi hôm nay nếu đã xạ&lt;/span&gt;&lt;/div&gt;&#x27; +
           &#x27;&lt;div class=&quot;field&quot; data-for=&quot;CHO_XA DANG_XA&quot;&gt;&lt;label&gt;Lịch trong tuần&lt;/label&gt;&lt;select name=&quot;ngay_nghi_tuan&quot;&gt;&#x27; + opts([{ v: &#x27;&#x27;, l: &#x27;Thứ 2 → Thứ 6&#x27; }].concat([1, 2, 3, 4, 5].map(function (i) { return { v: i, l: &#x27;Thứ 2 → Thứ 7, nghỉ &#x27; + RT.DOW[i] }; })), &#x27;&#x27;) + &#x27;&lt;/select&gt;&lt;/div&gt;&#x27; : &#x27;&#x27;) +
-        field(&#x27;Bác sĩ điều trị &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&#x27;, &#x27;&lt;select name=&quot;bs_email&quot;&gt;&#x27; + opts(bsList, v0.bs_email, &#x27;Chọn bác sĩ&#x27;) + &#x27;&lt;/select&gt;&#x27;) +
-        field(&#x27;Khoa&#x27;, &#x27;&lt;select name=&quot;khoa&quot;&gt;&#x27; + opts(d.KHOA, v0.khoa) + &#x27;&lt;/select&gt;&#x27;) +
+        field(&#x27;Bác sĩ điều trị &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&#x27;, &#x27;&lt;select name=&quot;bs_email&quot; id=&quot;pf-bs&quot;&gt;&#x27; + bsOptions(bsList, v0.bs_email) + &#x27;&lt;/select&gt;&#x27;) +
+        field(&#x27;Khoa &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&#x27;, &#x27;&lt;select name=&quot;khoa&quot; id=&quot;pf-khoa&quot;&gt;&#x27; + opts(d.KHOA, v0.khoa, &#x27;Chọn khoa&#x27;) + &#x27;&lt;/select&gt;&#x27;, &#x27;&#x27;, &#x27;&lt;span id=&quot;pf-khoa-h&quot;&gt;&lt;/span&gt;&#x27;) +
         &#x27;&lt;details class=&quot;full more&quot;&#x27; + (isNew ? &#x27;&#x27; : &#x27; open&#x27;) + &#x27; id=&quot;more&quot;&gt;&lt;summary&gt;&#x27; + (isNew ? &#x27;Thông tin thêm&#x27; : &#x27;Thông tin chuyên môn&#x27;) + &#x27; &lt;span class=&quot;muted&quot; id=&quot;more-lb&quot;&gt;&#x27; + (isNew ? &#x27;(không bắt buộc ở bước này)&#x27; : &#x27;&#x27;) + &#x27;&lt;/span&gt;&lt;/summary&gt;&lt;div class=&quot;form&quot;&gt;&#x27; +
         icdField(v0.icd, false) +
         field(&#x27;Chẩn đoán &lt;span class=&quot;req rx-req&quot;&gt;*&lt;/span&gt;&#x27;, inp(&#x27;chan_doan&#x27;, &#x27;text&#x27;, &#x27;placeholder=&quot;VD: K phổi di căn não, xương&quot;&#x27;), &#x27;full&#x27;) +
@@ -5368,6 +5499,14 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
         var upd = function () { var v = formValues(form), n = RT.num(v.so_buoi), t = RT.num(v.tong_lieu); $(&#x27;#dpf&#x27;, form).textContent = n &amp;&amp; t ? &#x27;= &#x27; + (Math.round(t / n * 100) / 100) + &#x27; Gy/buổi&#x27; : &#x27;&#x27;; };
         $$(&#x27;input&#x27;, form).forEach(function (el) { el.addEventListener(&#x27;input&#x27;, upd); }); upd();
         bindIcd(form);
+        var bsSel = $(&#x27;#pf-bs&#x27;, form), kSel = $(&#x27;#pf-khoa&#x27;, form), kHelp = $(&#x27;#pf-khoa-h&#x27;, form);
+        var syncKhoa = function () {
+          var k = RT.doctorKhoa(S.data.users, d, bsSel.value);
+          if (k) kSel.value = k;
+          kSel.disabled = !!k;
+          kHelp.textContent = k ? &#x27;Theo khoa của bác sĩ điều trị&#x27; : bsSel.value ? &#x27;Bác sĩ này chưa ghi khoa trong Quản trị: chọn khoa&#x27; : &#x27;Chọn bác sĩ, khoa tự điền theo bác sĩ&#x27;;
+        };
+        bsSel.addEventListener(&#x27;change&#x27;, syncKhoa); syncKhoa();
         var cb = $(&#x27;#co-boost&#x27;, form), more = $(&#x27;#more&#x27;, form);
         var step = function () {
           var st = (formValues(form).trang_thai) || &#x27;&#x27;;
@@ -5420,6 +5559,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
         if (!v.nam_sinh) return &#x27;Cần nhập năm sinh hoặc tuổi.&#x27;;
         if (isNew &amp;&amp; !v.trang_thai) return &#x27;Cần chọn bước hiện tại của bệnh nhân (chưa mô phỏng, đang contour…).&#x27;;
         if (!v.bs_email) return &#x27;Cần chọn bác sĩ điều trị.&#x27;;
+        if (!v.khoa) return &#x27;Cần chọn khoa.&#x27;;
         if (v.icd &amp;&amp; !RT.isIcd(RT.normIcd(v.icd))) return &#x27;Mã ICD-10 chưa đúng dạng (VD: C50.9).&#x27;;
         var early = isNew ? (!v.trang_thai || v.trang_thai === &#x27;MO_PHONG&#x27; || v.trang_thai === &#x27;CONTOUR&#x27;) &amp;&amp; !v.co_boost : [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;].indexOf(p.trang_thai) &gt;= 0;
         if (!early) {

@@ -113,7 +113,7 @@ assert(!r.ok, 'chặn số buổi đã xạ vượt số ngày');
 r = ok('bs@x.vn', 'endEarly', { id: old.id, ly_do: 'Bệnh tiến triển' });
 assert.strictEqual(r.data.patients.find(x => x.id === old.id).trang_thai, 'HOAN_THANH');
 // Quản trị
-r = ok('admin@x.vn', 'saveUser', { email: 'NEW@x.vn', ho_ten: 'BS Mới', vai_tro: 'bs', kich_hoat: 'Có' });
+r = ok('admin@x.vn', 'saveUser', { email: 'NEW@x.vn', ho_ten: 'BS Mới', vai_tro: 'bs', kich_hoat: 'Có', khoa: 'Xạ trị' });
 assert(r.data.users.some(u => u.email === 'new@x.vn' && u.vai_tro === 'BS'));
 ok('new@x.vn', 'bootstrap');
 ok('admin@x.vn', 'saveUser', { email: 'new@x.vn', ho_ten: 'BS Mới', vai_tro: 'BS', kich_hoat: 'Không' });
@@ -312,7 +312,7 @@ assert(rev2 !== '0', 'rev được đặt');
 // ---- v2.0: thống kê theo phân quyền ----
 ok('admin@x.vn', 'saveUser', { email: 'tk@x.vn', ho_ten: 'Trưởng khoa A', vai_tro: 'BS', chuc_vu: 'Trưởng khoa', khoa: 'Xạ trị' });
 assert(!api('admin@x.vn', 'saveUser', { email: 'tk2@x.vn', ho_ten: 'X', vai_tro: 'BS', chuc_vu: 'Trưởng khoa' }).ok, 'trưởng khoa phải có khoa');
-ok('admin@x.vn', 'saveUser', { email: 'bs2@x.vn', ho_ten: 'BS Hai', vai_tro: 'BS' });
+ok('admin@x.vn', 'saveUser', { email: 'bs2@x.vn', ho_ten: 'BS Hai', vai_tro: 'BS', khoa: 'Xạ trị theo yêu cầu' });
 ok('admin@x.vn', 'saveUser', { email: 'pk@x.vn', ho_ten: 'Phó khoa', vai_tro: 'BS', chuc_vu: 'Phó trưởng khoa', khoa: 'Xạ trị' });
 ok('admin@x.vn', 'saveUser', { email: 'ddt@x.vn', ho_ten: 'ĐD trưởng', vai_tro: 'DD', chuc_vu: 'Điều dưỡng trưởng', khoa: 'Xạ trị' });
 const mk2 = (his, bs, khoa) => ok('ktv@x.vn', 'createPatient', { ma_his: his, ho_ten: 'TK ' + his, nam_sinh: '1960', bs_email: bs, khoa, icd: 'C50.9', chan_doan: 'K', ky_thuat: 'IMRT', tong_lieu: '20', so_buoi: '10', trang_thai: 'CHO_XA' }).data.patients.find(x => x.ma_his === his);
@@ -326,10 +326,11 @@ let rA = R0.report;
 let rowOf = (list, em) => (list || []).find(x => x.email === em);
 assert(rowOf(rA.theo_bac_si, 'bs2@x.vn').luot_xa >= 2, 'quản trị thấy cả hai khoa');
 let rTK = rep('tk@x.vn').report;
-assert.strictEqual(rowOf(rTK.theo_bac_si, 'bs2@x.vn').luot_xa, 1, 'trưởng khoa chỉ thấy BN khoa mình');
+assert.strictEqual(pB.khoa, 'Xạ trị theo yêu cầu', 'v2.7: khoa của BN theo khoa của bác sĩ');
+assert(!rowOf(rTK.theo_bac_si, 'bs2@x.vn'), 'trưởng khoa chỉ thấy BN khoa mình');
 assert(rowOf(rTK.theo_bac_si, 'bs@x.vn').luot_xa >= 2);
 let rDDT = rep('ddt@x.vn').report;
-assert(rDDT.theo_bac_si && rDDT.theo_bac_si.length >= 2, 'điều dưỡng trưởng thấy theo bác sĩ trong khoa');
+assert(rDDT.theo_bac_si && rowOf(rDDT.theo_bac_si, 'bs@x.vn') && !rowOf(rDDT.theo_bac_si, 'bs2@x.vn'), 'điều dưỡng trưởng thấy theo bác sĩ trong khoa');
 let rBS = rep('bs2@x.vn').report;
 assert.strictEqual(rBS.theo_bac_si.length, 1, 'bác sĩ chỉ thấy dòng của mình'); assert.strictEqual(rBS.theo_bac_si[0].email, 'bs2@x.vn');
 assert.strictEqual(rBS.tong_quan.luot_xa, 2, 'tổng quan của bác sĩ chỉ tính BN của mình');
@@ -352,19 +353,19 @@ assert(rVL.theo_ky_su && !rVL.theo_bac_si, 'trưởng khoa Vật lý thấy theo
 assert(!api('ktv@x.vn', 'createPatient', { ma_his: 'VL1', ho_ten: 'X', nam_sinh: '1960', bs_email: 'bs@x.vn', khoa: 'Vật lý xạ trị', trang_thai: 'MO_PHONG' }).ok || true);
 
 // ---- v2.2: bác sĩ trợ lý ----
-ok('admin@x.vn', 'saveUser', { email: 'tl@x.vn', ho_ten: 'BS Trợ lý', vai_tro: 'BS', tro_ly_cho: 'bs2@x.vn' });
-assert(!api('admin@x.vn', 'saveUser', { email: 'tl2@x.vn', ho_ten: 'BS Trợ lý 2', vai_tro: 'BS', tro_ly_cho: 'bs2@x.vn' }).ok, 'mỗi bác sĩ chỉ 1 trợ lý');
-assert(!api('admin@x.vn', 'saveUser', { email: 'tl3@x.vn', ho_ten: 'X', vai_tro: 'BS', tro_ly_cho: 'tl@x.vn' }).ok, 'không làm trợ lý cho trợ lý');
-assert(!api('admin@x.vn', 'saveUser', { email: 'tl4@x.vn', ho_ten: 'X', vai_tro: 'BS', tro_ly_cho: 'ktv@x.vn' }).ok, 'bác sĩ chính phải là bác sĩ');
+ok('admin@x.vn', 'saveUser', { email: 'tl@x.vn', ho_ten: 'BS Trợ lý', vai_tro: 'BS', khoa: 'Xạ trị theo yêu cầu', tro_ly_cho: 'bs2@x.vn' });
+assert(!api('admin@x.vn', 'saveUser', { email: 'tl2@x.vn', ho_ten: 'BS Trợ lý 2', vai_tro: 'BS', khoa: 'Xạ trị', tro_ly_cho: 'bs2@x.vn' }).ok, 'mỗi bác sĩ chỉ 1 trợ lý');
+assert(!api('admin@x.vn', 'saveUser', { email: 'tl3@x.vn', ho_ten: 'X', vai_tro: 'BS', khoa: 'Xạ trị', tro_ly_cho: 'tl@x.vn' }).ok, 'không làm trợ lý cho trợ lý');
+assert(!api('admin@x.vn', 'saveUser', { email: 'tl4@x.vn', ho_ten: 'X', vai_tro: 'BS', khoa: 'Xạ trị', tro_ly_cho: 'ktv@x.vn' }).ok, 'bác sĩ chính phải là bác sĩ');
 let rTL = rep('tl@x.vn').report;
 assert(rTL.theo_bac_si.length === 1 && rTL.theo_bac_si[0].email === 'bs2@x.vn', 'trợ lý xem thống kê của bác sĩ chính');
 assert.strictEqual(rTL.tong_quan.luot_xa, 2);
 r = ok('tl@x.vn', 'createPatient', { ma_his: 'TL1', ho_ten: 'BN trợ lý', nam_sinh: '1970', bs_email: 'bs2@x.vn', trang_thai: 'CONTOUR' });
 ok('tl@x.vn', 'deletePatient', { id: r.data.patients.find(x => x.ma_his === 'TL1').id, ly_do: 'nhập nhầm' });
 // trợ lý chuyển thành bác sĩ chính: bỏ liên kết
-ok('admin@x.vn', 'saveUser', { email: 'tl@x.vn', ho_ten: 'BS Trợ lý', vai_tro: 'BS', tro_ly_cho: '' });
+ok('admin@x.vn', 'saveUser', { email: 'tl@x.vn', ho_ten: 'BS Trợ lý', vai_tro: 'BS', khoa: 'Xạ trị theo yêu cầu', tro_ly_cho: '' });
 assert(!rep('tl@x.vn').report.theo_bac_si.some(x => x.email === 'bs2@x.vn'), 'hết là trợ lý thì không xem số của bác sĩ cũ');
-ok('admin@x.vn', 'saveUser', { email: 'tl2@x.vn', ho_ten: 'BS Trợ lý 2', vai_tro: 'BS', tro_ly_cho: 'bs2@x.vn' });
+ok('admin@x.vn', 'saveUser', { email: 'tl2@x.vn', ho_ten: 'BS Trợ lý 2', vai_tro: 'BS', khoa: 'Xạ trị', tro_ly_cho: 'bs2@x.vn' });
 // ---- v2.3 ----
 assert(!api('admin@x.vn', 'saveUser', { email: 'kttl@x.vn', ho_ten: 'KTV trợ lý', vai_tro: 'KTV', tro_ly_cho: 'bs@x.vn' }).ok, 'chỉ bác sĩ làm trợ lý');
 assert.strictEqual(JSON.stringify(ctx.RT.myDoctors({ email: 'a', vai_tro: 'KS', tro_ly_cho: 'b' })), '["a"]', 'không phải BS thì liên kết trợ lý không có tác dụng');
@@ -415,6 +416,50 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   let fp = ok('dd@x.vn', 'findPatients', { tu: st0, den: today, moc: 'xa', icd: ['C34'] });
   assert(fp.found.rows.some(x => x.id === pv.id) && fp.found.rows.every(x => /^C34/.test(x.icd)), 'tìm BN theo mã ICD');
   fp = ok('admin@x.vn', 'findPatients', { tu: st0, den: today, moc: 'xa', icd: ['C50'], as: 'bs@x.vn' });
-  assert(fp.found.pham_vi === 'Của tôi', 'quản trị xem như bác sĩ');
+  assert(/nghiên cứu/.test(fp.found.pham_vi), 'quản trị xem như bác sĩ: tìm trên toàn bộ BN');
+}
+// ---- v2.7: thống kê theo bác sĩ chỉ cho lãnh đạo khoa, ĐD chỉ thấy khoa mình, khoa theo BS ----
+{
+  assert(!api('admin@x.vn', 'saveUser', { email: 'bs9@x.vn', ho_ten: 'BS Chín', vai_tro: 'BS' }).ok, 'bác sĩ phải có khoa');
+  assert(!api('admin@x.vn', 'saveUser', { email: 'dd9@x.vn', ho_ten: 'ĐD Chín', vai_tro: 'DD' }).ok, 'điều dưỡng phải có khoa');
+  ok('admin@x.vn', 'saveUser', { email: 'dd2@x.vn', ho_ten: 'ĐD Hai', vai_tro: 'DD', khoa: 'Xạ trị' });
+  ok('admin@x.vn', 'saveUser', { email: 'tkk@x.vn', ho_ten: 'TK khoa', vai_tro: 'DD', chuc_vu: 'Tài khoản khoa', khoa: 'Xạ trị' });
+  // khoa theo BS: chọn khoa khác vẫn ra khoa của BS; đổi BS thì đổi khoa
+  r = ok('dd2@x.vn', 'createPatient', { ma_his: 'K27', ho_ten: 'BN khoa', nam_sinh: '1970', bs_email: 'tk@x.vn', khoa: 'Xạ trị theo yêu cầu', trang_thai: 'CONTOUR' });
+  let pk = r.data.patients.find(x => x.ma_his === 'K27');
+  assert.strictEqual(pk.khoa, 'Xạ trị', 'khoa theo BS điều trị');
+  r = ok('admin@x.vn', 'updatePatient', { id: pk.id, bs_email: 'bs2@x.vn' });
+  assert.strictEqual(r.data.patients.find(x => x.id === pk.id).khoa, 'Xạ trị theo yêu cầu', 'đổi BS thì đổi khoa');
+  // ĐD chỉ nhận BN khoa mình
+  r = ok('dd2@x.vn', 'bootstrap');
+  assert(r.data.patients.length && r.data.patients.every(x => x.khoa === 'Xạ trị'), 'điều dưỡng chỉ thấy BN khoa mình');
+  assert(!r.data.patients.some(x => x.id === pk.id));
+  // thống kê theo bác sĩ
+  const t27 = (who, extra) => { currentEmail = who; return JSON.parse(ctx.api('report', Object.assign({ tu: dR, den: today }, extra || {}))); };
+  let rk = t27('tkk@x.vn');
+  assert(rk.ok && !rk.report.theo_bac_si && rk.report.pham_vi === 'Khoa Xạ trị', 'tài khoản khoa: số tổng, không theo từng BS');
+  let rt = t27('tk@x.vn').report;
+  let rowA = rt.theo_bac_si.find(x => x.email === 'bs@x.vn');
+  assert(rowA && 'bn_bat_dau' in rowA && 'vang_luot' in rowA, 'bảng theo BS có BN bắt đầu, kết thúc, lượt vắng');
+  rt = t27('tk@x.vn', { chi_tiet: { loai: 'bs', ma: 'bs@x.vn' } }).report;
+  assert(rt.chi_tiet.length && rt.chi_tiet.every(x => x.bs === 'BS A'), 'bấm BS xem danh sách BN');
+  assert(!t27('bs2@x.vn', { chi_tiet: { loai: 'bs', ma: 'bs@x.vn' } }).ok, 'BS không xem DS BN của BS khác');
+  // BS: của tôi / cả khoa
+  let rm = t27('bs2@x.vn').report, rkh = t27('bs2@x.vn', { pv: 'khoa' }).report;
+  assert(/Cả khoa/.test(rkh.pham_vi) && rkh.theo_bac_si.every(x => x.email === 'bs2@x.vn'), 'BS xem cả khoa nhưng không theo từng BS');
+  assert(rkh.tong_quan.luot_xa >= rm.tong_quan.luot_xa);
+  // Tìm BN để nghiên cứu: BS lọc mọi tiêu chí trên cả hai khoa, trừ lọc theo BS
+  let fb = ok('bs2@x.vn', 'findPatients', { tu: dR, den: today, moc: 'xa', icd: ['C50'] });
+  assert(fb.found.rows.some(x => x.bs_email === 'bs@x.vn') && fb.found.rows.some(x => x.bs_email === 'bs2@x.vn'), 'BS tìm trên toàn bộ BN');
+  fb = ok('bs2@x.vn', 'findPatients', { tu: dR, den: today, moc: 'xa', bs_email: 'bs@x.vn' });
+  assert(fb.found.rows.some(x => x.bs_email !== 'bs@x.vn'), 'BS không lọc được theo từng BS');
+  fb = ok('bs2@x.vn', 'findPatients', { tu: dR, den: today, moc: 'xa', khoa: 'Xạ trị' });
+  assert(fb.found.rows.length && fb.found.rows.every(x => x.khoa === 'Xạ trị'), 'BS lọc được theo khoa');
+  fb = ok('ks@x.vn', 'findPatients', { tu: dR, den: today, moc: 'xa', bs_email: 'bs@x.vn', khoa: 'Xạ trị' });
+  assert.strictEqual(fb.found.pham_vi, 'Của tôi', 'kỹ sư chỉ tìm ca mình');
+  fb = ok('tk@x.vn', 'findPatients', { tu: dR, den: today, moc: 'xa', bs_email: 'bs@x.vn' });
+  assert(fb.found.rows.length && fb.found.rows.every(x => x.bs_email === 'bs@x.vn'), 'trưởng khoa lọc theo BS');
+  let fd = ok('dd2@x.vn', 'findPatients', { tu: dR, den: today, moc: 'xa' });
+  assert(fd.found.rows.every(x => x.khoa === 'Xạ trị'), 'ĐD tìm trong khoa mình');
 }
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');
