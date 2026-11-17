@@ -1198,7 +1198,7 @@ var RT = (function () {
       var nk = nurseKhoa(ctx.user, ctx.dm);
       if (nk && p.khoa !== nk) fail('Bệnh nhân này thuộc khoa khác.');
       var started = ['DANG_XA', 'TAM_NGUNG'].indexOf(p.trang_thai) >= 0 || fxOf(p, ctx.fractions).length > 0;
-      if (a.ngay_du_kien) quotaGuard(ctx, p, a.ngay_du_kien, a.vuot_chi_tieu);
+      if (a.ngay_du_kien) quotaGuard(ctx, p, a.ngay_du_kien, a.vuot_chi_tieu, a.ngay_nghi_tuan);
       if (!isKtvLead(ctx.user)) {
         if (started) {
           if (ctx.user.vai_tro !== 'KTV') fail('Chỉ KTV đổi lịch tuần cho BN đang xạ.');
@@ -1223,7 +1223,7 @@ var RT = (function () {
       var d = {}; try { d = JSON.parse(p.de_xuat_lich); } catch (e) { d = {}; }
       ['ngay_du_kien', 'ngay_nghi_tuan', 'may'].forEach(function (k) { if (a[k] !== undefined) d[k] = a[k]; });
       if (!isDate(d.ngay_du_kien)) fail('Ngày bắt đầu dự kiến không hợp lệ.');
-      quotaGuard(ctx, p, d.ngay_du_kien, a.vuot_chi_tieu);
+      quotaGuard(ctx, p, d.ngay_du_kien, a.vuot_chi_tieu, d.ngay_nghi_tuan);
       var who = p.de_xuat_boi;
       p.de_xuat_lich = ''; p.de_xuat_boi = ''; p.de_xuat_luc = '';
       return applySchedule(ctx, p, { ngay_du_kien: d.ngay_du_kien, ngay_nghi_tuan: d.ngay_nghi_tuan || '', may: d.may || p.may }, 'Duyệt lịch', ' · đề xuất bởi ' + userName(ctx, who) + (a.vuot_chi_tieu ? ' · vượt chỉ tiêu' : ''));
@@ -1608,13 +1608,29 @@ var RT = (function () {
     });
     return out;
   }
-  /** Khoa đã đủ chỉ tiêu tối đa vào ngày bắt đầu: chỉ cảnh báo, người xếp đồng ý thì cho thêm. BN cấp cứu luôn được xếp. */
-  function quotaGuard(ctx, p, day, ok) {
+  /**
+   * Kiểm tra chỉ tiêu trong 2 tuần đầu của BN nếu bắt đầu ngày start (theo lịch tuần nghi).
+   * Trả về ngày đầu tiên khoa vượt mức tối đa khi thêm BN này: { ngay, n (kể cả BN này), max, min }, hoặc null.
+   */
+  function quotaOver(pts, fractions, env, dm, p, start, nghi, today) {
+    var q = quotas(dm)[p.khoa]; if (!q || !isDate(start)) return null;
+    var t = {}; Object.keys(p).forEach(function (k) { t[k] = p[k]; });
+    t.ngay_du_kien = start; t.ngay_bat_dau = ''; t.trang_thai = 'CHO_XA'; if (nghi !== undefined) t.ngay_nghi_tuan = String(nghi || '');
+    var lim = addDays(start, 13);
+    var days = course(t, [], env).projected.filter(function (d) { return d <= lim; });
+    if (!days.length) days = [start];
+    var occ = occupancy(pts.filter(function (x) { return x.id !== p.id; }), fractions, env, days, today)[p.khoa];
+    for (var i = 0; i < days.length; i++) {
+      var n = (occ ? occ.ngay[days[i]].n : 0) + 1;
+      if (n > q.max) return { ngay: days[i], n: n, max: q.max, min: q.min, dau: i === 0 };
+    }
+    return null;
+  }
+  /** Khoa vượt chỉ tiêu tối đa trong 2 tuần đầu của BN: chỉ cảnh báo, người xếp đồng ý thì cho thêm. BN cấp cứu luôn được xếp. */
+  function quotaGuard(ctx, p, day, ok, nghi) {
     if (p.uu_tien === 'Cấp cứu' || ok) return;
-    var q = quotas(ctx.dm)[p.khoa]; if (!q) return;
-    var occ = occupancy(ctx.patients.filter(function (x) { return x.id !== p.id; }), ctx.fractions, envOf(ctx), [day], ctx.today)[p.khoa];
-    var n = occ ? occ.ngay[day].n : 0;
-    if (n + 1 > q.max) fail('QUOTA:Khoa ' + p.khoa + ' ngày ' + day.slice(8) + '/' + day.slice(5, 7) + ' đã có ' + n + '/' + q.max + ' BN (chỉ tiêu ' + q.min + '–' + q.max + '). Đánh dấu "Vẫn xếp, vượt chỉ tiêu" nếu đồng ý thêm.');
+    var o = quotaOver(ctx.patients, ctx.fractions, envOf(ctx), ctx.dm, p, day, nghi, ctx.today);
+    if (o) fail('QUOTA:Khoa ' + p.khoa + ' ngày ' + o.ngay.slice(8) + '/' + o.ngay.slice(5, 7) + (o.dau ? '' : ' (trong 2 tuần đầu của BN)') + ' sẽ có ' + o.n + '/' + o.max + ' BN (chỉ tiêu ' + o.min + '–' + o.max + '). Đánh dấu "Vẫn xếp, đồng ý vượt chỉ tiêu" nếu đồng ý thêm.');
   }
   function isKtvLead(u) { return !!u && (u.vai_tro === 'ADMIN' || (u.vai_tro === 'KTV' && u.chuc_vu === 'KTV trưởng')); }
   function userName(ctx, email) { var u = ctx.users.filter(function (x) { return x.email === email; })[0]; return u ? u.ho_ten : (email || ''); }
@@ -1905,7 +1921,7 @@ var RT = (function () {
 
   return {
     VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, nurseKhoa: nurseKhoa, canByDoctor: canByDoctor, doctorKhoa: doctorKhoa, report: report, staffKhoa: staffKhoa, myDoctors: myDoctors,
-    quotas: quotas, parseQuota: parseQuota, occupancy: occupancy, isKtvLead: isKtvLead, pauseAsk: pauseAsk, normIcd: normIcd, isIcd: isIcd, icdName: icdName, summary: summary, findPatients: findPatients, scopePatients: scopePatients, fold: fold, indexRow: indexRow, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, planOrder: planOrder, submitTime: submitTime, DOW: DOW,
+    quotas: quotas, parseQuota: parseQuota, occupancy: occupancy, quotaOver: quotaOver, isKtvLead: isKtvLead, pauseAsk: pauseAsk, normIcd: normIcd, isIcd: isIcd, icdName: icdName, summary: summary, findPatients: findPatients, scopePatients: scopePatients, fold: fold, indexRow: indexRow, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, planOrder: planOrder, submitTime: submitTime, DOW: DOW,
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
@@ -3162,7 +3178,8 @@ window.DEMO = (function () {
   function approveCols() {
     return [C.pt, C.pr,
       { h: 'Đề xuất', cls: 'nowrap', v: function (p) { var d = proposal(p); return '<b class="num">Bắt đầu ' + fdw(d.ngay_du_kien) + '</b><span class="sub">' + (d.ngay_nghi_tuan ? 'T2–T7, nghỉ ' + RT.DOW[d.ngay_nghi_tuan] : 'T2–T6') + (d.may ? ' · ' + esc(d.may) : '') + (d.vuot ? ' · <b>người đề xuất đồng ý vượt chỉ tiêu</b>' : '') + '</span>'; } },
-      { h: 'Chỗ của khoa ngày đó', cls: 'nowrap', v: function (p) { var d = proposal(p), q = RT.quotas(S.data.dm)[p.khoa]; if (!q) return esc(p.khoa || '—'); var n = khoaLoad(p, d.ngay_du_kien); return esc(p.khoa) + ': <b class="num">' + (n + 1) + '/' + q.max + '</b><span class="sub">' + (n + 1 > q.max ? '<b>Vượt ' + (n + 1 - q.max) + '</b>' : 'Còn ' + (q.max - n - 1)) + ' sau khi thêm</span>'; } },
+      { h: 'Chỗ của khoa ngày đó', cls: 'nowrap', v: function (p) { var d = proposal(p), q = RT.quotas(S.data.dm)[p.khoa]; if (!q) return esc(p.khoa || '—'); var n = khoaLoad(p, d.ngay_du_kien), ov = RT.quotaOver(pts(), S.data.fractions, env(), S.data.dm, p, d.ngay_du_kien, d.ngay_nghi_tuan, today());
+        return esc(p.khoa) + ': <b class="num">' + (n + 1) + '/' + q.max + '</b><span class="sub">' + (n + 1 > q.max ? '<b>Vượt ' + (n + 1 - q.max) + '</b>' : 'Còn ' + (q.max - n - 1)) + ' sau khi thêm</span>' + (ov && !ov.dau ? '<span class="sub"><b>' + fdw(ov.ngay) + ': ' + ov.n + '/' + ov.max + '</b> (2 tuần đầu)</span>' : ''); } },
       { h: 'Người đề xuất', v: function (p) { var u = S.data.users.filter(function (x) { return x.email === p.de_xuat_boi; })[0]; return '<b>' + esc(u ? u.ho_ten : p.de_xuat_boi) + '</b><span class="sub">' + (u ? esc(RT.ROLES[u.vai_tro] || '') + (u.khoa ? ' · ' + esc(u.khoa) : '') + ' · ' : '') + esc(String(p.de_xuat_luc || '').replace('T', ' ').slice(5, 16)) + '</span>'; } },
       C.bs,
       { h: '', cls: 'act', v: function (p) { return ktvLead() ? btn('approveSched', p.id, 'Xem / sửa và duyệt', 'primary') + btn('rejectSched', p.id, 'Trả lại', 'danger') : ''; } }];
@@ -4083,8 +4100,12 @@ window.DEMO = (function () {
           if (qi) {
             var over = false;
             if (v.ngay_du_kien) {
-              var n = khoaLoad(p, v.ngay_du_kien); over = n + 1 > q.max;
-              qi.innerHTML = 'Khoa <b>' + esc(p.khoa) + '</b> ngày ' + fdw(v.ngay_du_kien) + ': <b>' + n + '/' + q.max + '</b> BN, ' + (over ? '<b>đã đủ chỉ tiêu</b>' : 'còn ' + (q.max - n) + ' chỗ') + ' (chỉ tiêu ' + q.min + '–' + q.max + ').' +
+              var n = khoaLoad(p, v.ngay_du_kien);
+              var ov = RT.quotaOver(pts(), S.data.fractions, env(), S.data.dm, p, v.ngay_du_kien, v.kieu === 't27' ? v.ngay_nghi_tuan : '', today());
+              over = !!ov;
+              qi.innerHTML = 'Khoa <b>' + esc(p.khoa) + '</b> ngày ' + fdw(v.ngay_du_kien) + ': <b>' + n + '/' + q.max + '</b> BN, ' + (n + 1 > q.max ? '<b>đã đủ chỉ tiêu</b>' : 'còn ' + (q.max - n) + ' chỗ') + ' (chỉ tiêu ' + q.min + '–' + q.max + ').' +
+                (ov && !ov.dau ? '<br><b>Trong 2 tuần đầu của BN: ngày ' + fdw(ov.ngay) + ' khoa sẽ có ' + ov.n + '/' + ov.max + ' BN.</b>' : '') +
+                (!ov ? ' 2 tuần đầu của BN không vượt chỉ tiêu.' : '') +
                 (over && p.uu_tien === 'Cấp cứu' ? ' BN cấp cứu luôn được xếp.' : '');
             } else qi.innerHTML = '';
             $('#sd-over', form).hidden = !over || p.uu_tien === 'Cấp cứu';
@@ -4093,7 +4114,7 @@ window.DEMO = (function () {
         };
         var es = $('#sd-earliest', form);
         if (es && q) {
-          var first = workDays(40).filter(function (d) { return khoaLoad(p, d) + 1 <= q.max; })[0];
+          var first = workDays(40).filter(function (d) { return !RT.quotaOver(pts(), S.data.fractions, env(), S.data.dm, p, d, p.ngay_nghi_tuan, today()); })[0];
           es.innerHTML = first ? 'Sớm nhất còn chỗ: <button type="button" class="lnk" id="sd-pick">' + fdw(first) + '</button>' : 'Khoa đã đủ chỉ tiêu trong 40 ngày tới';
           if (first) $('#sd-pick', form).onclick = function () { $('#sd-start', form).value = first; upd(); };
         }

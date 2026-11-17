@@ -43,7 +43,7 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
   <div class="intro">
     <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v2.7</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v2.7 · bản lưu 4974c8c · 17/11/2026 15:40. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v2.7”.</span>
+    <span class="rev">Phiên bản v2.7 · bản lưu 26b126d · 17/11/2026 16:03. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v2.7”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
@@ -578,7 +578,7 @@ function writePatients_(r, user) {
       <div class="meta">
         <h2 id="h-Core">Core.gs <span class="ver">· v2.7</span></h2>
         <p>Bấm + → Script (Tập lệnh), đặt tên Core.</p>
-        <span class="size">1,439 dòng · 157 KB</span>
+        <span class="size">1,455 dòng · 158 KB</span>
       </div>
       <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v2.7)</button>
     </div>
@@ -1300,7 +1300,7 @@ var RT = (function () {
       var nk = nurseKhoa(ctx.user, ctx.dm);
       if (nk &amp;&amp; p.khoa !== nk) fail(&#x27;Bệnh nhân này thuộc khoa khác.&#x27;);
       var started = [&#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;].indexOf(p.trang_thai) &gt;= 0 || fxOf(p, ctx.fractions).length &gt; 0;
-      if (a.ngay_du_kien) quotaGuard(ctx, p, a.ngay_du_kien, a.vuot_chi_tieu);
+      if (a.ngay_du_kien) quotaGuard(ctx, p, a.ngay_du_kien, a.vuot_chi_tieu, a.ngay_nghi_tuan);
       if (!isKtvLead(ctx.user)) {
         if (started) {
           if (ctx.user.vai_tro !== &#x27;KTV&#x27;) fail(&#x27;Chỉ KTV đổi lịch tuần cho BN đang xạ.&#x27;);
@@ -1325,7 +1325,7 @@ var RT = (function () {
       var d = {}; try { d = JSON.parse(p.de_xuat_lich); } catch (e) { d = {}; }
       [&#x27;ngay_du_kien&#x27;, &#x27;ngay_nghi_tuan&#x27;, &#x27;may&#x27;].forEach(function (k) { if (a[k] !== undefined) d[k] = a[k]; });
       if (!isDate(d.ngay_du_kien)) fail(&#x27;Ngày bắt đầu dự kiến không hợp lệ.&#x27;);
-      quotaGuard(ctx, p, d.ngay_du_kien, a.vuot_chi_tieu);
+      quotaGuard(ctx, p, d.ngay_du_kien, a.vuot_chi_tieu, d.ngay_nghi_tuan);
       var who = p.de_xuat_boi;
       p.de_xuat_lich = &#x27;&#x27;; p.de_xuat_boi = &#x27;&#x27;; p.de_xuat_luc = &#x27;&#x27;;
       return applySchedule(ctx, p, { ngay_du_kien: d.ngay_du_kien, ngay_nghi_tuan: d.ngay_nghi_tuan || &#x27;&#x27;, may: d.may || p.may }, &#x27;Duyệt lịch&#x27;, &#x27; · đề xuất bởi &#x27; + userName(ctx, who) + (a.vuot_chi_tieu ? &#x27; · vượt chỉ tiêu&#x27; : &#x27;&#x27;));
@@ -1710,13 +1710,29 @@ var RT = (function () {
     });
     return out;
   }
-  /** Khoa đã đủ chỉ tiêu tối đa vào ngày bắt đầu: chỉ cảnh báo, người xếp đồng ý thì cho thêm. BN cấp cứu luôn được xếp. */
-  function quotaGuard(ctx, p, day, ok) {
+  /**
+   * Kiểm tra chỉ tiêu trong 2 tuần đầu của BN nếu bắt đầu ngày start (theo lịch tuần nghi).
+   * Trả về ngày đầu tiên khoa vượt mức tối đa khi thêm BN này: { ngay, n (kể cả BN này), max, min }, hoặc null.
+   */
+  function quotaOver(pts, fractions, env, dm, p, start, nghi, today) {
+    var q = quotas(dm)[p.khoa]; if (!q || !isDate(start)) return null;
+    var t = {}; Object.keys(p).forEach(function (k) { t[k] = p[k]; });
+    t.ngay_du_kien = start; t.ngay_bat_dau = &#x27;&#x27;; t.trang_thai = &#x27;CHO_XA&#x27;; if (nghi !== undefined) t.ngay_nghi_tuan = String(nghi || &#x27;&#x27;);
+    var lim = addDays(start, 13);
+    var days = course(t, [], env).projected.filter(function (d) { return d &lt;= lim; });
+    if (!days.length) days = [start];
+    var occ = occupancy(pts.filter(function (x) { return x.id !== p.id; }), fractions, env, days, today)[p.khoa];
+    for (var i = 0; i &lt; days.length; i++) {
+      var n = (occ ? occ.ngay[days[i]].n : 0) + 1;
+      if (n &gt; q.max) return { ngay: days[i], n: n, max: q.max, min: q.min, dau: i === 0 };
+    }
+    return null;
+  }
+  /** Khoa vượt chỉ tiêu tối đa trong 2 tuần đầu của BN: chỉ cảnh báo, người xếp đồng ý thì cho thêm. BN cấp cứu luôn được xếp. */
+  function quotaGuard(ctx, p, day, ok, nghi) {
     if (p.uu_tien === &#x27;Cấp cứu&#x27; || ok) return;
-    var q = quotas(ctx.dm)[p.khoa]; if (!q) return;
-    var occ = occupancy(ctx.patients.filter(function (x) { return x.id !== p.id; }), ctx.fractions, envOf(ctx), [day], ctx.today)[p.khoa];
-    var n = occ ? occ.ngay[day].n : 0;
-    if (n + 1 &gt; q.max) fail(&#x27;QUOTA:Khoa &#x27; + p.khoa + &#x27; ngày &#x27; + day.slice(8) + &#x27;/&#x27; + day.slice(5, 7) + &#x27; đã có &#x27; + n + &#x27;/&#x27; + q.max + &#x27; BN (chỉ tiêu &#x27; + q.min + &#x27;–&#x27; + q.max + &#x27;). Đánh dấu &quot;Vẫn xếp, vượt chỉ tiêu&quot; nếu đồng ý thêm.&#x27;);
+    var o = quotaOver(ctx.patients, ctx.fractions, envOf(ctx), ctx.dm, p, day, nghi, ctx.today);
+    if (o) fail(&#x27;QUOTA:Khoa &#x27; + p.khoa + &#x27; ngày &#x27; + o.ngay.slice(8) + &#x27;/&#x27; + o.ngay.slice(5, 7) + (o.dau ? &#x27;&#x27; : &#x27; (trong 2 tuần đầu của BN)&#x27;) + &#x27; sẽ có &#x27; + o.n + &#x27;/&#x27; + o.max + &#x27; BN (chỉ tiêu &#x27; + o.min + &#x27;–&#x27; + o.max + &#x27;). Đánh dấu &quot;Vẫn xếp, đồng ý vượt chỉ tiêu&quot; nếu đồng ý thêm.&#x27;);
   }
   function isKtvLead(u) { return !!u &amp;&amp; (u.vai_tro === &#x27;ADMIN&#x27; || (u.vai_tro === &#x27;KTV&#x27; &amp;&amp; u.chuc_vu === &#x27;KTV trưởng&#x27;)); }
   function userName(ctx, email) { var u = ctx.users.filter(function (x) { return x.email === email; })[0]; return u ? u.ho_ten : (email || &#x27;&#x27;); }
@@ -2007,7 +2023,7 @@ var RT = (function () {
 
   return {
     VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, nurseKhoa: nurseKhoa, canByDoctor: canByDoctor, doctorKhoa: doctorKhoa, report: report, staffKhoa: staffKhoa, myDoctors: myDoctors,
-    quotas: quotas, parseQuota: parseQuota, occupancy: occupancy, isKtvLead: isKtvLead, pauseAsk: pauseAsk, normIcd: normIcd, isIcd: isIcd, icdName: icdName, summary: summary, findPatients: findPatients, scopePatients: scopePatients, fold: fold, indexRow: indexRow, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, planOrder: planOrder, submitTime: submitTime, DOW: DOW,
+    quotas: quotas, parseQuota: parseQuota, occupancy: occupancy, quotaOver: quotaOver, isKtvLead: isKtvLead, pauseAsk: pauseAsk, normIcd: normIcd, isIcd: isIcd, icdName: icdName, summary: summary, findPatients: findPatients, scopePatients: scopePatients, fold: fold, indexRow: indexRow, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, planOrder: planOrder, submitTime: submitTime, DOW: DOW,
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
@@ -2027,7 +2043,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
       <div class="meta">
         <h2 id="h-Index">Index.html <span class="ver">· v2.7</span></h2>
         <p>Bấm + → HTML, đặt tên Index (chữ I hoa).</p>
-        <span class="size">4,112 dòng · 393 KB</span>
+        <span class="size">4,133 dòng · 394 KB</span>
       </div>
       <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v2.7)</button>
     </div>
@@ -3238,7 +3254,7 @@ var RT = (function () {
       var nk = nurseKhoa(ctx.user, ctx.dm);
       if (nk &amp;&amp; p.khoa !== nk) fail(&#x27;Bệnh nhân này thuộc khoa khác.&#x27;);
       var started = [&#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;].indexOf(p.trang_thai) &gt;= 0 || fxOf(p, ctx.fractions).length &gt; 0;
-      if (a.ngay_du_kien) quotaGuard(ctx, p, a.ngay_du_kien, a.vuot_chi_tieu);
+      if (a.ngay_du_kien) quotaGuard(ctx, p, a.ngay_du_kien, a.vuot_chi_tieu, a.ngay_nghi_tuan);
       if (!isKtvLead(ctx.user)) {
         if (started) {
           if (ctx.user.vai_tro !== &#x27;KTV&#x27;) fail(&#x27;Chỉ KTV đổi lịch tuần cho BN đang xạ.&#x27;);
@@ -3263,7 +3279,7 @@ var RT = (function () {
       var d = {}; try { d = JSON.parse(p.de_xuat_lich); } catch (e) { d = {}; }
       [&#x27;ngay_du_kien&#x27;, &#x27;ngay_nghi_tuan&#x27;, &#x27;may&#x27;].forEach(function (k) { if (a[k] !== undefined) d[k] = a[k]; });
       if (!isDate(d.ngay_du_kien)) fail(&#x27;Ngày bắt đầu dự kiến không hợp lệ.&#x27;);
-      quotaGuard(ctx, p, d.ngay_du_kien, a.vuot_chi_tieu);
+      quotaGuard(ctx, p, d.ngay_du_kien, a.vuot_chi_tieu, d.ngay_nghi_tuan);
       var who = p.de_xuat_boi;
       p.de_xuat_lich = &#x27;&#x27;; p.de_xuat_boi = &#x27;&#x27;; p.de_xuat_luc = &#x27;&#x27;;
       return applySchedule(ctx, p, { ngay_du_kien: d.ngay_du_kien, ngay_nghi_tuan: d.ngay_nghi_tuan || &#x27;&#x27;, may: d.may || p.may }, &#x27;Duyệt lịch&#x27;, &#x27; · đề xuất bởi &#x27; + userName(ctx, who) + (a.vuot_chi_tieu ? &#x27; · vượt chỉ tiêu&#x27; : &#x27;&#x27;));
@@ -3648,13 +3664,29 @@ var RT = (function () {
     });
     return out;
   }
-  /** Khoa đã đủ chỉ tiêu tối đa vào ngày bắt đầu: chỉ cảnh báo, người xếp đồng ý thì cho thêm. BN cấp cứu luôn được xếp. */
-  function quotaGuard(ctx, p, day, ok) {
+  /**
+   * Kiểm tra chỉ tiêu trong 2 tuần đầu của BN nếu bắt đầu ngày start (theo lịch tuần nghi).
+   * Trả về ngày đầu tiên khoa vượt mức tối đa khi thêm BN này: { ngay, n (kể cả BN này), max, min }, hoặc null.
+   */
+  function quotaOver(pts, fractions, env, dm, p, start, nghi, today) {
+    var q = quotas(dm)[p.khoa]; if (!q || !isDate(start)) return null;
+    var t = {}; Object.keys(p).forEach(function (k) { t[k] = p[k]; });
+    t.ngay_du_kien = start; t.ngay_bat_dau = &#x27;&#x27;; t.trang_thai = &#x27;CHO_XA&#x27;; if (nghi !== undefined) t.ngay_nghi_tuan = String(nghi || &#x27;&#x27;);
+    var lim = addDays(start, 13);
+    var days = course(t, [], env).projected.filter(function (d) { return d &lt;= lim; });
+    if (!days.length) days = [start];
+    var occ = occupancy(pts.filter(function (x) { return x.id !== p.id; }), fractions, env, days, today)[p.khoa];
+    for (var i = 0; i &lt; days.length; i++) {
+      var n = (occ ? occ.ngay[days[i]].n : 0) + 1;
+      if (n &gt; q.max) return { ngay: days[i], n: n, max: q.max, min: q.min, dau: i === 0 };
+    }
+    return null;
+  }
+  /** Khoa vượt chỉ tiêu tối đa trong 2 tuần đầu của BN: chỉ cảnh báo, người xếp đồng ý thì cho thêm. BN cấp cứu luôn được xếp. */
+  function quotaGuard(ctx, p, day, ok, nghi) {
     if (p.uu_tien === &#x27;Cấp cứu&#x27; || ok) return;
-    var q = quotas(ctx.dm)[p.khoa]; if (!q) return;
-    var occ = occupancy(ctx.patients.filter(function (x) { return x.id !== p.id; }), ctx.fractions, envOf(ctx), [day], ctx.today)[p.khoa];
-    var n = occ ? occ.ngay[day].n : 0;
-    if (n + 1 &gt; q.max) fail(&#x27;QUOTA:Khoa &#x27; + p.khoa + &#x27; ngày &#x27; + day.slice(8) + &#x27;/&#x27; + day.slice(5, 7) + &#x27; đã có &#x27; + n + &#x27;/&#x27; + q.max + &#x27; BN (chỉ tiêu &#x27; + q.min + &#x27;–&#x27; + q.max + &#x27;). Đánh dấu &quot;Vẫn xếp, vượt chỉ tiêu&quot; nếu đồng ý thêm.&#x27;);
+    var o = quotaOver(ctx.patients, ctx.fractions, envOf(ctx), ctx.dm, p, day, nghi, ctx.today);
+    if (o) fail(&#x27;QUOTA:Khoa &#x27; + p.khoa + &#x27; ngày &#x27; + o.ngay.slice(8) + &#x27;/&#x27; + o.ngay.slice(5, 7) + (o.dau ? &#x27;&#x27; : &#x27; (trong 2 tuần đầu của BN)&#x27;) + &#x27; sẽ có &#x27; + o.n + &#x27;/&#x27; + o.max + &#x27; BN (chỉ tiêu &#x27; + o.min + &#x27;–&#x27; + o.max + &#x27;). Đánh dấu &quot;Vẫn xếp, đồng ý vượt chỉ tiêu&quot; nếu đồng ý thêm.&#x27;);
   }
   function isKtvLead(u) { return !!u &amp;&amp; (u.vai_tro === &#x27;ADMIN&#x27; || (u.vai_tro === &#x27;KTV&#x27; &amp;&amp; u.chuc_vu === &#x27;KTV trưởng&#x27;)); }
   function userName(ctx, email) { var u = ctx.users.filter(function (x) { return x.email === email; })[0]; return u ? u.ho_ten : (email || &#x27;&#x27;); }
@@ -3945,7 +3977,7 @@ var RT = (function () {
 
   return {
     VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, nurseKhoa: nurseKhoa, canByDoctor: canByDoctor, doctorKhoa: doctorKhoa, report: report, staffKhoa: staffKhoa, myDoctors: myDoctors,
-    quotas: quotas, parseQuota: parseQuota, occupancy: occupancy, isKtvLead: isKtvLead, pauseAsk: pauseAsk, normIcd: normIcd, isIcd: isIcd, icdName: icdName, summary: summary, findPatients: findPatients, scopePatients: scopePatients, fold: fold, indexRow: indexRow, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, planOrder: planOrder, submitTime: submitTime, DOW: DOW,
+    quotas: quotas, parseQuota: parseQuota, occupancy: occupancy, quotaOver: quotaOver, isKtvLead: isKtvLead, pauseAsk: pauseAsk, normIcd: normIcd, isIcd: isIcd, icdName: icdName, summary: summary, findPatients: findPatients, scopePatients: scopePatients, fold: fold, indexRow: indexRow, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, planOrder: planOrder, submitTime: submitTime, DOW: DOW,
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
@@ -4920,7 +4952,8 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
   function approveCols() {
     return [C.pt, C.pr,
       { h: &#x27;Đề xuất&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { var d = proposal(p); return &#x27;&lt;b class=&quot;num&quot;&gt;Bắt đầu &#x27; + fdw(d.ngay_du_kien) + &#x27;&lt;/b&gt;&lt;span class=&quot;sub&quot;&gt;&#x27; + (d.ngay_nghi_tuan ? &#x27;T2–T7, nghỉ &#x27; + RT.DOW[d.ngay_nghi_tuan] : &#x27;T2–T6&#x27;) + (d.may ? &#x27; · &#x27; + esc(d.may) : &#x27;&#x27;) + (d.vuot ? &#x27; · &lt;b&gt;người đề xuất đồng ý vượt chỉ tiêu&lt;/b&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/span&gt;&#x27;; } },
-      { h: &#x27;Chỗ của khoa ngày đó&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { var d = proposal(p), q = RT.quotas(S.data.dm)[p.khoa]; if (!q) return esc(p.khoa || &#x27;—&#x27;); var n = khoaLoad(p, d.ngay_du_kien); return esc(p.khoa) + &#x27;: &lt;b class=&quot;num&quot;&gt;&#x27; + (n + 1) + &#x27;/&#x27; + q.max + &#x27;&lt;/b&gt;&lt;span class=&quot;sub&quot;&gt;&#x27; + (n + 1 &gt; q.max ? &#x27;&lt;b&gt;Vượt &#x27; + (n + 1 - q.max) + &#x27;&lt;/b&gt;&#x27; : &#x27;Còn &#x27; + (q.max - n - 1)) + &#x27; sau khi thêm&lt;/span&gt;&#x27;; } },
+      { h: &#x27;Chỗ của khoa ngày đó&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { var d = proposal(p), q = RT.quotas(S.data.dm)[p.khoa]; if (!q) return esc(p.khoa || &#x27;—&#x27;); var n = khoaLoad(p, d.ngay_du_kien), ov = RT.quotaOver(pts(), S.data.fractions, env(), S.data.dm, p, d.ngay_du_kien, d.ngay_nghi_tuan, today());
+        return esc(p.khoa) + &#x27;: &lt;b class=&quot;num&quot;&gt;&#x27; + (n + 1) + &#x27;/&#x27; + q.max + &#x27;&lt;/b&gt;&lt;span class=&quot;sub&quot;&gt;&#x27; + (n + 1 &gt; q.max ? &#x27;&lt;b&gt;Vượt &#x27; + (n + 1 - q.max) + &#x27;&lt;/b&gt;&#x27; : &#x27;Còn &#x27; + (q.max - n - 1)) + &#x27; sau khi thêm&lt;/span&gt;&#x27; + (ov &amp;&amp; !ov.dau ? &#x27;&lt;span class=&quot;sub&quot;&gt;&lt;b&gt;&#x27; + fdw(ov.ngay) + &#x27;: &#x27; + ov.n + &#x27;/&#x27; + ov.max + &#x27;&lt;/b&gt; (2 tuần đầu)&lt;/span&gt;&#x27; : &#x27;&#x27;); } },
       { h: &#x27;Người đề xuất&#x27;, v: function (p) { var u = S.data.users.filter(function (x) { return x.email === p.de_xuat_boi; })[0]; return &#x27;&lt;b&gt;&#x27; + esc(u ? u.ho_ten : p.de_xuat_boi) + &#x27;&lt;/b&gt;&lt;span class=&quot;sub&quot;&gt;&#x27; + (u ? esc(RT.ROLES[u.vai_tro] || &#x27;&#x27;) + (u.khoa ? &#x27; · &#x27; + esc(u.khoa) : &#x27;&#x27;) + &#x27; · &#x27; : &#x27;&#x27;) + esc(String(p.de_xuat_luc || &#x27;&#x27;).replace(&#x27;T&#x27;, &#x27; &#x27;).slice(5, 16)) + &#x27;&lt;/span&gt;&#x27;; } },
       C.bs,
       { h: &#x27;&#x27;, cls: &#x27;act&#x27;, v: function (p) { return ktvLead() ? btn(&#x27;approveSched&#x27;, p.id, &#x27;Xem / sửa và duyệt&#x27;, &#x27;primary&#x27;) + btn(&#x27;rejectSched&#x27;, p.id, &#x27;Trả lại&#x27;, &#x27;danger&#x27;) : &#x27;&#x27;; } }];
@@ -5841,8 +5874,12 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
           if (qi) {
             var over = false;
             if (v.ngay_du_kien) {
-              var n = khoaLoad(p, v.ngay_du_kien); over = n + 1 &gt; q.max;
-              qi.innerHTML = &#x27;Khoa &lt;b&gt;&#x27; + esc(p.khoa) + &#x27;&lt;/b&gt; ngày &#x27; + fdw(v.ngay_du_kien) + &#x27;: &lt;b&gt;&#x27; + n + &#x27;/&#x27; + q.max + &#x27;&lt;/b&gt; BN, &#x27; + (over ? &#x27;&lt;b&gt;đã đủ chỉ tiêu&lt;/b&gt;&#x27; : &#x27;còn &#x27; + (q.max - n) + &#x27; chỗ&#x27;) + &#x27; (chỉ tiêu &#x27; + q.min + &#x27;–&#x27; + q.max + &#x27;).&#x27; +
+              var n = khoaLoad(p, v.ngay_du_kien);
+              var ov = RT.quotaOver(pts(), S.data.fractions, env(), S.data.dm, p, v.ngay_du_kien, v.kieu === &#x27;t27&#x27; ? v.ngay_nghi_tuan : &#x27;&#x27;, today());
+              over = !!ov;
+              qi.innerHTML = &#x27;Khoa &lt;b&gt;&#x27; + esc(p.khoa) + &#x27;&lt;/b&gt; ngày &#x27; + fdw(v.ngay_du_kien) + &#x27;: &lt;b&gt;&#x27; + n + &#x27;/&#x27; + q.max + &#x27;&lt;/b&gt; BN, &#x27; + (n + 1 &gt; q.max ? &#x27;&lt;b&gt;đã đủ chỉ tiêu&lt;/b&gt;&#x27; : &#x27;còn &#x27; + (q.max - n) + &#x27; chỗ&#x27;) + &#x27; (chỉ tiêu &#x27; + q.min + &#x27;–&#x27; + q.max + &#x27;).&#x27; +
+                (ov &amp;&amp; !ov.dau ? &#x27;&lt;br&gt;&lt;b&gt;Trong 2 tuần đầu của BN: ngày &#x27; + fdw(ov.ngay) + &#x27; khoa sẽ có &#x27; + ov.n + &#x27;/&#x27; + ov.max + &#x27; BN.&lt;/b&gt;&#x27; : &#x27;&#x27;) +
+                (!ov ? &#x27; 2 tuần đầu của BN không vượt chỉ tiêu.&#x27; : &#x27;&#x27;) +
                 (over &amp;&amp; p.uu_tien === &#x27;Cấp cứu&#x27; ? &#x27; BN cấp cứu luôn được xếp.&#x27; : &#x27;&#x27;);
             } else qi.innerHTML = &#x27;&#x27;;
             $(&#x27;#sd-over&#x27;, form).hidden = !over || p.uu_tien === &#x27;Cấp cứu&#x27;;
@@ -5851,7 +5888,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
         };
         var es = $(&#x27;#sd-earliest&#x27;, form);
         if (es &amp;&amp; q) {
-          var first = workDays(40).filter(function (d) { return khoaLoad(p, d) + 1 &lt;= q.max; })[0];
+          var first = workDays(40).filter(function (d) { return !RT.quotaOver(pts(), S.data.fractions, env(), S.data.dm, p, d, p.ngay_nghi_tuan, today()); })[0];
           es.innerHTML = first ? &#x27;Sớm nhất còn chỗ: &lt;button type=&quot;button&quot; class=&quot;lnk&quot; id=&quot;sd-pick&quot;&gt;&#x27; + fdw(first) + &#x27;&lt;/button&gt;&#x27; : &#x27;Khoa đã đủ chỉ tiêu trong 40 ngày tới&#x27;;
           if (first) $(&#x27;#sd-pick&#x27;, form).onclick = function () { $(&#x27;#sd-start&#x27;, form).value = first; upd(); };
         }

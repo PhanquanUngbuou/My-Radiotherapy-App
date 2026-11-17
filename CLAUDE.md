@@ -5,6 +5,7 @@
 ## Người dùng và cách làm việc
 - Chủ dự án: BS Phan Văn Quân (xưng "anh", Claude xưng "em"). Mọi trao đổi, nhãn giao diện, thông báo đều bằng **tiếng Việt**.
 - **Trình bày kế hoạch trước khi làm thay đổi lớn**, chờ anh duyệt. Thay đổi nhỏ chưa gấp thì ghi vào `TODO.md` để gộp lần sau. Khi anh nói "ghi vào todo / để đó" thì không sửa code, chỉ ghi `TODO.md`.
+- **Từ sau v2.7: mọi yêu cầu mới ghi vào `TODO.md`, KHÔNG sửa code, KHÔNG làm phiên bản mới cho tới khi anh bảo "làm đi / làm bản mới".** Tiết kiệm token: gom việc, chỉ chụp ảnh giao diện khi cần.
 - **Mỗi lần gửi bản sửa (dù nhỏ) đều tăng số phiên bản** trong `VERSION` (2.6 → 2.7…) và ghi `CHANGELOG.md`. Ngoại lệ: anh chưa cài bản hiện tại và bảo gộp vào thì giữ số.
 - Hướng dẫn cài đặt đưa từng bước, ngắn gọn. Ứng dụng phải nhẹ (vài chục người dùng cùng lúc). Không làm thông báo đẩy, chỉ thông báo trong ứng dụng (chuông). Không làm "giờ hẹn".
 - **Dữ liệu cá nhân:** không đưa danh sách email nhân viên hay dữ liệu bệnh nhân vào GitHub.
@@ -45,7 +46,7 @@
   - Ghi vắng bằng loại `VANG` trong `LichNgoaiLe`, lý do lấy từ danh mục `LY_DO_VANG`. Có lịch mà không ghi gì thì tính "vắng chưa rõ lý do".
   - BN vắng từ 2 buổi liên tiếp thì báo BS điều trị.
   - Ghi bù buổi quên tích (trong 7 ngày) bắt buộc lý do, lưu `ghi_bu` / `ly_do_bu`, ngày đó hiện màu vàng trên lịch.
-- Chỉ tiêu khoa (`CHI_TIEU`, "Khoa: min-max"): BN chiếm chỗ từ ngày bắt đầu tới hết đợt (kể cả boost, vắng, tạm ngừng). Đủ chỉ tiêu thì chỉ cảnh báo, đồng ý thì xếp; cấp cứu luôn được xếp; không tô màu bảng chỉ tiêu.
+- Chỉ tiêu khoa (`CHI_TIEU`, "Khoa: min-max"), kiểm tra 2 tuần đầu của BN mới (`quotaOver`): BN chiếm chỗ từ ngày bắt đầu tới hết đợt (kể cả boost, vắng, tạm ngừng). Đủ chỉ tiêu thì chỉ cảnh báo, đồng ý thì xếp; cấp cứu luôn được xếp; không tô màu bảng chỉ tiêu.
 - Xếp lịch: KTV trưởng xếp thẳng; KTV, ĐD đề xuất (`de_xuat_lich`) → KTV trưởng duyệt / sửa / trả lại (Xạ trị › Duyệt lịch). Vắng ≥ 3 buổi liên tiếp: gợi ý tạm ngừng. Tạm ngừng ≥ 7 ngày: hỏi BS mỗi 7 ngày (`xn_tam_ngung`), không nhả chỗ.
 - Lịch: 3D-CRT xạ T2–T6. IMRT/VMAT nghỉ 1 ngày trong tuần, bù Thứ Bảy. Boost: tuần tự (lên kế hoạch cùng lúc / contour trên CT cũ / mô phỏng lại).
 

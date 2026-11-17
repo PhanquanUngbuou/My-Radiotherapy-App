@@ -521,6 +521,17 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   assert(!api('ktvt@x.vn', 'rejectSchedule', { id: c5.id }).ok, 'trả lại cần lý do');
   r = ok('ktvt@x.vn', 'rejectSchedule', { id: c5.id, ly_do: 'Máy kín lịch' });
   assert(!r.data.patients.find(x => x.id === c5.id).de_xuat_lich);
+  // kiểm tra 2 tuần đầu: ngày bắt đầu còn chỗ nhưng vài ngày sau vượt
+  {
+    let dA = ctx.RT.addDays(d1, 21); while (ctx.RT.dow(dA) !== 1) dA = ctx.RT.addDays(dA, 1); // một thứ Hai xa, sau khi các BN trên đã xong
+    const dC = ctx.RT.addDays(dA, 2); // thứ Tư
+    const x1 = mk('Q1'), x2 = mk('Q2'), x3 = mk('Q3');
+    ok('ktvt@x.vn', 'schedule', { id: x1.id, ngay_du_kien: dC });
+    ok('ktvt@x.vn', 'schedule', { id: x2.id, ngay_du_kien: dC });
+    r = api('ktvt@x.vn', 'schedule', { id: x3.id, ngay_du_kien: dA });
+    assert(!r.ok && /2 tuần đầu/.test(r.error), 'cảnh báo vượt trong 2 tuần đầu: ' + r.error);
+    ok('ktvt@x.vn', 'schedule', { id: x3.id, ngay_du_kien: dA, vuot_chi_tieu: true });
+  }
   // cấp cứu luôn được xếp
   ok('ktvt@x.vn', 'schedule', { id: cc.id, ngay_du_kien: d1 });
   // đếm chỗ
