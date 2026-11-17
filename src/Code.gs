@@ -82,7 +82,7 @@ function api(action, payload) {
     // Kiểm tra nhanh có thay đổi không (không đọc Google Sheet) để giao diện biết khi nào cần tải lại
     if (action === 'rev') return JSON.stringify({ ok: true, rev: PropertiesService.getScriptProperties().getProperty('REV') || '0' });
     if (action === 'searchArchive') return JSON.stringify(searchArchive_(payload || {}));
-    if (action !== 'bootstrap' && action !== 'getLog' && action !== 'getRoster') {
+    if (action !== 'bootstrap' && action !== 'getLog' && action !== 'getRoster' && action !== 'report') {
       lock = LockService.getScriptLock();
       lock.waitLock(30000);
     }
@@ -91,6 +91,18 @@ function api(action, payload) {
     if (action === 'getLog') {
       if (ctx.user.vai_tro !== 'ADMIN' && !RT.isLead(ctx.user)) throw new Error('Chỉ quản trị và trưởng khoa/phòng xem được nhật ký.');
       extra.log = readLog_(300);
+    } else if (action === 'report' || action === 'exportReport') {
+      var p0 = payload || {};
+      var data = { patients: ctx.patients, phases: ctx.phases, fractions: ctx.fractions, users: ctx.users, dm: ctx.dm };
+      // Khoảng ngày cũ hơn 60 ngày: đọc thêm dữ liệu đã lưu trữ
+      if (p0.tu < RT.addDays(ctx.today, -ARCHIVE_DAYS)) {
+        var ss2 = ss_();
+        data.patients = data.patients.concat(readTable_(ss2, ARCHIVE.BenhNhan).rows);
+        data.phases = data.phases.concat(readTable_(ss2, ARCHIVE.GiaiDoan).rows);
+        data.fractions = data.fractions.concat(readTable_(ss2, ARCHIVE.BuoiXa).rows);
+      }
+      extra.report = RT.report(data, p0.tu, p0.den, ctx.user);
+      if (action === 'exportReport') extra.sheet = writeReport_(extra.report, ctx.user);
     } else if (action === 'getRoster') {
       var a0 = (payload || {}).tu, b0 = (payload || {}).den;
       extra.roster = ctx.roster.filter(function (r) { return r.ngay >= a0 && r.ngay <= b0; }).map(function (r) { var o = {}; RT.COLS.PhanCong.forEach(function (c) { o[c] = r[c] || ''; }); return o; });
@@ -99,7 +111,7 @@ function api(action, payload) {
       SpreadsheetApp.flush();
       PropertiesService.getScriptProperties().setProperty('REV', String(Date.now()));
     }
-    return JSON.stringify({ ok: true, msg: msg, data: RT.view(ctx), log: extra.log, roster: extra.roster, rev: PropertiesService.getScriptProperties().getProperty('REV') || '0' });
+    return JSON.stringify({ ok: true, msg: msg, data: RT.view(ctx), log: extra.log, roster: extra.roster, report: extra.report, sheet: extra.sheet, rev: PropertiesService.getScriptProperties().getProperty('REV') || '0' });
   } catch (e) {
     return JSON.stringify({ ok: false, error: String(e && e.message || e) });
   } finally {
@@ -164,6 +176,7 @@ function buildCtx_() {
     u.email = u.email.toLowerCase(); u.vai_tro = String(u.vai_tro).toUpperCase().trim();
     u.kich_hoat = u.kich_hoat === 'Không' ? 'Không' : 'Có';
     u.chuc_vu = String(u.chuc_vu || '').trim();
+    u.khoa = String(u.khoa || '').trim();
     return u;
   });
   var user = users.filter(function (u) { return u.email === email && u.kich_hoat !== 'Không'; })[0];
@@ -232,6 +245,44 @@ function buildCtx_() {
       }
     }
   };
+}
+
+/** Ghi báo cáo ra một trang tính mới để tải về Excel. Trả về tên trang. */
+function writeReport_(r, user) {
+  var ss = ss_();
+  var name = 'BaoCao ' + r.tu + ' den ' + r.den + ' ' + Utilities.formatDate(new Date(), TZ, 'HHmmss');
+  var sh = ss.insertSheet(name.slice(0, 90));
+  var rows = [];
+  var o = r.tong_quan;
+  rows.push(['BÁO CÁO XẠ TRỊ', '', '', '']);
+  rows.push(['Từ ngày', r.tu, 'Đến ngày', r.den]);
+  rows.push(['Phạm vi', r.pham_vi, 'Người lập', user.ho_ten]);
+  rows.push(['', '', '', '']);
+  rows.push(['TỔNG QUAN', '', '', '']);
+  [['Số lượt xạ', o.luot_xa], ['Số BN được xạ', o.bn_xa], ['BN mới nhập', o.bn_moi], ['BN bắt đầu xạ', o.bn_bat_dau],
+   ['BN kết thúc xạ', o.bn_ket_thuc], ['Trong đó kết thúc sớm', o.ket_thuc_som], ['Đang xạ (hiện tại)', o.dang_xa],
+   ['Tạm ngừng (hiện tại)', o.tam_ngung], ['Số lần CBCT', o.cbct], ['Số lần kV-kV', o.kv], ['Số lần SGRT', o.sgrt]]
+    .forEach(function (x) { rows.push([x[0], x[1], '', '']); });
+  var addMap = function (title, m) {
+    if (!m) return;
+    rows.push(['', '', '', '']); rows.push([title, 'Số lượt xạ', '', '']);
+    Object.keys(m).forEach(function (k) { rows.push([k, m[k], '', '']); });
+  };
+  addMap('THEO KỸ THUẬT', o.theo_ky_thuat);
+  addMap('THEO MÁY', o.theo_may);
+  addMap('THEO KHOA', o.theo_khoa);
+  var addRows = function (title, head, list, f) {
+    if (!list) return;
+    rows.push(['', '', '', '']); rows.push([title].concat(head));
+    list.forEach(function (x) { rows.push(f(x)); });
+  };
+  addRows('THEO BÁC SĨ', ['Số BN xạ', 'Số lượt xạ', ''], r.theo_bac_si, function (x) { return [x.ten, x.bn_xa, x.luot_xa, '']; });
+  addRows('THEO KTV', ['Số BN', 'Số buổi ghi', ''], r.theo_ktv, function (x) { return [x.ten, x.bn_xa, x.luot_xa, '']; });
+  addRows('THEO KỸ SƯ', ['Số kế hoạch', 'Có QA', ''], r.theo_ky_su, function (x) { return [x.ten, x.ke_hoach, x.co_qa, '']; });
+  sh.getRange(1, 1, rows.length, 4).setValues(rows);
+  sh.getRange(1, 1).setFontWeight('bold').setFontSize(13);
+  sh.setColumnWidth(1, 260);
+  return { name: sh.getName(), url: ss.getUrl() + '#gid=' + sh.getSheetId() };
 }
 
 function readLog_(n) {

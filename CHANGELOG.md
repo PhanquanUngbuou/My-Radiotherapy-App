@@ -1,5 +1,11 @@
 # Lịch sử phiên bản
 
+## v2.0
+- **Tab Thống kê**: lượt xạ, số BN xạ, BN bắt đầu/kết thúc/mới, CBCT, SGRT, theo kỹ thuật, theo máy; theo bác sĩ, theo KTV, theo kỹ sư.
+- Phân quyền thống kê: quản trị gộp hai khoa; trưởng khoa, điều dưỡng trưởng, tài khoản khoa xem cả khoa mình; bác sĩ (kể cả phó khoa), KTV, kỹ sư chỉ xem số của mình; KTV trưởng xem nhóm KTV; trưởng phòng xem nhóm kỹ sư; điều dưỡng thường không có thống kê. Danh sách làm việc không thay đổi.
+- Nút "Tạo trang báo cáo" ghi ra trang tính mới để tải về Excel.
+- Người dùng có thêm ô Khoa; chức vụ mới "Tài khoản khoa".
+
 ## v1.9
 - **Bảng phân công** theo tuần (tab Phân công): vị trí × ngày, KTV trưởng bấm ô để chọn người, sao chép từ tuần trước; ai cũng xem được.
 - KTV thấy "Hôm nay bạn: …" ở đầu trang Xạ hôm nay.

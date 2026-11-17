@@ -230,6 +230,7 @@
     week: { label: function () { return 'Lịch tuần'; }, render: renderWeek },
     all: { label: function () { return 'Tất cả BN'; }, render: renderAll },
     roster: { label: function () { return 'Phân công'; }, render: renderRoster },
+    stats: { label: function () { return 'Thống kê'; }, render: renderStats },
     log: { label: function () { return 'Nhật ký'; }, render: function () { return '<div class="page-head"><div><h1>Nhật ký thao tác</h1><p>Ai làm gì, lúc nào. Chỉ trưởng khoa/phòng và quản trị xem được.</p></div></div>' + logSection(); } },
     admin: { label: function () { return 'Quản trị'; }, render: renderAdmin }
   };
@@ -237,6 +238,7 @@
 
   function renderShell() {
     var d = S.data, tabs = (ROLE_TABS[role()] || ['all']).slice();
+    if (RT.statsScope(me())) tabs.splice(tabs.indexOf('admin') >= 0 ? tabs.indexOf('admin') : tabs.length, 0, 'stats');
     if (isLead() && role() !== 'ADMIN') tabs.push('log');
     if (S.role !== d.me.email) { S.role = d.me.email; S.scope = isDoctor(d.me) ? 'mine' : 'all'; S.log = null; }
     if (tabs.indexOf(S.tab) < 0) S.tab = tabs[0];
@@ -292,6 +294,7 @@
     if (S.tab === 'week') bindWeek();
     if (S.tab === 'all') bindAll();
     if (S.tab === 'roster') bindRoster();
+    if (S.tab === 'stats') bindStats();
     $$('#main [data-admin=loadLog]').forEach(function (b) { if (S.tab !== 'admin') b.onclick = function () { run('getLog'); }; });
     $$('#main [data-notice]').forEach(function (b) { b.onclick = noticeForm; });
   }
@@ -735,6 +738,73 @@
     toast(list.length === 1 ? 'Việc mới: ' + list[0].text : list.length + ' việc mới. Bấm chuông để xem.');
   }
 
+  // ---------- Thống kê ----------
+  function statsRange(k) {
+    var t = today(), y = +t.slice(0, 4), m = +t.slice(5, 7);
+    var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+    var last = function (yy, mm) { return new Date(Date.UTC(yy, mm, 0)).getUTCDate(); };
+    if (k === 'today') return [t, t];
+    if (k === 'week') return [RT.monday(t), t];
+    if (k === 'month') return [y + '-' + pad(m) + '-01', t];
+    if (k === 'prev') { var py = m === 1 ? y - 1 : y, pm = m === 1 ? 12 : m - 1; return [py + '-' + pad(pm) + '-01', py + '-' + pad(pm) + '-' + pad(last(py, pm))]; }
+    return [S.stTu || RT.addDays(t, -30), S.stDen || t];
+  }
+  function renderStats() {
+    var sc = RT.statsScope(me());
+    if (!S.stKey) S.stKey = 'month';
+    var rg = statsRange(S.stKey);
+    var r = S.stRes && S.stRes.tu === rg[0] && S.stRes.den === rg[1] ? S.stRes : null;
+    var keys = [['today', 'Hôm nay'], ['week', 'Tuần này'], ['month', 'Tháng này'], ['prev', 'Tháng trước'], ['custom', 'Tuỳ chọn']];
+    var html = '<div class="page-head"><div><h1>Thống kê</h1><p>Phạm vi: <b>' + esc(sc.label) + '</b>. ' +
+      (sc.all ? 'Quản trị xem được số liệu gộp hai khoa.' : sc.khoa ? 'Số liệu theo người của cả khoa chỉ trưởng khoa, điều dưỡng trưởng và tài khoản khoa xem được.' : 'Bạn xem được số liệu của chính mình.') + '</p></div></div>';
+    html += '<div class="card pad"><div class="filters"><div class="seg" role="group" aria-label="Khoảng thời gian">' +
+      keys.map(function (k) { return '<button data-stkey="' + k[0] + '" aria-pressed="' + (S.stKey === k[0]) + '">' + k[1] + '</button>'; }).join('') + '</div>' +
+      (S.stKey === 'custom' ? '<label class="muted">Từ <input type="date" id="st-tu" value="' + rg[0] + '"></label><label class="muted">đến <input type="date" id="st-den" value="' + rg[1] + '" max="' + today() + '"></label>' : '') +
+      '<button class="btn primary" data-stload="1">' + (r ? 'Tính lại' : 'Xem thống kê') + '</button>' +
+      (r && !window.DEMO ? '<button class="btn" data-stexport="1">Tạo trang báo cáo (Excel)</button>' : '') + '</div>' +
+      '<span class="muted">Từ ' + fdy(rg[0]) + ' đến ' + fdy(rg[1]) + '. Số liệu chỉ tính khi bấm, để ứng dụng luôn nhẹ.</span>' +
+      (S.stSheet ? '<span>Đã tạo trang <b>' + esc(S.stSheet.name) + '</b> trong Google Sheet. Mở Sheet → trang đó → Tệp → Tải xuống → Microsoft Excel. <a href="' + esc(S.stSheet.url) + '" target="_blank" rel="noopener">Mở trang báo cáo</a></span>' : '') + '</div>';
+    if (!r) return html + '<div class="card"><div class="empty">Chọn khoảng thời gian rồi bấm “Xem thống kê”.</div></div>';
+    var o = r.tong_quan;
+    var tile = function (n, l) { return '<div class="kpi" style="cursor:default"><span class="n">' + n + '</span><span class="l">' + l + '</span></div>'; };
+    html += '<div class="kpis">' + tile(o.luot_xa, 'Lượt xạ') + tile(o.bn_xa, 'BN được xạ') + tile(o.bn_bat_dau, 'BN bắt đầu xạ') + tile(o.bn_ket_thuc, 'BN kết thúc xạ') +
+      tile(o.bn_moi, 'BN mới nhập') + tile(o.cbct, 'Lần CBCT') + tile(o.sgrt, 'Lần SGRT') + '</div>';
+    var mapTable = function (title, m) {
+      if (!m || !Object.keys(m).length) return '';
+      var ks = Object.keys(m).sort(function (a, b) { return m[b] - m[a]; });
+      return '<section class="group"><div class="group-head"><h2>' + title + '</h2></div><div class="card"><div class="tbl-wrap"><table><thead><tr><th></th><th>Lượt xạ</th></tr></thead><tbody>' +
+        ks.map(function (k) { return '<tr><td>' + esc(k) + '</td><td class="num">' + m[k] + '</td></tr>'; }).join('') + '</tbody></table></div></div></section>';
+    };
+    var listTable = function (title, list, cols) {
+      if (!list) return '';
+      return '<section class="group"><div class="group-head"><h2>' + title + '</h2><span class="count">' + list.length + '</span></div>' +
+        (list.length ? '<div class="card"><div class="tbl-wrap"><table><thead><tr><th>Họ tên</th>' + cols.map(function (c) { return '<th>' + c[0] + '</th>'; }).join('') + '</tr></thead><tbody>' +
+          list.map(function (x) { return '<tr><td>' + esc(x.ten) + '</td>' + cols.map(function (c) { return '<td class="num">' + x[c[1]] + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div></div>'
+          : '<div class="card"><div class="empty">Không có số liệu trong khoảng này.</div></div>') + '</section>';
+    };
+    html += '<div class="admin-grid">' + mapTable('Theo kỹ thuật', o.theo_ky_thuat) + mapTable('Theo máy', o.theo_may) + mapTable('Theo khoa', o.theo_khoa) + '</div>';
+    html += listTable(sc.byDoctor ? 'Theo bác sĩ' : 'Của tôi (bác sĩ)', r.theo_bac_si, [['Số BN xạ', 'bn_xa'], ['Số lượt xạ', 'luot_xa']]);
+    html += listTable(sc.byKtv ? 'Theo KTV' : 'Của tôi (KTV)', r.theo_ktv, [['Số BN', 'bn_xa'], ['Số buổi đã ghi', 'luot_xa']]);
+    html += listTable(sc.byKs ? 'Theo kỹ sư' : 'Của tôi (kỹ sư)', r.theo_ky_su, [['Số kế hoạch', 'ke_hoach'], ['Có QA', 'co_qa']]);
+    return html;
+  }
+  function bindStats() {
+    $$('#main [data-stkey]').forEach(function (b) { b.onclick = function () { S.stKey = b.dataset.stkey; S.stSheet = null; renderMain(); }; });
+    var tu = $('#st-tu'), den = $('#st-den');
+    if (tu) tu.onchange = function () { S.stTu = tu.value; };
+    if (den) den.onchange = function () { S.stDen = den.value; };
+    var go = function (action) {
+      var rg = statsRange(S.stKey);
+      setBusy(1);
+      call(action, { tu: rg[0], den: rg[1] }).then(function (r) {
+        S.stRes = r.report; if (r.sheet) { S.stSheet = r.sheet; toast('Đã tạo trang báo cáo trong Google Sheet.'); }
+        renderMain();
+      }, function (e) { toast(e.error || 'Không tính được thống kê.', true); }).finally(function () { setBusy(-1); });
+    };
+    $$('#main [data-stload]').forEach(function (b) { b.onclick = function () { S.stSheet = null; go('report'); }; });
+    $$('#main [data-stexport]').forEach(function (b) { b.onclick = function () { go('exportReport'); }; });
+  }
+
   // ---------- Bảng phân công ----------
   function rosterRows() { return S.rosterExtra ? S.data.roster.concat(S.rosterExtra) : S.data.roster; }
   function rosterCell(ngay, vt) { return rosterRows().filter(function (r) { return r.ngay === ngay && r.vi_tri === vt; })[0]; }
@@ -812,10 +882,10 @@
     var users = d.users.slice().sort(function (a, b) { return (a.kich_hoat === 'Không') - (b.kich_hoat === 'Không') || ['ADMIN', 'BS', 'KS', 'KTV', 'DD'].indexOf(a.vai_tro) - ['ADMIN', 'BS', 'KS', 'KTV', 'DD'].indexOf(b.vai_tro) || a.ho_ten.localeCompare(b.ho_ten, 'vi'); });
     var html = '<div class="page-head"><div><h1>Quản trị</h1><p>Người dùng, danh mục và nhật ký thao tác.</p></div><button class="btn primary" data-admin="addUser">+ Thêm người dùng</button></div>';
     html += '<section class="group"><div class="group-head"><h2>Người dùng</h2><span class="count">' + activeUsers().length + ' đang hoạt động</span>' +
-      '<span class="hint">Người dùng cần có tài khoản Google. Với Gmail cá nhân, nhớ chia sẻ Google Sheet cho họ.</span></div><div class="card"><div class="tbl-wrap"><table><thead><tr><th>Họ tên</th><th>Email</th><th>Vai trò</th><th>Chức vụ</th><th>Trạng thái</th><th></th></tr></thead><tbody>' +
+      '<span class="hint">Người dùng cần có tài khoản Google. Với Gmail cá nhân, nhớ chia sẻ Google Sheet cho họ.</span></div><div class="card"><div class="tbl-wrap"><table><thead><tr><th>Họ tên</th><th>Email</th><th>Vai trò</th><th>Chức vụ</th><th>Khoa</th><th>Trạng thái</th><th></th></tr></thead><tbody>' +
       users.map(function (u) {
         return '<tr class="' + (u.kich_hoat === 'Không' ? 'off-user' : '') + '"><td><b>' + esc(u.ho_ten) + '</b></td><td class="mono">' + esc(u.email) + '</td><td><span class="role role-' + esc(u.vai_tro) + '">' + esc(RT.ROLES[u.vai_tro] || u.vai_tro) + '</span></td>' +
-          '<td>' + esc(u.chuc_vu || '') + '</td><td>' + (u.kich_hoat === 'Không' ? 'Đã khoá' : 'Hoạt động') + '</td><td class="act"><button class="btn" data-admin="editUser" data-email="' + esc(u.email) + '">Sửa</button></td></tr>';
+          '<td>' + esc(u.chuc_vu || '') + '</td><td>' + esc(u.khoa || '') + '</td><td>' + (u.kich_hoat === 'Không' ? 'Đã khoá' : 'Hoạt động') + '</td><td class="act"><button class="btn" data-admin="editUser" data-email="' + esc(u.email) + '">Sửa</button></td></tr>';
       }).join('') + '</tbody></table></div></div></section>';
     var dmBox = function (loai, title, help, ph, type) {
       var list = d.dm[loai] || [];
@@ -859,8 +929,9 @@
         field('Email Google <span class="req">*</span>', '<input type="email" name="email" value="' + esc(u.email || '') + '"' + (isNew ? '' : ' readonly') + ' placeholder="ten@gmail.com">', 'full') +
         field('Vai trò', '<select name="vai_tro">' + opts(['BS', 'KS', 'KTV', 'DD', 'ADMIN'].map(function (r) { return { v: r, l: RT.ROLES[r] }; }), u.vai_tro) + '</select>') +
         field('Trạng thái', '<select name="kich_hoat">' + opts([{ v: 'Có', l: 'Hoạt động' }, { v: 'Không', l: 'Khoá tài khoản' }], u.kich_hoat) + '</select>') +
-        field('Chức vụ', '<select name="chuc_vu">' + opts(RT.CHUC_VU, u.chuc_vu || '', 'Không') + '</select>', 'full', 'KTV trưởng: lập bảng phân công, huỷ buổi xạ ghi nhầm, ghi máy nghỉ. Mọi chức vụ: xem nhật ký, đăng thông báo.') + '</div>',
-      validate: function (v) { if (!v.ho_ten) return 'Cần nhập họ tên.'; if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.email)) return 'Email không hợp lệ.'; return ''; },
+        field('Chức vụ', '<select name="chuc_vu">' + opts(RT.CHUC_VU, u.chuc_vu || '', 'Không') + '</select>', '', 'Trưởng khoa, ĐD trưởng, tài khoản khoa: xem thống kê cả khoa. KTV trưởng: phân công, huỷ buổi xạ ghi nhầm.') +
+        field('Khoa', '<select name="khoa">' + opts(S.data.dm.KHOA || [], u.khoa || '', '—') + '</select>', '', 'Bắt buộc với trưởng khoa, ĐD trưởng, tài khoản khoa') + '</div>',
+      validate: function (v) { if (!v.ho_ten) return 'Cần nhập họ tên.'; if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.email)) return 'Email không hợp lệ.'; if (['Trưởng khoa', 'Điều dưỡng trưởng', 'Tài khoản khoa'].indexOf(v.chuc_vu) >= 0 && !v.khoa) return 'Chức vụ này cần chọn khoa.'; return ''; },
       onOk: function (v) { run('saveUser', v); } });
   }
 

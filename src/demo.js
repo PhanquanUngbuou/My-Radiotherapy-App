@@ -8,17 +8,17 @@ window.DEMO = (function () {
   if (RT.dow(today) === 0) { today = RT.addDays(today, 1); shifted = true; } // Chủ nhật → giả lập Thứ Hai
 
   var users = [
-    { email: 'bs.hai@demo', ho_ten: 'BS. Trần Hải', vai_tro: 'BS' },
+    { email: 'bs.hai@demo', ho_ten: 'BS. Trần Hải', vai_tro: 'BS', chuc_vu: 'Trưởng khoa', khoa: 'Xạ trị theo yêu cầu' },
     { email: 'bs.thu@demo', ho_ten: 'BS. Lê Thu', vai_tro: 'BS' },
     { email: 'ks.nam@demo', ho_ten: 'KS. Đỗ Nam', vai_tro: 'KS' },
     { email: 'ks.ha@demo', ho_ten: 'KS. Vũ Hà', vai_tro: 'KS' },
     { email: 'ktv.linh@demo', ho_ten: 'KTV. Hoàng Linh', vai_tro: 'KTV', chuc_vu: 'KTV trưởng' },
     { email: 'ktv.son@demo', ho_ten: 'KTV. Trần Sơn', vai_tro: 'KTV' },
     { email: 'ktv.ha@demo', ho_ten: 'KTV. Lê Hà', vai_tro: 'KTV' },
-    { email: 'dd.mai@demo', ho_ten: 'ĐD. Mai Anh', vai_tro: 'DD' },
+    { email: 'dd.mai@demo', ho_ten: 'ĐD. Mai Anh', vai_tro: 'DD', chuc_vu: 'Điều dưỡng trưởng', khoa: 'Xạ trị theo yêu cầu' },
     { email: 'quantri@demo', ho_ten: 'Quản trị khoa', vai_tro: 'ADMIN' }
   ];
-  users.forEach(function (u) { u.kich_hoat = 'Có'; u.chuc_vu = u.chuc_vu || ''; });
+  users.forEach(function (u) { u.kich_hoat = 'Có'; u.chuc_vu = u.chuc_vu || ''; u.khoa = u.khoa || ''; });
   var roster = [], rev = 1;
   var logs = [];
   var dm = JSON.parse(JSON.stringify(RT.DEFAULT_DM));
@@ -97,7 +97,7 @@ window.DEMO = (function () {
     // Đang xạ
     p = mk({ ho_ten: 'Nguyễn Văn Hùng', nam_sinh: '1968', gioi: 'Nam', chan_doan: 'K vòm họng T3N2M0', ky_thuat: 'VMAT', tong_lieu: '70', so_buoi: '35', igrt: 'CBCT 3 buổi đầu, sau đó hằng tuần', sgrt: 'Có', ngay_nghi_tuan: '3', trang_thai: 'DANG_XA', uu_tien: 'Ưu tiên' });
     var st = back(p, 20); treat(p, st, today, [back(p, 6)]);
-    p = mk({ ho_ten: 'Trần Thị Lan', nam_sinh: '1979', gioi: 'Nữ', chan_doan: 'K cổ tử cung IIB', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25', igrt: 'CBCT hằng tuần', ngay_nghi_tuan: '5', trang_thai: 'DANG_XA', bs_email: 'bs.thu@demo' });
+    p = mk({ ho_ten: 'Trần Thị Lan', nam_sinh: '1979', gioi: 'Nữ', chan_doan: 'K cổ tử cung IIB', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25', igrt: 'CBCT hằng tuần', ngay_nghi_tuan: '5', trang_thai: 'DANG_XA', bs_email: 'bs.thu@demo', khoa: 'Xạ trị' });
     treat(p, back(p, 11), RT.addDays(today, -1));
     p = mk({ ho_ten: 'Phạm Minh Khôi', nam_sinh: '1960', gioi: 'Nam', chan_doan: 'K phổi không tế bào nhỏ IIIA', ky_thuat: 'VMAT', tong_lieu: '60', so_buoi: '30', igrt: 'CBCT hằng ngày', ngay_nghi_tuan: '2', trang_thai: 'DANG_XA' });
     treat(p, back(p, 22), RT.addDays(today, -1), [back(p, 2), back(p, 1)]);
@@ -215,6 +215,10 @@ window.DEMO = (function () {
         return JSON.stringify({ ok: true, rev: String(rev) });
       } else if (action === 'getRoster') {
         return JSON.stringify({ ok: true, data: RT.view(c), roster: roster.filter(function (r) { return r.ngay >= payload.tu && r.ngay <= payload.den; }), rev: String(rev) });
+      } else if (action === 'report') {
+        return JSON.stringify({ ok: true, report: RT.report({ patients: patients, phases: phases, fractions: fractions, users: users, dm: dm }, payload.tu, payload.den, c.user) });
+      } else if (action === 'exportReport') {
+        throw new Error('Bản demo không tạo được trang báo cáo. Bản thật sẽ ghi ra Google Sheet.');
       } else if (action === 'getLog') {
         if (c.user.vai_tro !== 'ADMIN' && !RT.isLead(c.user)) throw new Error('Chỉ quản trị và trưởng khoa/phòng xem được nhật ký.');
       } else if (action !== 'bootstrap') { msg = RT.handle(c, action, payload || {}); rev++; }

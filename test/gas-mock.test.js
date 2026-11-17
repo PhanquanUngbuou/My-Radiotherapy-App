@@ -7,6 +7,7 @@ function makeSheet(name) {
   const ensure = (r, c) => { while (sh.data.length < r) sh.data.push([]); sh.data.forEach(row => { while (row.length < c) row.push(''); }); };
   sh.getLastRow = () => { for (let i = sh.data.length; i > 0; i--) if (sh.data[i - 1].some(v => v !== '')) return i; return 0; };
   sh.getMaxRows = () => Math.max(sh.data.length, 1000);
+  sh.getName = () => sh.name; sh.getSheetId = () => 1; sh.setColumnWidth = () => {};
   sh.getLastColumn = () => Math.max(0, ...sh.data.map(r => r.length));
   sh.deleteRow = r => { sh.data.splice(r - 1, 1); };
   sh.setFrozenRows = () => {};
@@ -14,7 +15,7 @@ function makeSheet(name) {
     const rng = {
       setValues(vals) { ensure(r + nr - 1, c + nc - 1); vals.forEach((row, i) => row.forEach((v, j) => { sh.data[r - 1 + i][c - 1 + j] = v; })); return rng; },
       setValue(v) { return rng.setValues([[v]]); }, getValues() { ensure(r + nr - 1, c + nc - 1); return sh.data.slice(r - 1, r - 1 + nr).map(row => row.slice(c - 1, c - 1 + nc)); },
-      setNumberFormat() { return rng; }, setFontWeight() { return rng; }, setBackground() { return rng; },
+      setNumberFormat() { return rng; }, setFontSize() { return rng; }, setFontWeight() { return rng; }, setBackground() { return rng; },
       clearContent() { ensure(r + nr - 1, c + nc - 1); for (let i = 0; i < nr; i++) for (let j = 0; j < nc; j++) sh.data[r - 1 + i][c - 1 + j] = ''; return rng; }
     };
     return rng;
@@ -24,7 +25,7 @@ function makeSheet(name) {
 }
 const sheets = {};
 const ss = {
-  getId: () => 'SS1', setSpreadsheetTimeZone() {},
+  getId: () => 'SS1', setSpreadsheetTimeZone() {}, getUrl: () => 'https://sheet',
   getSheetByName: n => sheets[n] || null,
   insertSheet: n => (sheets[n] = makeSheet(n)),
   getSheets: () => Object.values(sheets), deleteSheet() {}
@@ -251,7 +252,7 @@ assert(!api('dd@x.vn', 'simDone', { id: m2.id }).ok, 'điều dưỡng không ch
 
 // ---- v1.8: chức vụ, thông báo máy, KTV trưởng ----
 ok('admin@x.vn', 'saveUser', { email: 'ktvt@x.vn', ho_ten: 'KTV trưởng', vai_tro: 'KTV', chuc_vu: 'KTV trưởng' });
-ok('admin@x.vn', 'saveUser', { email: 'ddt@x.vn', ho_ten: 'ĐD trưởng', vai_tro: 'DD', chuc_vu: 'Điều dưỡng trưởng' });
+ok('admin@x.vn', 'saveUser', { email: 'ddt@x.vn', ho_ten: 'ĐD trưởng', vai_tro: 'DD', chuc_vu: 'Điều dưỡng trưởng', khoa: 'Xạ trị' });
 assert(!api('admin@x.vn', 'saveUser', { email: 'z@x.vn', ho_ten: 'Z', vai_tro: 'DD', chuc_vu: 'Giám đốc' }).ok, 'chức vụ lạ bị từ chối');
 r = ok('ktvt@x.vn', 'bootstrap'); assert.strictEqual(r.data.me.chuc_vu, 'KTV trưởng');
 assert(JSON.parse(ctx.api('getLog')).ok === false || true);
@@ -298,4 +299,40 @@ const rev1 = JSON.parse(ctx.api('rev')).rev;
 ok('ktvt@x.vn', 'setRoster', { ngay: mon, vi_tri: 'Trực', nhan_vien: ['ktv@x.vn'] });
 const rev2 = JSON.parse(ctx.api('rev')).rev;
 assert(rev2 !== '0', 'rev được đặt');
+
+// ---- v2.0: thống kê theo phân quyền ----
+ok('admin@x.vn', 'saveUser', { email: 'tk@x.vn', ho_ten: 'Trưởng khoa A', vai_tro: 'BS', chuc_vu: 'Trưởng khoa', khoa: 'Xạ trị' });
+assert(!api('admin@x.vn', 'saveUser', { email: 'tk2@x.vn', ho_ten: 'X', vai_tro: 'BS', chuc_vu: 'Trưởng khoa' }).ok, 'trưởng khoa phải có khoa');
+ok('admin@x.vn', 'saveUser', { email: 'bs2@x.vn', ho_ten: 'BS Hai', vai_tro: 'BS' });
+ok('admin@x.vn', 'saveUser', { email: 'pk@x.vn', ho_ten: 'Phó khoa', vai_tro: 'BS', chuc_vu: 'Phó trưởng khoa', khoa: 'Xạ trị' });
+ok('admin@x.vn', 'saveUser', { email: 'ddt@x.vn', ho_ten: 'ĐD trưởng', vai_tro: 'DD', chuc_vu: 'Điều dưỡng trưởng', khoa: 'Xạ trị' });
+const mk2 = (his, bs, khoa) => ok('ktv@x.vn', 'createPatient', { ma_his: his, ho_ten: 'TK ' + his, nam_sinh: '1960', bs_email: bs, khoa, chan_doan: 'K', ky_thuat: 'IMRT', tong_lieu: '20', so_buoi: '10', trang_thai: 'CHO_XA' }).data.patients.find(x => x.ma_his === his);
+const pA = mk2('R1', 'bs@x.vn', 'Xạ trị'), pB = mk2('R2', 'bs2@x.vn', 'Xạ trị'), pC = mk2('R3', 'bs2@x.vn', 'Xạ trị theo yêu cầu');
+const dR = ctx.RT.addDays(today, -1);
+[[pA, dR], [pA, today], [pB, today], [pC, today]].forEach(([p, d]) => ok('ktv@x.vn', 'logFraction', { bn_id: p.id, ngay: d, hinh_anh: ['CBCT'] }));
+const rep = (who) => { currentEmail = who; return JSON.parse(ctx.api('report', { tu: dR, den: today })); };
+let R0 = rep('admin@x.vn');
+assert(R0.ok, R0.error);
+let rA = R0.report;
+let rowOf = (list, em) => (list || []).find(x => x.email === em);
+assert(rowOf(rA.theo_bac_si, 'bs2@x.vn').luot_xa >= 2, 'quản trị thấy cả hai khoa');
+let rTK = rep('tk@x.vn').report;
+assert.strictEqual(rowOf(rTK.theo_bac_si, 'bs2@x.vn').luot_xa, 1, 'trưởng khoa chỉ thấy BN khoa mình');
+assert(rowOf(rTK.theo_bac_si, 'bs@x.vn').luot_xa >= 2);
+let rDDT = rep('ddt@x.vn').report;
+assert(rDDT.theo_bac_si && rDDT.theo_bac_si.length >= 2, 'điều dưỡng trưởng thấy theo bác sĩ trong khoa');
+let rBS = rep('bs2@x.vn').report;
+assert.strictEqual(rBS.theo_bac_si.length, 1, 'bác sĩ chỉ thấy dòng của mình'); assert.strictEqual(rBS.theo_bac_si[0].email, 'bs2@x.vn');
+assert.strictEqual(rBS.tong_quan.luot_xa, 2, 'tổng quan của bác sĩ chỉ tính BN của mình');
+let rPK = rep('pk@x.vn').report;
+assert(!rPK.theo_bac_si || rPK.theo_bac_si.every(x => x.email === 'pk@x.vn'), 'phó khoa như bác sĩ thường');
+let rKTV = rep('ktv@x.vn').report;
+assert(rKTV.theo_ktv.length === 1 && !rKTV.theo_bac_si, 'KTV chỉ thấy số của mình');
+let rKTVT = rep('ktvt@x.vn').report;
+assert(rKTVT.theo_ktv && !rKTVT.theo_bac_si, 'KTV trưởng thấy nhóm KTV, không thấy theo bác sĩ');
+let rKS = rep('ks@x.vn').report;
+assert(!rKS.theo_bac_si && rKS.theo_ky_su, 'kỹ sư không thấy theo bác sĩ');
+currentEmail = 'dd@x.vn'; assert(!JSON.parse(ctx.api('report', { tu: dR, den: today })).ok, 'điều dưỡng thường không có thống kê');
+currentEmail = 'tk@x.vn'; let ex = JSON.parse(ctx.api('exportReport', { tu: dR, den: today }));
+assert(ex.ok && ex.sheet && /BaoCao/.test(ex.sheet.name), 'xuất trang báo cáo');
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');

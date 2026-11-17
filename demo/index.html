@@ -328,7 +328,7 @@ td.rs-today .rs-cell{border-color:var(--accent-2)}
  */
 var RT = (function () {
   'use strict';
-  var VERSION = '1.9';
+  var VERSION = '2.0';
 
   var STATUS_ORDER = ['MO_PHONG', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA', 'DANG_XA', 'TAM_NGUNG', 'HOAN_THANH'];
   var STATUS = {
@@ -361,7 +361,7 @@ var RT = (function () {
     BuoiXa: ['id', 'bn_id', 'ngay', 'buoi_so', 'ktv_email', 'thoi_gian', 'hinh_anh', 'ghi_chu',
       'da_huy', 'huy_boi', 'ly_do_huy', 'gd'],
     LichNgoaiLe: ['id', 'bn_id', 'may', 'ngay', 'loai', 'ghi_chu', 'nguoi', 'thoi_gian', 'da_xoa'],
-    NguoiDung: ['email', 'ho_ten', 'vai_tro', 'kich_hoat', 'chuc_vu'],
+    NguoiDung: ['email', 'ho_ten', 'vai_tro', 'kich_hoat', 'chuc_vu', 'khoa'],
     PhanCong: ['id', 'ngay', 'vi_tri', 'nhan_vien', 'ghi_chu', 'nguoi', 'thoi_gian'],
     DanhMuc: ['loai', 'gia_tri'],
     NhatKy: ['thoi_gian', 'email', 'thao_tac', 'bn_id', 'chi_tiet']
@@ -384,7 +384,9 @@ var RT = (function () {
     'Tuyến tiền liệt', 'Bàng quang', 'Tiểu khung', 'Cột sống cổ', 'Cột sống ngực', 'Cột sống thắt lưng',
     'Xương chậu', 'Xương chi', 'Hạch', 'Da / mô mềm'];
   DEFAULT_DM.VI_TRI_PC = ['Máy gia tốc 1 – ca sáng', 'Máy gia tốc 1 – ca chiều', 'Mô phỏng CT', 'Làm mặt nạ / cố định', 'Trực'];
-  var CHUC_VU = ['KTV trưởng', 'Điều dưỡng trưởng', 'Trưởng khoa', 'Phó trưởng khoa', 'Trưởng phòng'];
+  var CHUC_VU = ['KTV trưởng', 'Điều dưỡng trưởng', 'Trưởng khoa', 'Phó trưởng khoa', 'Trưởng phòng', 'Tài khoản khoa'];
+  /** Chức vụ được xem thống kê theo người của cả khoa mình */
+  var KHOA_STATS = ['Trưởng khoa', 'Điều dưỡng trưởng', 'Tài khoản khoa'];
   var DM_EDITABLE = ['VI_TRI_PC', 'VI_TRI', 'MUC_DICH', 'MAY', 'NGAY_LE', 'KY_THUAT', 'IGRT', 'HINH_ANH', 'KHOA', 'LY_DO_TAM_NGUNG', 'TEN_DON_VI'];
 
   var PERM = {
@@ -1076,8 +1078,11 @@ var RT = (function () {
       var isNew = !u;
       if (isNew) { u = { email: email }; ctx.users.push(u); }
       var cv = String(a.chuc_vu || '');
+      var kh2 = String(a.khoa || '');
+      if (kh2 && (ctx.dm.KHOA || []).indexOf(kh2) < 0) fail('Khoa không có trong danh mục.');
+      if (KHOA_STATS.indexOf(cv) >= 0 && !kh2) fail('Chức vụ "' + cv + '" cần chọn khoa.');
       if (cv && CHUC_VU.indexOf(cv) < 0) fail('Chức vụ không hợp lệ.');
-      u.ho_ten = String(a.ho_ten).trim(); u.vai_tro = vt; u.kich_hoat = kh; u.chuc_vu = cv;
+      u.ho_ten = String(a.ho_ten).trim(); u.vai_tro = vt; u.kich_hoat = kh; u.chuc_vu = cv; u.khoa = kh2;
       ctx.saveUser(u);
       ctx.log(isNew ? 'Thêm người dùng' : 'Sửa người dùng', '', email + ' · ' + vt + (cv ? ' · ' + cv : '') + ' · ' + kh);
       return (isNew ? 'Đã thêm ' : 'Đã cập nhật ') + u.ho_ten + '.';
@@ -1180,9 +1185,9 @@ var RT = (function () {
     pts.forEach(function (p) { ids[p.id] = 1; });
     function pick(o, cols) { var r = {}; cols.forEach(function (c) { r[c] = o[c] == null ? '' : String(o[c]); }); return r; }
     return {
-      me: { email: ctx.user.email, ho_ten: ctx.user.ho_ten, vai_tro: ctx.user.vai_tro, kich_hoat: ctx.user.kich_hoat || 'Có', chuc_vu: ctx.user.chuc_vu || '' },
+      me: { email: ctx.user.email, ho_ten: ctx.user.ho_ten, vai_tro: ctx.user.vai_tro, kich_hoat: ctx.user.kich_hoat || 'Có', chuc_vu: ctx.user.chuc_vu || '', khoa: ctx.user.khoa || '' },
       today: ctx.today,
-      users: ctx.users.map(function (u) { return { email: u.email, ho_ten: u.ho_ten, vai_tro: u.vai_tro, kich_hoat: u.kich_hoat === 'Không' ? 'Không' : 'Có', chuc_vu: u.chuc_vu || '' }; }),
+      users: ctx.users.map(function (u) { return { email: u.email, ho_ten: u.ho_ten, vai_tro: u.vai_tro, kich_hoat: u.kich_hoat === 'Không' ? 'Không' : 'Có', chuc_vu: u.chuc_vu || '', khoa: u.khoa || '' }; }),
       dm: ctx.dm,
       holidays: ctx.holidays,
       patients: pts.map(function (p) { return pick(p, COLS.BenhNhan); }),
@@ -1197,6 +1202,95 @@ var RT = (function () {
     };
   }
 
+
+  // ---------- Thống kê ----------
+  /** Phạm vi thống kê của một người */
+  function statsScope(u) {
+    if (!u) return null;
+    var s = { all: false, khoa: '', self: u.email, byDoctor: false, byKtv: false, byKs: false, label: '' };
+    if (u.vai_tro === 'ADMIN') { s.all = true; s.byDoctor = s.byKtv = s.byKs = true; s.self = ''; s.label = 'Cả hai khoa'; return s; }
+    if (KHOA_STATS.indexOf(u.chuc_vu) >= 0 && u.khoa) { s.khoa = u.khoa; s.byDoctor = true; s.self = ''; s.label = 'Khoa ' + u.khoa; return s; }
+    if (u.chuc_vu === 'KTV trưởng') { s.byKtv = true; s.label = 'Nhóm KTV'; return s; }
+    if (u.chuc_vu === 'Trưởng phòng') { s.byKs = true; s.label = 'Nhóm kỹ sư'; return s; }
+    if (u.vai_tro === 'BS' || u.vai_tro === 'KTV' || u.vai_tro === 'KS' || u.vai_tro === 'ADMIN') { s.label = 'Của tôi'; return s; }
+    return null;   // điều dưỡng thường: không có thống kê
+  }
+  /**
+   * Tính thống kê trong khoảng [tu, den] theo đúng phạm vi người xem.
+   * data = { patients, phases, fractions, users, dm }
+   */
+  function report(data, tu, den, u) {
+    var sc = statsScope(u);
+    if (!sc) fail('Tài khoản của bạn không có quyền xem thống kê.');
+    if (!isDate(tu) || !isDate(den) || tu > den) fail('Khoảng ngày không hợp lệ.');
+    if (diffDays(tu, den) > 400) fail('Chỉ thống kê tối đa 400 ngày một lần.');
+    var defMay = (data.dm.MAY || [])[0] || '';
+    var P = {}; data.patients.forEach(function (p) { if (p.trang_thai !== 'HUY') P[p.id] = p; });
+    var G = {}; (data.phases || []).forEach(function (g) { if (g.trang_thai !== 'HUY') G[g.bn_id + '|' + g.stt] = g; });
+    var inKhoa = function (p) { return sc.all || !sc.khoa || p.khoa === sc.khoa; };
+    var fx = data.fractions.filter(function (f) { return f.da_huy !== 'Có' && f.ngay >= tu && f.ngay <= den && P[f.bn_id]; });
+    var techOf = function (f) { var p = P[f.bn_id], g = f.gd && f.gd !== '1' ? G[f.bn_id + '|' + f.gd] : null; return (g ? g.ky_thuat : p.ky_thuat) || 'Khác'; };
+    // Phạm vi phần tổng quan
+    var ovFx, ovPts;
+    if (sc.all || sc.khoa) {
+      ovFx = fx.filter(function (f) { return inKhoa(P[f.bn_id]); });
+      ovPts = Object.keys(P).map(function (k) { return P[k]; }).filter(inKhoa);
+    } else if (u.vai_tro === 'BS' || u.vai_tro === 'ADMIN') {
+      ovFx = fx.filter(function (f) { return P[f.bn_id].bs_email === u.email; });
+      ovPts = Object.keys(P).map(function (k) { return P[k]; }).filter(function (p) { return p.bs_email === u.email; });
+    } else if (u.vai_tro === 'KTV') {
+      ovFx = fx.filter(function (f) { return f.ktv_email === u.email || sc.byKtv; });
+      ovPts = [];
+    } else { ovFx = sc.byKs ? fx : []; ovPts = []; }
+    var inRange = function (d) { return d && d >= tu && d <= den; };
+    var count = function (arr, key) { var o = {}; arr.forEach(function (x) { var k = key(x); o[k] = (o[k] || 0) + 1; }); return o; };
+    var ov = {
+      luot_xa: ovFx.length,
+      bn_xa: Object.keys(count(ovFx, function (f) { return f.bn_id; })).length,
+      bn_moi: ovPts.filter(function (p) { return inRange(p.ngay_tao); }).length,
+      bn_bat_dau: ovPts.filter(function (p) { return inRange(p.ngay_bat_dau); }).length,
+      bn_ket_thuc: ovPts.filter(function (p) { return p.trang_thai === 'HOAN_THANH' && inRange(p.ngay_ket_thuc); }).length,
+      ket_thuc_som: ovPts.filter(function (p) { return p.ly_do_ket_thuc && inRange(p.ngay_ket_thuc); }).length,
+      dang_xa: ovPts.filter(function (p) { return p.trang_thai === 'DANG_XA'; }).length,
+      tam_ngung: ovPts.filter(function (p) { return p.trang_thai === 'TAM_NGUNG'; }).length,
+      cbct: ovFx.filter(function (f) { return /CBCT/i.test(f.hinh_anh); }).length,
+      sgrt: ovFx.filter(function (f) { return /SGRT|C-RAD/i.test(f.hinh_anh); }).length,
+      kv: ovFx.filter(function (f) { return /kV/i.test(f.hinh_anh); }).length,
+      theo_ky_thuat: count(ovFx, techOf),
+      theo_may: count(ovFx, function (f) { return P[f.bn_id].may || defMay; }),
+      theo_khoa: (sc.all ? count(ovFx, function (f) { return P[f.bn_id].khoa || '(chưa ghi khoa)'; }) : null)
+    };
+    var name = {}; data.users.forEach(function (x) { name[x.email] = x.ho_ten; });
+    var rows = function (byKey, filterKey) {
+      var m = {};
+      fx.forEach(function (f) {
+        var k = byKey(f); if (!k || (filterKey && !filterKey(f, k))) return;
+        m[k] = m[k] || { email: k, ten: name[k] || k, luot: 0, bn: {} };
+        m[k].luot++; m[k].bn[f.bn_id] = 1;
+      });
+      return Object.keys(m).map(function (k) { var r = m[k]; return { email: r.email, ten: r.ten, luot_xa: r.luot, bn_xa: Object.keys(r.bn).length }; })
+        .sort(function (a, b) { return b.luot_xa - a.luot_xa; });
+    };
+    var out = { tu: tu, den: den, pham_vi: sc.label, tong_quan: ov };
+    // Theo bác sĩ: trưởng khoa / ĐD trưởng / tài khoản khoa / quản trị thấy cả khoa; bác sĩ chỉ thấy dòng của mình
+    if (sc.byDoctor) out.theo_bac_si = rows(function (f) { return P[f.bn_id].bs_email; }, function (f) { return inKhoa(P[f.bn_id]); });
+    else if (u.vai_tro === 'BS') out.theo_bac_si = rows(function (f) { return P[f.bn_id].bs_email; }, function (f, k) { return k === u.email; });
+    if (sc.byKtv) out.theo_ktv = rows(function (f) { return f.ktv_email; });
+    else if (u.vai_tro === 'KTV') out.theo_ktv = rows(function (f) { return f.ktv_email; }, function (f, k) { return k === u.email; });
+    if (sc.byKs || u.vai_tro === 'KS') {
+      var plans = [];
+      data.patients.forEach(function (p) { if (p.trang_thai !== 'HUY' && inRange(p.ngay_kh_xong) && p.ks_email) plans.push({ ks: p.ks_email, qa: p.can_qa === 'Có' }); });
+      (data.phases || []).forEach(function (g) { if (g.trang_thai !== 'HUY' && inRange(g.ngay_kh_xong) && g.ks_email) plans.push({ ks: g.ks_email, qa: g.can_qa === 'Có' }); });
+      var m = {};
+      plans.forEach(function (x) {
+        if (!sc.byKs && x.ks !== u.email) return;
+        m[x.ks] = m[x.ks] || { email: x.ks, ten: name[x.ks] || x.ks, ke_hoach: 0, co_qa: 0 };
+        m[x.ks].ke_hoach++; if (x.qa) m[x.ks].co_qa++;
+      });
+      out.theo_ky_su = Object.keys(m).map(function (k) { return m[k]; }).sort(function (a, b) { return b.ke_hoach - a.ke_hoach; });
+    }
+    return out;
+  }
   /** Phân công gửi kèm: từ tuần trước tới 4 tuần sau (xa hơn thì tải riêng) */
   function rosterWindow(rows, today) {
     var a = addDays(monday(today), -7), b = addDays(monday(today), 34);
@@ -1216,7 +1310,7 @@ var RT = (function () {
   }
 
   return {
-    VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
+    VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, report: report, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
@@ -1238,17 +1332,17 @@ window.DEMO = (function () {
   if (RT.dow(today) === 0) { today = RT.addDays(today, 1); shifted = true; } // Chủ nhật → giả lập Thứ Hai
 
   var users = [
-    { email: 'bs.hai@demo', ho_ten: 'BS. Trần Hải', vai_tro: 'BS' },
+    { email: 'bs.hai@demo', ho_ten: 'BS. Trần Hải', vai_tro: 'BS', chuc_vu: 'Trưởng khoa', khoa: 'Xạ trị theo yêu cầu' },
     { email: 'bs.thu@demo', ho_ten: 'BS. Lê Thu', vai_tro: 'BS' },
     { email: 'ks.nam@demo', ho_ten: 'KS. Đỗ Nam', vai_tro: 'KS' },
     { email: 'ks.ha@demo', ho_ten: 'KS. Vũ Hà', vai_tro: 'KS' },
     { email: 'ktv.linh@demo', ho_ten: 'KTV. Hoàng Linh', vai_tro: 'KTV', chuc_vu: 'KTV trưởng' },
     { email: 'ktv.son@demo', ho_ten: 'KTV. Trần Sơn', vai_tro: 'KTV' },
     { email: 'ktv.ha@demo', ho_ten: 'KTV. Lê Hà', vai_tro: 'KTV' },
-    { email: 'dd.mai@demo', ho_ten: 'ĐD. Mai Anh', vai_tro: 'DD' },
+    { email: 'dd.mai@demo', ho_ten: 'ĐD. Mai Anh', vai_tro: 'DD', chuc_vu: 'Điều dưỡng trưởng', khoa: 'Xạ trị theo yêu cầu' },
     { email: 'quantri@demo', ho_ten: 'Quản trị khoa', vai_tro: 'ADMIN' }
   ];
-  users.forEach(function (u) { u.kich_hoat = 'Có'; u.chuc_vu = u.chuc_vu || ''; });
+  users.forEach(function (u) { u.kich_hoat = 'Có'; u.chuc_vu = u.chuc_vu || ''; u.khoa = u.khoa || ''; });
   var roster = [], rev = 1;
   var logs = [];
   var dm = JSON.parse(JSON.stringify(RT.DEFAULT_DM));
@@ -1327,7 +1421,7 @@ window.DEMO = (function () {
     // Đang xạ
     p = mk({ ho_ten: 'Nguyễn Văn Hùng', nam_sinh: '1968', gioi: 'Nam', chan_doan: 'K vòm họng T3N2M0', ky_thuat: 'VMAT', tong_lieu: '70', so_buoi: '35', igrt: 'CBCT 3 buổi đầu, sau đó hằng tuần', sgrt: 'Có', ngay_nghi_tuan: '3', trang_thai: 'DANG_XA', uu_tien: 'Ưu tiên' });
     var st = back(p, 20); treat(p, st, today, [back(p, 6)]);
-    p = mk({ ho_ten: 'Trần Thị Lan', nam_sinh: '1979', gioi: 'Nữ', chan_doan: 'K cổ tử cung IIB', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25', igrt: 'CBCT hằng tuần', ngay_nghi_tuan: '5', trang_thai: 'DANG_XA', bs_email: 'bs.thu@demo' });
+    p = mk({ ho_ten: 'Trần Thị Lan', nam_sinh: '1979', gioi: 'Nữ', chan_doan: 'K cổ tử cung IIB', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25', igrt: 'CBCT hằng tuần', ngay_nghi_tuan: '5', trang_thai: 'DANG_XA', bs_email: 'bs.thu@demo', khoa: 'Xạ trị' });
     treat(p, back(p, 11), RT.addDays(today, -1));
     p = mk({ ho_ten: 'Phạm Minh Khôi', nam_sinh: '1960', gioi: 'Nam', chan_doan: 'K phổi không tế bào nhỏ IIIA', ky_thuat: 'VMAT', tong_lieu: '60', so_buoi: '30', igrt: 'CBCT hằng ngày', ngay_nghi_tuan: '2', trang_thai: 'DANG_XA' });
     treat(p, back(p, 22), RT.addDays(today, -1), [back(p, 2), back(p, 1)]);
@@ -1445,6 +1539,10 @@ window.DEMO = (function () {
         return JSON.stringify({ ok: true, rev: String(rev) });
       } else if (action === 'getRoster') {
         return JSON.stringify({ ok: true, data: RT.view(c), roster: roster.filter(function (r) { return r.ngay >= payload.tu && r.ngay <= payload.den; }), rev: String(rev) });
+      } else if (action === 'report') {
+        return JSON.stringify({ ok: true, report: RT.report({ patients: patients, phases: phases, fractions: fractions, users: users, dm: dm }, payload.tu, payload.den, c.user) });
+      } else if (action === 'exportReport') {
+        throw new Error('Bản demo không tạo được trang báo cáo. Bản thật sẽ ghi ra Google Sheet.');
       } else if (action === 'getLog') {
         if (c.user.vai_tro !== 'ADMIN' && !RT.isLead(c.user)) throw new Error('Chỉ quản trị và trưởng khoa/phòng xem được nhật ký.');
       } else if (action !== 'bootstrap') { msg = RT.handle(c, action, payload || {}); rev++; }
@@ -1691,6 +1789,7 @@ window.DEMO = (function () {
     week: { label: function () { return 'Lịch tuần'; }, render: renderWeek },
     all: { label: function () { return 'Tất cả BN'; }, render: renderAll },
     roster: { label: function () { return 'Phân công'; }, render: renderRoster },
+    stats: { label: function () { return 'Thống kê'; }, render: renderStats },
     log: { label: function () { return 'Nhật ký'; }, render: function () { return '<div class="page-head"><div><h1>Nhật ký thao tác</h1><p>Ai làm gì, lúc nào. Chỉ trưởng khoa/phòng và quản trị xem được.</p></div></div>' + logSection(); } },
     admin: { label: function () { return 'Quản trị'; }, render: renderAdmin }
   };
@@ -1698,6 +1797,7 @@ window.DEMO = (function () {
 
   function renderShell() {
     var d = S.data, tabs = (ROLE_TABS[role()] || ['all']).slice();
+    if (RT.statsScope(me())) tabs.splice(tabs.indexOf('admin') >= 0 ? tabs.indexOf('admin') : tabs.length, 0, 'stats');
     if (isLead() && role() !== 'ADMIN') tabs.push('log');
     if (S.role !== d.me.email) { S.role = d.me.email; S.scope = isDoctor(d.me) ? 'mine' : 'all'; S.log = null; }
     if (tabs.indexOf(S.tab) < 0) S.tab = tabs[0];
@@ -1753,6 +1853,7 @@ window.DEMO = (function () {
     if (S.tab === 'week') bindWeek();
     if (S.tab === 'all') bindAll();
     if (S.tab === 'roster') bindRoster();
+    if (S.tab === 'stats') bindStats();
     $$('#main [data-admin=loadLog]').forEach(function (b) { if (S.tab !== 'admin') b.onclick = function () { run('getLog'); }; });
     $$('#main [data-notice]').forEach(function (b) { b.onclick = noticeForm; });
   }
@@ -2196,6 +2297,73 @@ window.DEMO = (function () {
     toast(list.length === 1 ? 'Việc mới: ' + list[0].text : list.length + ' việc mới. Bấm chuông để xem.');
   }
 
+  // ---------- Thống kê ----------
+  function statsRange(k) {
+    var t = today(), y = +t.slice(0, 4), m = +t.slice(5, 7);
+    var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+    var last = function (yy, mm) { return new Date(Date.UTC(yy, mm, 0)).getUTCDate(); };
+    if (k === 'today') return [t, t];
+    if (k === 'week') return [RT.monday(t), t];
+    if (k === 'month') return [y + '-' + pad(m) + '-01', t];
+    if (k === 'prev') { var py = m === 1 ? y - 1 : y, pm = m === 1 ? 12 : m - 1; return [py + '-' + pad(pm) + '-01', py + '-' + pad(pm) + '-' + pad(last(py, pm))]; }
+    return [S.stTu || RT.addDays(t, -30), S.stDen || t];
+  }
+  function renderStats() {
+    var sc = RT.statsScope(me());
+    if (!S.stKey) S.stKey = 'month';
+    var rg = statsRange(S.stKey);
+    var r = S.stRes && S.stRes.tu === rg[0] && S.stRes.den === rg[1] ? S.stRes : null;
+    var keys = [['today', 'Hôm nay'], ['week', 'Tuần này'], ['month', 'Tháng này'], ['prev', 'Tháng trước'], ['custom', 'Tuỳ chọn']];
+    var html = '<div class="page-head"><div><h1>Thống kê</h1><p>Phạm vi: <b>' + esc(sc.label) + '</b>. ' +
+      (sc.all ? 'Quản trị xem được số liệu gộp hai khoa.' : sc.khoa ? 'Số liệu theo người của cả khoa chỉ trưởng khoa, điều dưỡng trưởng và tài khoản khoa xem được.' : 'Bạn xem được số liệu của chính mình.') + '</p></div></div>';
+    html += '<div class="card pad"><div class="filters"><div class="seg" role="group" aria-label="Khoảng thời gian">' +
+      keys.map(function (k) { return '<button data-stkey="' + k[0] + '" aria-pressed="' + (S.stKey === k[0]) + '">' + k[1] + '</button>'; }).join('') + '</div>' +
+      (S.stKey === 'custom' ? '<label class="muted">Từ <input type="date" id="st-tu" value="' + rg[0] + '"></label><label class="muted">đến <input type="date" id="st-den" value="' + rg[1] + '" max="' + today() + '"></label>' : '') +
+      '<button class="btn primary" data-stload="1">' + (r ? 'Tính lại' : 'Xem thống kê') + '</button>' +
+      (r && !window.DEMO ? '<button class="btn" data-stexport="1">Tạo trang báo cáo (Excel)</button>' : '') + '</div>' +
+      '<span class="muted">Từ ' + fdy(rg[0]) + ' đến ' + fdy(rg[1]) + '. Số liệu chỉ tính khi bấm, để ứng dụng luôn nhẹ.</span>' +
+      (S.stSheet ? '<span>Đã tạo trang <b>' + esc(S.stSheet.name) + '</b> trong Google Sheet. Mở Sheet → trang đó → Tệp → Tải xuống → Microsoft Excel. <a href="' + esc(S.stSheet.url) + '" target="_blank" rel="noopener">Mở trang báo cáo</a></span>' : '') + '</div>';
+    if (!r) return html + '<div class="card"><div class="empty">Chọn khoảng thời gian rồi bấm “Xem thống kê”.</div></div>';
+    var o = r.tong_quan;
+    var tile = function (n, l) { return '<div class="kpi" style="cursor:default"><span class="n">' + n + '</span><span class="l">' + l + '</span></div>'; };
+    html += '<div class="kpis">' + tile(o.luot_xa, 'Lượt xạ') + tile(o.bn_xa, 'BN được xạ') + tile(o.bn_bat_dau, 'BN bắt đầu xạ') + tile(o.bn_ket_thuc, 'BN kết thúc xạ') +
+      tile(o.bn_moi, 'BN mới nhập') + tile(o.cbct, 'Lần CBCT') + tile(o.sgrt, 'Lần SGRT') + '</div>';
+    var mapTable = function (title, m) {
+      if (!m || !Object.keys(m).length) return '';
+      var ks = Object.keys(m).sort(function (a, b) { return m[b] - m[a]; });
+      return '<section class="group"><div class="group-head"><h2>' + title + '</h2></div><div class="card"><div class="tbl-wrap"><table><thead><tr><th></th><th>Lượt xạ</th></tr></thead><tbody>' +
+        ks.map(function (k) { return '<tr><td>' + esc(k) + '</td><td class="num">' + m[k] + '</td></tr>'; }).join('') + '</tbody></table></div></div></section>';
+    };
+    var listTable = function (title, list, cols) {
+      if (!list) return '';
+      return '<section class="group"><div class="group-head"><h2>' + title + '</h2><span class="count">' + list.length + '</span></div>' +
+        (list.length ? '<div class="card"><div class="tbl-wrap"><table><thead><tr><th>Họ tên</th>' + cols.map(function (c) { return '<th>' + c[0] + '</th>'; }).join('') + '</tr></thead><tbody>' +
+          list.map(function (x) { return '<tr><td>' + esc(x.ten) + '</td>' + cols.map(function (c) { return '<td class="num">' + x[c[1]] + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div></div>'
+          : '<div class="card"><div class="empty">Không có số liệu trong khoảng này.</div></div>') + '</section>';
+    };
+    html += '<div class="admin-grid">' + mapTable('Theo kỹ thuật', o.theo_ky_thuat) + mapTable('Theo máy', o.theo_may) + mapTable('Theo khoa', o.theo_khoa) + '</div>';
+    html += listTable(sc.byDoctor ? 'Theo bác sĩ' : 'Của tôi (bác sĩ)', r.theo_bac_si, [['Số BN xạ', 'bn_xa'], ['Số lượt xạ', 'luot_xa']]);
+    html += listTable(sc.byKtv ? 'Theo KTV' : 'Của tôi (KTV)', r.theo_ktv, [['Số BN', 'bn_xa'], ['Số buổi đã ghi', 'luot_xa']]);
+    html += listTable(sc.byKs ? 'Theo kỹ sư' : 'Của tôi (kỹ sư)', r.theo_ky_su, [['Số kế hoạch', 'ke_hoach'], ['Có QA', 'co_qa']]);
+    return html;
+  }
+  function bindStats() {
+    $$('#main [data-stkey]').forEach(function (b) { b.onclick = function () { S.stKey = b.dataset.stkey; S.stSheet = null; renderMain(); }; });
+    var tu = $('#st-tu'), den = $('#st-den');
+    if (tu) tu.onchange = function () { S.stTu = tu.value; };
+    if (den) den.onchange = function () { S.stDen = den.value; };
+    var go = function (action) {
+      var rg = statsRange(S.stKey);
+      setBusy(1);
+      call(action, { tu: rg[0], den: rg[1] }).then(function (r) {
+        S.stRes = r.report; if (r.sheet) { S.stSheet = r.sheet; toast('Đã tạo trang báo cáo trong Google Sheet.'); }
+        renderMain();
+      }, function (e) { toast(e.error || 'Không tính được thống kê.', true); }).finally(function () { setBusy(-1); });
+    };
+    $$('#main [data-stload]').forEach(function (b) { b.onclick = function () { S.stSheet = null; go('report'); }; });
+    $$('#main [data-stexport]').forEach(function (b) { b.onclick = function () { go('exportReport'); }; });
+  }
+
   // ---------- Bảng phân công ----------
   function rosterRows() { return S.rosterExtra ? S.data.roster.concat(S.rosterExtra) : S.data.roster; }
   function rosterCell(ngay, vt) { return rosterRows().filter(function (r) { return r.ngay === ngay && r.vi_tri === vt; })[0]; }
@@ -2273,10 +2441,10 @@ window.DEMO = (function () {
     var users = d.users.slice().sort(function (a, b) { return (a.kich_hoat === 'Không') - (b.kich_hoat === 'Không') || ['ADMIN', 'BS', 'KS', 'KTV', 'DD'].indexOf(a.vai_tro) - ['ADMIN', 'BS', 'KS', 'KTV', 'DD'].indexOf(b.vai_tro) || a.ho_ten.localeCompare(b.ho_ten, 'vi'); });
     var html = '<div class="page-head"><div><h1>Quản trị</h1><p>Người dùng, danh mục và nhật ký thao tác.</p></div><button class="btn primary" data-admin="addUser">+ Thêm người dùng</button></div>';
     html += '<section class="group"><div class="group-head"><h2>Người dùng</h2><span class="count">' + activeUsers().length + ' đang hoạt động</span>' +
-      '<span class="hint">Người dùng cần có tài khoản Google. Với Gmail cá nhân, nhớ chia sẻ Google Sheet cho họ.</span></div><div class="card"><div class="tbl-wrap"><table><thead><tr><th>Họ tên</th><th>Email</th><th>Vai trò</th><th>Chức vụ</th><th>Trạng thái</th><th></th></tr></thead><tbody>' +
+      '<span class="hint">Người dùng cần có tài khoản Google. Với Gmail cá nhân, nhớ chia sẻ Google Sheet cho họ.</span></div><div class="card"><div class="tbl-wrap"><table><thead><tr><th>Họ tên</th><th>Email</th><th>Vai trò</th><th>Chức vụ</th><th>Khoa</th><th>Trạng thái</th><th></th></tr></thead><tbody>' +
       users.map(function (u) {
         return '<tr class="' + (u.kich_hoat === 'Không' ? 'off-user' : '') + '"><td><b>' + esc(u.ho_ten) + '</b></td><td class="mono">' + esc(u.email) + '</td><td><span class="role role-' + esc(u.vai_tro) + '">' + esc(RT.ROLES[u.vai_tro] || u.vai_tro) + '</span></td>' +
-          '<td>' + esc(u.chuc_vu || '') + '</td><td>' + (u.kich_hoat === 'Không' ? 'Đã khoá' : 'Hoạt động') + '</td><td class="act"><button class="btn" data-admin="editUser" data-email="' + esc(u.email) + '">Sửa</button></td></tr>';
+          '<td>' + esc(u.chuc_vu || '') + '</td><td>' + esc(u.khoa || '') + '</td><td>' + (u.kich_hoat === 'Không' ? 'Đã khoá' : 'Hoạt động') + '</td><td class="act"><button class="btn" data-admin="editUser" data-email="' + esc(u.email) + '">Sửa</button></td></tr>';
       }).join('') + '</tbody></table></div></div></section>';
     var dmBox = function (loai, title, help, ph, type) {
       var list = d.dm[loai] || [];
@@ -2320,8 +2488,9 @@ window.DEMO = (function () {
         field('Email Google <span class="req">*</span>', '<input type="email" name="email" value="' + esc(u.email || '') + '"' + (isNew ? '' : ' readonly') + ' placeholder="ten@gmail.com">', 'full') +
         field('Vai trò', '<select name="vai_tro">' + opts(['BS', 'KS', 'KTV', 'DD', 'ADMIN'].map(function (r) { return { v: r, l: RT.ROLES[r] }; }), u.vai_tro) + '</select>') +
         field('Trạng thái', '<select name="kich_hoat">' + opts([{ v: 'Có', l: 'Hoạt động' }, { v: 'Không', l: 'Khoá tài khoản' }], u.kich_hoat) + '</select>') +
-        field('Chức vụ', '<select name="chuc_vu">' + opts(RT.CHUC_VU, u.chuc_vu || '', 'Không') + '</select>', 'full', 'KTV trưởng: lập bảng phân công, huỷ buổi xạ ghi nhầm, ghi máy nghỉ. Mọi chức vụ: xem nhật ký, đăng thông báo.') + '</div>',
-      validate: function (v) { if (!v.ho_ten) return 'Cần nhập họ tên.'; if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.email)) return 'Email không hợp lệ.'; return ''; },
+        field('Chức vụ', '<select name="chuc_vu">' + opts(RT.CHUC_VU, u.chuc_vu || '', 'Không') + '</select>', '', 'Trưởng khoa, ĐD trưởng, tài khoản khoa: xem thống kê cả khoa. KTV trưởng: phân công, huỷ buổi xạ ghi nhầm.') +
+        field('Khoa', '<select name="khoa">' + opts(S.data.dm.KHOA || [], u.khoa || '', '—') + '</select>', '', 'Bắt buộc với trưởng khoa, ĐD trưởng, tài khoản khoa') + '</div>',
+      validate: function (v) { if (!v.ho_ten) return 'Cần nhập họ tên.'; if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.email)) return 'Email không hợp lệ.'; if (['Trưởng khoa', 'Điều dưỡng trưởng', 'Tài khoản khoa'].indexOf(v.chuc_vu) >= 0 && !v.khoa) return 'Chức vụ này cần chọn khoa.'; return ''; },
       onOk: function (v) { run('saveUser', v); } });
   }
 

@@ -41,7 +41,7 @@ var RT = (function () {
     BuoiXa: ['id', 'bn_id', 'ngay', 'buoi_so', 'ktv_email', 'thoi_gian', 'hinh_anh', 'ghi_chu',
       'da_huy', 'huy_boi', 'ly_do_huy', 'gd'],
     LichNgoaiLe: ['id', 'bn_id', 'may', 'ngay', 'loai', 'ghi_chu', 'nguoi', 'thoi_gian', 'da_xoa'],
-    NguoiDung: ['email', 'ho_ten', 'vai_tro', 'kich_hoat', 'chuc_vu'],
+    NguoiDung: ['email', 'ho_ten', 'vai_tro', 'kich_hoat', 'chuc_vu', 'khoa'],
     PhanCong: ['id', 'ngay', 'vi_tri', 'nhan_vien', 'ghi_chu', 'nguoi', 'thoi_gian'],
     DanhMuc: ['loai', 'gia_tri'],
     NhatKy: ['thoi_gian', 'email', 'thao_tac', 'bn_id', 'chi_tiet']
@@ -64,7 +64,9 @@ var RT = (function () {
     'Tuyến tiền liệt', 'Bàng quang', 'Tiểu khung', 'Cột sống cổ', 'Cột sống ngực', 'Cột sống thắt lưng',
     'Xương chậu', 'Xương chi', 'Hạch', 'Da / mô mềm'];
   DEFAULT_DM.VI_TRI_PC = ['Máy gia tốc 1 – ca sáng', 'Máy gia tốc 1 – ca chiều', 'Mô phỏng CT', 'Làm mặt nạ / cố định', 'Trực'];
-  var CHUC_VU = ['KTV trưởng', 'Điều dưỡng trưởng', 'Trưởng khoa', 'Phó trưởng khoa', 'Trưởng phòng'];
+  var CHUC_VU = ['KTV trưởng', 'Điều dưỡng trưởng', 'Trưởng khoa', 'Phó trưởng khoa', 'Trưởng phòng', 'Tài khoản khoa'];
+  /** Chức vụ được xem thống kê theo người của cả khoa mình */
+  var KHOA_STATS = ['Trưởng khoa', 'Điều dưỡng trưởng', 'Tài khoản khoa'];
   var DM_EDITABLE = ['VI_TRI_PC', 'VI_TRI', 'MUC_DICH', 'MAY', 'NGAY_LE', 'KY_THUAT', 'IGRT', 'HINH_ANH', 'KHOA', 'LY_DO_TAM_NGUNG', 'TEN_DON_VI'];
 
   var PERM = {
@@ -756,8 +758,11 @@ var RT = (function () {
       var isNew = !u;
       if (isNew) { u = { email: email }; ctx.users.push(u); }
       var cv = String(a.chuc_vu || '');
+      var kh2 = String(a.khoa || '');
+      if (kh2 && (ctx.dm.KHOA || []).indexOf(kh2) < 0) fail('Khoa không có trong danh mục.');
+      if (KHOA_STATS.indexOf(cv) >= 0 && !kh2) fail('Chức vụ "' + cv + '" cần chọn khoa.');
       if (cv && CHUC_VU.indexOf(cv) < 0) fail('Chức vụ không hợp lệ.');
-      u.ho_ten = String(a.ho_ten).trim(); u.vai_tro = vt; u.kich_hoat = kh; u.chuc_vu = cv;
+      u.ho_ten = String(a.ho_ten).trim(); u.vai_tro = vt; u.kich_hoat = kh; u.chuc_vu = cv; u.khoa = kh2;
       ctx.saveUser(u);
       ctx.log(isNew ? 'Thêm người dùng' : 'Sửa người dùng', '', email + ' · ' + vt + (cv ? ' · ' + cv : '') + ' · ' + kh);
       return (isNew ? 'Đã thêm ' : 'Đã cập nhật ') + u.ho_ten + '.';
@@ -860,9 +865,9 @@ var RT = (function () {
     pts.forEach(function (p) { ids[p.id] = 1; });
     function pick(o, cols) { var r = {}; cols.forEach(function (c) { r[c] = o[c] == null ? '' : String(o[c]); }); return r; }
     return {
-      me: { email: ctx.user.email, ho_ten: ctx.user.ho_ten, vai_tro: ctx.user.vai_tro, kich_hoat: ctx.user.kich_hoat || 'Có', chuc_vu: ctx.user.chuc_vu || '' },
+      me: { email: ctx.user.email, ho_ten: ctx.user.ho_ten, vai_tro: ctx.user.vai_tro, kich_hoat: ctx.user.kich_hoat || 'Có', chuc_vu: ctx.user.chuc_vu || '', khoa: ctx.user.khoa || '' },
       today: ctx.today,
-      users: ctx.users.map(function (u) { return { email: u.email, ho_ten: u.ho_ten, vai_tro: u.vai_tro, kich_hoat: u.kich_hoat === 'Không' ? 'Không' : 'Có', chuc_vu: u.chuc_vu || '' }; }),
+      users: ctx.users.map(function (u) { return { email: u.email, ho_ten: u.ho_ten, vai_tro: u.vai_tro, kich_hoat: u.kich_hoat === 'Không' ? 'Không' : 'Có', chuc_vu: u.chuc_vu || '', khoa: u.khoa || '' }; }),
       dm: ctx.dm,
       holidays: ctx.holidays,
       patients: pts.map(function (p) { return pick(p, COLS.BenhNhan); }),
@@ -877,6 +882,95 @@ var RT = (function () {
     };
   }
 
+
+  // ---------- Thống kê ----------
+  /** Phạm vi thống kê của một người */
+  function statsScope(u) {
+    if (!u) return null;
+    var s = { all: false, khoa: '', self: u.email, byDoctor: false, byKtv: false, byKs: false, label: '' };
+    if (u.vai_tro === 'ADMIN') { s.all = true; s.byDoctor = s.byKtv = s.byKs = true; s.self = ''; s.label = 'Cả hai khoa'; return s; }
+    if (KHOA_STATS.indexOf(u.chuc_vu) >= 0 && u.khoa) { s.khoa = u.khoa; s.byDoctor = true; s.self = ''; s.label = 'Khoa ' + u.khoa; return s; }
+    if (u.chuc_vu === 'KTV trưởng') { s.byKtv = true; s.label = 'Nhóm KTV'; return s; }
+    if (u.chuc_vu === 'Trưởng phòng') { s.byKs = true; s.label = 'Nhóm kỹ sư'; return s; }
+    if (u.vai_tro === 'BS' || u.vai_tro === 'KTV' || u.vai_tro === 'KS' || u.vai_tro === 'ADMIN') { s.label = 'Của tôi'; return s; }
+    return null;   // điều dưỡng thường: không có thống kê
+  }
+  /**
+   * Tính thống kê trong khoảng [tu, den] theo đúng phạm vi người xem.
+   * data = { patients, phases, fractions, users, dm }
+   */
+  function report(data, tu, den, u) {
+    var sc = statsScope(u);
+    if (!sc) fail('Tài khoản của bạn không có quyền xem thống kê.');
+    if (!isDate(tu) || !isDate(den) || tu > den) fail('Khoảng ngày không hợp lệ.');
+    if (diffDays(tu, den) > 400) fail('Chỉ thống kê tối đa 400 ngày một lần.');
+    var defMay = (data.dm.MAY || [])[0] || '';
+    var P = {}; data.patients.forEach(function (p) { if (p.trang_thai !== 'HUY') P[p.id] = p; });
+    var G = {}; (data.phases || []).forEach(function (g) { if (g.trang_thai !== 'HUY') G[g.bn_id + '|' + g.stt] = g; });
+    var inKhoa = function (p) { return sc.all || !sc.khoa || p.khoa === sc.khoa; };
+    var fx = data.fractions.filter(function (f) { return f.da_huy !== 'Có' && f.ngay >= tu && f.ngay <= den && P[f.bn_id]; });
+    var techOf = function (f) { var p = P[f.bn_id], g = f.gd && f.gd !== '1' ? G[f.bn_id + '|' + f.gd] : null; return (g ? g.ky_thuat : p.ky_thuat) || 'Khác'; };
+    // Phạm vi phần tổng quan
+    var ovFx, ovPts;
+    if (sc.all || sc.khoa) {
+      ovFx = fx.filter(function (f) { return inKhoa(P[f.bn_id]); });
+      ovPts = Object.keys(P).map(function (k) { return P[k]; }).filter(inKhoa);
+    } else if (u.vai_tro === 'BS' || u.vai_tro === 'ADMIN') {
+      ovFx = fx.filter(function (f) { return P[f.bn_id].bs_email === u.email; });
+      ovPts = Object.keys(P).map(function (k) { return P[k]; }).filter(function (p) { return p.bs_email === u.email; });
+    } else if (u.vai_tro === 'KTV') {
+      ovFx = fx.filter(function (f) { return f.ktv_email === u.email || sc.byKtv; });
+      ovPts = [];
+    } else { ovFx = sc.byKs ? fx : []; ovPts = []; }
+    var inRange = function (d) { return d && d >= tu && d <= den; };
+    var count = function (arr, key) { var o = {}; arr.forEach(function (x) { var k = key(x); o[k] = (o[k] || 0) + 1; }); return o; };
+    var ov = {
+      luot_xa: ovFx.length,
+      bn_xa: Object.keys(count(ovFx, function (f) { return f.bn_id; })).length,
+      bn_moi: ovPts.filter(function (p) { return inRange(p.ngay_tao); }).length,
+      bn_bat_dau: ovPts.filter(function (p) { return inRange(p.ngay_bat_dau); }).length,
+      bn_ket_thuc: ovPts.filter(function (p) { return p.trang_thai === 'HOAN_THANH' && inRange(p.ngay_ket_thuc); }).length,
+      ket_thuc_som: ovPts.filter(function (p) { return p.ly_do_ket_thuc && inRange(p.ngay_ket_thuc); }).length,
+      dang_xa: ovPts.filter(function (p) { return p.trang_thai === 'DANG_XA'; }).length,
+      tam_ngung: ovPts.filter(function (p) { return p.trang_thai === 'TAM_NGUNG'; }).length,
+      cbct: ovFx.filter(function (f) { return /CBCT/i.test(f.hinh_anh); }).length,
+      sgrt: ovFx.filter(function (f) { return /SGRT|C-RAD/i.test(f.hinh_anh); }).length,
+      kv: ovFx.filter(function (f) { return /kV/i.test(f.hinh_anh); }).length,
+      theo_ky_thuat: count(ovFx, techOf),
+      theo_may: count(ovFx, function (f) { return P[f.bn_id].may || defMay; }),
+      theo_khoa: (sc.all ? count(ovFx, function (f) { return P[f.bn_id].khoa || '(chưa ghi khoa)'; }) : null)
+    };
+    var name = {}; data.users.forEach(function (x) { name[x.email] = x.ho_ten; });
+    var rows = function (byKey, filterKey) {
+      var m = {};
+      fx.forEach(function (f) {
+        var k = byKey(f); if (!k || (filterKey && !filterKey(f, k))) return;
+        m[k] = m[k] || { email: k, ten: name[k] || k, luot: 0, bn: {} };
+        m[k].luot++; m[k].bn[f.bn_id] = 1;
+      });
+      return Object.keys(m).map(function (k) { var r = m[k]; return { email: r.email, ten: r.ten, luot_xa: r.luot, bn_xa: Object.keys(r.bn).length }; })
+        .sort(function (a, b) { return b.luot_xa - a.luot_xa; });
+    };
+    var out = { tu: tu, den: den, pham_vi: sc.label, tong_quan: ov };
+    // Theo bác sĩ: trưởng khoa / ĐD trưởng / tài khoản khoa / quản trị thấy cả khoa; bác sĩ chỉ thấy dòng của mình
+    if (sc.byDoctor) out.theo_bac_si = rows(function (f) { return P[f.bn_id].bs_email; }, function (f) { return inKhoa(P[f.bn_id]); });
+    else if (u.vai_tro === 'BS') out.theo_bac_si = rows(function (f) { return P[f.bn_id].bs_email; }, function (f, k) { return k === u.email; });
+    if (sc.byKtv) out.theo_ktv = rows(function (f) { return f.ktv_email; });
+    else if (u.vai_tro === 'KTV') out.theo_ktv = rows(function (f) { return f.ktv_email; }, function (f, k) { return k === u.email; });
+    if (sc.byKs || u.vai_tro === 'KS') {
+      var plans = [];
+      data.patients.forEach(function (p) { if (p.trang_thai !== 'HUY' && inRange(p.ngay_kh_xong) && p.ks_email) plans.push({ ks: p.ks_email, qa: p.can_qa === 'Có' }); });
+      (data.phases || []).forEach(function (g) { if (g.trang_thai !== 'HUY' && inRange(g.ngay_kh_xong) && g.ks_email) plans.push({ ks: g.ks_email, qa: g.can_qa === 'Có' }); });
+      var m = {};
+      plans.forEach(function (x) {
+        if (!sc.byKs && x.ks !== u.email) return;
+        m[x.ks] = m[x.ks] || { email: x.ks, ten: name[x.ks] || x.ks, ke_hoach: 0, co_qa: 0 };
+        m[x.ks].ke_hoach++; if (x.qa) m[x.ks].co_qa++;
+      });
+      out.theo_ky_su = Object.keys(m).map(function (k) { return m[k]; }).sort(function (a, b) { return b.ke_hoach - a.ke_hoach; });
+    }
+    return out;
+  }
   /** Phân công gửi kèm: từ tuần trước tới 4 tuần sau (xa hơn thì tải riêng) */
   function rosterWindow(rows, today) {
     var a = addDays(monday(today), -7), b = addDays(monday(today), 34);
@@ -896,7 +990,7 @@ var RT = (function () {
   }
 
   return {
-    VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
+    VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, report: report, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
