@@ -43,7 +43,7 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
   <div class="intro">
     <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v2.5</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v2.5 · bản lưu e428ef1 · 17/11/2026 10:00. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v2.5”.</span>
+    <span class="rev">Phiên bản v2.5 · bản lưu d280d17 · 17/11/2026 10:02. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v2.5”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
@@ -1654,7 +1654,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
       <div class="meta">
         <h2 id="h-Index">Index.html <span class="ver">· v2.5</span></h2>
         <p>Bấm + → HTML, đặt tên Index (chữ I hoa).</p>
-        <span class="size">3,266 dòng · 314 KB</span>
+        <span class="size">3,275 dòng · 315 KB</span>
       </div>
       <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v2.5)</button>
     </div>
@@ -2010,8 +2010,17 @@ tr.click:hover td{background:var(--accent-soft)}
 .tab .step-n{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--surface-2);color:var(--muted);font-size:11.5px;font-weight:700;margin-right:6px}
 .tab[aria-selected=true] .step-n{background:var(--accent);color:var(--accent-ink)}
 .step-c{display:inline-block;min-width:18px;padding:0 6px;margin-left:6px;border-radius:9px;background:var(--accent-soft);color:var(--accent);font-size:11.5px;font-weight:700;line-height:18px;text-align:center}
-.tab{white-space:nowrap;padding-inline:11px}
-@media (max-width:760px){.tab{padding-inline:10px}}
+.tab{white-space:nowrap;padding-inline:13px;position:relative}
+/* gạch mảnh ngăn cách các mục menu */
+.tab+.tab::before{content:&quot;&quot;;position:absolute;left:0;top:50%;height:16px;margin-top:-9px;width:1px;background:var(--line)}
+/* Điện thoại: hiện hết menu thành các ô, không phải vuốt ngang */
+@media (max-width:760px){
+  .top{position:static}
+  .tabs-in{flex-wrap:wrap;overflow:visible;gap:6px;padding-block:8px}
+  .tab{flex:1 1 30%;padding:8px 6px;border:1px solid var(--line);border-radius:10px;background:var(--surface-3);font-size:13.5px;text-align:center;border-bottom-width:1px}
+  .tab+.tab::before{display:none}
+  .tab[aria-selected=true]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+}
 .tx-seg{margin:4px 0 14px}
 /* Form trên điện thoại: toàn màn hình, nút lưu luôn hiện */
 html.modal-open,html.modal-open body{overflow:hidden;overscroll-behavior:none}
@@ -3402,7 +3411,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
   // Mọi vai trò dùng chung một menu theo đường đi của bệnh nhân; quyền thao tác vẫn theo vai trò
   var FLOW_TABS = [&#x27;home&#x27;, &#x27;sim&#x27;, &#x27;contour&#x27;, &#x27;plan&#x27;, &#x27;qa&#x27;, &#x27;tx&#x27;, &#x27;all&#x27;, &#x27;roster&#x27;];
   var ROLE_TABS = { BS: FLOW_TABS, KS: FLOW_TABS, KTV: FLOW_TABS.filter(function (t) { return t !== &#x27;home&#x27;; }), DD: FLOW_TABS, ADMIN: FLOW_TABS.concat([&#x27;admin&#x27;]) };
-  function stepLb(n, text, c) { return &#x27;&lt;span class=&quot;step-n&quot;&gt;&#x27; + n + &#x27;&lt;/span&gt;&#x27; + esc(text) + (c ? &#x27;&lt;span class=&quot;step-c&quot;&gt;&#x27; + c + &#x27;&lt;/span&gt;&#x27; : &#x27;&#x27;); }
+  function stepLb(n, text, c) { return esc(text) + (c ? &#x27;&lt;span class=&quot;step-c&quot;&gt;&#x27; + c + &#x27;&lt;/span&gt;&#x27; : &#x27;&#x27;); }
   function byState(st) { return items().filter(function (p) { return st.indexOf(p.trang_thai) &gt;= 0; }); }
   function stepCount(k) {
     if (k === &#x27;sim&#x27;) return byState([&#x27;MO_PHONG&#x27;]).length;
@@ -3630,7 +3639,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
       { h: &#x27;Hẹn mô phỏng&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { return p.ngay_mo_phong ? &#x27;&lt;span class=&quot;num&quot;&gt;&#x27; + fdw(p.ngay_mo_phong) + &#x27;&lt;/span&gt;&#x27; + (p.ngay_mo_phong &lt; t ? &#x27;&lt;span class=&quot;sub&quot; style=&quot;color:var(--warn)&quot;&gt;quá hẹn &#x27; + RT.diffDays(p.ngay_mo_phong, t) + &#x27; ngày&lt;/span&gt;&#x27; : &#x27;&#x27;) : &#x27;&lt;span class=&quot;muted&quot;&gt;Chưa hẹn&lt;/span&gt;&#x27;; } },
       C.dx, C.bs, { h: &#x27;Nhập ngày&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { return &#x27;&lt;span class=&quot;num&quot;&gt;&#x27; + fd(p.ngay_tao) + &#x27;&lt;/span&gt;&lt;span class=&quot;sub&quot;&gt;&#x27; + daysSince(p.ngay_tao) + &#x27; ngày&lt;/span&gt;&#x27;; } },
       { h: &#x27;&#x27;, cls: &#x27;act&#x27;, v: function (p) { return (p._g ? &#x27;&lt;span class=&quot;tag boost&quot;&gt;Mô phỏng lại boost&lt;/span&gt; &#x27; : &#x27;&#x27;) + (can(&#x27;simDone&#x27;) ? btn(&#x27;simDone&#x27;, p.id, &#x27;Đã mô phỏng xong&#x27;, &#x27;primary&#x27;) : &#x27;&#x27;); } }];
-    return stepHead(&#x27;① Mô phỏng&#x27;, &#x27;BN đã có chỉ định xạ, chờ chụp CT mô phỏng. Chụp xong bấm “Đã mô phỏng xong”, BN chuyển sang bước Contour.&#x27;, f.ui) +
+    return stepHead(&#x27;Mô phỏng&#x27;, &#x27;BN đã có chỉ định xạ, chờ chụp CT mô phỏng. Chụp xong bấm “Đã mô phỏng xong”, BN chuyển sang bước Contour.&#x27;, f.ui) +
       &#x27;&lt;div class=&quot;kpis&quot;&gt;&#x27; + kpi(&#x27;simd&#x27;, due.length, &#x27;Hẹn hôm nay / quá hẹn&#x27;, &#x27;var(--accent)&#x27;) + kpi(&#x27;siml&#x27;, later.length, &#x27;Hẹn các ngày tới&#x27;, &#x27;var(--line)&#x27;) + kpi(&#x27;simn&#x27;, none.length, &#x27;Chưa có ngày hẹn&#x27;, &#x27;var(--warn)&#x27;) + &#x27;&lt;/div&gt;&#x27; +
       group(&#x27;simd&#x27;, &#x27;Hẹn hôm nay / quá hẹn&#x27;, due, cols, null, &#x27;Không có BN hẹn mô phỏng hôm nay.&#x27;) +
       group(&#x27;siml&#x27;, &#x27;Hẹn các ngày tới&#x27;, later, cols, null, &#x27;Không có.&#x27;) +
@@ -3642,7 +3651,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     var list = f.list.sort(function (a, b) { return prRank(a) - prRank(b) || (since(a) &lt; since(b) ? -1 : 1); });
     var own = function (p) { return RT.myDoctors(me()).indexOf(p.bs_email) &gt;= 0 || role() === &#x27;ADMIN&#x27;; };
     var late = list.filter(function (p) { return daysSince(since(p)) &gt;= 5; }).length;
-    return stepHead(&#x27;② Contour&#x27;, &#x27;BN đã mô phỏng, chờ bác sĩ contour. Contour xong bấm “Contour xong”, BN vào hàng đợi lập kế hoạch của kỹ sư.&#x27;, f.ui) +
+    return stepHead(&#x27;Contour&#x27;, &#x27;BN đã mô phỏng, chờ bác sĩ contour. Contour xong bấm “Contour xong”, BN vào hàng đợi lập kế hoạch của kỹ sư.&#x27;, f.ui) +
       &#x27;&lt;div class=&quot;kpis&quot;&gt;&#x27; + kpi(&#x27;ct&#x27;, list.length, &#x27;Đang chờ contour&#x27;, &#x27;var(--bs, var(--accent))&#x27;, late ? &#x27;&lt;span class=&quot;kx&quot; style=&quot;color:var(--warn)&quot;&gt;&#x27; + late + &#x27; ca chờ ≥ 5 ngày&lt;/span&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/div&gt;&#x27; +
       group(&#x27;ct&#x27;, &#x27;Đang chờ contour&#x27;, list, [C.pt, C.pr, C.bs,
         { h: &#x27;Chờ từ&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { var d0 = since(p), n = daysSince(d0); return &#x27;&lt;span class=&quot;num&quot;&gt;&#x27; + fd(d0) + &#x27;&lt;/span&gt;&lt;span class=&quot;sub&quot;&#x27; + (n &gt;= 5 ? &#x27; style=&quot;color:var(--warn)&quot;&#x27; : &#x27;&#x27;) + &#x27;&gt;&#x27; + n + &#x27; ngày&lt;/span&gt;&#x27;; } },
@@ -3652,7 +3661,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
   }
   function renderQa() {
     var list = byState([&#x27;CHO_QA&#x27;]).sort(function (a, b) { return prRank(a) - prRank(b) || (a.ngay_kh_xong &lt; b.ngay_kh_xong ? -1 : 1); });
-    return stepHead(&#x27;④ QA&#x27;, &#x27;Kế hoạch đã lập xong, chờ đo kiểm tra (QA). QA đạt thì BN chuyển sang “Chờ vào xạ” để KTV xếp lịch.&#x27;) +
+    return stepHead(&#x27;QA&#x27;, &#x27;Kế hoạch đã lập xong, chờ đo kiểm tra (QA). QA đạt thì BN chuyển sang “Chờ vào xạ” để KTV xếp lịch.&#x27;) +
       group(&#x27;qa&#x27;, &#x27;Chờ QA&#x27;, list, [C.pt, C.pr,
         { h: &#x27;Kỹ sư · KH xong&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { return esc(nameOf(p.ks_email)) + &#x27;&lt;span class=&quot;sub&quot;&gt;&#x27; + fd(p.ngay_kh_xong) + &#x27; · &#x27; + daysSince(p.ngay_kh_xong) + &#x27; ngày&lt;/span&gt;&#x27;; } },
         C.bs, C.rx,
@@ -3681,7 +3690,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
       if (p._g) return boostFlag(p) || &#x27;&lt;span class=&quot;muted&quot;&gt;—&lt;/span&gt;&#x27;;
       return p.ngay_du_kien ? &#x27;&lt;span class=&quot;num&quot;&gt;Xạ &#x27; + fdw(p.ngay_du_kien) + &#x27;&lt;/span&gt;&#x27; : &#x27;&lt;span class=&quot;muted&quot;&gt;—&lt;/span&gt;&#x27;;
     };
-    var html = &#x27;&lt;div class=&quot;page-head&quot;&gt;&lt;div&gt;&lt;h1&gt;Việc của &#x27; + esc(me().ho_ten) + &#x27;&lt;/h1&gt;&lt;p&gt;Ca chờ nhận và ca bạn đang lập kế hoạch. Toàn bộ ca của phòng xem ở tab “③ Lập kế hoạch”.&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;&#x27;;
+    var html = &#x27;&lt;div class=&quot;page-head&quot;&gt;&lt;div&gt;&lt;h1&gt;Việc của &#x27; + esc(me().ho_ten) + &#x27;&lt;/h1&gt;&lt;p&gt;Ca chờ nhận và ca bạn đang lập kế hoạch. Toàn bộ ca của phòng xem ở tab “Lập kế hoạch”.&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;&#x27;;
     html += &#x27;&lt;div class=&quot;kpis&quot;&gt;&#x27; +
       kpi(&#x27;kq&#x27;, queue.length, &#x27;Contour xong, chờ nhận&#x27;, &#x27;var(--ks)&#x27;, urgent ? &#x27;&lt;span class=&quot;kx&quot; style=&quot;color:var(--crit)&quot;&gt;&#x27; + urgent + &#x27; cấp cứu&lt;/span&gt;&#x27; : &#x27;&#x27;) +
       kpi(&#x27;kd&#x27;, doing.length, &#x27;Tôi đang lập KH&#x27;, &#x27;var(--ks)&#x27;) + kpi(&#x27;kqa&#x27;, qa.length, &#x27;Ca của tôi chờ QA&#x27;, &#x27;var(--warn)&#x27;) +
@@ -3717,7 +3726,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     var mine = doing.filter(function (p) { return p.ks_email === me().email; }).length;
     var urgent = queue.filter(function (p) { return p.uu_tien === &#x27;Cấp cứu&#x27;; }).length;
 
-    var html = &#x27;&lt;div class=&quot;page-head&quot;&gt;&lt;div&gt;&lt;h1&gt;③ Lập kế hoạch&lt;/h1&gt;&lt;p&gt;Toàn bộ ca chờ lập kế hoạch và đang lập của phòng. Việc của riêng bạn xem ở “Bệnh nhân của tôi”.&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;&#x27;;
+    var html = &#x27;&lt;div class=&quot;page-head&quot;&gt;&lt;div&gt;&lt;h1&gt;Lập kế hoạch&lt;/h1&gt;&lt;p&gt;Toàn bộ ca chờ lập kế hoạch và đang lập của phòng. Việc của riêng bạn xem ở “Bệnh nhân của tôi”.&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;&#x27;;
     html += &#x27;&lt;div class=&quot;kpis&quot;&gt;&#x27; +
       kpi(&#x27;queue&#x27;, queue.length, &#x27;Contour xong, chờ lập KH&#x27;, &#x27;var(--ks)&#x27;, urgent ? &#x27;&lt;span class=&quot;kx&quot; style=&quot;color:var(--crit)&quot;&gt;&#x27; + urgent + &#x27; cấp cứu&lt;/span&gt;&#x27; : &#x27;&#x27;) +
       kpi(&#x27;doing&#x27;, doing.length, &#x27;Đang lập KH&#x27;, &#x27;var(--ks)&#x27;, mine ? &#x27;&lt;span class=&quot;kx muted&quot;&gt;&#x27; + mine + &#x27; của bạn&lt;/span&gt;&#x27; : &#x27;&#x27;) +

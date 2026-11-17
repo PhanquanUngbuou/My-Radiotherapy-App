@@ -248,7 +248,7 @@
   // Mọi vai trò dùng chung một menu theo đường đi của bệnh nhân; quyền thao tác vẫn theo vai trò
   var FLOW_TABS = ['home', 'sim', 'contour', 'plan', 'qa', 'tx', 'all', 'roster'];
   var ROLE_TABS = { BS: FLOW_TABS, KS: FLOW_TABS, KTV: FLOW_TABS.filter(function (t) { return t !== 'home'; }), DD: FLOW_TABS, ADMIN: FLOW_TABS.concat(['admin']) };
-  function stepLb(n, text, c) { return '<span class="step-n">' + n + '</span>' + esc(text) + (c ? '<span class="step-c">' + c + '</span>' : ''); }
+  function stepLb(n, text, c) { return esc(text) + (c ? '<span class="step-c">' + c + '</span>' : ''); }
   function byState(st) { return items().filter(function (p) { return st.indexOf(p.trang_thai) >= 0; }); }
   function stepCount(k) {
     if (k === 'sim') return byState(['MO_PHONG']).length;
@@ -476,7 +476,7 @@
       { h: 'Hẹn mô phỏng', cls: 'nowrap', v: function (p) { return p.ngay_mo_phong ? '<span class="num">' + fdw(p.ngay_mo_phong) + '</span>' + (p.ngay_mo_phong < t ? '<span class="sub" style="color:var(--warn)">quá hẹn ' + RT.diffDays(p.ngay_mo_phong, t) + ' ngày</span>' : '') : '<span class="muted">Chưa hẹn</span>'; } },
       C.dx, C.bs, { h: 'Nhập ngày', cls: 'nowrap', v: function (p) { return '<span class="num">' + fd(p.ngay_tao) + '</span><span class="sub">' + daysSince(p.ngay_tao) + ' ngày</span>'; } },
       { h: '', cls: 'act', v: function (p) { return (p._g ? '<span class="tag boost">Mô phỏng lại boost</span> ' : '') + (can('simDone') ? btn('simDone', p.id, 'Đã mô phỏng xong', 'primary') : ''); } }];
-    return stepHead('① Mô phỏng', 'BN đã có chỉ định xạ, chờ chụp CT mô phỏng. Chụp xong bấm “Đã mô phỏng xong”, BN chuyển sang bước Contour.', f.ui) +
+    return stepHead('Mô phỏng', 'BN đã có chỉ định xạ, chờ chụp CT mô phỏng. Chụp xong bấm “Đã mô phỏng xong”, BN chuyển sang bước Contour.', f.ui) +
       '<div class="kpis">' + kpi('simd', due.length, 'Hẹn hôm nay / quá hẹn', 'var(--accent)') + kpi('siml', later.length, 'Hẹn các ngày tới', 'var(--line)') + kpi('simn', none.length, 'Chưa có ngày hẹn', 'var(--warn)') + '</div>' +
       group('simd', 'Hẹn hôm nay / quá hẹn', due, cols, null, 'Không có BN hẹn mô phỏng hôm nay.') +
       group('siml', 'Hẹn các ngày tới', later, cols, null, 'Không có.') +
@@ -488,7 +488,7 @@
     var list = f.list.sort(function (a, b) { return prRank(a) - prRank(b) || (since(a) < since(b) ? -1 : 1); });
     var own = function (p) { return RT.myDoctors(me()).indexOf(p.bs_email) >= 0 || role() === 'ADMIN'; };
     var late = list.filter(function (p) { return daysSince(since(p)) >= 5; }).length;
-    return stepHead('② Contour', 'BN đã mô phỏng, chờ bác sĩ contour. Contour xong bấm “Contour xong”, BN vào hàng đợi lập kế hoạch của kỹ sư.', f.ui) +
+    return stepHead('Contour', 'BN đã mô phỏng, chờ bác sĩ contour. Contour xong bấm “Contour xong”, BN vào hàng đợi lập kế hoạch của kỹ sư.', f.ui) +
       '<div class="kpis">' + kpi('ct', list.length, 'Đang chờ contour', 'var(--bs, var(--accent))', late ? '<span class="kx" style="color:var(--warn)">' + late + ' ca chờ ≥ 5 ngày</span>' : '') + '</div>' +
       group('ct', 'Đang chờ contour', list, [C.pt, C.pr, C.bs,
         { h: 'Chờ từ', cls: 'nowrap', v: function (p) { var d0 = since(p), n = daysSince(d0); return '<span class="num">' + fd(d0) + '</span><span class="sub"' + (n >= 5 ? ' style="color:var(--warn)"' : '') + '>' + n + ' ngày</span>'; } },
@@ -498,7 +498,7 @@
   }
   function renderQa() {
     var list = byState(['CHO_QA']).sort(function (a, b) { return prRank(a) - prRank(b) || (a.ngay_kh_xong < b.ngay_kh_xong ? -1 : 1); });
-    return stepHead('④ QA', 'Kế hoạch đã lập xong, chờ đo kiểm tra (QA). QA đạt thì BN chuyển sang “Chờ vào xạ” để KTV xếp lịch.') +
+    return stepHead('QA', 'Kế hoạch đã lập xong, chờ đo kiểm tra (QA). QA đạt thì BN chuyển sang “Chờ vào xạ” để KTV xếp lịch.') +
       group('qa', 'Chờ QA', list, [C.pt, C.pr,
         { h: 'Kỹ sư · KH xong', cls: 'nowrap', v: function (p) { return esc(nameOf(p.ks_email)) + '<span class="sub">' + fd(p.ngay_kh_xong) + ' · ' + daysSince(p.ngay_kh_xong) + ' ngày</span>'; } },
         C.bs, C.rx,
@@ -527,7 +527,7 @@
       if (p._g) return boostFlag(p) || '<span class="muted">—</span>';
       return p.ngay_du_kien ? '<span class="num">Xạ ' + fdw(p.ngay_du_kien) + '</span>' : '<span class="muted">—</span>';
     };
-    var html = '<div class="page-head"><div><h1>Việc của ' + esc(me().ho_ten) + '</h1><p>Ca chờ nhận và ca bạn đang lập kế hoạch. Toàn bộ ca của phòng xem ở tab “③ Lập kế hoạch”.</p></div></div>';
+    var html = '<div class="page-head"><div><h1>Việc của ' + esc(me().ho_ten) + '</h1><p>Ca chờ nhận và ca bạn đang lập kế hoạch. Toàn bộ ca của phòng xem ở tab “Lập kế hoạch”.</p></div></div>';
     html += '<div class="kpis">' +
       kpi('kq', queue.length, 'Contour xong, chờ nhận', 'var(--ks)', urgent ? '<span class="kx" style="color:var(--crit)">' + urgent + ' cấp cứu</span>' : '') +
       kpi('kd', doing.length, 'Tôi đang lập KH', 'var(--ks)') + kpi('kqa', qa.length, 'Ca của tôi chờ QA', 'var(--warn)') +
@@ -563,7 +563,7 @@
     var mine = doing.filter(function (p) { return p.ks_email === me().email; }).length;
     var urgent = queue.filter(function (p) { return p.uu_tien === 'Cấp cứu'; }).length;
 
-    var html = '<div class="page-head"><div><h1>③ Lập kế hoạch</h1><p>Toàn bộ ca chờ lập kế hoạch và đang lập của phòng. Việc của riêng bạn xem ở “Bệnh nhân của tôi”.</p></div></div>';
+    var html = '<div class="page-head"><div><h1>Lập kế hoạch</h1><p>Toàn bộ ca chờ lập kế hoạch và đang lập của phòng. Việc của riêng bạn xem ở “Bệnh nhân của tôi”.</p></div></div>';
     html += '<div class="kpis">' +
       kpi('queue', queue.length, 'Contour xong, chờ lập KH', 'var(--ks)', urgent ? '<span class="kx" style="color:var(--crit)">' + urgent + ' cấp cứu</span>' : '') +
       kpi('doing', doing.length, 'Đang lập KH', 'var(--ks)', mine ? '<span class="kx muted">' + mine + ' của bạn</span>' : '') +
