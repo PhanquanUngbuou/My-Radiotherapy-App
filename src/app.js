@@ -247,7 +247,7 @@
   };
   // Mọi vai trò dùng chung một menu theo đường đi của bệnh nhân; quyền thao tác vẫn theo vai trò
   var FLOW_TABS = ['home', 'sim', 'contour', 'plan', 'qa', 'tx', 'all', 'roster'];
-  var ROLE_TABS = { BS: FLOW_TABS, KS: FLOW_TABS, KTV: FLOW_TABS, DD: FLOW_TABS, ADMIN: FLOW_TABS.concat(['admin']) };
+  var ROLE_TABS = { BS: FLOW_TABS, KS: FLOW_TABS, KTV: FLOW_TABS.filter(function (t) { return t !== 'home'; }), DD: FLOW_TABS, ADMIN: FLOW_TABS.concat(['admin']) };
   function stepLb(n, text, c) { return '<span class="step-n">' + n + '</span>' + esc(text) + (c ? '<span class="step-c">' + c + '</span>' : ''); }
   function byState(st) { return items().filter(function (p) { return st.indexOf(p.trang_thai) >= 0; }); }
   function stepCount(k) {
@@ -273,7 +273,7 @@
     if (RT.statsScope(me())) tabs.splice(tabs.indexOf('admin') >= 0 ? tabs.indexOf('admin') : tabs.length, 0, 'stats');
     if (isLead() && role() !== 'ADMIN') tabs.push('log');
     if (S.role !== d.me.email) { S.role = d.me.email; S.scope = isDoctor(d.me) ? 'mine' : 'all'; S.log = null; S.fKhoa = null; S.fBs = ''; }
-    if (tabs.indexOf(S.tab) < 0) S.tab = tabs[0];
+    if (tabs.indexOf(S.tab) < 0) S.tab = role() === 'KTV' ? 'tx' : tabs[0];  // KTV gắn với máy và ca: mở thẳng Xạ hôm nay
     var who;
     if (window.DEMO) {
       who = '<label class="who"><span class="nm muted">Đăng nhập thử với:</span><select id="demo-user" aria-label="Chọn người dùng demo">' +
@@ -455,7 +455,6 @@
   // ---------- Bệnh nhân của tôi: nội dung theo vai trò ----------
   function renderMine() {
     if (role() === 'KS') return renderKsMine();
-    if (role() === 'KTV') return renderToday(true);
     return renderHome();
   }
   function bsFilter(list) {
@@ -513,7 +512,7 @@
     var seg = '<div class="seg tx-seg" role="group" aria-label="Xạ trị">' + [['today', 'Hôm nay', todayDue().length], ['week', 'Lịch tuần', 0], ['sched', 'Chờ xếp lịch', noDate]].map(function (x) {
       return '<button data-txsub="' + x[0] + '" aria-pressed="' + (sub === x[0]) + '">' + x[1] + (x[2] ? ' <span class="step-c">' + x[2] + '</span>' : '') + '</button>';
     }).join('') + '</div>';
-    return seg + (sub === 'week' ? renderWeek() : sub === 'sched' ? renderSchedule() : renderToday());
+    return seg + (sub === 'week' ? renderWeek() : sub === 'sched' ? renderSchedule() : renderToday(role() === 'KTV' || role() === 'ADMIN'));
   }
   // ---------- Kỹ sư: việc của tôi ----------
   function renderKsMine() {
@@ -602,12 +601,15 @@
     var paused = pts().filter(function (p) { return onM(p) && p.trang_thai === 'TAM_NGUNG'; });
     var noDate = pts().filter(function (p) { return p.trang_thai === 'CHO_XA' && !p.ngay_du_kien; }).length;
     var holiday = S.data.holidays.indexOf(t) >= 0;
+    var waitAll = pts().filter(function (p) { return p.trang_thai === 'CHO_XA'; });
+    var simToday = items().filter(function (p) { return p.trang_thai === 'MO_PHONG' && p.ngay_mo_phong && p.ngay_mo_phong <= t; }).length;
 
-    var html = (mine ? '' : dutyBanner()) + '<div class="page-head"><div><h1>' + (mine ? 'Bệnh nhân của tôi · KTV' : 'Xạ hôm nay') + ' · ' + fdw(t) + '/' + t.slice(0, 4) + '</h1><p>' +
+    var html = dutyBanner() + '<div class="page-head"><div><h1>' + 'Xạ hôm nay' + ' · ' + fdw(t) + '/' + t.slice(0, 4) + '</h1><p>' +
       (holiday ? 'Hôm nay là ngày nghỉ lễ trong danh mục.' : RT.dow(t) === 6 ? 'Thứ Bảy: xạ bù cho BN IMRT/VMAT có ngày nghỉ trong tuần.' : RT.dow(t) === 0 ? 'Chủ nhật: không có lịch xạ.' : 'Bấm “Xác nhận đã xạ” ngay sau khi BN xạ xong.') + '</p></div>' +
       '<div class="filters">' + noticeBtn() + (machines.length > 1 ? '<select data-filter="fMay" aria-label="Lọc theo máy">' + opts(machines, S.fMay, 'Tất cả máy') + '</select>' : '') + '</div></div>';
     html += '<div class="kpis">' + kpi('due', due.length, 'Cần xạ hôm nay', 'var(--accent)') + kpi('done', done.length, 'Đã xạ hôm nay', 'var(--ktv)') +
-      kpi('off', off.length, 'Không có lịch hôm nay', 'var(--line)') + kpi('paused', paused.length, 'Tạm ngừng', 'var(--crit)') + '</div>';
+      kpi('off', off.length, 'Không có lịch hôm nay', 'var(--line)') + kpi('paused', paused.length, 'Tạm ngừng', 'var(--crit)') +
+      kpi('wait', waitAll.length, 'Chờ vào xạ', 'var(--warn)', noDate ? '<span class="kx" style="color:var(--warn)">' + noDate + ' chưa xếp lịch</span>' : '') + kpi('simt', simToday, 'Mô phỏng hôm nay', 'var(--bs)') + '</div>';
     if (noDate && !mine) html += '<div class="card"><div class="empty">Có <b>' + noDate + '</b> bệnh nhân chờ vào xạ chưa được xếp lịch. <button class="btn sm" data-txsub="sched">Mở “Chờ xếp lịch”</button></div></div>';
     var mineExtra = '';
     if (mine) {
@@ -617,7 +619,7 @@
         { h: 'Hẹn', cls: 'nowrap', v: function (p) { return '<span class="num">' + fdw(p.ngay_mo_phong) + '</span>' + (p.ngay_mo_phong < t ? '<span class="sub" style="color:var(--warn)">quá hẹn ' + RT.diffDays(p.ngay_mo_phong, t) + ' ngày</span>' : ''); } },
         C.dx, C.bs, { h: '', cls: 'act', v: function (p) { return can('simDone') ? btn('simDone', p.id, 'Đã mô phỏng xong', 'primary') : ''; } }],
         '<button class="btn sm" data-gotab="sim">Xem tất cả lịch mô phỏng</button>', 'Không có BN hẹn mô phỏng hôm nay.');
-      mineExtra += group('nosched', 'Chờ vào xạ, chưa xếp lịch', noSched, [C.pt, C.rx, C.bs,
+      mineExtra += group('wait', 'Chờ vào xạ, chưa xếp lịch', noSched, [C.pt, C.rx, C.bs,
         { h: 'QA', v: function (p) { return p.qa_ket_qua === 'Đạt' ? '<span class="flag ok">Đạt</span>' : '<span class="muted">' + esc(p.qa_ket_qua || '—') + '</span>'; } },
         { h: '', cls: 'act', v: function (p) { return can('schedule') ? btn('schedule', p.id, 'Xếp lịch', 'primary') : ''; } }], null, 'Không có BN chờ xếp lịch.');
     }
