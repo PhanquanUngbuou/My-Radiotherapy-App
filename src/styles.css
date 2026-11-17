@@ -354,3 +354,5 @@ html.modal-open,html.modal-open body{overflow:hidden;overscroll-behavior:none}
   .mh-save{display:inline-flex}
 }
 #add-bn{white-space:nowrap;flex:none}
+.load10{grid-template-columns:repeat(10,minmax(78px,1fr));overflow-x:auto}
+@media (max-width:760px){.load10{grid-template-columns:repeat(10,96px)}}

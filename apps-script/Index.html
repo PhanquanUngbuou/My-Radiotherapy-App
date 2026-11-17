@@ -366,6 +366,8 @@ html.modal-open,html.modal-open body{overflow:hidden;overscroll-behavior:none}
   .mh-save{display:inline-flex}
 }
 #add-bn{white-space:nowrap;flex:none}
+.load10{grid-template-columns:repeat(10,minmax(78px,1fr));overflow-x:auto}
+@media (max-width:760px){.load10{grid-template-columns:repeat(10,96px)}}
 
 </style>
 </head>
@@ -1764,7 +1766,7 @@ if (typeof module !== 'undefined') module.exports = RT;
     var d = S.data, tabs = (ROLE_TABS[role()] || ['all']).slice();
     if (RT.statsScope(me())) tabs.splice(tabs.indexOf('admin') >= 0 ? tabs.indexOf('admin') : tabs.length, 0, 'stats');
     if (isLead() && role() !== 'ADMIN') tabs.push('log');
-    if (S.role !== d.me.email) { S.role = d.me.email; S.scope = isDoctor(d.me) ? 'mine' : 'all'; S.log = null; }
+    if (S.role !== d.me.email) { S.role = d.me.email; S.scope = isDoctor(d.me) ? 'mine' : 'all'; S.log = null; S.fKhoa = null; S.fBs = ''; }
     if (tabs.indexOf(S.tab) < 0) S.tab = tabs[0];
     var who;
     if (window.DEMO) {
@@ -1884,8 +1886,11 @@ if (typeof module !== 'undefined') module.exports = RT;
     var isBs = role() === 'BS' || role() === 'ADMIN';
     var scope = isBs ? S.scope : 'all';
     var docs = RT.myDoctors(me());
-    var list = pts().filter(function (p) { return scope === 'all' || docs.indexOf(p.bs_email) >= 0; });
-    var ilist = items().filter(function (p) { return scope === 'all' || docs.indexOf(p.bs_email) >= 0; });
+    // Xem cả khoa: lọc theo khoa (mặc định khoa của người dùng, ĐD thường xem khoa mình)
+    if (scope === 'all' && S.fKhoa == null) S.fKhoa = me().khoa && S.data.dm.KHOA.indexOf(me().khoa) >= 0 ? me().khoa : '';
+    var inK = function (p) { return scope !== 'all' || !S.fKhoa || p.khoa === S.fKhoa; };
+    var list = pts().filter(function (p) { return (scope === 'all' || docs.indexOf(p.bs_email) >= 0) && inK(p); });
+    var ilist = items().filter(function (p) { return (scope === 'all' || docs.indexOf(p.bs_email) >= 0) && inK(p); });
     var by = function (st, useItems) { return (useItems ? ilist : list).filter(function (p) { return st.indexOf(p.trang_thai) >= 0; }); };
     var queue = RT.planningQueue(items(), boostLeft);
     var qpos = function (p) { for (var i = 0; i < queue.length; i++) if (queue[i].id === p.id) return i + 1; return 0; };
@@ -1895,9 +1900,10 @@ if (typeof module !== 'undefined') module.exports = RT;
     g.tx.sort(function (a, b) { return (course(b).missed.length - course(a).missed.length) || (course(a).end < course(b).end ? -1 : 1); });
     var doneSoon = list.filter(function (p) { return p.trang_thai === 'DANG_XA' && course(p).end && RT.diffDays(today(), course(p).end) <= 6; }).length;
 
-    var html = '<div class="page-head"><div><h1>' + (scope === 'all' ? 'Toàn bộ bệnh nhân' : 'Bệnh nhân của ' + esc(me().ho_ten) + (me().tro_ly_cho ? ' và ' + esc(nameOf(me().tro_ly_cho)) + ' <span class="tag">Trợ lý</span>' : '')) + '</h1>' +
+    var khoaSel = scope === 'all' && S.data.dm.KHOA.length > 1 ? '<select data-filter="fKhoa" aria-label="Lọc theo khoa">' + opts(S.data.dm.KHOA, S.fKhoa, 'Cả hai khoa') + '</select>' : '';
+    var html = '<div class="page-head"><div><h1>' + (scope === 'all' ? (role() === 'DD' ? 'Tổng quan ' + esc(S.fKhoa ? 'khoa ' + S.fKhoa : 'hai khoa') : 'Toàn bộ bệnh nhân' + (S.fKhoa ? ' · ' + esc(S.fKhoa) : '')) : 'Bệnh nhân của ' + esc(me().ho_ten) + (me().tro_ly_cho ? ' và ' + esc(nameOf(me().tro_ly_cho)) + ' <span class="tag">Trợ lý</span>' : '')) + '</h1>' +
       '<p>' + fdw(today()) + '/' + today().slice(0, 4) + ' · ' + list.filter(function (p) { return p.trang_thai !== 'HOAN_THANH'; }).length + ' bệnh nhân đang trong quy trình</p></div>' +
-      (isBs ? '<div class="seg" role="group" aria-label="Phạm vi"><button data-scope="mine" aria-pressed="' + (scope === 'mine') + '">Của tôi</button><button data-scope="all" aria-pressed="' + (scope === 'all') + '">Cả khoa</button></div>' : '') + '</div>';
+      '<div class="filters">' + khoaSel + (isBs ? '<div class="seg" role="group" aria-label="Phạm vi"><button data-scope="mine" aria-pressed="' + (scope === 'mine') + '">Của tôi</button><button data-scope="all" aria-pressed="' + (scope === 'all') + '">Cả khoa</button></div>' : '') + '</div></div>';
     html += '<div class="kpis">' + HOME_GROUPS.map(function (x) {
       var extra = '';
       if (x.id === 'tx' && doneSoon) extra = '<span class="kx muted">' + doneSoon + ' kết thúc trong 7 ngày</span>';
@@ -1906,6 +1912,15 @@ if (typeof module !== 'undefined') module.exports = RT;
       return kpi(x.id, g[x.id].length, x.label, x.color, extra);
     }).join('') + '</div>';
 
+    if (scope === 'all') {
+      var days = [], dd = today();
+      for (var k = 0; days.length < 10 && k < 20; k++, dd = RT.addDays(dd, 1)) if (RT.dow(dd) !== 0) days.push(dd);
+      var startOn = function (day) { return g.wait.filter(function (p) { return p.ngay_du_kien === day; }).length; };
+      var endOn = function (day) { return g.tx.filter(function (p) { return course(p).end === day; }).length; };
+      html += '<section class="group"><div class="group-head"><h2>Vào xạ và kết thúc xạ 10 ngày tới</h2><span class="hint">Số BN dự kiến bắt đầu (buổi đầu) và kết thúc xạ mỗi ngày' + (g.wait.filter(function (p) { return !p.ngay_du_kien; }).length ? '; ' + g.wait.filter(function (p) { return !p.ngay_du_kien; }).length + ' BN chờ vào xạ chưa xếp lịch' : '') + '</span></div>' +
+        '<div class="load load10">' + days.map(function (day) { var a1 = startOn(day), a2 = endOn(day);
+          return '<div class="' + (day === today() ? 'today' : '') + '"><span class="d">' + fdw(day) + '</span><span class="v" title="Bắt đầu xạ">▶ ' + a1 + '</span><span class="d" title="Kết thúc xạ">■ kết thúc ' + a2 + '</span></div>'; }).join('') + '</div></section>';
+    }
     var contourActs = { h: '', cls: 'act', v: function (p) {
       if (p.trang_thai === 'MO_PHONG') return (p.ngay_mo_phong ? '<span class="muted">hẹn ' + fdw(p.ngay_mo_phong) + '</span> ' : '<span class="pill st-MO_PHONG">' + (p._g ? 'Chờ mô phỏng lại' : 'Chờ mô phỏng') + '</span> ') +
         (can('simDone') ? btn('simDone', p.id, 'Đã mô phỏng xong') : '');

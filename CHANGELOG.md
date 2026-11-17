@@ -7,6 +7,7 @@
 - Thống kê theo mã ICD-10 (3 ký tự) và theo vị trí xạ: BN bắt đầu xạ, BN có xạ trong kỳ, số lượt xạ; bấm một dòng để xem danh sách BN. Có trong trang báo cáo Excel.
 - Menu xếp theo đường đi của BN, chung cho mọi người: Bệnh nhân của tôi · ① Mô phỏng · ② Contour · ③ Lập kế hoạch · ④ QA · ⑤ Xạ trị (Hôm nay / Lịch tuần / Chờ xếp lịch) · Tất cả BN · Phân công · Thống kê. Mỗi bước có số ca đang chờ.
 - "Bệnh nhân của tôi" theo vai trò. Kỹ sư: ca contour xong chờ nhận, ca mình đang lập (BS điều trị, nhận từ ngày nào, mấy ngày, hạn), ca mình chờ QA, ca mình đã chuyển xạ. KTV: cần xạ hôm nay, mô phỏng hôm nay, chờ xếp lịch, đã xạ. BS, ĐD: như cũ.
+- Điều dưỡng (và khi bấm "Cả khoa"): tổng quan theo khoa (mặc định khoa của mình, chọn được cả hai khoa): số BN từng bước, chờ vào xạ kèm ngày xạ dự kiến, đang xạ kèm ngày kết thúc dự kiến; dải "Vào xạ và kết thúc xạ 10 ngày tới" đếm số BN bắt đầu / kết thúc mỗi ngày. Bấm vào BN để xem nhật ký từng buổi xạ.
 - Nút "+ Thêm bệnh nhân" chuyển lên hàng trên cạnh chuông, không bị menu dài đẩy khuất.
 - Trên điện thoại các form mở toàn màn hình, nút lưu luôn dính ở đáy, thêm nút "Lưu" ở góc trên; trang phía sau không bị cuộn theo.
 - Trang "ChiMuc" (chỉ mục mọi đợt xạ, kể cả lưu trữ) để tra mã HIS và tìm lưu trữ nhanh dù dữ liệu nhiều năm. Buổi xạ lưu trữ tách theo năm (LuuTru_BuoiXa_2026, …).

@@ -43,7 +43,7 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
   <div class="intro">
     <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v2.5</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v2.5 · bản lưu af5d449 · 17/11/2026 09:48. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v2.5”.</span>
+    <span class="rev">Phiên bản v2.5 · bản lưu ec3d240 · 17/11/2026 09:59. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v2.5”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
@@ -1654,7 +1654,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
       <div class="meta">
         <h2 id="h-Index">Index.html <span class="ver">· v2.5</span></h2>
         <p>Bấm + → HTML, đặt tên Index (chữ I hoa).</p>
-        <span class="size">3,249 dòng · 311 KB</span>
+        <span class="size">3,264 dòng · 313 KB</span>
       </div>
       <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v2.5)</button>
     </div>
@@ -2026,6 +2026,8 @@ html.modal-open,html.modal-open body{overflow:hidden;overscroll-behavior:none}
   .mh-save{display:inline-flex}
 }
 #add-bn{white-space:nowrap;flex:none}
+.load10{grid-template-columns:repeat(10,minmax(78px,1fr));overflow-x:auto}
+@media (max-width:760px){.load10{grid-template-columns:repeat(10,96px)}}
 
 &lt;/style&gt;
 &lt;/head&gt;
@@ -3424,7 +3426,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     var d = S.data, tabs = (ROLE_TABS[role()] || [&#x27;all&#x27;]).slice();
     if (RT.statsScope(me())) tabs.splice(tabs.indexOf(&#x27;admin&#x27;) &gt;= 0 ? tabs.indexOf(&#x27;admin&#x27;) : tabs.length, 0, &#x27;stats&#x27;);
     if (isLead() &amp;&amp; role() !== &#x27;ADMIN&#x27;) tabs.push(&#x27;log&#x27;);
-    if (S.role !== d.me.email) { S.role = d.me.email; S.scope = isDoctor(d.me) ? &#x27;mine&#x27; : &#x27;all&#x27;; S.log = null; }
+    if (S.role !== d.me.email) { S.role = d.me.email; S.scope = isDoctor(d.me) ? &#x27;mine&#x27; : &#x27;all&#x27;; S.log = null; S.fKhoa = null; S.fBs = &#x27;&#x27;; }
     if (tabs.indexOf(S.tab) &lt; 0) S.tab = tabs[0];
     var who;
     if (window.DEMO) {
@@ -3544,8 +3546,11 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     var isBs = role() === &#x27;BS&#x27; || role() === &#x27;ADMIN&#x27;;
     var scope = isBs ? S.scope : &#x27;all&#x27;;
     var docs = RT.myDoctors(me());
-    var list = pts().filter(function (p) { return scope === &#x27;all&#x27; || docs.indexOf(p.bs_email) &gt;= 0; });
-    var ilist = items().filter(function (p) { return scope === &#x27;all&#x27; || docs.indexOf(p.bs_email) &gt;= 0; });
+    // Xem cả khoa: lọc theo khoa (mặc định khoa của người dùng, ĐD thường xem khoa mình)
+    if (scope === &#x27;all&#x27; &amp;&amp; S.fKhoa == null) S.fKhoa = me().khoa &amp;&amp; S.data.dm.KHOA.indexOf(me().khoa) &gt;= 0 ? me().khoa : &#x27;&#x27;;
+    var inK = function (p) { return scope !== &#x27;all&#x27; || !S.fKhoa || p.khoa === S.fKhoa; };
+    var list = pts().filter(function (p) { return (scope === &#x27;all&#x27; || docs.indexOf(p.bs_email) &gt;= 0) &amp;&amp; inK(p); });
+    var ilist = items().filter(function (p) { return (scope === &#x27;all&#x27; || docs.indexOf(p.bs_email) &gt;= 0) &amp;&amp; inK(p); });
     var by = function (st, useItems) { return (useItems ? ilist : list).filter(function (p) { return st.indexOf(p.trang_thai) &gt;= 0; }); };
     var queue = RT.planningQueue(items(), boostLeft);
     var qpos = function (p) { for (var i = 0; i &lt; queue.length; i++) if (queue[i].id === p.id) return i + 1; return 0; };
@@ -3555,9 +3560,10 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     g.tx.sort(function (a, b) { return (course(b).missed.length - course(a).missed.length) || (course(a).end &lt; course(b).end ? -1 : 1); });
     var doneSoon = list.filter(function (p) { return p.trang_thai === &#x27;DANG_XA&#x27; &amp;&amp; course(p).end &amp;&amp; RT.diffDays(today(), course(p).end) &lt;= 6; }).length;
 
-    var html = &#x27;&lt;div class=&quot;page-head&quot;&gt;&lt;div&gt;&lt;h1&gt;&#x27; + (scope === &#x27;all&#x27; ? &#x27;Toàn bộ bệnh nhân&#x27; : &#x27;Bệnh nhân của &#x27; + esc(me().ho_ten) + (me().tro_ly_cho ? &#x27; và &#x27; + esc(nameOf(me().tro_ly_cho)) + &#x27; &lt;span class=&quot;tag&quot;&gt;Trợ lý&lt;/span&gt;&#x27; : &#x27;&#x27;)) + &#x27;&lt;/h1&gt;&#x27; +
+    var khoaSel = scope === &#x27;all&#x27; &amp;&amp; S.data.dm.KHOA.length &gt; 1 ? &#x27;&lt;select data-filter=&quot;fKhoa&quot; aria-label=&quot;Lọc theo khoa&quot;&gt;&#x27; + opts(S.data.dm.KHOA, S.fKhoa, &#x27;Cả hai khoa&#x27;) + &#x27;&lt;/select&gt;&#x27; : &#x27;&#x27;;
+    var html = &#x27;&lt;div class=&quot;page-head&quot;&gt;&lt;div&gt;&lt;h1&gt;&#x27; + (scope === &#x27;all&#x27; ? (role() === &#x27;DD&#x27; ? &#x27;Tổng quan &#x27; + esc(S.fKhoa ? &#x27;khoa &#x27; + S.fKhoa : &#x27;hai khoa&#x27;) : &#x27;Toàn bộ bệnh nhân&#x27; + (S.fKhoa ? &#x27; · &#x27; + esc(S.fKhoa) : &#x27;&#x27;)) : &#x27;Bệnh nhân của &#x27; + esc(me().ho_ten) + (me().tro_ly_cho ? &#x27; và &#x27; + esc(nameOf(me().tro_ly_cho)) + &#x27; &lt;span class=&quot;tag&quot;&gt;Trợ lý&lt;/span&gt;&#x27; : &#x27;&#x27;)) + &#x27;&lt;/h1&gt;&#x27; +
       &#x27;&lt;p&gt;&#x27; + fdw(today()) + &#x27;/&#x27; + today().slice(0, 4) + &#x27; · &#x27; + list.filter(function (p) { return p.trang_thai !== &#x27;HOAN_THANH&#x27;; }).length + &#x27; bệnh nhân đang trong quy trình&lt;/p&gt;&lt;/div&gt;&#x27; +
-      (isBs ? &#x27;&lt;div class=&quot;seg&quot; role=&quot;group&quot; aria-label=&quot;Phạm vi&quot;&gt;&lt;button data-scope=&quot;mine&quot; aria-pressed=&quot;&#x27; + (scope === &#x27;mine&#x27;) + &#x27;&quot;&gt;Của tôi&lt;/button&gt;&lt;button data-scope=&quot;all&quot; aria-pressed=&quot;&#x27; + (scope === &#x27;all&#x27;) + &#x27;&quot;&gt;Cả khoa&lt;/button&gt;&lt;/div&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/div&gt;&#x27;;
+      &#x27;&lt;div class=&quot;filters&quot;&gt;&#x27; + khoaSel + (isBs ? &#x27;&lt;div class=&quot;seg&quot; role=&quot;group&quot; aria-label=&quot;Phạm vi&quot;&gt;&lt;button data-scope=&quot;mine&quot; aria-pressed=&quot;&#x27; + (scope === &#x27;mine&#x27;) + &#x27;&quot;&gt;Của tôi&lt;/button&gt;&lt;button data-scope=&quot;all&quot; aria-pressed=&quot;&#x27; + (scope === &#x27;all&#x27;) + &#x27;&quot;&gt;Cả khoa&lt;/button&gt;&lt;/div&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/div&gt;&lt;/div&gt;&#x27;;
     html += &#x27;&lt;div class=&quot;kpis&quot;&gt;&#x27; + HOME_GROUPS.map(function (x) {
       var extra = &#x27;&#x27;;
       if (x.id === &#x27;tx&#x27; &amp;&amp; doneSoon) extra = &#x27;&lt;span class=&quot;kx muted&quot;&gt;&#x27; + doneSoon + &#x27; kết thúc trong 7 ngày&lt;/span&gt;&#x27;;
@@ -3566,6 +3572,15 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
       return kpi(x.id, g[x.id].length, x.label, x.color, extra);
     }).join(&#x27;&#x27;) + &#x27;&lt;/div&gt;&#x27;;
 
+    if (scope === &#x27;all&#x27;) {
+      var days = [], dd = today();
+      for (var k = 0; days.length &lt; 10 &amp;&amp; k &lt; 20; k++, dd = RT.addDays(dd, 1)) if (RT.dow(dd) !== 0) days.push(dd);
+      var startOn = function (day) { return g.wait.filter(function (p) { return p.ngay_du_kien === day; }).length; };
+      var endOn = function (day) { return g.tx.filter(function (p) { return course(p).end === day; }).length; };
+      html += &#x27;&lt;section class=&quot;group&quot;&gt;&lt;div class=&quot;group-head&quot;&gt;&lt;h2&gt;Vào xạ và kết thúc xạ 10 ngày tới&lt;/h2&gt;&lt;span class=&quot;hint&quot;&gt;Số BN dự kiến bắt đầu (buổi đầu) và kết thúc xạ mỗi ngày&#x27; + (g.wait.filter(function (p) { return !p.ngay_du_kien; }).length ? &#x27;; &#x27; + g.wait.filter(function (p) { return !p.ngay_du_kien; }).length + &#x27; BN chờ vào xạ chưa xếp lịch&#x27; : &#x27;&#x27;) + &#x27;&lt;/span&gt;&lt;/div&gt;&#x27; +
+        &#x27;&lt;div class=&quot;load load10&quot;&gt;&#x27; + days.map(function (day) { var a1 = startOn(day), a2 = endOn(day);
+          return &#x27;&lt;div class=&quot;&#x27; + (day === today() ? &#x27;today&#x27; : &#x27;&#x27;) + &#x27;&quot;&gt;&lt;span class=&quot;d&quot;&gt;&#x27; + fdw(day) + &#x27;&lt;/span&gt;&lt;span class=&quot;v&quot; title=&quot;Bắt đầu xạ&quot;&gt;▶ &#x27; + a1 + &#x27;&lt;/span&gt;&lt;span class=&quot;d&quot; title=&quot;Kết thúc xạ&quot;&gt;■ kết thúc &#x27; + a2 + &#x27;&lt;/span&gt;&lt;/div&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;/div&gt;&lt;/section&gt;&#x27;;
+    }
     var contourActs = { h: &#x27;&#x27;, cls: &#x27;act&#x27;, v: function (p) {
       if (p.trang_thai === &#x27;MO_PHONG&#x27;) return (p.ngay_mo_phong ? &#x27;&lt;span class=&quot;muted&quot;&gt;hẹn &#x27; + fdw(p.ngay_mo_phong) + &#x27;&lt;/span&gt; &#x27; : &#x27;&lt;span class=&quot;pill st-MO_PHONG&quot;&gt;&#x27; + (p._g ? &#x27;Chờ mô phỏng lại&#x27; : &#x27;Chờ mô phỏng&#x27;) + &#x27;&lt;/span&gt; &#x27;) +
         (can(&#x27;simDone&#x27;) ? btn(&#x27;simDone&#x27;, p.id, &#x27;Đã mô phỏng xong&#x27;) : &#x27;&#x27;);
