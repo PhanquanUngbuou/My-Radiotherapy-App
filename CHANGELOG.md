@@ -1,5 +1,12 @@
 # Lịch sử phiên bản
 
+## v2.5
+- Form "Thêm bệnh nhân" sắp xếp lại: Mã HIS · Họ tên · Năm sinh · Giới → Bước hiện tại (danh sách chọn, bắt buộc) kèm ô liên quan → Bác sĩ điều trị, Khoa. Phần còn lại gom vào mục "Thông tin thêm", tự mở khi bước đã chọn cần đủ thông tin chuyên môn.
+- Mã ICD-10 (danh mục Bộ Y tế, mã C và D) đặt ngay trước Chẩn đoán: gõ mã hiện tên bệnh, ô chẩn đoán còn trống thì tự điền. Không bắt buộc lúc nhập, bắt buộc khi "Contour xong".
+- Cảnh báo mã HIS: khi gõ mã HIS hiện các đợt xạ trước (kể cả đã lưu trữ), có nút điền lại họ tên, năm sinh, giới; cảnh báo đỏ nếu mã HIS đã dùng cho tên khác. Áp dụng cả khi sửa mã HIS.
+- Thống kê theo mã ICD-10 (3 ký tự) và theo vị trí xạ: BN bắt đầu xạ, BN có xạ trong kỳ, số lượt xạ; bấm một dòng để xem danh sách BN. Có trong trang báo cáo Excel.
+- Trang "ChiMuc" (chỉ mục mọi đợt xạ, kể cả lưu trữ) để tra mã HIS và tìm lưu trữ nhanh dù dữ liệu nhiều năm. Buổi xạ lưu trữ tách theo năm (LuuTru_BuoiXa_2026, …).
+
 ## v2.4
 - Thanh "Đang dùng tài khoản: …" ngay dưới thanh xanh, hiện họ tên, vai trò, chức vụ, email, trên cả điện thoại; kèm liên kết "Không phải bạn? Đăng xuất Google" cho máy tính dùng chung.
 

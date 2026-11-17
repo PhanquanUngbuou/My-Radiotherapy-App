@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Điều phối Xạ trị · phiên bản v2.4 -->
+<!-- Điều phối Xạ trị · phiên bản v2.5 -->
 <html lang="vi">
 <head>
 <base target="_top">
@@ -330,6 +330,22 @@ td.rs-today .rs-cell{border-color:var(--accent-2)}
 .me-switch{color:var(--accent);font-weight:600;font-size:12.5px;white-space:nowrap}
 @media (max-width:700px){ .me-mail{display:block} }
 
+/* v2.5: form thêm BN, mã ICD, cảnh báo mã HIS */
+details.more{border:1px solid var(--line);border-radius:12px;padding:0 14px;background:var(--surface-3)}
+details.more>summary{cursor:pointer;padding:12px 0;font-weight:700;color:var(--ink);list-style:revert}
+details.more[open]{padding-bottom:14px}
+details.more>.form{margin-top:4px}
+.his-note{border:1px solid var(--line);background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:13.5px;line-height:1.5}
+.his-note.bad{background:var(--crit-soft);border-color:var(--crit)}
+.his-note ul{margin:6px 0 6px 18px;padding:0}
+.icd-tag{display:inline-block;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;font-weight:700;padding:1px 6px;border-radius:6px;background:var(--accent-soft);color:var(--accent)}
+#icd-nm.icd-ok{color:var(--accent);font-weight:600}
+#icd-nm.icd-bad{color:var(--crit)}
+tr.click{cursor:pointer}
+tr.click:hover td{background:var(--accent-soft)}
+.btn.sm{padding:5px 12px;font-size:12.5px}
+.modal.wide{max-width:min(1040px,96vw);width:100%}
+
 </style>
 </head>
 <body>
@@ -339,6 +355,12 @@ td.rs-today .rs-cell{border-color:var(--accent-2)}
 <div id="drawer" hidden></div>
 <div id="modal" hidden></div>
 <div id="toast" class="toast" hidden role="status" aria-live="polite"></div>
+<script>
+/* Danh mục ICD-10 mã C và D, theo danh mục Bộ Y tế (19/08/2021). Chỉ dùng để tra tên bệnh. */
+var ICD10 = [["C00","U ác của môi"],["C00.0","U ác của môi phần ngoài môi trên"],["C00.1","Phần ngoài môi dưới"],["C00.2","U ác của phần ngoài môi không đặc hiệu"],["C00.3","U ác của môi trên, mặt trong"],["C00.4","U ác của môi dưới, mặt trong"],["C00.5","U ác của môi, mặt trong không đặc hiệu"],["C00.6","U ác của mép môi"],["C00.8","U ác với tổn thương chồng lấn của môi"],["C00.9","U ác của môi, không đặc hiệu"],["C01","U ác của đáy lưỡi"],["C02","U ác của phần khác và không xác định của lưỡi"],["C02.0","U ác mặt lưng của lưỡi"],["C02.1","U ác bờ của lưỡi"],["C02.2","U ác mặt bụng của lưỡi"],["C02.3","U ác hai phần ba trước của lưỡi, phần không xác định"],["C02.4","U ác của Amiđan đáy lưỡi"],["C02.8","U ác với tổn thương chồng lấn của lưỡi"],["C02.9","U ác của lưỡi không đặc hiệu"],["C03","U ác của lợi (nướu) răng"],["C03.0","U ác của nướu hàm trên"],["C03.1","U ác của nướu hàm dưới"],["C03.9","U ác của nướu, không đặc hiệu"],["C04","U ác của sàn miệng"],["C04.0","U ác của sàn trước miệng"],["C04.1","U ác của sàn miệng bên"],["C04.8","U ác với tổn thương chồng lấn của sàn miệng"],["C04.9","U ác của sàn miệng không đặc hiệu"],["C05","U ác của khẩu cái"],["C05.0","U ác của khẩu cái cứng"],["C05.1","U ác của khẩu cái mềm"],["C05.2","U ác của lưỡi gà"],["C05.8","U ác với tổn thương chồng lấn của khẩu cái"],["C05.9","U ác của khẩu cái, không đặc hiệu"],["C06","U ác của phần khác và không xác định của miệng"],["C06.0","U ác của niêm mạc má"],["C06.1","U ác của tiền đình của miệng"],["C06.2","U ác của vùng sau răng hàm"],["C06.8","U ác với tổn thương chồng lấn của phần khác và không xác định của miệng"],["C06.9","U ác của miệng, không đặc hiệu"],["C07","U ác tuyến mang tai"],["C08","U ác của các tuyến nước bọt chính khác và không xác định"],["C08.0","U ác của tuyến nước bọt dưới hàm dưới"],["C08.1","U ác của tuyến nước bọt dưới lưỡi"],["C08.8","U ác với tổn thương chồng lấn của tuyến nước bọt chính"],["C08.9","U ác của tuyến nước bọt chính, không đặc hiệu"],["C09","U ác của amiđan"],["C09.0","U ác của hố amiđan"],["C09.1","U ác của trụ amiđan (trước) (sau)"],["C09.8","U ác với tổn thương chồng lấn của amiđan"],["C09.9","U ác của amiđan không đặc hiệu"],["C10","U ác của hầu miệng"],["C10.0","U ác của nắp thanh quản"],["C10.1","U ác của mặt trước của nắp thanh môn"],["C10.2","U ác của thành bên hầu-miệng"],["C10.3","U ác của thành sau hầu-miệng"],["C10.4","Khe cạch cổ"],["C10.8","U ác với tổn thương chồng lấn của hầu miệng"],["C10.9","U ác của hầu-miệng, không đặc hiệu"],["C11","U ác của hầu-mũi"],["C11.0","U ác của vách trên của hầu-mũi"],["C11.1","U ác của vách sau của hầu-mũi"],["C11.2","U ác của vách bên của hầu-mũi"],["C11.3","U ác của vách trước của hầu-mũi"],["C11.8","U ác với tổn thương chồng lấn của hầu-mũi"],["C11.9","U ác của mũi hầu không đặc hiệu"],["C12","U ác của xoang lê"],["C13","U ác của hạ hầu"],["C13.0","U ác của vùng sau sụn nhẫn"],["C13.1","U ác của nếp phễu nắp, mặt hạ hầu"],["C13.2","U ác của vách sau của hạ hầu"],["C13.8","U ác với tổn thương chồng lấn của hạ hầu"],["C13.9","U ác của hạ hầu không đặc hiệu"],["C14","U ác vị trí khác và không rõ ràng của môi, khoang miệng và hầu"],["C14.0","U ác của hầu, không đặc hiệu"],["C14.2","U ác của hầu thanh quản"],["C14.8","U ác với tổn thương chồng lấn của môi, khoang miệng và hầu họng"],["C15","U ác thực quản"],["C15.0","U ác của thực quản phần cổ"],["C15.1","U ác của thực quản phần ngực"],["C15.2","U ác của thực quản phần bụng"],["C15.3","U ác của phần ba trên thực quản"],["C15.4","U ác của phần ba giữa thực quản"],["C15.5","U ác của phần ba dưới thực quản"],["C15.8","U ác với tổn thương chồng lấn của thực quản"],["C15.9","U ác của thực quản, không đặc hiệu"],["C16","U ác của dạ dày"],["C16.0","U ác của tâm vị"],["C16.1","U ác của đáy vị"],["C16.2","U ác của thân vị"],["C16.3","U ác của hang môn vị"],["C16.4","U ác của môn vị"],["C16.5","U ác của bờ cong nhỏ dạ dày, không đặc hiệu"],["C16.6","U ác của bờ cong lớn dạ dày, không đặc hiệu"],["C16.8","U ác với tổn thương chồng lấn của dạ dày"],["C16.9","U ác của dạ dày không đặc hiệu"],["C17","U ác ruột non"],["C17.0","U ác của tá tràng"],["C17.1","U ác của hỗng tràng"],["C17.2","U ác của hồi tràng"],["C17.3","U ác của túi thừa Meckel"],["C17.8","U ác với tổn thương chồng lấn của ruột non"],["C17.9","U ác của ruột non, không đặc hiệu"],["C18","U ác đại tràng"],["C18.0","U ác của manh tràng"],["C18.1","U ác của ruột thừa"],["C18.2","U ác của đại tràng lên"],["C18.3","U ác của đại tràng góc gan"],["C18.4","U ác của đại tràng ngang"],["C18.5","U ác của đại tràng góc lách"],["C18.6","U ác của đại tràng xuống"],["C18.7","U ác của đại tràng xích ma"],["C18.8","U ác với tổn thương chồng lấn của đại tràng"],["C18.9","U ác của đại tràng không đặc hiệu"],["C19","U ác của nơi nối trực tràng-xích ma"],["C20","U ác trực tràng"],["C21","U ác của hậu môn và ống hậu môn"],["C21.0","U ác của hậu môn, không đặc hiệu"],["C21.1","U ác của ống hậu môn"],["C21.2","U ác của vùng có nguồn gốc từ ổ nhớp"],["C21.8","U ác với tổn thương chồng lấn của đại tràng, hậu môn và ống hậu môn"],["C22","U ác của gan và đường mật trong gan"],["C22.0","Ung thư biểu mô tế bào gan"],["C22.1","Ung thư biểu mô đường mật trong gan"],["C22.2","U nguyên bào gan"],["C22.3","Ung thư mô liên kết mạch máu của gan"],["C22.4","Ung thư mô liên kết khác của gan"],["C22.7","Ung thư biểu mô xác định khác của gan"],["C22.9","U ác của gan, không đặc hiệu"],["C23","U ác túi mật"],["C24","U ác của phần khác và không xác định của đường mật"],["C24.0","U ác của đường mật ngoài gan"],["C24.1","U ác của bóng Vater"],["C24.8","U ác với tổn thương chồng lấn của đường mật"],["C24.9","U ác của đường mật, không đặc hiệu"],["C25","U ác tụy"],["C25.0","U ác của đầu tụy"],["C25.1","U ác của thân tụy"],["C25.2","U ác của đuôi tụy"],["C25.3","U ác của ống tụy"],["C25.4","U ác của tụy nội tiết"],["C25.7","U ác phần khác của tụy"],["C25.8","U ác với tổn thương chồng lấn của tụy"],["C25.9","U ác của tụỵ, không đặc hiệu"],["C26","U ác của cơ quan tiêu hóa khác và không rõ ràng"],["C26.0","U ác của đường ruột phần không xác định vị trí"],["C26.1","U ác tính ở lách"],["C26.8","U ác với tổn thương chồng lấn của hệ tiêu hóa"],["C26.9","U ác ở vị trí không rõ ràng trong hệ tiêu hóa"],["C30","U ác của hốc mũi và tai giữa"],["C30.0","U ác của hốc mũi"],["C30.1","U ác của tai giữa"],["C31","U ác của các xoang phụ"],["C31.0","U ác của xoang hàm"],["C31.1","U ác của xoang sàng"],["C31.2","U ác của xoang trán"],["C31.3","U ác của xoang bướm"],["C31.8","U ác với tổn thương lan rộng của xoang phụ"],["C31.9","U ác của xoang phụ, không đặc hiệu"],["C32","U ác thanh quản"],["C32.0","U ác của thanh môn"],["C32.1","U ác vùng trên thanh môn"],["C32.2","U ác vùng dưới thanh môn"],["C32.3","U ác của sụn thanh quản"],["C32.8","U ác với tổn thương chồng lấn của thanh quản"],["C32.9","U ác của thanh quản, không đặc hiệu"],["C33","U ác khí quản"],["C34","U ác của phế quản và phổi"],["C34.0","U ác của phế quản chính"],["C34.1","U ác của thuỳ trên, phế quản hoặc phổi"],["C34.2","U ác của thuỳ giữa, phế quản hoặc phổi"],["C34.3","U ác của thuỳ dưới, phế quản hoặc phổi"],["C34.8","U ác với tổn thương chồng lấn của phế quản và phổi"],["C34.9","U ác của khí quản hoặc phổi, không đặc hiệu"],["C37","U ác tuyến ức"],["C38","U ác của tim, trung thất và màng phổi"],["C38.0","U ác của tim"],["C38.1","U ác của trung thất trước"],["C38.2","U ác của trung thất sau"],["C38.3","U ác của trung thất, phần không xác định"],["C38.4","U ác của màng phổi"],["C38.8","U ác với tổn thương chồng lấn của tim, trung thất, màng phổi"],["C39","U ác ở những vị trí khác và không rõ ràng của hệ hô hấp và cơ quan trong lồng ngực"],["C39.0","U ác của đường hô hấp trên, phần không xác định vị trí"],["C39.8","U ác với tổn thương chồng lấn của cơ quan hô hấp và trong lồng ngực"],["C39.9","U ác ở vị trí khó xác định trong hệ hô hấp"],["C40","U ác của xương và sụn khớp của các chi"],["C40.0","U ác của xương bả vai và xương dài của chi trên"],["C40.1","U ác của xương ngắn của chi trên"],["C40.2","U ác của xương dài của chi dưới"],["C40.3","U ác của xương ngắn của chi dưới"],["C40.8","U ác với tổn thương chồng lấn của xương và sụn khớp của các chi"],["C40.9","U ác của xương và sụn khớp của chi, không đặc hiệu"],["C41","U ác của xương và sụn khớp ở vị trí khác và không xác định"],["C41.0","U ác của xương sọ và mặt"],["C41.1","U ác của xương hàm dưới"],["C41.2","U ác của cột sống"],["C41.3","U ác của xương sườn, xương ức và xương đòn"],["C41.4","U ác của xương chậu, xương cùng và xương cụt"],["C41.8","U ác với tổn thương chồng lấn của xương và sụn khớp"],["C41.9","U ác của xương và sụn khớp không đặc hiệu"],["C43","U hắc tố ác của da"],["C43.0","U hắc tố ác của môi"],["C43.1","U hắc tố ác của mi mắt, bao gồm khóe mắt"],["C43.2","U hắc tố ác của tai và ống tai ngoài"],["C43.3","U hắc tố ác của phần khác và phần không xác định vị trí của mặt"],["C43.4","U hắc tố ác của đầu và cổ"],["C43.5","U hắc tố ác của thân mình"],["C43.6","U hắc tố ác của chi trên, bao gồm vai"],["C43.7","U hắc tố ác của chi dưới, bao gồm háng"],["C43.8","U hắc tố ác lan rông của da"],["C43.9","U hắc tố ác của da, không đặc hiệu"],["C44","U ác khác của da"],["C44.0","U da ác tính của môi"],["C44.1","U da ác tính của mi mắt, bao gồm khóe mắt"],["C44.2","U da ác tính của tai và ống tai ngoài"],["C44.3","U da ác tính của phần khác và không xác định vị trí của mặt"],["C44.4","U da ác tính đầu và da cổ"],["C44.5","U da ác tính của thân mình"],["C44.6","U da ác tính của chi trên, bao gồm vai"],["C44.7","U da ác tính của chi dưới, bao gồm háng"],["C44.8","U ác với tổn thương chồng lấn của da"],["C44.9","U da ác tính không đặc hiệu"],["C45","U trung biểu mô"],["C45.0","U trung biểu mô của màng phổi"],["C45.1","U trung biểu mô của phúc mạc"],["C45.2","U trung biểu mô màng ngoài tim"],["C45.7","U trung biểu mô của các vị trí khác"],["C45.9","U trung biểu mô không đặc hiệu"],["C46","Ung thư mô liên kết Kaposi"],["C46.0","Ung thư mô liên kết Kaposi của da"],["C46.1","Ung thư mô liên kết Kaposi của mô mềm"],["C46.2","Ung thư mô liên kết Kaposi của vòm khẩu cái"],["C46.3","Ung thư mô liên kết Kaposi của hạch lympho"],["C46.7","Ung thư mô liên kết Kaposi của các nơi khác"],["C46.8","Ung thư mô liên kết Kaposi của nhiều cơ quan"],["C46.9","Ung thư mô liên kết Kaposi không đặc hiệu"],["C47","U ác của dây thần kinh ngoại biên và của hệ thần kinh tự động"],["C47.0","U ác của dây thần kinh ngoại biên của đầu, mặt, cổ"],["C47.1","U ác của dây thần kinh ngoại biên của chi trên, bao gồm vai"],["C47.2","U ác của dây thần kinh ngoại biên của chi dưới, bao gồm háng"],["C47.3","U ác của dây thần kinh ngoại biên của lồng ngực"],["C47.4","U ác của dây thần kinh ngoại biên của bụng"],["C47.5","U ác của dây thần kinh ngoại biên của chậu"],["C47.6","U ác của dây thần kinh ngoại biên của thân mình, không đặc hiệu"],["C47.8","U ác với tổn thương chồng lấn của dây thần kinh ngoại biên và của hệ thần kinh tự động"],["C47.9","U ác của dây thần kinh ngoại biên và hệ thần kinh tự động, không đặc hiệu"],["C48","U ác của vùng sau phúc mạc và phúc mạc"],["C48.0","U ác của vùng sau phúc mạc"],["C48.1","U ác của các phần xác định của phúc mạc"],["C48.2","U ác của phúc mạc không đặc hiệu"],["C48.8","U ác với tổn thương chồng lấn của vùng sau phúc mạc và phúc mạc"],["C49","U ác của mô liên kết và mô mềm khác"],["C49.0","U ác của mô liên kết và mềm của đầu, mặt và cổ"],["C49.1","U ác của mô liên kết và mô mềm của chi trên bao gồm vai"],["C49.2","U ác của mô liên kết và mô mềm của chi dưới bao gồm háng"],["C49.3","U ác của mô liên kết và mô mềm của lồng ngực"],["C49.4","U ác của mô liên kết và mô mềm của bụng"],["C49.5","U ác của mô liên kết và mô mềm của vùng chậu"],["C49.6","U ác của mô liên kết và mô mềm của thân mình, không đặc hiệu"],["C49.8","U ác với tổn thương chồng lấn của mô liên kết và mô mềm"],["C49.9","U ác của mô liên kết và mô mềm, không đặc hiệu"],["C50","U ác của vú"],["C50.0","U ác của núm và quầng vú"],["C50.1","U ác của vùng trung tâm vú"],["C50.2","U ác của 1/4 trên - trong vú"],["C50.3","U ác của 1/4 dưới - trong vú"],["C50.4","U ác của 1/4 trên - ngoài vú"],["C50.5","U ác của 1/4 dưới - ngoài vú"],["C50.6","U ác của đuôi nách của vú"],["C50.8","U ác với tổn thương chồng lấn của vú"],["C50.9","U ác của vú không đặc hiệu"],["C51","U ác âm hộ"],["C51.0","U ác của môi lớn"],["C51.1","U ác của môi nhỏ"],["C51.2","U ác của âm vật"],["C51.8","U ác với tổn thương lan rộng của âm hộ"],["C51.9","U ác của âm hộ không đặc hiệu"],["C52","U ác của âm đạo"],["C53","U ác của cổ tử cung"],["C53.0","U ác của cổ tử cung trong"],["C53.1","U ác của cổ tử cung ngoài"],["C53.8","U ác với tổn thương chồng lấn của cổ tử cung"],["C53.9","U ác của cổ tử cung không đặc hiệu"],["C54","U ác của thân tử cung"],["C54.0","U ác của eo tử cung"],["C54.1","U ác của nội mạc tử cung"],["C54.2","U ác của cơ tử cung"],["C54.3","U ác của đáy tử cung"],["C54.8","U ác với tổn thương chồng lấn của thân tử cung"],["C54.9","U ác của thân tử cung không đặc hiệu"],["C55","U ác tử cung phần không xác định"],["C56","U ác buồng trứng"],["C57","U ác của cơ quan sinh dục nữ khác và không xác định"],["C57.0","U ác của vòi Fallop"],["C57.1","U ác của dây chằng rộng"],["C57.2","U ác của dây chằng tròn"],["C57.3","U ác của cận tử cung"],["C57.4","U ác của phần phụ tử cung không đặc hiệu"],["C57.7","U ác của cơ quan sinh dục nữ xác định khác"],["C57.8","U ác với tổn thương chồng lấn của cơ quan sinh dục nữ"],["C57.9","U ác của cơ quan sinh dục nữ không đặc hiệu"],["C58","U ác của rau thai (nhau thai)"],["C60","U ác của dương vật"],["C60.0","U da ác tính bao quy đầu"],["C60.1","U da ác của quy đầu dương vật"],["C60.2","U ác của thân dương vật"],["C60.8","U ác với tổn thương chồng lấn của dương vật"],["C60.9","U ác của dương vật không đặc hiệu"],["C61","U ác của tuyến tiền liệt"],["C62","U ác của tinh hoàn"],["C62.0","U ác của tinh hoàn không xuống"],["C62.1","U ác của tinh hoàn đã xuống"],["C62.9","U ác của tinh hoàn không đặc hiệu"],["C63","U ác của cơ quan sinh dục nam khác và không xác định"],["C63.0","U ác của mào tinh"],["C63.1","U ác của thừng tinh"],["C63.2","U ác của bìu (Dái)"],["C63.7","U ác của cơ quan sinh dục nam xác định khác"],["C63.8","U ác với tổn thương chồng lấn của cơ quan sinh dục nam"],["C63.9","U ác của cơ quan sinh dục nam không xác định"],["C64","U ác của thận ngoại trừ bể thận"],["C65","U ác của bể thận"],["C66","U ác niệu quản"],["C67","U ác của bàng quang"],["C67.0","U ác của tam giác bàng quang"],["C67.1","U ác của đáy bàng quang"],["C67.2","U ác của thành bên bàng quang"],["C67.3","U ác của thành trước bàng quang"],["C67.4","U ác của thành sau bàng quang"],["C67.5","U ác của cổ bàng quang"],["C67.6","U ác của lỗ niệu quản"],["C67.7","U ác của dây treo bàng quang"],["C67.8","U ác với tổn thương chồng lấn của bàng quang"],["C67.9","U ác của bàng quang không đặc hiệu"],["C68","U ác của cơ quan tiết niệu khác và không xác định"],["C68.0","U ác của niệu đạo"],["C68.1","U ác của tuyến cận niệu đạo"],["C68.8","U ác với tổn thương chồng lấn của cơ quan tiết niệu"],["C68.9","U ác của cơ quan tiết niệu, không đặc hiệu"],["C69","U ác của mắt và phần phụ"],["C69.0","U ác của kết mạc"],["C69.1","U ác của củng mạc"],["C69.2","U ác của võng mạc"],["C69.3","U ác của màng mạch"],["C69.4","U ác của thể mi"],["C69.5","U ác của tuyến lệ và ống"],["C69.6","U ác của hốc mắt"],["C69.8","U ác với tổn thương chồng lấn của mắt và phần phụ"],["C69.9","U ác của mắt không đặc hiệu"],["C70","U ác của màng não"],["C70.0","U ác của màng não"],["C70.1","U ác của màng tủy"],["C70.9","U ác của màng não, không đặc hiệu"],["C71","U ác của não"],["C71.0","U ác của đại não ngoại trừ thùy não và não thất"],["C71.1","U ác của thuỳ trán"],["C71.2","U ác của thuỳ thái dương"],["C71.3","U ác của thuỳ đỉnh"],["C71.4","U ác của thùy chẩm"],["C71.5","U ác của não thất"],["C71.6","U ác của tiểu não"],["C71.7","U ác của cuống não"],["C71.8","U ác với tổn thương chồng lấn của não"],["C71.9","U ác của não không đặc hiệu"],["C72","U ác của tủy sống, dây thần kinh sọ và các phần khác của hệ thần kinh trung ương"],["C72.0","U ác của tủy sống"],["C72.1","U ác của chùm đuôi ngựa"],["C72.2","U ác của thần kinh khứu giác"],["C72.3","U ác của thần kinh thị giác"],["C72.4","U ác của thần kinh thính giác"],["C72.5","U ác của dây thần kinh sọ khác và không xác định"],["C72.8","U ác với tổn thương chồng lấn của não và các phần khác của hệ thần kinh trung ương"],["C72.9","U ác của hệ thần kinh trung ương không đặc hiệu"],["C73","U ác của tuyến giáp"],["C74","U ác của tuyến thượng thận"],["C74.0","U ác của vỏ tuyến thượng thận"],["C74.1","U ác của tủy tuyến thượng thận"],["C74.9","U ác của tuyến thượng thận, không đặc hiệu"],["C75","U ác của các tuyến nội tiết khác và các cơ quan liên quan"],["C75.0","U ác của tuyến cận giáp"],["C75.1","U ác của tuyến yên"],["C75.2","U ác của ống sọ hầu"],["C75.3","U ác của tuyến tùng"],["C75.4","U ác của thể cảnh"],["C75.5","U ác của thể động mạch chủ và phó hạch khác"],["C75.8","U ác ảnh hưởng nhiều tuyến không đặc hiệu"],["C75.9","U ác của tuyến nội tiết không đặc hiệu"],["C76","U ác có vị trí khác và không rõ ràng"],["C76.0","U ác của đầu mặt và cổ"],["C76.1","U ác của ngực"],["C76.2","U ác của bụng"],["C76.3","U ác của chậu"],["C76.4","U ác của chi trên"],["C76.5","U ác của chi dưới"],["C76.7","U ác ở vị trí không rõ ràng khác"],["C76.8","U ác với tổn thương chồng lấn của các vị trí khác và không rõ ràng"],["C77","U ác thứ phát và không xác định của hạch lympho"],["C77.0","U ác của hạch của vùng đầu mặt cổ"],["C77.1","U ác thứ phát và không xác định của hạch trong lồng ngực"],["C77.2","U ác thứ phát và không đặc hiệu của hạch trong xoang bụng"],["C77.3","U ác thứ phát và không đặc hiệu của hạch nách và hạch chi trên"],["C77.4","U ác thứ phát và không đặc hiệu của hạch bẹn và hạch chi dưới"],["C77.5","U ác thứ phát và không đặc hiệu của hạch trong vùng chậu"],["C77.8","U ác thứ phát và không đặc hiệu của hạch của nhiều vùng"],["C77.9","U ác thứ phát và không đặc hiệu của hạch lympho, không xác định"],["C78","U ác thứ phát của cơ quan hô hấp và tiêu ho"],["C78.0","U ác thứ phát của phổi"],["C78.1","U ác thứ phát của trung thất"],["C78.2","U ác thứ phát của màng phổi"],["C78.3","U ác thứ phát của cơ quan hô hấp và không xác định"],["C78.4","U ác thứ phát của ruột non"],["C78.5","U ác thứ phát của đại tràng và trực tràng"],["C78.6","U ác thứ phát của sau phúc mạc và phúc mạc"],["C78.7","U ác thứ phát của gan và đường mật trong gan"],["C78.8","U ác thứ phát của cơ quan tiêu hóa khác và không xác định"],["C79","U ác thứ phát có vị trí khác và không xác định"],["C79.0","U ác thứ phát của thận và bể thận"],["C79.1","U ác thứ phát của bàng quang và cơ quan tiết niệu khác và không xác định"],["C79.2","U ác thứ phát của da"],["C79.3","U ác thứ phát của não và màng não"],["C79.4","U ác thứ phát không xác định vị trí của hệ thần kinh"],["C79.5","U ác thứ phát của xương và tủy xương"],["C79.6","U ác thứ phát của buồng trứng"],["C79.7","U ác thứ phát của tuyến thượng thận"],["C79.8","U ác thứ phát của các vị trí xác định rõ khác"],["C79.9","U ác tính thứ phát, không xác định vị trí"],["C80","U ác không xác định vị trí"],["C80.0","U ác tính, không biết vị trí nguyên phát"],["C80.9","U ác, không đặc hiệu"],["C81","U lympho Hodgkin"],["C81.0","U lympho Hodgkin dạng nốt ưu thế lympho bào"],["C81.1","U lympho Hodgkin (kinh điển) xơ nốt"],["C81.2","U lympho Hodgkin (kinh điển) hỗn hợp tế bào"],["C81.3","U lympho Hodgkin (kinh điển) giảm lympho bào"],["C81.4","U lympho Hodgkin (kinh điển) giàu lympho bào"],["C81.7","U lympho Hodgkin (kinh điển) khác"],["C81.9","U lympho Hodgkin, không đặc hiệu"],["C82","U lympho dạng nang"],["C82.0","U lympho dạng nang độ 1"],["C82.1","U lympho dạng nang độ II"],["C82.2","U lympho dạng nang độ III, không xác định"],["C82.3","U lympho dạng nang độ IIIa"],["C82.4","U lympho dạng nang độ IIIb"],["C82.5","U lympho trung tâm nang tỏa rộng"],["C82.6","U lympho trung tâm nang da"],["C82.7","Loại khác của u lympho dạng nang"],["C82.9","U lympho dạng nang, không xác định"],["C83","U Lympho dạng không phải nang"],["C83.0","U lympho không Hodgkin tế bào B nhỏ"],["C83.1","U lympho không Hodgkin tế bào Mantle"],["C83.2","U lympho không Hodgkin hỗn hợp tế bào nhỏ-tế bào lớn (toả rộng)"],["C83.3","U lympho không Hodgkin tế bào B lớn tỏa rộng"],["C83.4","U lympho không Hodgkin nguyên bào miễn dịch (toả rộng)"],["C83.5","U lympho không Hodgkin dạng nguyên bào lympho (tỏa rộng)"],["C83.6","U lympho không Hodgkin không biệt hóa tỏa rộng"],["C83.7","U lympho Burkitt"],["C83.8","U lympho không phải dạng nang khác"],["C83.9","U lympho không Hodgkin lan tỏa, không xác định"],["C84","Các loại U lympho tế bào T/NK trưởng thành"],["C84.0","U sùi dạng nấm"],["C84.1","Bệnh Sézary"],["C84.2","U lympho vùng T"],["C84.3","U lympho loại u lympho-biểu mô"],["C84.4","U lympho tế bào T ngoại vi, không phân loại ở nơi khác"],["C84.5","U lympho tế bào T/NK trưởng thành khác"],["C84.6","U lympho tế bào lớn bất sản, ALK- dương tính"],["C84.7","U lympho tế bào lớn bất sản, ALK âm tính"],["C84.8","U lympho tế bào T ở da, không đặc hiệu"],["C84.9","U lympho tế bào T/NK trưởng thành, không đặc hiệu"],["C85","U lympho không Hodgkin, loại khác và không xác định"],["C85.0","U lympho sarcom"],["C85.1","U lympho tế bào B, không đặc hiệu"],["C85.2","U lympho tế bào B lớn trung thất (tuyến ức)"],["C85.7","Loại xác định khác của u lympho không Hodgkin"],["C85.9","U lympho không Hodgkin, loại không xác định"],["C86","Loại xác định khác của u lympho tế bào T/NK"],["C86.0","U lympho tế bào NK/T ngoại nút, loại mũi"],["C86.1","U lympho tế bào T gan- lách"],["C86.2","U lympho tế bào T loại bệnh lý ruột"],["C86.3","U lympho tế bào T giống viêm mô mỡ dưới da"],["C86.4","U lympho nguyên bào NK"],["C86.5","U lympho tế bào T nguyên bào mạch- nguyên bào miễn dịch"],["C86.6","Tăng sinh tế bào T da nguyên phát CD-30 dương tính"],["C88","Bệnh tăng sinh miễn dịch ác tính"],["C88.0","Macroglogulin máu của WaldenstrÖn"],["C88.1","Bệnh chuỗi alpha nặng"],["C88.2","Bệnh chuỗi gamma nặng"],["C88.3","Bệnh tăng sinh miễn dịch ruột non"],["C88.4","U lympho tế bào B ngoài hạch của các mô lympho chế nhầy"],["C88.7","Bệnh tăng sinh miễn dịch ác tính khác"],["C88.9","Bệnh tăng sinh miễn dịch ác tính không đặc hiệu"],["C90","Đa u tủy và các u tương bào"],["C90.0","Đa u tủy"],["C90.1","Bệnh bạch cầu dạng tương bào"],["C90.2","U tương bào ngoài tủy"],["C90.3","Bướu tương bào đơn độc"],["C91","Bệnh bạch cầu dạng lympho"],["C91.0","Bệnh bạch cầu dạng nguyên bào lympho cấp (ALL)"],["C91.1","Bệnh bạch cầu dạng lympho mãn tính của loại tế bào B"],["C91.2","Bệnh bạch cầu dạng lympho bán cấp"],["C91.3","Bệnh bạch cầu dạng tiền lympho của tế bào B"],["C91.4","Bệnh bạch cầu dạng tế bào có lông"],["C91.5","Bệnh bạch cầu dạng tế bào T trưởng thành"],["C91.6","Bệnh bạch cầu dạng tiền lympho của tế bào T"],["C91.7","Bệnh bạch cầu dạng lympho khác"],["C91.8","Bệnh bạch cầu tế bào B trưởng thành loại Burkitt"],["C91.9","Bệnh bạch cầu dạng lympho, không đặc hiệu"],["C92","Bệnh bạch cầu tủy"],["C92.0","Bệnh bạch cầu dạng tủy cấp"],["C92.1","Bệnh bạch cầu dạng tủy mạn [CML], BCR/ABL- dương tính"],["C92.2","Bệnh bạch cầu dạng tủy mãn tính không điển hình, BCR/ABL âm tính"],["C92.3","Ung thư mô liên kết dòng tủy"],["C92.4","Bệnh bạch cầu dạng tiền tủy bào (PML)"],["C92.5","Bệnh bạch cầu dạng tủy đơn nhân cấp"],["C92.6","Bệnh bạch cầu dạng tủy cấp tính có bất thường 11Q23"],["C92.7","Bệnh bạch cầu dạng tủy khác"],["C92.8","Bệnh bạch cầu dạng tủy cấp tính có loạn sản đa dòng"],["C92.9","Bệnh bạch cầu dạng tủy, không đặc hiệu"],["C93","Bệnh bạch cầu đơn nhân"],["C93.0","Bệnh bạch cầu đơn nhân/nguyên bào đơn nhân cấp tính"],["C93.1","Bệnh bạch cầu dòng tủy đơn nhân mãn tính"],["C93.2","Bệnh bạch cầu đơn nhân bán cấp"],["C93.3","Bệnh bạch cầu dòng tủy đơn nhân tuổi vị thành niên"],["C93.7","Bệnh bạch cầu đơn nhân khác"],["C93.9","Bệnh bạch cầu đơn nhân không đặc hiệu"],["C94","Bệnh bạch cầu khác có loại tế bào xác định"],["C94.0","Bệnh bạch cầu dạng tăng hồng cầu"],["C94.1","Bệnh tăng hồng cầu mạn"],["C94.2","Bệnh bạch cầu dạng tiền nguyên tiểu cầu cấp"],["C94.3","Bệnh bạch cầu dạng dưỡng bào"],["C94.4","Bệnh toàn tủy cấp tính có xơ tủy"],["C94.5","Bệnh xơ tủy cấp"],["C94.6","Bệnh loạn sản tủy và tăng sinh tủy, chưa phân loại nơi khác"],["C94.7","Bệnh bạch cầu xác định khác"],["C95","Bệnh bạch cầu có loại tế bào không xác định"],["C95.0","Bệnh bạch cầu cấp loại tế bào không xác định"],["C95.1","Bệnh bạch cầu mạn loại tế bào không xác định"],["C95.2","Bệnh bạch cầu bán cấp loại tế bào không xác định"],["C95.7","Bệnh bạch cầu khác, loại tế bào không xác định"],["C95.9","Bệnh bạch cầu không xác định"],["C96","U ác khác và không xác định của hệ lympho, hệ tạo máu và mô liên quan"],["C96.0","Bệnh tổ chức bào tế bào Langerhans đa ổ và đa hệ thống (rải rác) [bệnh Letterer-Siwe]"],["C96.1","Bệnh mô bào ác tính"],["C96.2","Bệnh dưỡng bào hệ thống xâm lấn"],["C96.3","U lympho mô bào thực sự"],["C96.4","Sarcom tế bào đuôi gai (tế bào phụ)"],["C96.5","Bệnh tổ chức bào tế bào Langerhans đa ổ và đơn hệ thống"],["C96.6","Bệnh tổ chức bào Langerhans đơn ổ"],["C96.7","U ác tính khác của mô dạng lympho, hệ tạo máu và mô liên quan"],["C96.8","Sarcom tổ chức bào"],["C96.9","U ác tính không đặc hiệu của mô dạng lympho, hệ tạo máu và mô liên quan"],["C97","U ác có nhiều vị trí độc lập (nguyên phát) nhiều chỗ"],["D00","Ung thư biểu mô tại chỗ của khoang miệng, thực quản và dạ dày"],["D00.0","Ung thư biểu mô tại chỗ của của môi khoang miệng và hầu"],["D00.1","Ung thư biểu mô tại chỗ của của thực quản"],["D00.2","U ác của Dạ dày"],["D01","Ung thư biểu mô tại chỗ của cơ quan tiêu hóa khác và không xác định"],["D01.0","Ung thư biểu mô tại chỗ của đại tràng"],["D01.1","Ung thư biểu mô tại chỗ nơi nối trực tràng - đại tràng sigma"],["D01.2","Ung thư biểu mô tại chỗ của trực tràng"],["D01.3","Ung thư biểu mô tại chỗ của hậu môn và ống hậu môn"],["D01.4","Ung thư biểu mô tại chỗ của phần khác và không xác định của ruột non"],["D01.5","Ung thư biểu mô tại chỗ của gan, túi mật và đường dẫn mật"],["D01.7","Ung thư biểu mô tại chỗ của cơ quan tiêu hóa xác định khác"],["D01.9","Ung thư biểu mô tại chỗ của cơ quan tiêu hóa không đặc hiệu"],["D02","Ung thư biểu mô tại chỗ của tai giữa và hệ hô hấp"],["D02.0","Ung thư biểu mô tại chỗ của thanh quản"],["D02.1","Ung thư biểu mô tại chỗ của khí quản"],["D02.2","Ung thư biểu mô tại chỗ của phế quản và phổi"],["D02.3","Ung thư biểu mô tại chỗ của phần khác và hệ hô hấp"],["D02.4","Ung thư biểu mô tại chỗ của hệ hô hấp không đặc hiệu"],["D03","U hắc tố tại chỗ"],["D03.0","U hắc tố tại chỗ của môi"],["D03.1","U hắc tố tại chỗ của mi mắt, bao gồm góc mắt"],["D03.2","U hắc tố tại chỗ của tai và ống ngoài tai"],["D03.3","U hắc tố tại chỗ của phần khác và phần không xác định của mặt"],["D03.4","U hắc tố tại chỗ của da đầu và cổ"],["D03.5","U hắc tố tại chỗ của thân mình"],["D03.6","U hắc tố tại chỗ của chi trên, bao gồm vai"],["D03.7","U hắc tố tại chỗ của chi dưới, bao gồm vùng háng"],["D03.8","U hắc tố tại chỗ của vị trí khác"],["D03.9","U hắc tố tại chỗ, không đặc hiệu"],["D04","Ung thư biểu mô tại chỗ của da"],["D04.0","Ung thư biểu mô tại chỗ của da môi"],["D04.1","Ung thư biểu mô tại chỗ của da mí mắt bao gồm góc mắt"],["D04.2","Ung thư biểu mô tại chỗ của da vùng tai và ống tai ngoài"],["D04.3","Ung thư biểu mô tại chỗ của da của phần khác và không xác định của mặt"],["D04.4","Ung thư biểu mô tại chỗ của da đầu và cổ"],["D04.5","Ung thư biểu mô tại chỗ của da thân mình"],["D04.6","Ung thư biểu mô tại chỗ của da chi trên, bao gồm vai"],["D04.7","Ung thư biểu mô tại chỗ của da chi dưới, bao gồm háng"],["D04.8","Ung thư biểu mô tại chỗ của da ở vị trí khác"],["D04.9","Ung thư biểu mô tại chỗ của da, không đặc hiệu"],["D05","Ung thư biểu mô tại chỗ của vú"],["D05.0","Ung thư biểu mô tiểu thuỳ tại chỗ"],["D05.1","Ung thư biểu mô ống tuyến vú tại chỗ"],["D05.7","Ung thư biểu mô ống tuyến khác tại chỗ của vú"],["D05.9","Ung thư biểu mô tại chỗ của vú, không đặc hiệu"],["D06","Ung thư biểu mô tại chỗ của cổ tử cung"],["D06.0","Ung thư biểu mô tại chỗ của nội mạc"],["D06.1","Ung thư biểu mô tại chỗ của ngoại mạc"],["D06.7","Ung thư biểu mô tại chỗ của phần khác của cổ tử cung"],["D06.9","Ung thư biểu mô tại chỗ của cổ tử cung, không đặc hiệu"],["D07","Ung thư biểu mô tại chỗ của cơ quan sinh dục khác và không xác định"],["D07.0","Ung thư biểu mô tại chỗ của nội mạc tử cung"],["D07.1","Ung thư biểu mô tại chỗ của âm hộ"],["D07.2","Ung thư biểu mô tại chỗ của âm đạo"],["D07.3","Ung thư biểu mô tại chỗ của cơ quan sinh dục nữ khác và không xác định"],["D07.4","Ung thư biểu mô tại chỗ của dương vật"],["D07.5","Ung thư biểu mô tại chỗ của tuyến tiền liệt"],["D07.6","Ung thư biểu mô tại chỗ của cơ quan sinh dục nam khác và không xác định"],["D09","Ung thư biểu mô tại chỗ ở vị trí khác và không xác định"],["D09.0","Ung thư biểu mô tại chỗ của bàng quang"],["D09.1","Ung thư biểu mô tại chỗ của cơ quan tiết niệu khác và không xác định"],["D09.2","Ung thư biểu mô tại chỗ của mắt"],["D09.3","Ung thư biểu mô tại chỗ của tuyến giáp và tuyến nội tiết khác"],["D09.7","Ung thư biểu mô tại chỗ ở vị trí xác định khác"],["D09.9","Ung thư biểu mô tại chỗ, không xác định"],["D10","U lành của miệng và hầu"],["D10.0","U lành của môi"],["D10.1","U lành của lưỡi"],["D10.2","U lành của sàn miệng"],["D10.3","U lành của phần khác và không xác định của miệng"],["D10.4","U lành của amiđan"],["D10.5","U lành của phần khác của hầu - khẩu"],["D10.6","U lành của hầu - mũi"],["D10.7","U lành của hạ hầu"],["D10.9","U lành của hầu, không đặc hiệu"],["D11","U lành của các tuyến nước bọt chính"],["D11.0","U lành của tuyến mang tai"],["D11.7","U lành của tuyến nước bọt chính khác"],["D11.9","U lành của tuyến nước bọt chính không đặc hiệu"],["D12","U lành của đại tràng, trực tràng, hậu môn và ống hậu môn"],["D12.0","U lành của manh tràng"],["D12.1","U lành của ruột thừa"],["D12.2","U lành của đại tràng lên"],["D12.3","U lành của đại tràng ngang"],["D12.4","U lành của đại tràng xuống"],["D12.5","U lành của đại tràng sigma"],["D12.6","U lành của Đại tràng không đặc hiệu"],["D12.7","U lành của nơi nối trực tràng sigma - trực tràng"],["D12.8","U lành của trực tràng"],["D12.9","U lành của hậu môn và ống hậu môn"],["D13","U lành của phần khác và không rõ ràng của hệ tiêu hóa"],["D13.0","U lành của thực quản"],["D13.1","U lành của dạ dày"],["D13.2","U lành của tá tràng"],["D13.3","U lành của phần khác và không xác định của ruột non"],["D13.4","U lành của gan"],["D13.5","U lành của đường mật ngoài gan"],["D13.6","U lành của tụy"],["D13.7","U lành của tụy nội tiết"],["D13.9","U lành của vị trí không rõ ràng trong hệ tiêu hóa"],["D14","U lành tai giữa và hệ hô hấp"],["D14.0","U lành của tai giữa, hốc mũi và các xoang phụ"],["D14.1","U lành của thanh quản"],["D14.2","U lành của khí quản"],["D14.3","U lành của phế quản và phổi"],["D14.4","U lành của hệ hô hấp, không đặc hiệu"],["D15","U lành của cơ quan khác và không xác định trong lồng ngực"],["D15.0","U lành của tuyến ức"],["D15.1","U lành của tim"],["D15.2","U lành của trung thất"],["D15.7","U lành của cơ quan trong lồng ngực xác định khác"],["D15.9","U lành của cơ quan trong lồng ngực không đặc hiệu"],["D16","U lành của xương và sụn khớp"],["D16.0","U lành của xương bả vai và xương dài của chi trên"],["D16.1","U lành của xương ngắn của chi trên"],["D16.2","U lành của xương dài của chi dưới"],["D16.3","U lành của xương ngắn của chi dưới"],["D16.4","U lành của xương sọ và mặt"],["D16.5","U lành của xương hàm dưới"],["D16.6","Cột sống"],["D16.7","U lành của xương sườn, xương ức và xương đòn"],["D16.8","U lành của xương chậu, xương thiêng và xương cụt"],["D16.9","U lành của xương và sụn khớp không đặc hiệu"],["D17","U mỡ"],["D17.0","U mỡ lành tính của da và mô dưới da ở đầu, mặt và cổ"],["D17.1","U mỡ lành tính của da và mô dưới da ở thân hình"],["D17.2","U mỡ lành tính của da và mô dưới da ở các chi"],["D17.3","U mỡ lành tính của da và mô dưới da ở vị trí khác và không xác định"],["D17.4","U mỡ lành tính của cơ quan trong lồng ngực"],["D17.5","U mỡ lành tính của cơ quan trong ổ bụng"],["D17.6","U mỡ lành tính của thừng tinh"],["D17.7","U mỡ lành tính của vị trí khác"],["D17.9","U mỡ lành tính không đặc hiệu"],["D18","U mạch máu và u hạch bạch huyết, vị trí bất kỳ"],["D18.0","U mạch máu, vị trí bất kỳ"],["D18.1","U mạch bạch huyết, vị trí bất kỳ"],["D19","U lành của trung mô"],["D19.0","U lành trung mô của màng phổi"],["D19.1","U lành trung mô của phúc mạc"],["D19.7","U lành trung mô của các vị trí khác"],["D19.9","U lành trung mô không xác định"],["D20","U lành mô mềm sau phúc mạc và phúc mạc"],["D20.0","U lành mô mềm sau phúc mạc"],["D20.1","U lành mô mềm phúc mạc"],["D21","U lành khác của mô liên kết và mô mềm khác"],["D21.0","U lành mô liên kết và mô mềm khác của đầu, mặt và cổ"],["D21.1","U lành mô liên kết và mô mềm khác của chi trên bao gồm vai"],["D21.2","U lành mô liên kết và mô mềm khác của chi dưới, bào gồm háng"],["D21.3","U lành mô liên kết và mô mềm khác của lồng ngực"],["D21.4","U lành mô liên kết và mô mềm khác của bụng"],["D21.5","U lành mô liên kết và mô mềm khác của chậu"],["D21.6","U lành mô liên kết và mô mềm khác của thân mình, không đặc hiệu"],["D21.9","U lành mô liên kết và mô mềm khác, không đặc hiệu"],["D22","Nốt ruồi"],["D22.0","Nốt ruồi của môi"],["D22.1","Nốt ruồi của khóe mắt bao gồm mí mắt"],["D22.2","Nốt ruồi của tai và ống tai ngoài"],["D22.3","Nốt ruồi của phần khác và phần không xác định của mặt"],["D22.4","Nốt ruồi của da đầu và cổ"],["D22.5","Nốt ruồi của thân mình"],["D22.6","Nốt ruồi của chi trên bao gồm vai"],["D22.7","Nốt ruồi của chi dưới bao gồm háng"],["D22.9","Nốt ruồi không có gì đặc hiệu"],["D23","U lành khác của da"],["D23.0","U lành da của môi"],["D23.1","U lành da của mi mắt kể cả góc mắt"],["D23.2","U lành da tai và ống tai ngoài"],["D23.3","U lành ở da các phần không xác định khác của mặt"],["D23.4","U lành da đầu và cổ"],["D23.5","U lành da thân mình"],["D23.6","U lành da chi trên, bao gồm vai"],["D23.7","U lành da chi dưới bao gồm háng"],["D23.9","U lành của da, không đặc hiệu"],["D24","U lành vú"],["D25","U cơ trơn tử cung"],["D25.0","U cơ trơn dưới niêm mạc tử cung"],["D25.1","U cơ trơn trong vách tử cung"],["D25.2","U cơ trơn dưới thanh mạc tử cung"],["D25.9","U cơ trơn tử cung, không đặc hiệu"],["D26","U lành khác của tử cung"],["D26.0","U lành cổ tử cung"],["D26.1","U lành thân tử cung"],["D26.7","U lành phần khác của tử cung"],["D26.9","U lành tử cung, không đặc hiệu"],["D27","U lành buồng trứng"],["D28","U lành của cơ quan sinh dục khác và không xác định"],["D28.0","U lành âm hộ"],["D28.1","U lành âm đạo"],["D28.2","U lành vòi tử cung và dây chằng"],["D28.7","U lành cơ quan sinh dục nữ xác định khác"],["D28.9","U lành cơ quan sinh dục nữ, không đặc hiệu"],["D29","U lành của cơ quan sinh dục nam"],["D29.0","U lành của Dương vật"],["D29.1","U lành của Tuyến tiền liệt"],["D29.2","U lành của Tinh hoàn"],["D29.3","U lành của Mào tinh hoàn"],["D29.4","Bìu"],["D29.7","Cơ quan sinh dục nam khác"],["D29.9","Cơ quan sinh dục nam, không đặc hiệu"],["D30","U lành của cơ quan tiết niệu"],["D30.0","U lành của Thận"],["D30.1","U lành của Bồn thận"],["D30.2","U lành của Niệu quản"],["D30.3","U lành của Bàng quang"],["D30.4","U lành của Niệu đạo"],["D30.7","Cơ quan tiết niệu khác"],["D30.9","Cơ quan tiết niệu không đặc hiệu"],["D31","U lành của mắt và phần phụ"],["D31.0","U lành kết mạc"],["D31.1","U lành giác mạc"],["D31.2","U lành võng mạc"],["D31.3","U lành màng mạch mắt"],["D31.4","U lành thể mi"],["D31.5","U lành tuyến và ống lệ"],["D31.6","U lành hốc mắt không đặc hiệu"],["D31.9","U lành của mắt, không đặc hiệu"],["D32","U lành của màng não"],["D32.0","U lành màng não"],["D32.1","U lành màng não tủy sống"],["D32.9","U lành màng não, không đặc hiệu"],["D33","U lành của não và các phần khác của hệ thần kinh trung ương"],["D33.0","U lành của não trên lều"],["D33.1","U lành của não, lều dưới"],["D33.2","U lành của não, không đặc hiệu"],["D33.3","U lành thần kinh sọ não"],["D33.4","U lành của tủy sống"],["D33.7","U lành của phần xác định khác của hệ thần kinh trung ương"],["D33.9","U lành của hệ thần kinh trung ương, không đặc hiệu"],["D34","U lành của tuyến giáp"],["D35","U lành của tuyến nội tiết và không xác định"],["D35.0","U lành tuyến thượng thận"],["D35.1","U lành tuyến cận giáp"],["D35.2","U lành tuyến yên"],["D35.3","U lành ống sọ hầu"],["D35.4","U lành tuyến tùng"],["D35.5","U lành thể cảnh"],["D35.6","U lành thể động mạch chủ và thể cận hạch khác"],["D35.7","U lành tuyến nội tiết xác định khác"],["D35.8","U lành liên quan nhiều tuyến nội tiết"],["D35.9","U lành của tuyến nội tiết, không đặc hiệu"],["D36","U lành có vị trí khác và không xác định"],["D36.0","U lành hạch lympho"],["D36.1","U lành thần kinh ngoại biên và hệ thần kinh tự động"],["D36.7","U lành vị trí xác định khác"],["D36.9","U lành của vị trí không xác định"],["D37","U tân sinh không rõ hoặc không biết tính chất của khoang miệng và cơ quan tiêu hóa"],["D37.0","U tân sinh chưa rõ tính chất của môi, xoang miệng và hầu"],["D37.1","U tân sinh chưa rõ tính chất của dạ dày"],["D37.2","U tân sinh chưa rõ tính chất của ruột non"],["D37.3","U tân sinh chưa rõ tính chất của ruột thừa"],["D37.4","U tân sinh chưa rõ tính chất của đại tràng"],["D37.5","U tân sinh chưa rõ tính chất của trực tràng"],["D37.6","U tân sinh chưa rõ tính chất của gan, túi mật và ống dẫn mật"],["D37.7","U tân sinh chưa rõ tính chất của cơ quan tiêu hóa khác"],["D37.9","U tân sinh chưa rõ tính chất của cơ quan tiêu hóa không đặc hiệu"],["D38","U tân sinh không rõ hoặc không biết tính chất của tai giữa, cơ quan hô hấp và cơ quan trong lồng ngực"],["D38.0","U tân sinh chưa rõ tính chất của thanh quản"],["D38.1","U tân sinh chưa rõ tính chất của khí quản, phế quản và phổi"],["D38.2","U tân sinh chưa rõ tính chất màng phổi"],["D38.3","U tân sinh chưa rõ tính chất của trung thất"],["D38.4","U tân sinh chưa rõ tính chất của tuyến ức"],["D38.5","U tân sinh chưa rõ tính chất của cơ quan hô hấp khác"],["D38.6","U tân sinh chưa rõ tính chất của cơ quan hô hấp không đặc hiệu"],["D39","U không chắc chắn hoặc không biết tính chất của cơ quan sinh dục nữ"],["D39.0","U tân sinh không chắc chắn hoặc không biết tính chất của tử cung"],["D39.1","U tân sinh không chắc chắn hoặc không biết tính chất của buồng trứng"],["D39.2","U tân sinh không chắc chắn hoặc không biết tính chất của nhau (rau) thai"],["D39.7","U tân sinh không chắc chắn hoặc không biết tính chất của cơ quan sinh dục nữ khác"],["D39.9","U tân sinh không chắc chắn hoặc không biết tính chất của cơ quan sinh dục nữ không đặc hiệu"],["D40","U tân sinh không chắc chắn hoặc không biết tính chất của cơ quan sinh dục nam"],["D40.0","U tân sinh không chắc chắn hoặc không biết tính chất của Tiền liệt tuyến"],["D40.1","U tân sinh không chắc chắn hoặc không biết tính chất của Tinh hoàn"],["D40.7","U tân sinh không chắc chắn hoặc không biết tính chất của Các cơ quan sinh dục nam khác"],["D40.9","U tân sinh không chắc chắn hoặc không biết tính chất của Cơ quan sinh dục nam không đặc hiệu"],["D41","U tân sinh không chắc chắn hoặc không biết tính chất của cơ quan tiết niệu"],["D41.0","U tân sinh không chắc chắn hoặc không biết tính chất của Thận"],["D41.1","U tân sinh không chắc chắn hoặc không biết tính chất của Bể thận"],["D41.2","U tân sinh không chắc chắn hoặc không biết tính chất của Niệu quản"],["D41.3","U tân sinh không chắc chắn hoặc không biết tính chất của Niệu đạo"],["D41.4","U tân sinh không chắc chắn hoặc không biết tính chất của Bàng quang"],["D41.7","U tân sinh không chắc chắn hoặc không biết tính chất của Cơ quan tiết niệu khác"],["D41.9","U tân sinh không chắc chắn hoặc không biết tính chất của Cơ quan tiết niệu không đặc hiệu"],["D42","U tân sinh không chắc chắn hoặc không biết tính chất của màng não"],["D42.0","U tân sinh không chắc chắn hoặc không biết tính chất của màng não thuộc não"],["D42.1","U tân sinh không chắc chắn hoặc không biết tính chất của màng não thuộc tủy sống"],["D42.9","U tân sinh không chắc chắn hoặc không biết tính chất của màng não, không đặc hiệu"],["D43","U tân sinh không chắc chắn hoặc không biết tính chất của màng não"],["D43.0","U tân sinh không chắc chắn hoặc không biết tính chất của Não, trên lều não"],["D43.1","U tân sinh không chắc chắn hoặc không biết tính chất của Não, dưới lều não"],["D43.2","U tân sinh không chắc chắn hoặc không biết tính chất của Não, không đặc hiệu"],["D43.3","U tân sinh không chắc chắn hoặc không biết tính chất của Thần kinh sọ"],["D43.4","U tân sinh không chắc chắn hoặc không biết tính chất của tủy sống"],["D43.7","U tân sinh không chắc chắn hoặc không biết tính chất của Phần khác của hệ thần kinh trung ương"],["D43.9","U tân sinh không chắc chắn hoặc không biết tính chất của Hệ thần kinh trung ương, không đặc hiệu"],["D44","U tân sinh không chắc chắn hoặc không biết tính chất của tuyến nội tiết"],["D44.0","U tân sinh không chắc chắn hoặc không biết tính chất của Tuyến giáp"],["D44.1","U tân sinh không chắc chắn hoặc không biết tính chất của Tuyến thượng thận"],["D44.2","U tân sinh không chắc chắn hoặc không biết tính chất của Tuyến cận giáp"],["D44.3","U tân sinh không chắc chắn hoặc không biết tính chất của Tuyến yên"],["D44.4","U tân sinh không chắc chắn hoặc không biết tính chất của Ống sọ-hầu"],["D44.5","U tân sinh không chắc chắn hoặc không biết tính chất của Tuyến tùng"],["D44.6","U tân sinh không chắc chắn hoặc không biết tính chất của Thể cảnh"],["D44.7","U tân sinh không chắc chắn hoặc không biết tính chất của Thể động mạch chủ và thể cận hạch khác"],["D44.8","U tân sinh không chắc chắn hoặc không biết tính chất liên quan nhiều tuyến nội tiết"],["D44.9","U lành của tuyến nội tiết không đặc hiệu"],["D45","U tân sinh không chắc chắn hoặc không biết tính chất của tuyến nội tiết"],["D46","Hội chứng loạn sản tủy xương"],["D46.0","Thiếu máu kháng điều trị không có nguyên hồng cầu sắc hình vòng, được xác lập như vậy"],["D46.1","Thiếu máu kháng điều trị có nguyên hồng cầu hình vòng"],["D46.2","Thiếu máu đề kháng với quá nhiều nguyên bào"],["D46.3","Thiếu máu đề kháng với quá nhiều nguyên bào chuyển dạng"],["D46.4","Thiếu máu đề kháng, không đặc hiệu"],["D46.5","Thiếu máu kháng điều trị có loạn sản đa dòng"],["D46.6","Hội chứng loạn sản tủy có bất thường nhiễm sắc thể del (5q) đơn độc"],["D46.7","Hội chứng loạn sản tủy xương khác"],["D46.9","Hội chứng loạn tủy xương không đặc hiệu"],["D47","U tân sinh khác không chắc chắn hoặc không biết sinh chất của mô ulympho, mô tạo huyết và mô liên quan"],["D47.0","Bệnh dưỡng bào hệ thống không triệu chứng"],["D47.1","Bệnh bạch cầu dòng trung tính mãn tính"],["D47.2","Bệnh lý gamma globulin đơn dòng chưa xác định ý nghĩa"],["D47.3","Bệnh tăng tiểu cầu (xuất huyết) vô căn"],["D47.4","Bệnh xơ hóa tủy xương"],["D47.5","Bệnh bạch cầu dòng tế bào ưa acid mãn tính [hội chứng tăng bạch cầu ưa acid]"],["D47.7","U tân sinh xác định khác, không rõ hoặc không biết tính chất của mô lympho, mô tạo huyết và mô liên quan"],["D47.9","U tân sinh không đặc hiệu, không chắc chắn hoặc không biết rõ tính chất của mô lympho, mô tạo huyết và mô liên quan"],["D48","U tân sinh không chắc chắn hoặc không biết tính chất có vị trí khác và không xác định"],["D48.0","U tân sinh không xác định, không chắc chắn hoặc không biết rõ tính chất của xương và sụn khớp"],["D48.1","U tân sinh không xác định, không chắc chắn hoặc không biết rõ tính chất của mô liên kết và mô mềm khác"],["D48.2","U tân sinh không xác định, không chắc chắn hoặc không biết rõ tính chất của thần kinh ngoại biên và hệ thần kinh tự động"],["D48.3","U tân sinh không xác định, không chắc chắn hoặc không biết rõ tính chất của vùng sau phúc mạc"],["D48.4","U tân sinh không xác định, không chắc chắn hoặc không biết rõ tính chất của phúc mạc"],["D48.5","U tân sinh không xác định, không chắc chắn hoặc không biết rõ tính chất của da"],["D48.6","U tân sinh không xác định, không chắc chắn hoặc không biết rõ tính chất của vú"],["D48.7","U tân sinh không xác định, không chắc chắn hoặc không biết rõ tính chất của vị trí xác định khác"],["D48.9","U tân sinh không chắc chắn hoặc không biết tính chất, không đặc hiệu"],["D50","Thiếu máu do thiếu sắt"],["D50.0","Thiếu máu thiếu sắt thứ phát do mất máu (mãn tính)"],["D50.1","Chứng khó nuốt do thiếu sắt"],["D50.8","Các thiếu máu thiếu sắt khác"],["D50.9","Thiếu máu thiếu sắt không đặc hiệu"],["D51","Thiếu máu do thiếu vitamin B12"],["D51.0","Thiếu máu thiếu vitamin B12 do thiếu yếu tố nội"],["D51.1","Thiếu vitamin B12 do giảm hấp thu chọn lọc vitamin B12 kèm theo đái protein"],["D51.2","Thiếu Transcobalamin II"],["D51.3","Thiếu máu thiếu vitamin B12 khác do dinh dưỡng"],["D51.8","Các thiếu máu thiếu vitamin B12 khác"],["D51.9","Thiếu máu thiếu vitamin B12 không đặc hiệu"],["D52","Thiếu máu do chế độ dinh dưỡng"],["D52.0","Thiếu máu thiếu folate do chế độ dinh dưỡng"],["D52.1","Thiếu máu thiếu folate do thuốc"],["D52.8","Các thiếu máu thiếu folate khác"],["D52.9","Thiếu máu thiếu folate không đặc hiệu"],["D53","Các thiếu máu dinh dưỡng khác"],["D53.0","Thiếu máu do thiếu protein"],["D53.1","Các thiếu máu nguyên hồng cầu khổng lồ khác, chưa được phân loại ở phần khác"],["D53.2","Thiếu máu thiếu vitamin C"],["D53.8","Các thiếu máu dinh dưỡng đặc hiệu khác"],["D53.9","Thiếu máu dinh dưỡng không đặc hiệu"],["D55","Thiếu máu do rối loạn men"],["D55.0","Thiếu máu do thiếu men glucose-6-phosphate dehydrogenase"],["D55.1","Thiếu máu do các rối loạn chuyển hóa glutathione khác"],["D55.2","Thiếu máu do rối loạn các men phân giải glucose"],["D55.3","Thiếu máu do rối loạn chuyển hóa nucleotide"],["D55.8","Các thiếu máu khác do rối loạn men"],["D55.9","Thiếu máu do rối loạn men, không đặc hiệu"],["D56","Bệnh Thalassaemia"],["D56.0","Alpha thalassaemia"],["D56.1","Beta thalassaemia"],["D56.2","Delta-beta thalassaemia"],["D56.3","Thalassaemia vết"],["D56.4","Tồn tại di truyền huyết sắc tố bào thai [HPFH]"],["D56.8","Các thalassaemias khác"],["D56.9","Thalassaemia không đặc hiệu"],["D57","Bệnh hồng cầu liềm"],["D57.0","Thiếu máu hồng cầu liềm có cơn tan máu"],["D57.1","Thiếu máu hồng cầu liềm không có cơn tan máu"],["D57.2","Di hợp tử kép hồng cầu hình liềm với các Hb bất thường khác"],["D57.3","Hồng cầu liềm thể nhẹ"],["D57.8","Các rối loạn hồng cầu liềm khác"],["D58","Các thiếu máu tan máu di truyền khác"],["D58.0","Hồng cầu hình cầu di truyền"],["D58.1","Hồng cầu hình elip di truyền"],["D58.2","Các bệnh huyết sắc tố khác"],["D58.8","Các thiếu máu tan máu di truyền đặc hiệu khác"],["D58.9","Thiếu máu tan máu di truyền không đặc hiệu"],["D59","Thiếu máu tan máu mắc phải"],["D59.0","Thiếu máu tan máu tự miễn dịch do thuốc"],["D59.1","Các thiếu máu tan máu tự miễn dịch khác"],["D59.2","Thiếu máu tan máu do thuốc không phải tự miễn dịch"],["D59.3","Hội chứng tan máu urê máu cao"],["D59.4","Các thiếu máu tan máu không phải tự miễn dịch khác"],["D59.5","Đái huyết sắc tố kịch phát ban đêm [Hội chứng Marchifava-Micheli]"],["D59.6","Đái huyết sắc tố do tan máu từ những nguyên nhân bên ngoài khác"],["D59.8","Các thiếu máu tan máu mắc phải khác"],["D59.9","Thiếu máu tan máu mắc phải không đặc hiệu"],["D60","Suy tủy xương một dòng hồng cầu mắc phải (giảm nguyên hồng cầu)"],["D60.0","Suy tủy xương một dòng hồng cầu mắc phải mãn tính"],["D60.1","Suy tủy xương một dòng hồng cầu mắc phải thoáng qua"],["D60.8","Suy tủy xương một dòng hồng cầu mắc phải khác"],["D60.9","Suy tủy xương một dòng hồng cầu mắc phải không đặc hiệu"],["D61","Các thể suy tủy xương khác"],["D61.0","Suy tủy xương bẩm sinh"],["D61.1","Suy tủy xương do thuốc"],["D61.2","Suy tủy xương do các nguyên nhân bên ngoài khác"],["D61.3","Suy tủy xương vô căn"],["D61.8","Suy tủy xương đặc hiệu khác"],["D61.9","Suy tủy xương không đặc hiệu khác"],["D62","Thiếu máu sau chảy máu cấp tính"],["D63","Thiếu máu trong các bệnh mãn tính đã được phân loại ở phần khác"],["D63*","Thiếu máu trong các bệnh mãn tính đã được phân loại ở phần khác"],["D63.0","Thiếu máu trong bệnh ác tính (C00-D48†)"],["D63.0*","Thiếu máu trong bệnh ác tính (C00-D48†)"],["D63.8","Thiếu máu trong các bệnh mãn tính đã được phân loại ở phần khác"],["D63.8*","Thiếu máu trong các bệnh mãn tính đã được phân loại ở phần khác"],["D64","Các thiếu máu khác"],["D64.0","Thiếu máu nhược sắc có nguyên hồng cầu"],["D64.1","Thiếu máu nguyên hồng cầu sắt thứ phát do bệnh lý"],["D64.2","Thiếu máu nguyên hồng cầu sắt thứ phát do thuốc và độc chất"],["D64.3","Các thiếu máu nguyên hồng cầu sắt khác"],["D64.4","Thiếu máu rối loạn sinh sản dòng hồng cầu bẩm sinh"],["D64.8","Các thiếu máu đặc hiệu khác"],["D64.9","Thiếu máu không đặc hiệu"],["D65","Đông máu nội mạch rải rác (hội chứng tiêu fibrin)"],["D66","Thiếu yếu tố VIII di truyền"],["D67","Thiếu yếu tố IX di truyền"],["D68","Các bất thường đông máu khác"],["D68.0","Bệnh Von Willebrand"],["D68.1","Thiếu yếu tố XI di truyền"],["D68.2","Thiếu các yếu tố đông máu khác do di truyền"],["D68.3","Xuất huyết trong khi sử dụng dài ngày các chất chống đông máu"],["D68.4","Thiếu hụt yếu tố đông máu mắc phải"],["D68.5","Bệnh tăng đông máu nguyên phát"],["D68.6","Bệnh tăng đông máu khác"],["D68.8","Các rối loạn đông máu đặc biệt khác"],["D68.9","Rối loạn đông máu không đặc hiệu"],["D69","Ban xuất huyết và các tình trạng xuất huyết khác"],["D69.0","Ban xuất huyết dị ứng"],["D69.1","Bất thường chất lượng tiểu cầu"],["D69.2","Ban xuất huyết không giảm tiểu cầu khác"],["D69.3","Ban xuất huyết giảm tiểu cầu vô căn"],["D69.4","Giảm tiểu cầu tiên phát khác"],["D69.5","Giảm tiểu cầu thứ phát"],["D69.6","Giảm tiểu cầu không đặc hiệu"],["D69.8","Các tình trạng xuất huyết đặc hiệu khác"],["D69.9","Tình trạng xuất huyết không đặc hiệu"],["D70","Tình trạng không có bạch cầu hạt"],["D71","Rối loạn chức năng bạch cầu hạt trung tính"],["D72","Các rối loạn khác của bạch cầu"],["D72.0","Bất thường di truyền của bạch cầu"],["D72.1","Tình trạng tăng bạch cầu ưa acid"],["D72.8","Các rối loạn đặc hiệu khác của bạch cầu"],["D72.9","Rối loạn bạch cầu không đặc hiệu"],["D73","Bệnh lý lách"],["D73.0","Thiểu năng lách"],["D73.1","Cường lách"],["D73.2","Lách to sung huyết mãn tính"],["D73.3","Áp xe lách"],["D73.4","Nang lách"],["D73.5","Nhồi máu lách"],["D73.8","Các bệnh khác của lách"],["D73.9","Bệnh lách không đặc hiệu"],["D74","methemoglobin máu"],["D74.0","methemoglobin máu bẩm sinh"],["D74.8","methaemoglobin máu khác"],["D74.9","Methaemoglobin máu không đặc hiệu"],["D75","Các bệnh máu và cơ quan tạo máu khác"],["D75.0","Tăng hồng cầu gia đình"],["D75.1","Bệnh tăng hồng cầu thứ phát"],["D75.2","Tăng tiểu cầu tiền phát"],["D75.8","Các bệnh đặc hiệu khác của máu và cơ quan tạo máu"],["D75.9","Bệnh của máu và cơ quan tạo máu không đặc hiệu"],["D76","Các bệnh của tổ chức lympho- liên võng và - (tổ chức bào) mô bào- liên võng xác định khác"],["D76.0","Bệnh tổ chức bào tế bào langerhans, chưa được phân loại ở phần khác"],["D76.1","Bệnh tổ chức bào thực bào đơn nhân"],["D76.2","Hội chứng thực bào tế bào máu liên quan đến nhiễm trùng"],["D76.3","Các hội chứng mô bào khác"],["D77","Rối loạn của máu và cơ quan tạo máu trong các bệnh khác"],["D77*","Rối loạn của máu và cơ quan tạo máu trong các bệnh khác"],["D80","Thiếu hụt miễn dịch chủ yếu do bất thường kháng thể"],["D80.0","Giảm gammaglobulin máu di truyền"],["D80.1","Giảm gammaglobulin máu không có yếu tố gia đình"],["D80.2","Thiếu hụt immunoglobulin A IgA chọn lọc"],["D80.3","Thiếu hụt immunoglobulin A IgA chọn lọc"],["D80.4","Thiếu hụt immunoglobulin M [IgM] chọn lọc"],["D80.5","Suy giảm miễn dịch có tăng immunoglobulin M [IgM]"],["D80.6","Thiếu hụt kháng thể với hàm lượng các immunoglobulin giảm ít hoặc tăng ịmmuglobulin máu"],["D80.7","Thiếu hụt gammaglobulin máu thoáng qua ở trẻ nhỏ"],["D80.8","Suy giảm miễn dịch khác do thiếu kháng thể là chủ yếu"],["D80.9","Thiếu hụt miễn dịch do thiếu kháng thể là chủ yếu, không đặc hiệu"],["D81","Suy giảm miễn dịch kết hợp"],["D81.0","Suy giảm miễn dịch hỗn hợp nặng [SCID] với loạn sinh liên võng"],["D81.1","Suy giảm miễn dịch hỗn hợp nặng [SCID] với giảm số lượng lympho T và B"],["D81.2","Thiếu hụt miễn dịch kết hợp nguy kịch [SCID] với số lượng lympho B thấp hoặc bình thường"],["D81.3","Thiếu hụt enzim adenosine deaminase [ADA]"],["D81.4","Hội chứng Nezelof"],["D81.5","Thiếu hụt emzim purine nucleoside phosphorylase [PNP]"],["D81.6","Thiếu hụt phức hợp hoà hợp tổ chức lớp I (MHC I)"],["D81.7","Thiếu hụt phức hợp hoà hợp tổ chức lớp II (MHC II)"],["D81.8","Các suy giảm miễn dịch kết hợp khác"],["D81.9","Suy giảm miễn dịch hỗn hợp không đặc hiệu"],["D82","Suy giảm miễn dịch liên quan đến các bất thường nặng khác"],["D82.0","Hội chứng Wiskott-Aldrich"],["D82.1","Hội chứng Di George s"],["D82.2","Suy giảm miễn dịch kèm chứng ngắn chi"],["D82.3","Suy giảm miễn dịch sau đáp ứng với virus Epstein-Barr bị khuyết thiếu mang tính di truyền"],["D82.4","Hội chứng tăng immunoglobulin E [IgE]"],["D82.8","Suy giảm miễn dịch liên quan với các bất thường lớn đặc hiệu khác"],["D82.9","Suy giảm miễn dịch khiếm khuyết chủ yếu, không đặc hiệu"],["D83","Một số các biến thể khác của suy giảm miễn dịch"],["D83.0","Suy giảm miễn dịch một số biến thể do bất thường về số lượng và chức năng lympho B"],["D83.1","Suy giảm miễn dịch biến thể chủ yếu do rối loạn điều hoà miễn dịch của lympho T"],["D83.2","Suy giảm miễn dịch biến thể phổ biến với tự kháng thể chống lympho B hoặc T"],["D83.8","Các suy giảm miễn dịch biến thiên phổ biến khác"],["D83.9","Suy giảm miễn dịch biến thiên phổ biến không đặc hiệu"],["D84","Các suy giảm miễn dịch khác"],["D84.0","Bất thường kháng nguyên chức năng 1 của lymphocyte [LFA-1]"],["D84.1","Các bất thường của hệ thống bổ thể"],["D84.8","Các suy giảm miễn dịch đặc hiệu khác"],["D84.9","Suy giảm miễn dịch không đặc hiệu"],["D86","Bệnh sarcoid"],["D86.0","Bệnh sarcoid phổi"],["D86.1","Bệnh sarcoid hạch bạch huyết"],["D86.2","Bệnh sarcoid phổi và hạch bạch huyết"],["D86.3","Bệnh sarcoid da"],["D86.8","Bệnh sarcoid hỗn hợp và tại các khu vực khác"],["D86.9","Bệnh sarcoid không đặc hiệu"],["D89","Rối loạn liên quan đến cơ chế miễn dịch, chưa phân loại nơi khác"],["D89.0","Tăng gammaglobulin máu đa dòng"],["D89.1","Bệnh kháng thể (tăng globulin) ngưng kết lạnh"],["D89.2","Tăng gammaglobulin máu không đặc hiệu"],["D89.3","Hội chứng tái tạo miễn dịch"],["D89.8","Các rối loạn xác định khác liên quan đến cơ chế miễn dịch, chưa được phân loại ở phần khác"],["D89.9","Rối loạn liên quan đến cơ chế miễn dịch, không đặc hiệu"]];
+if (typeof module !== "undefined") module.exports = ICD10;
+
+</script>
 <script>
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
@@ -350,7 +372,7 @@ td.rs-today .rs-cell{border-color:var(--accent-2)}
  */
 var RT = (function () {
   'use strict';
-  var VERSION = '2.4';
+  var VERSION = '2.5';
 
   var STATUS_ORDER = ['MO_PHONG', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA', 'DANG_XA', 'TAM_NGUNG', 'HOAN_THANH'];
   var STATUS = {
@@ -376,7 +398,7 @@ var RT = (function () {
       'tong_lieu', 'so_buoi', 'igrt', 'sgrt', 'uu_tien', 'trang_thai', 'ngay_tao', 'ngay_contour_xong',
       'ks_email', 'ngay_nhan_kh', 'ngay_kh_xong', 'can_qa', 'qa_ket_qua', 'ngay_qa', 'ngay_du_kien',
       'ngay_nghi_tuan', 'may', 'ngay_bat_dau', 'ngay_ket_thuc', 'tam_ngung_tu', 'ly_do_tam_ngung',
-      'ghi_chu', 'cap_nhat_luc', 'cap_nhat_boi', 'ly_do_ket_thuc', 'muc_lieu', 'vi_tri', 'muc_dich', 'ngay_mo_phong', 'nguoi_nhap'],
+      'ghi_chu', 'cap_nhat_luc', 'cap_nhat_boi', 'ly_do_ket_thuc', 'muc_lieu', 'vi_tri', 'muc_dich', 'ngay_mo_phong', 'nguoi_nhap', 'icd'],
     GiaiDoan: ['id', 'bn_id', 'stt', 'ky_thuat', 'tong_lieu', 'so_buoi', 'muc_lieu', 'trang_thai', 'di_cung',
       'uu_tien', 'ngay_tao', 'ngay_mo_phong', 'ngay_contour_xong', 'ks_email', 'ngay_nhan_kh', 'ngay_kh_xong',
       'can_qa', 'qa_ket_qua', 'ngay_qa', 'ghi_chu', 'cap_nhat_luc', 'cap_nhat_boi'],
@@ -385,6 +407,8 @@ var RT = (function () {
     LichNgoaiLe: ['id', 'bn_id', 'may', 'ngay', 'loai', 'ghi_chu', 'nguoi', 'thoi_gian', 'da_xoa'],
     NguoiDung: ['email', 'ho_ten', 'vai_tro', 'kich_hoat', 'chuc_vu', 'khoa', 'tro_ly_cho'],
     PhanCong: ['id', 'ngay', 'vi_tri', 'nhan_vien', 'ghi_chu', 'nguoi', 'thoi_gian'],
+    ChiMuc: ['id', 'ma_his', 'ho_ten', 'ten_kd', 'nam_sinh', 'khoa', 'bs_email', 'icd', 'chan_doan', 'vi_tri', 'ky_thuat', 'tong_lieu', 'so_buoi',
+      'da_xa', 'ngay_tao', 'ngay_bat_dau', 'ngay_ket_thuc', 'trang_thai', 'luu_tru', 'cap_nhat'],
     DanhMuc: ['loai', 'gia_tri'],
     NhatKy: ['thoi_gian', 'email', 'thao_tac', 'bn_id', 'chi_tiet']
   };
@@ -597,7 +621,7 @@ var RT = (function () {
   }
 
   // ---------- Thao tác ----------
-  var EDIT_FIELDS = ['ma_his', 'ho_ten', 'nam_sinh', 'gioi', 'chan_doan', 'vi_tri', 'muc_dich', 'ngay_mo_phong', 'khoa', 'bs_email', 'ky_thuat',
+  var EDIT_FIELDS = ['ma_his', 'ho_ten', 'nam_sinh', 'gioi', 'icd', 'chan_doan', 'vi_tri', 'muc_dich', 'ngay_mo_phong', 'khoa', 'bs_email', 'ky_thuat',
     'tong_lieu', 'so_buoi', 'muc_lieu', 'igrt', 'sgrt', 'uu_tien', 'may', 'ghi_chu'];
   var PHASE_FIELDS = ['ky_thuat', 'tong_lieu', 'so_buoi', 'muc_lieu', 'uu_tien', 'ngay_mo_phong', 'ghi_chu'];
 
@@ -650,6 +674,7 @@ var RT = (function () {
     if (y > 0 && y < 130 && Math.round(y) === y) p.nam_sinh = String(cur - y);   // nhập tuổi → đổi ra năm sinh
     y = num(p.nam_sinh);
     if (!(y >= 1900 && y <= cur)) fail('Cần nhập năm sinh (hoặc tuổi) của bệnh nhân.');
+    if (p.icd) { p.icd = normIcd(p.icd); if (!isIcd(p.icd)) fail('Mã ICD-10 không đúng dạng (VD: C11 hoặc C11.9).'); }
     if (p.tong_lieu !== '' && p.tong_lieu != null && !(num(p.tong_lieu) > 0)) fail('Tổng liều phải lớn hơn 0.');
     if (p.so_buoi !== '' && p.so_buoi != null) {
       var n = num(p.so_buoi);
@@ -657,21 +682,54 @@ var RT = (function () {
     }
   }
   /** Phần chuyên môn còn thiếu (cần đủ trước khi chuyển kỹ sư) */
-  function missingRx(p) {
+  function normIcd(v) { return String(v || '').trim().toUpperCase().replace(/\s+/g, '').replace(/^([A-Z]\d\d)(\d)/, '$1.$2'); }
+  function isIcd(v) { return /^[A-Z]\d\d(\.\d{1,3})?$/.test(v); }
+  var icdMap = null;
+  /** Tên bệnh theo mã ICD-10 (danh mục BYT, mã C và D). Mã con có tên ngắn thì ghép thêm tên mã cha. */
+  function icdName(v) {
+    if (typeof ICD10 === 'undefined') return '';
+    if (!icdMap) { icdMap = {}; ICD10.forEach(function (x) { icdMap[x[0]] = x[1]; }); }
+    var c = normIcd(v), n = icdMap[c];
+    if (!n) return '';
+    if (c.length > 3) {
+      var parent = icdMap[c.slice(0, 3)];
+      if (parent && !/^(u |ung thư|carcinom|sarcom|lymphom|bệnh|đa u|bạch cầu|tân sinh)/i.test(n)) n = parent + ': ' + n.charAt(0).toLowerCase() + n.slice(1);
+    }
+    return n;
+  }
+  /** Phần chuyên môn còn thiếu. needIcd: bắt buộc mã ICD (khi chuyển kỹ sư) */
+  function missingRx(p, needIcd) {
     var m = [];
+    if (needIcd && !isIcd(normIcd(p.icd))) m.push('mã ICD-10');
     if (!p.chan_doan) m.push('chẩn đoán');
     if (!p.ky_thuat) m.push('kỹ thuật');
     if (!(num(p.tong_lieu) > 0)) m.push('tổng liều');
     if (!(num(p.so_buoi) >= 1)) m.push('số buổi');
     return m;
   }
-  function validate(p, today) {
+  function validate(p, today, needIcd) {
     validateBasic(p, today);
-    var m = missingRx(p);
+    var m = missingRx(p, needIcd);
     if (m.length) fail('Cần nhập đủ phần chuyên môn: ' + m.join(', ') + '.');
     validateRx(p);
   }
-  var EARLY = ['MO_PHONG', 'CONTOUR'];   // bước được phép chưa có chỉ định chuyên môn
+  var EARLY = ['MO_PHONG', 'CONTOUR'];
+  function fold(s) { return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase().replace(/\s+/g, ' ').trim(); }
+  /** Các đợt xạ cùng mã HIS: đang có trong hệ thống + chỉ mục (gồm đợt đã lưu trữ) */
+  function hisCourses(ctx, ma, exceptId) {
+    var seen = {}, out = [];
+    ctx.patients.forEach(function (p) { if (p.ma_his === ma && p.trang_thai !== 'HUY' && p.id !== exceptId) { seen[p.id] = 1; out.push(p); } });
+    (ctx.hisLookup ? ctx.hisLookup(ma) : []).forEach(function (r) { if (!seen[r.id] && r.trang_thai !== 'HUY' && r.id !== exceptId) out.push(r); });
+    return out;
+  }
+  /** Kiểm tra mã HIS khi thêm/sửa: chặn trùng đợt đang hoạt động và trùng mã khác tên (trừ khi người dùng xác nhận) */
+  function checkHis(ctx, p, a, exceptId) {
+    var others = hisCourses(ctx, p.ma_his, exceptId);
+    var active = others.filter(function (x) { return ['HOAN_THANH', 'HUY'].indexOf(x.trang_thai) < 0 && x.luu_tru !== 'Có'; })[0];
+    if (active && !a.force) fail('DUP_HIS:' + active.ho_ten + ' (' + active.id + ', ' + (STATUS[active.trang_thai] || active.trang_thai) + ')');
+    var diff = others.filter(function (x) { return fold(x.ho_ten) !== fold(p.ho_ten); })[0];
+    if (diff && !a.force_name) fail('HIS_NAME:' + diff.ho_ten + ' (' + diff.id + ')');
+  }
   function nextId(ctx) {
     var prefix = 'XT' + ctx.today.slice(2, 4) + '-', max = ctx.idFloor ? ctx.idFloor(prefix) : 0;
     ctx.patients.forEach(function (p) {
@@ -738,10 +796,9 @@ var RT = (function () {
       if (!p.igrt) p.igrt = 'Không';
       if (!p.sgrt) p.sgrt = 'Không';
       var step0 = a.trang_thai || 'CONTOUR';
-      if (EARLY.indexOf(step0) >= 0 && !a.boost) validateBasic(p, ctx.today); else validate(p, ctx.today);
+      if (EARLY.indexOf(step0) >= 0 && !a.boost) validateBasic(p, ctx.today); else validate(p, ctx.today, step0 === 'CHO_KH');
       if (a.boost) validateRx(a.boost, ' của boost');
-      var dup = ctx.patients.filter(function (x) { return x.ma_his === p.ma_his && x.trang_thai !== 'HOAN_THANH' && x.trang_thai !== 'HUY'; })[0];
-      if (dup && !a.force) fail('DUP_HIS:' + dup.ho_ten + ' (' + dup.id + ', ' + STATUS[dup.trang_thai] + ')');
+      checkHis(ctx, p, a, '');
       var step = a.trang_thai || 'CONTOUR';
       if (['MO_PHONG', 'CONTOUR', 'CHO_KH', 'CHO_XA', 'DANG_XA'].indexOf(step) < 0) fail('Bước hiện tại không hợp lệ.');
       if (step === 'MO_PHONG' && p.ngay_mo_phong && !isDate(p.ngay_mo_phong)) fail('Ngày hẹn mô phỏng không hợp lệ.');
@@ -793,6 +850,9 @@ var RT = (function () {
       Object.keys(p).forEach(function (k) { merged[k] = p[k]; });
       Object.keys(o).forEach(function (k) { merged[k] = o[k]; });
       if (EARLY.indexOf(p.trang_thai) >= 0) validateBasic(merged, ctx.today); else validate(merged, ctx.today);
+      if (merged.icd !== (o.icd === undefined ? merged.icd : o.icd)) o.icd = merged.icd;
+      if (o.icd !== undefined) o.icd = merged.icd;
+      if ((o.ma_his !== undefined && o.ma_his !== p.ma_his) || (o.ho_ten !== undefined && fold(o.ho_ten) !== fold(p.ho_ten))) checkHis(ctx, merged, a, p.id);
       if (merged.nam_sinh !== p.nam_sinh) o.nam_sinh = merged.nam_sinh;
       var done = fxOf(p, ctx.fractions).length;
       if (num(merged.so_buoi) !== num(p.so_buoi)) {
@@ -812,11 +872,12 @@ var RT = (function () {
       var t = target(ctx, a.id);
       need(t.x, ['CONTOUR']);
       if (!t.g) {
-        var add = clean(a, ['chan_doan', 'vi_tri', 'muc_dich', 'ky_thuat', 'tong_lieu', 'so_buoi', 'muc_lieu', 'igrt', 'sgrt']);
+        var add = clean(a, ['icd', 'chan_doan', 'vi_tri', 'muc_dich', 'ky_thuat', 'tong_lieu', 'so_buoi', 'muc_lieu', 'igrt', 'sgrt']);
+        if (add.icd) add.icd = normIcd(add.icd);
         var merged = {};
         Object.keys(t.p).forEach(function (k) { merged[k] = t.p[k]; });
         Object.keys(add).forEach(function (k) { if (add[k] !== '') merged[k] = add[k]; });
-        var miss = missingRx(merged);
+        var miss = missingRx(merged, true);
         if (miss.length) fail('Chưa chuyển kỹ sư được. Cần nhập đủ: ' + miss.join(', ') + '.');
         validateRx(merged);
         Object.keys(add).forEach(function (k) { if (add[k] !== '') t.p[k] = add[k]; });
@@ -1258,7 +1319,7 @@ var RT = (function () {
    * Tính thống kê trong khoảng [tu, den] theo đúng phạm vi người xem.
    * data = { patients, phases, fractions, users, dm }
    */
-  function report(data, tu, den, u) {
+  function report(data, tu, den, u, detail) {
     var sc = statsScope(u);
     if (!sc) fail('Tài khoản của bạn không có quyền xem thống kê.');
     if (!isDate(tu) || !isDate(den) || tu > den) fail('Khoảng ngày không hợp lệ.');
@@ -1312,6 +1373,35 @@ var RT = (function () {
         .sort(function (a, b) { return b.luot_xa - a.luot_xa; });
     };
     var out = { tu: tu, den: den, pham_vi: sc.label, tong_quan: ov };
+    // Theo mã ICD (3 ký tự) và vị trí xạ, trong đúng phạm vi tổng quan
+    var ovIds = {}; ovFx.forEach(function (f) { ovIds[f.bn_id] = (ovIds[f.bn_id] || 0) + 1; });
+    var scopePts = ovPts.length ? ovPts : Object.keys(ovIds).map(function (k) { return P[k]; });
+    var grp = function (keyOf) {
+      var m = {};
+      var add = function (p) { var k = keyOf(p); m[k] = m[k] || { ma: k, bn_bat_dau: {}, bn_xa: {}, luot_xa: 0, dot: {} }; return m[k]; };
+      scopePts.forEach(function (p) { if (inRange(p.ngay_bat_dau)) { var g = add(p); g.bn_bat_dau[p.ma_his || p.id] = 1; g.dot[p.id] = 1; } });
+      Object.keys(ovIds).forEach(function (id) { var p = P[id]; var g = add(p); g.bn_xa[p.ma_his || p.id] = 1; g.luot_xa += ovIds[id]; g.dot[id] = 1; });
+      return Object.keys(m).map(function (k) { var g = m[k]; return { ma: g.ma, bn_bat_dau: Object.keys(g.bn_bat_dau).length, bn_xa: Object.keys(g.bn_xa).length, luot_xa: g.luot_xa, so_dot: Object.keys(g.dot).length }; })
+        .sort(function (a, b) { return b.bn_xa - a.bn_xa || b.bn_bat_dau - a.bn_bat_dau; });
+    };
+    var icd3 = function (p) { var c = normIcd(p.icd); return isIcd(c) ? c.slice(0, 3) : '(chưa có ICD)'; };
+    var vtKey = function (p) { var v = String(p.vi_tri || '').trim(); return v ? v.charAt(0).toUpperCase() + v.slice(1) : '(chưa ghi vị trí)'; };
+    out.theo_icd = grp(icd3);
+    var vt = grp(function (p) { return fold(p.vi_tri) || '~'; }), label = {};
+    scopePts.concat(Object.keys(ovIds).map(function (k) { return P[k]; })).forEach(function (p) { var k = fold(p.vi_tri) || '~'; if (!label[k]) label[k] = vtKey(p); });
+    vt.forEach(function (r) { r.ma = label[r.ma] || r.ma; });
+    out.theo_vi_tri = vt;
+    if (detail && detail.loai && detail.ma) {
+      var match = detail.loai === 'icd' ? function (p) { return icd3(p) === detail.ma; } : function (p) { return vtKey(p) === detail.ma || (fold(p.vi_tri) || '~') === fold(detail.ma); };
+      var ids = {};
+      scopePts.forEach(function (p) { if (inRange(p.ngay_bat_dau) && match(p)) ids[p.id] = 1; });
+      Object.keys(ovIds).forEach(function (id) { if (match(P[id])) ids[id] = 1; });
+      out.chi_tiet = Object.keys(ids).map(function (id) {
+        var p = P[id];
+        return { id: p.id, ma_his: p.ma_his, ho_ten: p.ho_ten, nam_sinh: p.nam_sinh, icd: p.icd, chan_doan: p.chan_doan, vi_tri: p.vi_tri, ky_thuat: p.ky_thuat,
+          tong_lieu: p.tong_lieu, so_buoi: p.so_buoi, bs: name[p.bs_email] || p.bs_email, khoa: p.khoa, ngay_bat_dau: p.ngay_bat_dau, ngay_ket_thuc: p.ngay_ket_thuc, luot_trong_ky: ovIds[id] || 0 };
+      }).sort(function (a, b) { return (a.ngay_bat_dau || '9') < (b.ngay_bat_dau || '9') ? -1 : 1; });
+    }
     // Theo bác sĩ: trưởng khoa / ĐD trưởng / tài khoản khoa / quản trị thấy cả khoa; bác sĩ chỉ thấy dòng của mình
     if (sc.byDoctor) out.theo_bac_si = rows(function (f) { return P[f.bn_id].bs_email; }, function (f) { return inKhoa(P[f.bn_id]); });
     else if (u.vai_tro === 'BS') out.theo_bac_si = rows(function (f) { return P[f.bn_id].bs_email; }, function (f, k) { return myDoctors(u).indexOf(k) >= 0; });
@@ -1330,6 +1420,22 @@ var RT = (function () {
       out.theo_ky_su = Object.keys(m).map(function (k) { return m[k]; }).sort(function (a, b) { return b.ke_hoach - a.ke_hoach; });
     }
     return out;
+  }
+  /** Dòng chỉ mục (tra cứu nhanh) của một đợt xạ */
+  function indexRow(p, fractions, phases, luuTru) {
+    var env = makeEnv('', [], [], phases || [], '');
+    var o = {};
+    COLS.ChiMuc.forEach(function (c) { o[c] = ''; });
+    ['id', 'ma_his', 'ho_ten', 'nam_sinh', 'khoa', 'bs_email', 'icd', 'chan_doan', 'vi_tri', 'ky_thuat', 'tong_lieu', 'so_buoi', 'ngay_tao', 'ngay_bat_dau', 'ngay_ket_thuc', 'trang_thai']
+      .forEach(function (k) { o[k] = p[k] == null ? '' : String(p[k]); });
+    o.ten_kd = fold(p.ho_ten);
+    var segs = segments(p, env);
+    o.so_buoi = String(segs[segs.length - 1].to);
+    o.tong_lieu = String(round2(segs.reduce(function (s, x) { return s + x.tong_lieu; }, 0)));
+    o.da_xa = String(fxOf(p, fractions || []).length);
+    o.luu_tru = luuTru ? 'Có' : '';
+    o.cap_nhat = p.cap_nhat_luc || '';
+    return o;
   }
   /** Phân công gửi kèm: từ tuần trước tới 4 tuần sau (xa hơn thì tải riêng) */
   function rosterWindow(rows, today) {
@@ -1350,7 +1456,8 @@ var RT = (function () {
   }
 
   return {
-    VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, report: report, staffKhoa: staffKhoa, myDoctors: myDoctors, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
+    VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, report: report, staffKhoa: staffKhoa, myDoctors: myDoctors,
+    normIcd: normIcd, isIcd: isIcd, icdName: icdName, fold: fold, indexRow: indexRow, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
@@ -1393,6 +1500,7 @@ if (typeof module !== 'undefined') module.exports = RT;
   function archEnv() { return S.archEnv || (S.archEnv = RT.makeEnv(today(), S.data.holidays, [], (S.arch && S.arch.phases) || [], (S.data.dm.MAY || [])[0])); }
   function course(p) {
     if (p._pid) p = byId(p._pid);
+    if (p._idx) { if (!S.cc[p.id]) { S.cc[p.id] = RT.course(p, [], archEnv()); S.cc[p.id].done = RT.num(p.da_xa); } return S.cc[p.id]; }
     if (p._arch) return S.cc[p.id] || (S.cc[p.id] = RT.course(p, S.arch.fractions, archEnv()));
     return S.cc[p.id] || (S.cc[p.id] = RT.course(p, S.data.fractions, env()));
   }
@@ -1474,10 +1582,18 @@ if (typeof module !== 'undefined') module.exports = RT;
   }
   function setBusy(d) { S.busy += d; $('#busy').hidden = S.busy <= 0; }
   var LOCAL = { getLog: 0, searchArchive: 0, demoSwitch: 0, bootstrap: 0 };
+  S.hisCache = {};
+  function errText(e) {
+    var m = String(e && e.error || e || '');
+    if (m.indexOf('HIS_NAME:') === 0) return 'Mã HIS này đã dùng cho bệnh nhân khác: ' + m.slice(9) + '. Kiểm tra lại mã HIS.';
+    if (m.indexOf('DUP_HIS:') === 0) return 'Mã HIS đang có đợt xạ hoạt động: ' + m.slice(8) + '.';
+    return m;
+  }
   var pending = [], chain = Promise.resolve();
   function nowStr() { var d = new Date(), p2 = function (n) { return (n < 10 ? '0' : '') + n; }; return today() + 'T' + p2(d.getHours()) + ':' + p2(d.getMinutes()) + ':' + p2(d.getSeconds()); }
   function applyLocal(data, action, payload) {
     var ctx = RT.localCtx(data, nowStr());
+    ctx.hisLookup = function (ma) { return S.hisCache[ma] || []; };
     var msg = RT.handle(ctx, action, JSON.parse(JSON.stringify(payload || {})));
     var v = RT.view(ctx);
     v.dm = ctx.dm; v.holidays = ctx.holidays;
@@ -1515,7 +1631,7 @@ if (typeof module !== 'undefined') module.exports = RT;
         setData(d); render();
       }, function (e) {
         pending.shift();
-        toast('Chưa lưu được: ' + (e.error || 'mất kết nối') + '. Đã tải lại dữ liệu.', true);
+        toast('Chưa lưu được: ' + (errText(e) || 'mất kết nối') + '. Đã tải lại dữ liệu.', true);
         return call('bootstrap').then(function (r) { setData(r.data); render(); }, function () {});
       });
     }).finally(function () { setBusy(-1); });
@@ -1524,7 +1640,7 @@ if (typeof module !== 'undefined') module.exports = RT;
   function run(action, payload, onError) {
     return act(action, payload).catch(function (e) {
       if (onError && onError(e)) return;
-      toast(e.error || 'Có lỗi xảy ra.', true);
+      toast(errText(e) || 'Có lỗi xảy ra.', true);
     });
   }
 
@@ -1540,10 +1656,10 @@ if (typeof module !== 'undefined') module.exports = RT;
   // ---------- modal ----------
   function modal(opts) {
     var wrap = $('#modal');
-    wrap.innerHTML = '<div class="modal-wrap"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="mdl-t">' +
+    wrap.innerHTML = '<div class="modal-wrap"><div class="modal' + (opts.wide ? ' wide' : '') + '" role="dialog" aria-modal="true" aria-labelledby="mdl-t">' +
       '<div class="modal-head"><h2 id="mdl-t">' + esc(opts.title) + '</h2><button class="x" data-close aria-label="Đóng">×</button></div>' +
       '<form class="modal-body" id="mdl-form" novalidate>' + opts.body + '</form>' +
-      '<div class="modal-foot"><button type="button" class="btn" data-close>Huỷ</button>' +
+      '<div class="modal-foot">' + (opts.noCancel ? '' : '<button type="button" class="btn" data-close>Huỷ</button>') +
       '<button type="submit" form="mdl-form" class="btn ' + (opts.btnClass || 'primary') + '" id="mdl-ok">' + esc(opts.ok || 'Lưu') + '</button></div></div></div>';
     wrap.hidden = false;
     var form = $('#mdl-form');
@@ -1688,7 +1804,7 @@ if (typeof module !== 'undefined') module.exports = RT;
 
   var C = {
     pt: { h: 'Bệnh nhân', v: ptCell },
-    dx: { h: 'Chẩn đoán', v: function (p) { return esc(p.chan_doan) + (p.vi_tri ? '<span class="sub">Vị trí: ' + esc(p.vi_tri) + '</span>' : ''); } },
+    dx: { h: 'Chẩn đoán', v: function (p) { return (p.icd ? '<span class="icd-tag">' + esc(p.icd) + '</span> ' : '') + esc(p.chan_doan) + (p.vi_tri ? '<span class="sub">Vị trí: ' + esc(p.vi_tri) + '</span>' : ''); } },
     rx: { h: 'Kỹ thuật · liều', v: rx, cls: 'nowrap' },
     bs: { h: 'BS điều trị', v: function (p) { return esc(nameOf(p.bs_email)); }, cls: 'nowrap' },
     pr: { h: 'Ưu tiên', v: prPill },
@@ -2155,6 +2271,18 @@ if (typeof module !== 'undefined') module.exports = RT;
     html += listTable(sc.byDoctor ? 'Theo bác sĩ' : 'Của tôi (bác sĩ)', r.theo_bac_si, [['Số BN xạ', 'bn_xa'], ['Số lượt xạ', 'luot_xa']]);
     html += listTable(sc.byKtv ? 'Theo KTV' : 'Của tôi (KTV)', r.theo_ktv, [['Số BN', 'bn_xa'], ['Số buổi đã ghi', 'luot_xa']]);
     html += listTable(sc.byKs ? 'Theo kỹ sư' : 'Của tôi (kỹ sư)', r.theo_ky_su, [['Số kế hoạch', 'ke_hoach'], ['Có QA', 'co_qa']]);
+    var grpTable = function (title, list, loai) {
+      if (!list) return '';
+      return '<section class="group"><div class="group-head"><h2>' + title + '</h2><span class="count">' + list.length + '</span><span class="muted">Bấm một dòng để xem danh sách bệnh nhân</span></div>' +
+        (list.length ? '<div class="card"><div class="tbl-wrap"><table><thead><tr><th>' + (loai === 'icd' ? 'Mã ICD-10' : 'Vị trí xạ') + '</th><th>BN bắt đầu xạ</th><th>BN có xạ trong kỳ</th><th>Số lượt xạ</th></tr></thead><tbody>' +
+          list.map(function (x) {
+            var nm = loai === 'icd' ? RT.icdName(x.ma) : '';
+            return '<tr class="click" data-stdet="' + loai + '" data-ma="' + esc(x.ma) + '"><td>' + (loai === 'icd' && nm ? '<b class="mono">' + esc(x.ma) + '</b> <span class="muted">' + esc(nm) + '</span>' : esc(x.ma)) + '</td>' +
+              '<td class="num">' + x.bn_bat_dau + '</td><td class="num">' + x.bn_xa + '</td><td class="num">' + x.luot_xa + '</td></tr>';
+          }).join('') + '</tbody></table></div></div>' : '<div class="card"><div class="empty">Không có số liệu trong khoảng này.</div></div>') + '</section>';
+    };
+    html += grpTable('Theo mã ICD-10 (3 ký tự)', r.theo_icd, 'icd');
+    html += grpTable('Theo vị trí xạ', r.theo_vi_tri, 'vi_tri');
     return html;
   }
   function bindStats() {
@@ -2172,6 +2300,25 @@ if (typeof module !== 'undefined') module.exports = RT;
     };
     $$('#main [data-stload]').forEach(function (b) { b.onclick = function () { S.stSheet = null; go('report'); }; });
     $$('#main [data-stexport]').forEach(function (b) { b.onclick = function () { go('exportReport'); }; });
+    $$('#main [data-stdet]').forEach(function (tr) {
+      tr.onclick = function () {
+        var rg = statsRange(S.stKey), loai = tr.dataset.stdet, ma = tr.dataset.ma;
+        setBusy(1);
+        call('report', { tu: rg[0], den: rg[1], chi_tiet: { loai: loai, ma: ma } }).then(function (r) {
+          var list = r.report.chi_tiet || [], nm = loai === 'icd' ? RT.icdName(ma) : '';
+          modal({ title: (loai === 'icd' ? 'Mã ' + ma + (nm ? ' · ' + nm : '') : 'Vị trí xạ: ' + ma) + ' (' + list.length + ' đợt)', ok: 'Đóng', noFocus: true, wide: true, noCancel: true,
+            body: '<p class="muted">Từ ' + fdy(rg[0]) + ' đến ' + fdy(rg[1]) + ': các đợt xạ bắt đầu trong kỳ hoặc có buổi xạ trong kỳ.</p>' +
+              (list.length ? '<div class="tbl-wrap"><table><thead><tr><th>Bệnh nhân</th><th>Chẩn đoán</th><th>Kỹ thuật · liều</th><th>BS</th><th>Thời gian xạ</th><th>Lượt trong kỳ</th></tr></thead><tbody>' +
+                list.map(function (x) {
+                  return '<tr><td><b>' + esc(x.ho_ten) + '</b><span class="sub mono">' + esc(x.ma_his) + (x.nam_sinh ? ' · ' + esc(x.nam_sinh) : '') + '</span></td>' +
+                    '<td>' + (x.icd ? '<span class="icd-tag">' + esc(x.icd) + '</span> ' : '') + esc(x.chan_doan || '—') + (x.vi_tri ? '<span class="sub">' + esc(x.vi_tri) + '</span>' : '') + '</td>' +
+                    '<td class="nowrap">' + esc(x.ky_thuat || '—') + (x.tong_lieu ? '<span class="sub">' + esc(x.tong_lieu) + ' Gy / ' + esc(x.so_buoi) + ' buổi</span>' : '') + '</td>' +
+                    '<td class="nowrap">' + esc(x.bs) + '</td><td class="nowrap num">' + fdy(x.ngay_bat_dau) + ' → ' + fdy(x.ngay_ket_thuc) + '</td><td class="num">' + x.luot_trong_ky + '</td></tr>';
+                }).join('') + '</tbody></table></div>' : '<div class="empty">Không có bệnh nhân.</div>'),
+            onOk: function () {} });
+        }, function (e) { toast(e.error || 'Không tải được danh sách.', true); }).finally(function () { setBusy(-1); });
+      };
+    });
   }
 
   // ---------- Bảng phân công ----------
@@ -2311,7 +2458,19 @@ if (typeof module !== 'undefined') module.exports = RT;
   }
 
   // ---------- Chi tiết ----------
-  function openDetail(id) { S.detail = id; renderDetail(); }
+  function openDetail(id) {
+    var p = byId(id);
+    if (p && p._idx) {
+      setBusy(1);
+      call('archiveCourse', { id: id }).then(function (r) {
+        S.arch.patients = S.arch.patients.filter(function (x) { return x.id !== id; });
+        mergeArch(r.course); S.cc = {};
+        S.detail = id; renderDetail();
+      }, function (e) { toast(e.error || 'Không mở được đợt xạ lưu trữ.', true); }).finally(function () { setBusy(-1); });
+      return;
+    }
+    S.detail = id; renderDetail();
+  }
   function closeDetail() { S.detail = null; $('#drawer').hidden = true; $('#drawer').innerHTML = ''; }
 
   function calendar(p, c) {
@@ -2352,11 +2511,12 @@ if (typeof module !== 'undefined') module.exports = RT;
     var live = pts().filter(function (x) { return x.ma_his === key && x.id !== p.id; });
     if (!(key in S.hist)) {
       S.hist[key] = null;
-      call('searchArchive', { q: key }).then(function (r) {
-        mergeArch(r.archive);
-        S.hist[key] = r.archive.patients.filter(function (x) { return x.ma_his === key; }).map(function (x) { return x.id; });
+      lookupHis(key).then(function () {
+        var rows = (S.hisCache[key] || []).filter(function (x) { return x.luu_tru === 'Có'; }).map(function (x) { var o = {}; Object.keys(x).forEach(function (k) { o[k] = x[k]; }); o._idx = true; return o; });
+        mergeArch({ patients: rows });
+        S.hist[key] = rows.map(function (x) { return x.id; });
         if (S.detail) renderDetail();
-      }, function () { S.hist[key] = []; if (S.detail) renderDetail(); });
+      });
     }
     if (S.hist[key] === null) return live.length ? live : null;
     var arch = (S.hist[key] || []).map(function (id) { return S.arch.patients.filter(function (x) { return x.id === id; })[0]; })
@@ -2440,7 +2600,7 @@ if (typeof module !== 'undefined') module.exports = RT;
       (c.blocked && p.trang_thai !== 'HOAN_THANH' ? '<div class="sec" style="border-color:var(--crit)"><h3 style="color:var(--crit)">BN đang chờ kế hoạch boost</h3><p>Đã xạ xong các giai đoạn trước. Kế hoạch ' + esc(c.cur.label) + ' chưa sẵn sàng nên KTV chưa ghi được buổi xạ tiếp theo.</p></div>' :
         (!ro && c.leftBeforeBlock > 0 && c.leftBeforeBlock <= 5 && c.readyTo < c.total && ['DANG_XA', 'TAM_NGUNG'].indexOf(p.trang_thai) >= 0 ? '<div class="sec" style="border-color:var(--warn)"><h3 style="color:var(--warn)">Sắp tới boost</h3><p>Còn ' + c.leftBeforeBlock + ' buổi nữa là hết giai đoạn hiện tại, kế hoạch boost chưa sẵn sàng.</p></div>' : '')) +
       '<div class="sec"><h3>Chỉ định' + (c.multi ? ' · GĐ1' : '') + '</h3><div class="kv">' +
-      kvi('Chẩn đoán', p.chan_doan) + kvi('Vị trí xạ', p.vi_tri || '—') + kvi('Mục đích', p.muc_dich || '—') + kvi('Bác sĩ điều trị', nameOf(p.bs_email)) + kvi('Khoa', p.khoa) +
+      kvi('Mã ICD-10', p.icd ? p.icd + (RT.icdName(p.icd) ? ' · ' + RT.icdName(p.icd) : '') : '—') + kvi('Chẩn đoán', p.chan_doan) + kvi('Vị trí xạ', p.vi_tri || '—') + kvi('Mục đích', p.muc_dich || '—') + kvi('Bác sĩ điều trị', nameOf(p.bs_email)) + kvi('Khoa', p.khoa) +
       kvi('Kỹ thuật', p.ky_thuat) + kvi('Tổng liều', p.tong_lieu + ' Gy / ' + p.so_buoi + ' buổi') + kvi('Liều mỗi buổi', RT.dosePerFx(p) + ' Gy') +
       (p.muc_lieu ? kvi('Các mức liều (SIB)', p.muc_lieu) : '') +
       kvi('IGRT', p.igrt || 'Không') + kvi('SGRT', p.sgrt || 'Không') + kvi('Lịch tuần', RT.needsOffDay(p) ? 'Chưa chọn ngày nghỉ' : RT.scheduleLabel(p)) +
@@ -2583,11 +2743,37 @@ if (typeof module !== 'undefined') module.exports = RT;
       validate: function (v) { return v.ly_do ? '' : 'Cần ghi lý do huỷ.'; },
       onOk: function (v) { run('undoFraction', { id: fid, ly_do: v.ly_do }); } });
   }
+  var icdDl = null;
+  function icdList() {
+    if (icdDl === null) icdDl = '<datalist id="dl-icd">' + (typeof ICD10 === 'undefined' ? [] : ICD10).map(function (x) { return '<option value="' + x[0] + '">' + esc(x[1]) + '</option>'; }).join('') + '</datalist>';
+    return icdDl;
+  }
+  function icdField(val, req) {
+    return field('Mã ICD-10' + (req ? ' <span class="req">*</span>' : ' <span class="req icd-req" hidden>*</span>'),
+      '<input type="text" name="icd" value="' + esc(val || '') + '" list="dl-icd" autocomplete="off" autocapitalize="characters" placeholder="Gõ mã, VD: C50.9 hoặc C509">' + icdList(),
+      '', '<span id="icd-nm">Gõ mã để hiện tên bệnh</span>');
+  }
+  /** Gõ mã ICD: hiện tên bệnh; nếu ô chẩn đoán còn trống (hoặc do ứng dụng tự điền) thì điền tên bệnh vào */
+  function bindIcd(form) {
+    var el = $('input[name=icd]', form), nm = $('#icd-nm', form), dx = $('input[name=chan_doan]', form);
+    if (!el) return;
+    var auto = '';
+    var upd = function (fill) {
+      var c = RT.normIcd(el.value), n = RT.icdName(c);
+      if (!el.value) { nm.textContent = 'Gõ mã để hiện tên bệnh'; nm.className = ''; return; }
+      if (n) { nm.textContent = c + ': ' + n; nm.className = 'icd-ok'; }
+      else { nm.textContent = RT.isIcd(c) ? 'Mã ' + c + ' không có trong danh mục C, D của Bộ Y tế. Kiểm tra lại.' : 'Mã chưa đúng dạng (VD: C50.9).'; nm.className = 'icd-bad'; }
+      if (fill && n && dx && (!dx.value || dx.value === auto)) { dx.value = n; auto = n; }
+    };
+    el.addEventListener('input', function () { upd(true); });
+    el.addEventListener('change', function () { var c = RT.normIcd(el.value); if (RT.isIcd(c)) el.value = c; upd(true); });
+    upd(false);
+  }
   function contourForm(p) {
-    var d = S.data.dm, miss = p._g ? [] : RT.missingRx(p);
+    var d = S.data.dm, miss = p._g ? [] : RT.missingRx(p, true);
     var inp = function (name, type, attrs) { return '<input type="' + (type || 'text') + '" name="' + name + '" value="' + esc(p[name] || '') + '" ' + (attrs || '') + '>'; };
     var fill = miss.length ? '<div class="confirm" style="cursor:default;font-weight:500">BN chưa đủ phần chuyên môn (thiếu: <b>&nbsp;' + esc(miss.join(', ')) + '</b>). Nhập đủ rồi mới chuyển kỹ sư được.</div>' +
-      '<div class="form">' +
+      '<div class="form">' + icdField(p.icd, true) +
       field('Chẩn đoán <span class="req">*</span>', inp('chan_doan', 'text', 'placeholder="VD: K phổi di căn não"'), 'full') +
       field('Vị trí xạ', inp('vi_tri', 'text', 'list="dl-vitri2" autocomplete="off"') + '<datalist id="dl-vitri2">' + (d.VI_TRI || RT.DEFAULT_DM.VI_TRI).map(function (x) { return '<option value="' + esc(x) + '"></option>'; }).join('') + '</datalist>') +
       field('Kỹ thuật <span class="req">*</span>', '<select name="ky_thuat">' + opts(d.KY_THUAT, p.ky_thuat, 'Chọn kỹ thuật') + '</select>') +
@@ -2601,7 +2787,8 @@ if (typeof module !== 'undefined') module.exports = RT;
         ['Ưu tiên', 'Cần sớm hơn thứ tự thông thường.'],
         ['Thường', 'Theo thứ tự contour xong trước làm trước.']
       ].map(function (x) { return '<label><input type="radio" name="uu_tien" value="' + x[0] + '"' + ((p.uu_tien || 'Thường') === x[0] ? ' checked' : '') + '><span><b>' + x[0] + '</b><small>' + x[1] + '</small></span></label>'; }).join('') + '</div></div>',
-      validate: function (v) { if (!miss.length) return ''; var m = RT.missingRx(v); return m.length ? 'Cần nhập đủ: ' + m.join(', ') + '.' : ''; },
+      onMount: bindIcd,
+      validate: function (v) { if (!miss.length) return ''; var m = RT.missingRx(v, true); return m.length ? 'Cần nhập đủ: ' + m.join(', ') + '.' : ''; },
       onOk: function (v) { v.id = p.id; run('contourDone', v); } });
   }
   function priorityForm(p) {
@@ -2660,25 +2847,53 @@ if (typeof module !== 'undefined') module.exports = RT;
         run('schedule', payload);
       } });
   }
+  var STEPS = [
+    ['MO_PHONG', 'Chưa mô phỏng', 'Đã có chỉ định xạ, chưa chụp CT mô phỏng.'],
+    ['CONTOUR', 'Đã mô phỏng, đang contour', 'Đã chụp CT mô phỏng, bác sĩ đang vẽ thể tích.'],
+    ['CHO_KH', 'Đã contour xong, chờ lập kế hoạch', 'Vào ngay hàng đợi của kỹ sư. Cần đủ mã ICD-10, chẩn đoán, kỹ thuật, liều, số buổi.'],
+    ['CHO_XA', 'Đã có kế hoạch, chờ vào xạ', 'Dùng khi bắt đầu dùng ứng dụng với BN đã lập KH xong.'],
+    ['DANG_XA', 'Đang xạ dở', 'BN đã xạ một số buổi trước khi dùng ứng dụng.']
+  ];
+  /** Các đợt xạ khác cùng mã HIS: đang có trên trang chính + chỉ mục lưu trữ */
+  function hisMatches(ma, exceptId) {
+    if (!ma) return [];
+    var seen = {}, out = [];
+    pts().forEach(function (x) { if (x.ma_his === ma && x.id !== exceptId && x.trang_thai !== 'HUY') { seen[x.id] = 1; out.push(x); } });
+    (S.hisCache[ma] || []).forEach(function (x) { if (!seen[x.id] && x.id !== exceptId && x.trang_thai !== 'HUY') out.push(x); });
+    return out;
+  }
+  function lookupHis(ma) {
+    if (!ma || ma in S.hisCache) return Promise.resolve();
+    return call('lookupHis', { ma_his: ma }).then(function (r) { S.hisCache[ma] = r.his || []; }, function () { S.hisCache[ma] = []; });
+  }
   function patientForm(p, prefill) {
     var isNew = !p, d = S.data.dm, v0 = p || prefill || { bs_email: isDoctor(me()) ? (me().tro_ly_cho || me().email) : '', khoa: d.KHOA[0], uu_tien: 'Thường', igrt: 'Không', sgrt: 'Không' };
     var mucDich = d.MUC_DICH || RT.DEFAULT_DM.MUC_DICH;
     var bsList = doctors().map(function (u) { return { v: u.email, l: u.ho_ten }; });
     var inp = function (name, type, attrs) { return '<input type="' + (type || 'text') + '" name="' + name + '" value="' + esc(v0[name] || '') + '" ' + (attrs || '') + '>'; };
+    var exceptId = p ? p.id : '';
     modal({
       title: prefill ? 'Đợt xạ mới · ' + prefill.ho_ten : isNew ? 'Thêm bệnh nhân' : 'Sửa thông tin bệnh nhân', ok: prefill ? 'Tạo đợt xạ mới' : isNew ? 'Thêm bệnh nhân' : 'Lưu thay đổi',
       body: (isNew && !isDoctor(me()) ? '<div class="confirm" style="cursor:default;font-weight:500">Nhập theo <b>&nbsp;phiếu chỉ định của bác sĩ</b>. Chọn đúng bác sĩ điều trị; bác sĩ sẽ thấy BN trong danh sách của mình và sửa được nếu cần.</div>' : '') +
         '<div class="form">' +
         field('Mã BN trên HIS <span class="req">*</span>', inp('ma_his', 'text', 'inputmode="numeric" autocomplete="off"'), '', 'Dùng để tra cứu, khớp với HIS') +
         field('Họ và tên <span class="req">*</span>', inp('ho_ten')) +
+        '<div class="full his-note" id="his-note" hidden></div>' +
         field('Năm sinh hoặc tuổi <span class="req">*</span>', inp('nam_sinh', 'number', 'min="0" max="2100" placeholder="VD: 1965 hoặc 61"')) +
         field('Giới', '<select name="gioi">' + opts(['Nam', 'Nữ'], v0.gioi, '—') + '</select>') +
-        '<div class="full sec-lb">Phần chuyên môn <span class="muted">· có thể để trống khi BN đang chờ mô phỏng / đang contour; bác sĩ bổ sung lúc contour xong</span></div>' +
+        (isNew ? field('Bước hiện tại của bệnh nhân <span class="req">*</span>', '<select name="trang_thai" id="step-sel">' + opts(STEPS.map(function (x) { return { v: x[0], l: x[1] }; }), '', 'Chọn bước…') + '</select>', 'full', '<span id="step-help">Bấm để chọn: chưa mô phỏng, đang contour, chờ lập KH…</span>') +
+          '<div class="field" data-for="MO_PHONG"><label>Hẹn mô phỏng (nếu có)</label><input type="date" name="ngay_mo_phong"></div>' +
+          '<div class="field" data-for="CHO_XA">' + '<label>Ngày xạ dự kiến</label><input type="date" name="ngay_du_kien"></div>' +
+          '<div class="field" data-for="DANG_XA"><label>Ngày bắt đầu xạ <span class="req">*</span></label><input type="date" name="ngay_bat_dau" max="' + today() + '"></div>' +
+          '<div class="field" data-for="DANG_XA"><label>Số buổi đã xạ <span class="req">*</span></label><input type="number" name="da_xa" min="1" step="1"><span class="help">Tính cả buổi hôm nay nếu đã xạ</span></div>' +
+          '<div class="field" data-for="CHO_XA DANG_XA"><label>Lịch trong tuần</label><select name="ngay_nghi_tuan">' + opts([{ v: '', l: 'Thứ 2 → Thứ 6' }].concat([1, 2, 3, 4, 5].map(function (i) { return { v: i, l: 'Thứ 2 → Thứ 7, nghỉ ' + RT.DOW[i] }; })), '') + '</select></div>' : '') +
+        field('Bác sĩ điều trị <span class="req">*</span>', '<select name="bs_email">' + opts(bsList, v0.bs_email, 'Chọn bác sĩ') + '</select>') +
+        field('Khoa', '<select name="khoa">' + opts(d.KHOA, v0.khoa) + '</select>') +
+        '<details class="full more"' + (isNew ? '' : ' open') + ' id="more"><summary>' + (isNew ? 'Thông tin thêm' : 'Thông tin chuyên môn') + ' <span class="muted" id="more-lb">' + (isNew ? '(không bắt buộc ở bước này)' : '') + '</span></summary><div class="form">' +
+        icdField(v0.icd, false) +
         field('Chẩn đoán <span class="req rx-req">*</span>', inp('chan_doan', 'text', 'placeholder="VD: K phổi di căn não, xương"'), 'full') +
         field('Vị trí xạ', inp('vi_tri', 'text', 'list="dl-vitri" autocomplete="off" placeholder="Chọn hoặc gõ, VD: Cột sống L2–L4"') + '<datalist id="dl-vitri">' + (d.VI_TRI || RT.DEFAULT_DM.VI_TRI).map(function (x) { return '<option value="' + esc(x) + '"></option>'; }).join('') + '</datalist>', '', 'Bấm vào ô để chọn, hoặc gõ vị trí khác') +
         field('Mục đích', '<select name="muc_dich">' + opts(mucDich, v0.muc_dich, '—') + '</select>') +
-        field('Khoa', '<select name="khoa">' + opts(d.KHOA, v0.khoa) + '</select>') +
-        field('Bác sĩ điều trị <span class="req">*</span>', '<select name="bs_email">' + opts(bsList, v0.bs_email, 'Chọn bác sĩ') + '</select>') +
         field('Kỹ thuật <span class="req rx-req">*</span>', '<select name="ky_thuat">' + opts(d.KY_THUAT, v0.ky_thuat, 'Chọn kỹ thuật') + '</select>') +
         field('Ưu tiên', '<select name="uu_tien">' + opts(d.UU_TIEN, v0.uu_tien) + '</select>') +
         field('Tổng liều (Gy) <span class="req rx-req">*</span>', inp('tong_lieu', 'number', 'step="0.01" min="0"')) +
@@ -2691,42 +2906,68 @@ if (typeof module !== 'undefined') module.exports = RT;
           '<div class="field" data-boost><label>Kỹ thuật boost</label><select name="b_ky_thuat">' + opts(d.KY_THUAT, '', 'Chọn') + '</select></div>' +
           '<div class="field" data-boost><label>Liều boost (Gy) / số buổi</label><div style="display:flex;gap:6px"><input type="number" step="0.01" name="b_tong_lieu" placeholder="Gy" aria-label="Liều boost"><input type="number" step="1" name="b_so_buoi" placeholder="buổi" aria-label="Số buổi boost"></div></div>' +
           '<div class="field full" data-boost><span class="lb">Kế hoạch boost</span><div class="radios">' + BOOST_KINDS.map(function (k, i) { return '<label><input type="radio" name="b_buoc" value="' + k[0] + '"' + (i === 0 ? ' checked' : '') + '><span><b>' + k[1] + '</b><small>' + k[2] + '</small></span></label>'; }).join('') + '</div></div>' : '') +
-        (isNew ? '<div class="field full"><span class="lb">Bước hiện tại của bệnh nhân <span class="req">*</span></span><div class="radios">' +
-          '<label><input type="radio" name="trang_thai" value="MO_PHONG"><span><b>Chưa mô phỏng</b><small>Đã có chỉ định xạ, chưa chụp CT mô phỏng</small></span></label>' +
-          '<label><input type="radio" name="trang_thai" value="CONTOUR"><span><b>Đã mô phỏng, đang contour</b><small>Đã chụp CT mô phỏng, bác sĩ đang vẽ thể tích</small></span></label>' +
-          '<label><input type="radio" name="trang_thai" value="CHO_KH"><span><b>Đã contour xong</b><small>Chuyển ngay vào hàng đợi lập kế hoạch của kỹ sư</small></span></label>' +
-          '<label><input type="radio" name="trang_thai" value="CHO_XA"><span><b>Đã có kế hoạch, chờ vào xạ</b><small>Dùng khi bắt đầu dùng ứng dụng với BN đã lập KH xong</small></span></label>' +
-          '<label><input type="radio" name="trang_thai" value="DANG_XA"><span><b>Đang xạ dở</b><small>BN đã xạ một số buổi trước khi dùng ứng dụng</small></span></label></div></div>' +
-          '<div class="field" data-for="MO_PHONG"><label>Hẹn mô phỏng (nếu có)</label><input type="date" name="ngay_mo_phong"></div>' +
-          '<div class="field" data-for="CHO_XA">' + '<label>Ngày xạ dự kiến</label><input type="date" name="ngay_du_kien"></div>' +
-          '<div class="field" data-for="DANG_XA"><label>Ngày bắt đầu xạ <span class="req">*</span></label><input type="date" name="ngay_bat_dau" max="' + today() + '"></div>' +
-          '<div class="field" data-for="DANG_XA"><label>Số buổi đã xạ <span class="req">*</span></label><input type="number" name="da_xa" min="1" step="1"><span class="help">Tính cả buổi hôm nay nếu đã xạ</span></div>' +
-          '<div class="field" data-for="CHO_XA DANG_XA"><label>Lịch trong tuần</label><select name="ngay_nghi_tuan">' + opts([{ v: '', l: 'Thứ 2 → Thứ 6' }].concat([1, 2, 3, 4, 5].map(function (i) { return { v: i, l: 'Thứ 2 → Thứ 7, nghỉ ' + RT.DOW[i] }; })), '') + '</select></div>' : '') +
-        '</div>',
+        '</div></details></div>',
       onMount: function (form) {
         var upd = function () { var v = formValues(form), n = RT.num(v.so_buoi), t = RT.num(v.tong_lieu); $('#dpf', form).textContent = n && t ? '= ' + (Math.round(t / n * 100) / 100) + ' Gy/buổi' : ''; };
         $$('input', form).forEach(function (el) { el.addEventListener('input', upd); }); upd();
+        bindIcd(form);
+        var cb = $('#co-boost', form), more = $('#more', form);
         var step = function () {
           var st = (formValues(form).trang_thai) || '';
-          var early = isNew ? (st === 'MO_PHONG' || st === 'CONTOUR') : ['MO_PHONG', 'CONTOUR'].indexOf(p.trang_thai) >= 0;
+          var early = isNew ? (st === 'MO_PHONG' || st === 'CONTOUR' || !st) && !(cb && cb.checked) : ['MO_PHONG', 'CONTOUR'].indexOf(p.trang_thai) >= 0;
           $$('.rx-req', form).forEach(function (el) { el.hidden = early; });
+          $$('.icd-req', form).forEach(function (el) { el.hidden = !(isNew && st === 'CHO_KH'); });
           $$('[data-for]', form).forEach(function (el) { el.hidden = !isNew || el.dataset.for.split(' ').indexOf(st) < 0; });
+          var hs = STEPS.filter(function (x) { return x[0] === st; })[0];
+          if ($('#step-help', form)) $('#step-help', form).textContent = hs ? hs[2] : 'Bấm để chọn: chưa mô phỏng, đang contour, chờ lập KH…';
+          if (isNew) {
+            $('#more-lb', form).textContent = early ? '(không bắt buộc ở bước này)' : '(bắt buộc ở bước này' + (st === 'CHO_KH' ? ': mã ICD-10, ' : ': ') + 'chẩn đoán, kỹ thuật, liều, số buổi)';
+            if (!early) more.open = true;
+          }
         };
-        $$('input[name=trang_thai]', form).forEach(function (el) { el.addEventListener('change', step); }); step();
-        var cb = $('#co-boost', form);
-        var bt = function () { $$('[data-boost]', form).forEach(function (el) { el.hidden = !cb || !cb.checked; }); };
+        if ($('#step-sel', form)) $('#step-sel', form).addEventListener('change', step);
+        var bt = function () { $$('[data-boost]', form).forEach(function (el) { el.hidden = !cb || !cb.checked; }); step(); };
         if (cb) cb.addEventListener('change', bt); bt();
+        // Tra mã HIS: các đợt xạ trước (kể cả đã lưu trữ), cảnh báo khác tên
+        var his = $('input[name=ma_his]', form), nameEl = $('input[name=ho_ten]', form), note = $('#his-note', form);
+        var show = function () {
+          var ma = his.value.trim();
+          if (!ma || (!isNew && ma === p.ma_his && RT.fold(nameEl.value) === RT.fold(p.ho_ten))) { note.hidden = true; return; }
+          var list = hisMatches(ma, exceptId);
+          if (!list.length) { note.hidden = true; return; }
+          var diff = nameEl.value.trim() && list.filter(function (x) { return RT.fold(x.ho_ten) !== RT.fold(nameEl.value); })[0];
+          var cur = list[0];
+          note.className = 'full his-note' + (diff ? ' bad' : '');
+          note.innerHTML = (diff ? '<b>Cảnh báo: mã HIS này đã dùng cho bệnh nhân tên “' + esc(diff.ho_ten) + '”</b>, khác tên đang nhập. Kiểm tra lại mã HIS trước khi lưu.<br>' : '') +
+            'Mã HIS <b class="mono">' + esc(ma) + '</b> đã có ' + list.length + ' đợt xạ:<ul>' + list.slice(0, 6).map(function (x) {
+              return '<li><span class="mono">' + esc(x.id) + '</span> · ' + esc(x.ho_ten) + (x.nam_sinh ? ' (' + esc(x.nam_sinh) + ')' : '') + ' · ' + esc(x.vi_tri || x.chan_doan || '—') +
+                ' · <b>' + esc(RT.STATUS[x.trang_thai] || x.trang_thai) + '</b>' + (x.ngay_bat_dau ? ' · xạ từ ' + fdy(x.ngay_bat_dau) : '') + (x.luu_tru === 'Có' || x._arch ? ' · <i>lưu trữ</i>' : '') + '</li>';
+            }).join('') + '</ul>' +
+            (isNew && !nameEl.value.trim() ? '<button type="button" class="btn sm" id="his-fill">Điền họ tên, năm sinh, giới từ đợt trước</button>' : '');
+          note.hidden = false;
+          var fb = $('#his-fill', note);
+          if (fb) fb.onclick = function () {
+            nameEl.value = cur.ho_ten || ''; $('input[name=nam_sinh]', form).value = cur.nam_sinh || '';
+            if (cur.gioi) $('select[name=gioi]', form).value = cur.gioi;
+            show();
+          };
+        };
+        var look = function () { var ma = his.value.trim(); lookupHis(ma).then(function () { if (his.value.trim() === ma) show(); }); show(); };
+        his.addEventListener('change', look);
+        nameEl.addEventListener('change', show);
+        if (his.value) look();
       },
       validate: function (v) {
         if (!v.ma_his) return 'Cần nhập mã BN trên HIS.';
         if (!v.ho_ten) return 'Cần nhập họ tên.';
         if (!v.nam_sinh) return 'Cần nhập năm sinh hoặc tuổi.';
-        if (!v.bs_email) return 'Cần chọn bác sĩ điều trị.';
         if (isNew && !v.trang_thai) return 'Cần chọn bước hiện tại của bệnh nhân (chưa mô phỏng, đang contour…).';
+        if (!v.bs_email) return 'Cần chọn bác sĩ điều trị.';
+        if (v.icd && !RT.isIcd(RT.normIcd(v.icd))) return 'Mã ICD-10 chưa đúng dạng (VD: C50.9).';
         var early = isNew ? (!v.trang_thai || v.trang_thai === 'MO_PHONG' || v.trang_thai === 'CONTOUR') && !v.co_boost : ['MO_PHONG', 'CONTOUR'].indexOf(p.trang_thai) >= 0;
         if (!early) {
-          var miss = RT.missingRx(v);
-          if (miss.length) return 'Ở bước này cần nhập đủ phần chuyên môn: ' + miss.join(', ') + '.';
+          var miss = RT.missingRx(v, isNew && v.trang_thai === 'CHO_KH');
+          if (miss.length) return 'Ở bước này cần nhập đủ: ' + miss.join(', ') + '.';
         }
         if (v.co_boost) {
           if (!v.b_ky_thuat) return 'Chọn kỹ thuật boost.';
@@ -2741,17 +2982,30 @@ if (typeof module !== 'undefined') module.exports = RT;
         return '';
       },
       onOk: function (v) {
-        if (!isNew) { v.id = p.id; return run('updatePatient', v); }
-        if (v.co_boost) v.boost = { ky_thuat: v.b_ky_thuat, tong_lieu: v.b_tong_lieu, so_buoi: v.b_so_buoi, buoc: v.b_buoc };
-        ['co_boost', 'b_ky_thuat', 'b_tong_lieu', 'b_so_buoi', 'b_buoc'].forEach(function (k) { v[k] = undefined; });
-        if (prefill && prefill._force) v.force = true;
-        run('createPatient', v, function (e) {
-          if (String(e.error).indexOf('DUP_HIS:') === 0) {
-            modal({ title: 'Mã HIS đã có đợt xạ đang hoạt động', body: '<p>Mã HIS <b class="mono">' + esc(v.ma_his) + '</b> đang có đợt xạ: <b>' + esc(e.error.slice(8)) + '</b>.</p><p>Chỉ tạo thêm nếu đây là một đợt xạ mới của cùng bệnh nhân (VD: xạ vị trí khác).</p>',
-              ok: 'Vẫn tạo đợt mới', btnClass: 'danger', onOk: function () { v.force = true; run('createPatient', v); } });
-            return true;
-          }
-        });
+        if (v.icd) v.icd = RT.normIcd(v.icd);
+        if (isNew) {
+          if (v.co_boost) v.boost = { ky_thuat: v.b_ky_thuat, tong_lieu: v.b_tong_lieu, so_buoi: v.b_so_buoi, buoc: v.b_buoc };
+          ['co_boost', 'b_ky_thuat', 'b_tong_lieu', 'b_so_buoi', 'b_buoc'].forEach(function (k) { v[k] = undefined; });
+          if (prefill && prefill._force) v.force = true;
+        } else v.id = p.id;
+        var action = isNew ? 'createPatient' : 'updatePatient';
+        var send = function () {
+          run(action, v, function (e) {
+            var m = String(e.error);
+            if (m.indexOf('DUP_HIS:') === 0) {
+              modal({ title: 'Mã HIS đã có đợt xạ đang hoạt động', body: '<p>Mã HIS <b class="mono">' + esc(v.ma_his) + '</b> đang có đợt xạ: <b>' + esc(m.slice(8)) + '</b>.</p><p>Chỉ tạo thêm nếu đây là một đợt xạ mới của cùng bệnh nhân (VD: xạ vị trí khác).</p>',
+                ok: 'Vẫn tạo đợt mới', btnClass: 'danger', onOk: function () { v.force = true; send(); } });
+              return true;
+            }
+            if (m.indexOf('HIS_NAME:') === 0) {
+              modal({ title: 'Mã HIS đã dùng cho bệnh nhân khác tên', body: '<p>Mã HIS <b class="mono">' + esc(v.ma_his) + '</b> đã có trong hệ thống với tên <b>' + esc(m.slice(9)) + '</b>, khác tên đang nhập <b>' + esc(v.ho_ten) + '</b>.</p>' +
+                '<p>Thường do gõ nhầm mã HIS. Bấm <b>Huỷ</b> để sửa lại. Chỉ lưu nếu chắc chắn đúng (VD: đã đổi tên, tên cũ nhập sai).</p>',
+                ok: 'Vẫn lưu', btnClass: 'danger', onOk: function () { v.force_name = true; send(); } });
+              return true;
+            }
+          });
+        };
+        lookupHis(v.ma_his).then(send);
       }
     });
   }

@@ -317,3 +317,19 @@ td.rs-today .rs-cell{border-color:var(--accent-2)}
 .me-mail{color:var(--muted);font-size:12px}
 .me-switch{color:var(--accent);font-weight:600;font-size:12.5px;white-space:nowrap}
 @media (max-width:700px){ .me-mail{display:block} }
+
+/* v2.5: form thêm BN, mã ICD, cảnh báo mã HIS */
+details.more{border:1px solid var(--line);border-radius:12px;padding:0 14px;background:var(--surface-3)}
+details.more>summary{cursor:pointer;padding:12px 0;font-weight:700;color:var(--ink);list-style:revert}
+details.more[open]{padding-bottom:14px}
+details.more>.form{margin-top:4px}
+.his-note{border:1px solid var(--line);background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:13.5px;line-height:1.5}
+.his-note.bad{background:var(--crit-soft);border-color:var(--crit)}
+.his-note ul{margin:6px 0 6px 18px;padding:0}
+.icd-tag{display:inline-block;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;font-weight:700;padding:1px 6px;border-radius:6px;background:var(--accent-soft);color:var(--accent)}
+#icd-nm.icd-ok{color:var(--accent);font-weight:600}
+#icd-nm.icd-bad{color:var(--crit)}
+tr.click{cursor:pointer}
+tr.click:hover td{background:var(--accent-soft)}
+.btn.sm{padding:5px 12px;font-size:12.5px}
+.modal.wide{max-width:min(1040px,96vw);width:100%}

@@ -34,7 +34,7 @@ var RT = (function () {
       'tong_lieu', 'so_buoi', 'igrt', 'sgrt', 'uu_tien', 'trang_thai', 'ngay_tao', 'ngay_contour_xong',
       'ks_email', 'ngay_nhan_kh', 'ngay_kh_xong', 'can_qa', 'qa_ket_qua', 'ngay_qa', 'ngay_du_kien',
       'ngay_nghi_tuan', 'may', 'ngay_bat_dau', 'ngay_ket_thuc', 'tam_ngung_tu', 'ly_do_tam_ngung',
-      'ghi_chu', 'cap_nhat_luc', 'cap_nhat_boi', 'ly_do_ket_thuc', 'muc_lieu', 'vi_tri', 'muc_dich', 'ngay_mo_phong', 'nguoi_nhap'],
+      'ghi_chu', 'cap_nhat_luc', 'cap_nhat_boi', 'ly_do_ket_thuc', 'muc_lieu', 'vi_tri', 'muc_dich', 'ngay_mo_phong', 'nguoi_nhap', 'icd'],
     GiaiDoan: ['id', 'bn_id', 'stt', 'ky_thuat', 'tong_lieu', 'so_buoi', 'muc_lieu', 'trang_thai', 'di_cung',
       'uu_tien', 'ngay_tao', 'ngay_mo_phong', 'ngay_contour_xong', 'ks_email', 'ngay_nhan_kh', 'ngay_kh_xong',
       'can_qa', 'qa_ket_qua', 'ngay_qa', 'ghi_chu', 'cap_nhat_luc', 'cap_nhat_boi'],
@@ -43,6 +43,8 @@ var RT = (function () {
     LichNgoaiLe: ['id', 'bn_id', 'may', 'ngay', 'loai', 'ghi_chu', 'nguoi', 'thoi_gian', 'da_xoa'],
     NguoiDung: ['email', 'ho_ten', 'vai_tro', 'kich_hoat', 'chuc_vu', 'khoa', 'tro_ly_cho'],
     PhanCong: ['id', 'ngay', 'vi_tri', 'nhan_vien', 'ghi_chu', 'nguoi', 'thoi_gian'],
+    ChiMuc: ['id', 'ma_his', 'ho_ten', 'ten_kd', 'nam_sinh', 'khoa', 'bs_email', 'icd', 'chan_doan', 'vi_tri', 'ky_thuat', 'tong_lieu', 'so_buoi',
+      'da_xa', 'ngay_tao', 'ngay_bat_dau', 'ngay_ket_thuc', 'trang_thai', 'luu_tru', 'cap_nhat'],
     DanhMuc: ['loai', 'gia_tri'],
     NhatKy: ['thoi_gian', 'email', 'thao_tac', 'bn_id', 'chi_tiet']
   };
@@ -255,7 +257,7 @@ var RT = (function () {
   }
 
   // ---------- Thao tác ----------
-  var EDIT_FIELDS = ['ma_his', 'ho_ten', 'nam_sinh', 'gioi', 'chan_doan', 'vi_tri', 'muc_dich', 'ngay_mo_phong', 'khoa', 'bs_email', 'ky_thuat',
+  var EDIT_FIELDS = ['ma_his', 'ho_ten', 'nam_sinh', 'gioi', 'icd', 'chan_doan', 'vi_tri', 'muc_dich', 'ngay_mo_phong', 'khoa', 'bs_email', 'ky_thuat',
     'tong_lieu', 'so_buoi', 'muc_lieu', 'igrt', 'sgrt', 'uu_tien', 'may', 'ghi_chu'];
   var PHASE_FIELDS = ['ky_thuat', 'tong_lieu', 'so_buoi', 'muc_lieu', 'uu_tien', 'ngay_mo_phong', 'ghi_chu'];
 
@@ -308,6 +310,7 @@ var RT = (function () {
     if (y > 0 && y < 130 && Math.round(y) === y) p.nam_sinh = String(cur - y);   // nhập tuổi → đổi ra năm sinh
     y = num(p.nam_sinh);
     if (!(y >= 1900 && y <= cur)) fail('Cần nhập năm sinh (hoặc tuổi) của bệnh nhân.');
+    if (p.icd) { p.icd = normIcd(p.icd); if (!isIcd(p.icd)) fail('Mã ICD-10 không đúng dạng (VD: C11 hoặc C11.9).'); }
     if (p.tong_lieu !== '' && p.tong_lieu != null && !(num(p.tong_lieu) > 0)) fail('Tổng liều phải lớn hơn 0.');
     if (p.so_buoi !== '' && p.so_buoi != null) {
       var n = num(p.so_buoi);
@@ -315,21 +318,54 @@ var RT = (function () {
     }
   }
   /** Phần chuyên môn còn thiếu (cần đủ trước khi chuyển kỹ sư) */
-  function missingRx(p) {
+  function normIcd(v) { return String(v || '').trim().toUpperCase().replace(/\s+/g, '').replace(/^([A-Z]\d\d)(\d)/, '$1.$2'); }
+  function isIcd(v) { return /^[A-Z]\d\d(\.\d{1,3})?$/.test(v); }
+  var icdMap = null;
+  /** Tên bệnh theo mã ICD-10 (danh mục BYT, mã C và D). Mã con có tên ngắn thì ghép thêm tên mã cha. */
+  function icdName(v) {
+    if (typeof ICD10 === 'undefined') return '';
+    if (!icdMap) { icdMap = {}; ICD10.forEach(function (x) { icdMap[x[0]] = x[1]; }); }
+    var c = normIcd(v), n = icdMap[c];
+    if (!n) return '';
+    if (c.length > 3) {
+      var parent = icdMap[c.slice(0, 3)];
+      if (parent && !/^(u |ung thư|carcinom|sarcom|lymphom|bệnh|đa u|bạch cầu|tân sinh)/i.test(n)) n = parent + ': ' + n.charAt(0).toLowerCase() + n.slice(1);
+    }
+    return n;
+  }
+  /** Phần chuyên môn còn thiếu. needIcd: bắt buộc mã ICD (khi chuyển kỹ sư) */
+  function missingRx(p, needIcd) {
     var m = [];
+    if (needIcd && !isIcd(normIcd(p.icd))) m.push('mã ICD-10');
     if (!p.chan_doan) m.push('chẩn đoán');
     if (!p.ky_thuat) m.push('kỹ thuật');
     if (!(num(p.tong_lieu) > 0)) m.push('tổng liều');
     if (!(num(p.so_buoi) >= 1)) m.push('số buổi');
     return m;
   }
-  function validate(p, today) {
+  function validate(p, today, needIcd) {
     validateBasic(p, today);
-    var m = missingRx(p);
+    var m = missingRx(p, needIcd);
     if (m.length) fail('Cần nhập đủ phần chuyên môn: ' + m.join(', ') + '.');
     validateRx(p);
   }
-  var EARLY = ['MO_PHONG', 'CONTOUR'];   // bước được phép chưa có chỉ định chuyên môn
+  var EARLY = ['MO_PHONG', 'CONTOUR'];
+  function fold(s) { return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase().replace(/\s+/g, ' ').trim(); }
+  /** Các đợt xạ cùng mã HIS: đang có trong hệ thống + chỉ mục (gồm đợt đã lưu trữ) */
+  function hisCourses(ctx, ma, exceptId) {
+    var seen = {}, out = [];
+    ctx.patients.forEach(function (p) { if (p.ma_his === ma && p.trang_thai !== 'HUY' && p.id !== exceptId) { seen[p.id] = 1; out.push(p); } });
+    (ctx.hisLookup ? ctx.hisLookup(ma) : []).forEach(function (r) { if (!seen[r.id] && r.trang_thai !== 'HUY' && r.id !== exceptId) out.push(r); });
+    return out;
+  }
+  /** Kiểm tra mã HIS khi thêm/sửa: chặn trùng đợt đang hoạt động và trùng mã khác tên (trừ khi người dùng xác nhận) */
+  function checkHis(ctx, p, a, exceptId) {
+    var others = hisCourses(ctx, p.ma_his, exceptId);
+    var active = others.filter(function (x) { return ['HOAN_THANH', 'HUY'].indexOf(x.trang_thai) < 0 && x.luu_tru !== 'Có'; })[0];
+    if (active && !a.force) fail('DUP_HIS:' + active.ho_ten + ' (' + active.id + ', ' + (STATUS[active.trang_thai] || active.trang_thai) + ')');
+    var diff = others.filter(function (x) { return fold(x.ho_ten) !== fold(p.ho_ten); })[0];
+    if (diff && !a.force_name) fail('HIS_NAME:' + diff.ho_ten + ' (' + diff.id + ')');
+  }
   function nextId(ctx) {
     var prefix = 'XT' + ctx.today.slice(2, 4) + '-', max = ctx.idFloor ? ctx.idFloor(prefix) : 0;
     ctx.patients.forEach(function (p) {
@@ -396,10 +432,9 @@ var RT = (function () {
       if (!p.igrt) p.igrt = 'Không';
       if (!p.sgrt) p.sgrt = 'Không';
       var step0 = a.trang_thai || 'CONTOUR';
-      if (EARLY.indexOf(step0) >= 0 && !a.boost) validateBasic(p, ctx.today); else validate(p, ctx.today);
+      if (EARLY.indexOf(step0) >= 0 && !a.boost) validateBasic(p, ctx.today); else validate(p, ctx.today, step0 === 'CHO_KH');
       if (a.boost) validateRx(a.boost, ' của boost');
-      var dup = ctx.patients.filter(function (x) { return x.ma_his === p.ma_his && x.trang_thai !== 'HOAN_THANH' && x.trang_thai !== 'HUY'; })[0];
-      if (dup && !a.force) fail('DUP_HIS:' + dup.ho_ten + ' (' + dup.id + ', ' + STATUS[dup.trang_thai] + ')');
+      checkHis(ctx, p, a, '');
       var step = a.trang_thai || 'CONTOUR';
       if (['MO_PHONG', 'CONTOUR', 'CHO_KH', 'CHO_XA', 'DANG_XA'].indexOf(step) < 0) fail('Bước hiện tại không hợp lệ.');
       if (step === 'MO_PHONG' && p.ngay_mo_phong && !isDate(p.ngay_mo_phong)) fail('Ngày hẹn mô phỏng không hợp lệ.');
@@ -451,6 +486,9 @@ var RT = (function () {
       Object.keys(p).forEach(function (k) { merged[k] = p[k]; });
       Object.keys(o).forEach(function (k) { merged[k] = o[k]; });
       if (EARLY.indexOf(p.trang_thai) >= 0) validateBasic(merged, ctx.today); else validate(merged, ctx.today);
+      if (merged.icd !== (o.icd === undefined ? merged.icd : o.icd)) o.icd = merged.icd;
+      if (o.icd !== undefined) o.icd = merged.icd;
+      if ((o.ma_his !== undefined && o.ma_his !== p.ma_his) || (o.ho_ten !== undefined && fold(o.ho_ten) !== fold(p.ho_ten))) checkHis(ctx, merged, a, p.id);
       if (merged.nam_sinh !== p.nam_sinh) o.nam_sinh = merged.nam_sinh;
       var done = fxOf(p, ctx.fractions).length;
       if (num(merged.so_buoi) !== num(p.so_buoi)) {
@@ -470,11 +508,12 @@ var RT = (function () {
       var t = target(ctx, a.id);
       need(t.x, ['CONTOUR']);
       if (!t.g) {
-        var add = clean(a, ['chan_doan', 'vi_tri', 'muc_dich', 'ky_thuat', 'tong_lieu', 'so_buoi', 'muc_lieu', 'igrt', 'sgrt']);
+        var add = clean(a, ['icd', 'chan_doan', 'vi_tri', 'muc_dich', 'ky_thuat', 'tong_lieu', 'so_buoi', 'muc_lieu', 'igrt', 'sgrt']);
+        if (add.icd) add.icd = normIcd(add.icd);
         var merged = {};
         Object.keys(t.p).forEach(function (k) { merged[k] = t.p[k]; });
         Object.keys(add).forEach(function (k) { if (add[k] !== '') merged[k] = add[k]; });
-        var miss = missingRx(merged);
+        var miss = missingRx(merged, true);
         if (miss.length) fail('Chưa chuyển kỹ sư được. Cần nhập đủ: ' + miss.join(', ') + '.');
         validateRx(merged);
         Object.keys(add).forEach(function (k) { if (add[k] !== '') t.p[k] = add[k]; });
@@ -916,7 +955,7 @@ var RT = (function () {
    * Tính thống kê trong khoảng [tu, den] theo đúng phạm vi người xem.
    * data = { patients, phases, fractions, users, dm }
    */
-  function report(data, tu, den, u) {
+  function report(data, tu, den, u, detail) {
     var sc = statsScope(u);
     if (!sc) fail('Tài khoản của bạn không có quyền xem thống kê.');
     if (!isDate(tu) || !isDate(den) || tu > den) fail('Khoảng ngày không hợp lệ.');
@@ -970,6 +1009,35 @@ var RT = (function () {
         .sort(function (a, b) { return b.luot_xa - a.luot_xa; });
     };
     var out = { tu: tu, den: den, pham_vi: sc.label, tong_quan: ov };
+    // Theo mã ICD (3 ký tự) và vị trí xạ, trong đúng phạm vi tổng quan
+    var ovIds = {}; ovFx.forEach(function (f) { ovIds[f.bn_id] = (ovIds[f.bn_id] || 0) + 1; });
+    var scopePts = ovPts.length ? ovPts : Object.keys(ovIds).map(function (k) { return P[k]; });
+    var grp = function (keyOf) {
+      var m = {};
+      var add = function (p) { var k = keyOf(p); m[k] = m[k] || { ma: k, bn_bat_dau: {}, bn_xa: {}, luot_xa: 0, dot: {} }; return m[k]; };
+      scopePts.forEach(function (p) { if (inRange(p.ngay_bat_dau)) { var g = add(p); g.bn_bat_dau[p.ma_his || p.id] = 1; g.dot[p.id] = 1; } });
+      Object.keys(ovIds).forEach(function (id) { var p = P[id]; var g = add(p); g.bn_xa[p.ma_his || p.id] = 1; g.luot_xa += ovIds[id]; g.dot[id] = 1; });
+      return Object.keys(m).map(function (k) { var g = m[k]; return { ma: g.ma, bn_bat_dau: Object.keys(g.bn_bat_dau).length, bn_xa: Object.keys(g.bn_xa).length, luot_xa: g.luot_xa, so_dot: Object.keys(g.dot).length }; })
+        .sort(function (a, b) { return b.bn_xa - a.bn_xa || b.bn_bat_dau - a.bn_bat_dau; });
+    };
+    var icd3 = function (p) { var c = normIcd(p.icd); return isIcd(c) ? c.slice(0, 3) : '(chưa có ICD)'; };
+    var vtKey = function (p) { var v = String(p.vi_tri || '').trim(); return v ? v.charAt(0).toUpperCase() + v.slice(1) : '(chưa ghi vị trí)'; };
+    out.theo_icd = grp(icd3);
+    var vt = grp(function (p) { return fold(p.vi_tri) || '~'; }), label = {};
+    scopePts.concat(Object.keys(ovIds).map(function (k) { return P[k]; })).forEach(function (p) { var k = fold(p.vi_tri) || '~'; if (!label[k]) label[k] = vtKey(p); });
+    vt.forEach(function (r) { r.ma = label[r.ma] || r.ma; });
+    out.theo_vi_tri = vt;
+    if (detail && detail.loai && detail.ma) {
+      var match = detail.loai === 'icd' ? function (p) { return icd3(p) === detail.ma; } : function (p) { return vtKey(p) === detail.ma || (fold(p.vi_tri) || '~') === fold(detail.ma); };
+      var ids = {};
+      scopePts.forEach(function (p) { if (inRange(p.ngay_bat_dau) && match(p)) ids[p.id] = 1; });
+      Object.keys(ovIds).forEach(function (id) { if (match(P[id])) ids[id] = 1; });
+      out.chi_tiet = Object.keys(ids).map(function (id) {
+        var p = P[id];
+        return { id: p.id, ma_his: p.ma_his, ho_ten: p.ho_ten, nam_sinh: p.nam_sinh, icd: p.icd, chan_doan: p.chan_doan, vi_tri: p.vi_tri, ky_thuat: p.ky_thuat,
+          tong_lieu: p.tong_lieu, so_buoi: p.so_buoi, bs: name[p.bs_email] || p.bs_email, khoa: p.khoa, ngay_bat_dau: p.ngay_bat_dau, ngay_ket_thuc: p.ngay_ket_thuc, luot_trong_ky: ovIds[id] || 0 };
+      }).sort(function (a, b) { return (a.ngay_bat_dau || '9') < (b.ngay_bat_dau || '9') ? -1 : 1; });
+    }
     // Theo bác sĩ: trưởng khoa / ĐD trưởng / tài khoản khoa / quản trị thấy cả khoa; bác sĩ chỉ thấy dòng của mình
     if (sc.byDoctor) out.theo_bac_si = rows(function (f) { return P[f.bn_id].bs_email; }, function (f) { return inKhoa(P[f.bn_id]); });
     else if (u.vai_tro === 'BS') out.theo_bac_si = rows(function (f) { return P[f.bn_id].bs_email; }, function (f, k) { return myDoctors(u).indexOf(k) >= 0; });
@@ -988,6 +1056,22 @@ var RT = (function () {
       out.theo_ky_su = Object.keys(m).map(function (k) { return m[k]; }).sort(function (a, b) { return b.ke_hoach - a.ke_hoach; });
     }
     return out;
+  }
+  /** Dòng chỉ mục (tra cứu nhanh) của một đợt xạ */
+  function indexRow(p, fractions, phases, luuTru) {
+    var env = makeEnv('', [], [], phases || [], '');
+    var o = {};
+    COLS.ChiMuc.forEach(function (c) { o[c] = ''; });
+    ['id', 'ma_his', 'ho_ten', 'nam_sinh', 'khoa', 'bs_email', 'icd', 'chan_doan', 'vi_tri', 'ky_thuat', 'tong_lieu', 'so_buoi', 'ngay_tao', 'ngay_bat_dau', 'ngay_ket_thuc', 'trang_thai']
+      .forEach(function (k) { o[k] = p[k] == null ? '' : String(p[k]); });
+    o.ten_kd = fold(p.ho_ten);
+    var segs = segments(p, env);
+    o.so_buoi = String(segs[segs.length - 1].to);
+    o.tong_lieu = String(round2(segs.reduce(function (s, x) { return s + x.tong_lieu; }, 0)));
+    o.da_xa = String(fxOf(p, fractions || []).length);
+    o.luu_tru = luuTru ? 'Có' : '';
+    o.cap_nhat = p.cap_nhat_luc || '';
+    return o;
   }
   /** Phân công gửi kèm: từ tuần trước tới 4 tuần sau (xa hơn thì tải riêng) */
   function rosterWindow(rows, today) {
@@ -1008,7 +1092,8 @@ var RT = (function () {
   }
 
   return {
-    VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, report: report, staffKhoa: staffKhoa, myDoctors: myDoctors, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
+    VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, report: report, staffKhoa: staffKhoa, myDoctors: myDoctors,
+    normIcd: normIcd, isIcd: isIcd, icdName: icdName, fold: fold, indexRow: indexRow, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,

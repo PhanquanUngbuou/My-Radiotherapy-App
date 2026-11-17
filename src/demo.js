@@ -37,6 +37,18 @@ window.DEMO = (function () {
   function wdAgo(n) { var s = today, c = 0; while (c < n) { s = RT.addDays(s, -1); if (RT.dow(s) >= 1 && RT.dow(s) <= 5) c++; } return s; }
   function fwd(n) { var s = today, c = 0; while (c < n) { s = RT.addDays(s, 1); if (RT.dow(s) >= 1 && RT.dow(s) <= 5) c++; } return s; }
 
+  // Mã ICD-10 và vị trí xạ cho dữ liệu giả, suy từ chẩn đoán
+  var DX = [[/vòm họng/i, 'C11.9', 'Vòm họng'], [/cổ tử cung/i, 'C53.9', 'Tiểu khung'], [/nội mạc tử cung/i, 'C54.1', 'Tiểu khung'],
+    [/di căn não/i, 'C79.3', 'Não (toàn não)'], [/di căn (xương|cột sống)/i, 'C79.5', 'Cột sống'], [/phổi/i, 'C34.9', 'Lồng ngực'],
+    [/vú trái/i, 'C50.9', 'Vú trái'], [/vú phải/i, 'C50.9', 'Vú phải'], [/tiền liệt/i, 'C61', 'Tiểu khung'], [/trực tràng/i, 'C20', 'Tiểu khung'],
+    [/thực quản/i, 'C15.9', 'Lồng ngực'], [/hạ họng/i, 'C13.9', 'Đầu cổ'], [/thanh quản/i, 'C32.9', 'Đầu cổ'], [/tuyến giáp/i, 'C73', 'Đầu cổ'],
+    [/amidan/i, 'C09.9', 'Đầu cổ'], [/lưỡi/i, 'C02.9', 'Đầu cổ'], [/bàng quang/i, 'C67.9', 'Tiểu khung']];
+  function demoIcd(p) {
+    var m = DX.filter(function (x) { return x[0].test(p.chan_doan); })[0];
+    if (!m) return;
+    if (['MO_PHONG', 'CONTOUR'].indexOf(p.trang_thai) < 0) p.icd = m[1];
+    if (!p.vi_tri) p.vi_tri = m[2];
+  }
   function mk(o) {
     seq++;
     var p = {};
@@ -46,6 +58,7 @@ window.DEMO = (function () {
     p.khoa = 'Xạ trị theo yêu cầu'; p.may = 'Máy gia tốc 1'; p.uu_tien = 'Thường'; p.igrt = 'Không'; p.sgrt = 'Không';
     p.bs_email = 'bs.hai@demo';
     Object.keys(o).forEach(function (k) { p[k] = o[k]; });
+    if (p.chan_doan && !p.icd) demoIcd(p);
     patients.push(p);
     return p;
   }
@@ -184,9 +197,11 @@ window.DEMO = (function () {
       archive.fractions.push(f);
     }
     old.ngay_bat_dau = st; old.ngay_ket_thuc = archive.fractions[34].ngay; old.ngay_tao = RT.addDays(st, -14);
+    demoIcd(old);
     archive.patients.push(old);
   })();
 
+  function archIdx() { return archive.patients.map(function (p) { return RT.indexRow(p, archive.fractions, archive.phases, true); }); }
   function ctx() {
     var u = users.filter(function (x) { return x.email === current; })[0];
     var t = new Date();
@@ -196,6 +211,7 @@ window.DEMO = (function () {
       saveRoster: function () {},
       savePatient: function () {}, addFraction: function () {}, updateFraction: function () {}, savePhase: function () {}, saveEx: function () {},
       idFloor: function () { return 1; },
+      hisLookup: function (ma) { return archIdx().filter(function (r) { return r.ma_his === ma; }); },
       saveUser: function () {}, addDmRow: function () {}, removeDmRow: function () {},
       log: function (a, id, d) { logs.unshift({ thoi_gian: today + 'T' + pad(t.getHours()) + ':' + pad(t.getMinutes()) + ':' + pad(t.getSeconds()), email: current, thao_tac: a, bn_id: id || '', chi_tiet: d || '' }); }
     };
@@ -209,15 +225,21 @@ window.DEMO = (function () {
       } else if (action === 'searchArchive') {
         var q = String(payload.q || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').toLowerCase();
         var f = function (x) { return String(x).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').toLowerCase(); };
-        var ps = archive.patients.filter(function (p) { return q.length >= 2 && (f(p.ma_his).indexOf(q) >= 0 || f(p.ho_ten).indexOf(q) >= 0); });
-        var ids = ps.map(function (p) { return p.id; });
-        return JSON.stringify({ ok: true, archive: { patients: ps, phases: [], fractions: archive.fractions.filter(function (x) { return ids.indexOf(x.bn_id) >= 0; }) } });
+        var ps = archIdx().filter(function (p) { return q.length >= 2 && (f(p.ma_his).indexOf(q) >= 0 || f(p.ho_ten).indexOf(q) >= 0); });
+        ps.forEach(function (p) { p._idx = true; });
+        return JSON.stringify({ ok: true, archive: { patients: ps, phases: [], fractions: [] } });
+      } else if (action === 'lookupHis') {
+        return JSON.stringify({ ok: true, his: archIdx().filter(function (r) { return r.ma_his === String(payload.ma_his || '').trim(); }) });
+      } else if (action === 'archiveCourse') {
+        var ap = archive.patients.filter(function (p) { return p.id === payload.id; });
+        if (!ap.length) throw new Error('Không tìm thấy đợt xạ trong lưu trữ.');
+        return JSON.stringify({ ok: true, course: { patients: JSON.parse(JSON.stringify(ap)), phases: archive.phases.filter(function (g) { return g.bn_id === payload.id; }), fractions: archive.fractions.filter(function (x) { return x.bn_id === payload.id; }) } });
       } else if (action === 'rev') {
         return JSON.stringify({ ok: true, rev: String(rev) });
       } else if (action === 'getRoster') {
         return JSON.stringify({ ok: true, data: RT.view(c), roster: roster.filter(function (r) { return r.ngay >= payload.tu && r.ngay <= payload.den; }), rev: String(rev) });
       } else if (action === 'report') {
-        return JSON.stringify({ ok: true, report: RT.report({ patients: patients, phases: phases, fractions: fractions, users: users, dm: dm }, payload.tu, payload.den, c.user) });
+        return JSON.stringify({ ok: true, report: RT.report({ patients: patients, phases: phases, fractions: fractions, users: users, dm: dm }, payload.tu, payload.den, c.user, payload.chi_tiet) });
       } else if (action === 'exportReport') {
         throw new Error('Bản demo không tạo được trang báo cáo. Bản thật sẽ ghi ra Google Sheet.');
       } else if (action === 'getLog') {

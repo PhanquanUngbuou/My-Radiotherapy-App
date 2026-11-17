@@ -7,7 +7,7 @@
  */
 
 var TZ = 'Asia/Ho_Chi_Minh';
-var SHEET_NAMES = { BN: 'BenhNhan', GD: 'GiaiDoan', BUOI: 'BuoiXa', LICH: 'LichNgoaiLe', PC: 'PhanCong', USER: 'NguoiDung', DM: 'DanhMuc', LOG: 'NhatKy' };
+var SHEET_NAMES = { BN: 'BenhNhan', GD: 'GiaiDoan', BUOI: 'BuoiXa', LICH: 'LichNgoaiLe', PC: 'PhanCong', IDX: 'ChiMuc', USER: 'NguoiDung', DM: 'DanhMuc', LOG: 'NhatKy' };
 // Trang tính lưu trữ: đợt xạ đã kết thúc quá ARCHIVE_DAYS ngày được chuyển sang đây mỗi đêm
 var ARCHIVE = { BenhNhan: 'LuuTru_BenhNhan', GiaiDoan: 'LuuTru_GiaiDoan', BuoiXa: 'LuuTru_BuoiXa', LichNgoaiLe: 'LuuTru_LichNgoaiLe' };
 var ARCHIVE_DAYS = 60;
@@ -70,6 +70,8 @@ function setup() {
     if (!has) ScriptApp.newTrigger('archiveOld').timeBased().everyDays(1).atHour(1).inTimezone(TZ).create();
   }
 
+  if (ss.getSheetByName(SHEET_NAMES.IDX).getLastRow() <= 1) buildIndex_();
+
   var def = ss.getSheetByName('Sheet1') || ss.getSheetByName('Trang tính1');
   if (def && def.getLastRow() === 0 && ss.getSheets().length > 1) ss.deleteSheet(def);
   return 'Đã cài đặt xong.';
@@ -82,7 +84,8 @@ function api(action, payload) {
     // Kiểm tra nhanh có thay đổi không (không đọc Google Sheet) để giao diện biết khi nào cần tải lại
     if (action === 'rev') return JSON.stringify({ ok: true, rev: PropertiesService.getScriptProperties().getProperty('REV') || '0' });
     if (action === 'searchArchive') return JSON.stringify(searchArchive_(payload || {}));
-    if (action !== 'bootstrap' && action !== 'getLog' && action !== 'getRoster' && action !== 'report') {
+    var READ_ONLY = { bootstrap: 1, getLog: 1, getRoster: 1, report: 1, lookupHis: 1, archiveCourse: 1 };
+    if (!READ_ONLY[action]) {
       lock = LockService.getScriptLock();
       lock.waitLock(30000);
     }
@@ -91,6 +94,10 @@ function api(action, payload) {
     if (action === 'getLog') {
       if (ctx.user.vai_tro !== 'ADMIN' && !RT.isLead(ctx.user)) throw new Error('Chỉ quản trị và trưởng khoa/phòng xem được nhật ký.');
       extra.log = readLog_(300);
+    } else if (action === 'lookupHis') {
+      extra.his = ctx.hisLookup(String((payload || {}).ma_his || '').trim()).map(stripRow_);
+    } else if (action === 'archiveCourse') {
+      extra.course = archiveCourse_(String((payload || {}).id || ''));
     } else if (action === 'report' || action === 'exportReport') {
       var p0 = payload || {};
       var data = { patients: ctx.patients, phases: ctx.phases, fractions: ctx.fractions, users: ctx.users, dm: ctx.dm };
@@ -99,9 +106,9 @@ function api(action, payload) {
         var ss2 = ss_();
         data.patients = data.patients.concat(readTable_(ss2, ARCHIVE.BenhNhan).rows);
         data.phases = data.phases.concat(readTable_(ss2, ARCHIVE.GiaiDoan).rows);
-        data.fractions = data.fractions.concat(readTable_(ss2, ARCHIVE.BuoiXa).rows);
+        data.fractions = data.fractions.concat(readArchiveFx_(ss2, p0.tu, p0.den));
       }
-      extra.report = RT.report(data, p0.tu, p0.den, ctx.user);
+      extra.report = RT.report(data, p0.tu, p0.den, ctx.user, p0.chi_tiet);
       if (action === 'exportReport') extra.sheet = writeReport_(extra.report, ctx.user);
     } else if (action === 'getRoster') {
       var a0 = (payload || {}).tu, b0 = (payload || {}).den;
@@ -111,7 +118,7 @@ function api(action, payload) {
       SpreadsheetApp.flush();
       PropertiesService.getScriptProperties().setProperty('REV', String(Date.now()));
     }
-    return JSON.stringify({ ok: true, msg: msg, data: RT.view(ctx), log: extra.log, roster: extra.roster, report: extra.report, sheet: extra.sheet, rev: PropertiesService.getScriptProperties().getProperty('REV') || '0' });
+    return JSON.stringify({ ok: true, msg: msg, data: RT.view(ctx), log: extra.log, roster: extra.roster, report: extra.report, sheet: extra.sheet, his: extra.his, course: extra.course, rev: PropertiesService.getScriptProperties().getProperty('REV') || '0' });
   } catch (e) {
     return JSON.stringify({ ok: false, error: String(e && e.message || e) });
   } finally {
@@ -211,7 +218,7 @@ function buildCtx_() {
   };
 
   var now = Utilities.formatDate(new Date(), TZ, "yyyy-MM-dd'T'HH:mm:ss");
-  return {
+  var ctx = {
     user: user,
     today: Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd'),
     now: now,
@@ -225,8 +232,9 @@ function buildCtx_() {
     roster: tPC.rows,
     saveRoster: function (r) { writeRow_(tPC, r); },
     idFloor: function (prefix) { return parseInt(props.getProperty('ID_FLOOR_' + prefix) || '0', 10); },
-    savePatient: function (p) { writeRow_(tBN, p); },
-    savePhase: function (g) { writeRow_(tGD, g); },
+    savePatient: function (p) { writeRow_(tBN, p); upsertIdx(p); },
+    savePhase: function (g) { writeRow_(tGD, g); var p = tBN.rows.filter(function (x) { return x.id === g.bn_id; })[0]; if (p) upsertIdx(p); },
+    hisLookup: function (ma) { if (!ma) return []; idx(); return tIdx.rows.filter(function (r) { return r.ma_his === ma; }); },
     saveEx: function (e) { writeRow_(tLich, e); },
     saveUser: function (u) { writeRow_(tU, u); },
     addDmRow: function (loai, v) { if (fromDefault[loai]) return materialize(loai); writeRow_(tDM, { loai: loai, gia_tri: v }); },
@@ -246,6 +254,22 @@ function buildCtx_() {
       }
     }
   };
+  // Chỉ mục: chỉ đọc khi cần (khi lưu đợt xạ hoặc tra mã HIS)
+  var tIdx = null, idxMap = null;
+  function idx() {
+    if (tIdx) return;
+    tIdx = readTable_(ss, SHEET_NAMES.IDX); idxMap = {};
+    tIdx.rows.forEach(function (r) { idxMap[r.id] = r; });
+  }
+  function upsertIdx(p) {
+    idx();
+    var row = RT.indexRow(p, ctx.fractions, ctx.phases, false);
+    var cur = idxMap[p.id];
+    if (cur) row._row = cur._row; else tIdx.rows.push(row);
+    idxMap[p.id] = row;
+    writeRow_(tIdx, row);
+  }
+  return ctx;
 }
 
 /** Ghi báo cáo ra một trang tính mới để tải về Excel. Trả về tên trang. */
@@ -280,6 +304,8 @@ function writeReport_(r, user) {
   addRows('THEO BÁC SĨ', ['Số BN xạ', 'Số lượt xạ', ''], r.theo_bac_si, function (x) { return [x.ten, x.bn_xa, x.luot_xa, '']; });
   addRows('THEO KTV', ['Số BN', 'Số buổi ghi', ''], r.theo_ktv, function (x) { return [x.ten, x.bn_xa, x.luot_xa, '']; });
   addRows('THEO KỸ SƯ', ['Số kế hoạch', 'Có QA', ''], r.theo_ky_su, function (x) { return [x.ten, x.ke_hoach, x.co_qa, '']; });
+  addRows('THEO MÃ ICD-10', ['BN bắt đầu xạ', 'BN có xạ trong kỳ', 'Số lượt xạ'], r.theo_icd, function (x) { var n = RT.icdName(x.ma); return [x.ma + (n ? ' · ' + n : ''), x.bn_bat_dau, x.bn_xa, x.luot_xa]; });
+  addRows('THEO VỊ TRÍ XẠ', ['BN bắt đầu xạ', 'BN có xạ trong kỳ', 'Số lượt xạ'], r.theo_vi_tri, function (x) { return [x.ma, x.bn_bat_dau, x.bn_xa, x.luot_xa]; });
   sh.getRange(1, 1, rows.length, 4).setValues(rows);
   sh.getRange(1, 1).setFontWeight('bold').setFontSize(13);
   sh.setColumnWidth(1, 260);
@@ -307,24 +333,17 @@ function fold_(s) {
   return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
 }
 
-/** Tìm bệnh nhân đã chuyển sang lưu trữ (theo mã HIS, tên hoặc mã đợt). */
+/** Tìm bệnh nhân đã chuyển sang lưu trữ (theo mã HIS, tên hoặc mã đợt): chỉ đọc trang chỉ mục nên luôn nhanh. */
 function searchArchive_(a) {
   try {
     currentUser_();
     var q = fold_(a.q).trim();
     if (q.length < 2) return { ok: true, archive: { patients: [], phases: [], fractions: [] } };
     var ss = ss_();
-    var pts = readTable_(ss, ARCHIVE.BenhNhan).rows.filter(function (p) {
-      return p.trang_thai !== 'HUY' && (fold_(p.ma_his).indexOf(q) >= 0 || fold_(p.ho_ten).indexOf(q) >= 0 || fold_(p.id).indexOf(q) >= 0);
-    }).slice(0, 30);
-    var ids = {};
-    pts.forEach(function (p) { ids[p.id] = 1; delete p._row; });
-    var strip = function (r) { delete r._row; return r; };
-    return { ok: true, archive: {
-      patients: pts,
-      phases: readTable_(ss, ARCHIVE.GiaiDoan).rows.filter(function (g) { return ids[g.bn_id] && g.trang_thai !== 'HUY'; }).map(strip),
-      fractions: readTable_(ss, ARCHIVE.BuoiXa).rows.filter(function (f) { return ids[f.bn_id] && f.da_huy !== 'Có'; }).map(strip)
-    } };
+    var pts = readTable_(ss, SHEET_NAMES.IDX).rows.filter(function (p) {
+      return p.luu_tru === 'Có' && p.trang_thai !== 'HUY' && (fold_(p.ma_his).indexOf(q) >= 0 || (p.ten_kd || fold_(p.ho_ten)).indexOf(q) >= 0 || fold_(p.id).indexOf(q) >= 0);
+    }).slice(0, 50).map(function (p) { p = stripRow_(p); p._idx = true; return p; });
+    return { ok: true, archive: { patients: pts, phases: [], fractions: [] } };
   } catch (e) {
     return { ok: false, error: String(e && e.message || e) };
   }
@@ -354,9 +373,19 @@ function archiveOld() {
         if (parseInt(m[2], 10) > cur) props.setProperty(k, String(parseInt(m[2], 10)));
       }
     });
+    // Cập nhật chỉ mục lần cuối (đủ số buổi đã xạ) và đánh dấu đã lưu trữ, trước khi chuyển dữ liệu
+    var tI = readTable_(ss, SHEET_NAMES.IDX), byId = {};
+    tI.rows.forEach(function (r) { byId[r.id] = r; });
+    var fx = readTable_(ss, SHEET_NAMES.BUOI).rows, gd = readTable_(ss, SHEET_NAMES.GD).rows;
+    tBN.rows.forEach(function (p) {
+      if (!move[p.id]) return;
+      var row = RT.indexRow(p, fx, gd, true);
+      if (byId[p.id]) row._row = byId[p.id]._row;
+      writeRow_(tI, row);
+    });
     moveRows_(ss, SHEET_NAMES.BN, ARCHIVE.BenhNhan, function (r) { return move[r.id]; });
     moveRows_(ss, SHEET_NAMES.GD, ARCHIVE.GiaiDoan, function (r) { return move[r.bn_id]; });
-    moveRows_(ss, SHEET_NAMES.BUOI, ARCHIVE.BuoiXa, function (r) { return move[r.bn_id]; });
+    moveRows_(ss, SHEET_NAMES.BUOI, function (r) { return move[r.bn_id] ? ARCHIVE.BuoiXa + '_' + String(r.ngay).slice(0, 4) : null; });
     moveRows_(ss, SHEET_NAMES.LICH, ARCHIVE.LichNgoaiLe, function (r) { return move[r.bn_id] || (r.loai === 'MAY_NGHI' && r.ngay < cutoff) || (r.loai === 'THONG_BAO' && r.ngay < today) || r.da_xoa === 'Có'; });
     var log = ss.getSheetByName(SHEET_NAMES.LOG);
     log.getRange(log.getLastRow() + 1, 1, 1, 5).setNumberFormat('@')
@@ -367,15 +396,76 @@ function archiveOld() {
   }
 }
 
+/** Chuyển các dòng thoả điều kiện sang trang lưu trữ. toName là tên trang, hoặc hàm (dòng) → tên trang / null (giữ lại). */
 function moveRows_(ss, fromName, toName, pred) {
-  var from = readTable_(ss, fromName), to = readTable_(ss, toName);
-  var keep = [], moved = [];
-  from.rows.forEach(function (r) { (pred(r) ? moved : keep).push(r); });
-  if (!moved.length) return;
+  var target = typeof toName === 'function' ? toName : function (r) { return pred(r) ? toName : null; };
+  var from = readTable_(ss, fromName);
+  var keep = [], groups = {};
+  from.rows.forEach(function (r) { var t = target(r); if (t) (groups[t] = groups[t] || []).push(r); else keep.push(r); });
+  if (!Object.keys(groups).length) return;
   var asRow = function (head) { return function (o) { return head.map(function (h) { return h ? (o[h] == null ? '' : String(o[h])) : ''; }); }; };
-  var start = Math.max(to.sheet.getLastRow(), 1) + 1;
-  to.sheet.getRange(start, 1, moved.length, to.head.length).setNumberFormat('@').setValues(moved.map(asRow(to.head)));
+  Object.keys(groups).forEach(function (name) {
+    ensureSheet_(ss, name, from.head.filter(function (h) { return h; }));
+    var to = readTable_(ss, name);
+    var start = Math.max(to.sheet.getLastRow(), 1) + 1;
+    to.sheet.getRange(start, 1, groups[name].length, to.head.length).setNumberFormat('@').setValues(groups[name].map(asRow(to.head)));
+  });
   var last = from.sheet.getLastRow();
   if (last > 1) from.sheet.getRange(2, 1, last - 1, from.head.length).clearContent();
   if (keep.length) from.sheet.getRange(2, 1, keep.length, from.head.length).setNumberFormat('@').setValues(keep.map(asRow(from.head)));
+}
+
+function stripRow_(r) { var o = {}; Object.keys(r).forEach(function (k) { if (k !== '_row') o[k] = r[k]; }); return o; }
+
+/** Các trang lưu trữ buổi xạ: bản cũ (LuuTru_BuoiXa) và theo năm (LuuTru_BuoiXa_2027…) */
+function archiveFxSheets_(ss) {
+  return ss.getSheets().map(function (s) { return s.getName(); }).filter(function (n) { return /^LuuTru_BuoiXa(_\d{4})?$/.test(n); });
+}
+/** Đọc buổi xạ đã lưu trữ, chỉ các năm nằm trong [tu, den] (để trống = tất cả) */
+function readArchiveFx_(ss, tu, den) {
+  var y1 = tu ? parseInt(String(tu).slice(0, 4), 10) : 0, y2 = den ? parseInt(String(den).slice(0, 4), 10) : 9999;
+  var out = [];
+  archiveFxSheets_(ss).forEach(function (n) {
+    var m = /_(\d{4})$/.exec(n);
+    if (m && (+m[1] < y1 || +m[1] > y2)) return;
+    out = out.concat(readTable_(ss, n).rows);
+  });
+  return out;
+}
+function ensureSheet_(ss, name, cols) {
+  var sh = ss.getSheetByName(name);
+  if (!sh) {
+    sh = ss.insertSheet(name);
+    sh.getRange(1, 1, 1, cols.length).setValues([cols]).setFontWeight('bold').setBackground('#e3f4ee');
+    sh.setFrozenRows(1);
+    sh.getRange(1, 1, sh.getMaxRows(), cols.length).setNumberFormat('@');
+  }
+  return sh;
+}
+
+/** Lập lại toàn bộ chỉ mục từ dữ liệu đang có và lưu trữ. setup tự gọi khi chỉ mục còn trống. */
+function buildIndex_() {
+  var ss = ss_();
+  var sh = ensureSheet_(ss, SHEET_NAMES.IDX, RT.COLS.ChiMuc);
+  var live = readTable_(ss, SHEET_NAMES.BN).rows, liveG = readTable_(ss, SHEET_NAMES.GD).rows, liveF = readTable_(ss, SHEET_NAMES.BUOI).rows;
+  var arc = readTable_(ss, ARCHIVE.BenhNhan).rows, arcG = readTable_(ss, ARCHIVE.GiaiDoan).rows, arcF = readArchiveFx_(ss, '', '');
+  var rows = live.map(function (p) { return RT.indexRow(p, liveF, liveG, false); })
+    .concat(arc.map(function (p) { return RT.indexRow(p, arcF, arcG, true); }));
+  var last = sh.getLastRow();
+  if (last > 1) sh.getRange(2, 1, last - 1, RT.COLS.ChiMuc.length).clearContent();
+  if (rows.length) sh.getRange(2, 1, rows.length, RT.COLS.ChiMuc.length).setNumberFormat('@')
+    .setValues(rows.map(function (r) { return RT.COLS.ChiMuc.map(function (c) { return r[c] || ''; }); }));
+  return 'Đã lập chỉ mục ' + rows.length + ' đợt xạ.';
+}
+
+/** Lấy đầy đủ một đợt xạ đã lưu trữ (dữ liệu bệnh nhân, giai đoạn, buổi xạ của đúng các năm liên quan) */
+function archiveCourse_(id) {
+  var ss = ss_();
+  var p = readTable_(ss, ARCHIVE.BenhNhan).rows.filter(function (x) { return x.id === id; })[0];
+  if (!p) throw new Error('Không tìm thấy đợt xạ trong lưu trữ.');
+  return {
+    patients: [stripRow_(p)],
+    phases: readTable_(ss, ARCHIVE.GiaiDoan).rows.filter(function (g) { return g.bn_id === id && g.trang_thai !== 'HUY'; }).map(stripRow_),
+    fractions: readArchiveFx_(ss, p.ngay_bat_dau || p.ngay_tao, p.ngay_ket_thuc || '').filter(function (f) { return f.bn_id === id && f.da_huy !== 'Có'; }).map(stripRow_)
+  };
 }
