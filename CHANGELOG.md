@@ -1,5 +1,8 @@
 # Lịch sử phiên bản
 
+## v2.4
+- Thanh "Đang dùng tài khoản: …" ngay dưới thanh xanh, hiện họ tên, vai trò, chức vụ, email, trên cả điện thoại; kèm liên kết "Không phải bạn? Đăng xuất Google" cho máy tính dùng chung.
+
 ## v2.3
 - Trên điện thoại: nút nổi "+ Thêm BN" ở góc dưới phải (nút ở thanh tab bị khuất khi màn hình hẹp).
 - Chỉ bác sĩ mới được gán làm trợ lý; ô "Trợ lý cho bác sĩ" chỉ hiện khi vai trò là Bác sĩ.

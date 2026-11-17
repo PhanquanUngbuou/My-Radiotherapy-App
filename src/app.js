@@ -247,11 +247,13 @@
       who = '<label class="who"><span class="nm muted">Đăng nhập thử với:</span><select id="demo-user" aria-label="Chọn người dùng demo">' +
         opts(d.users.filter(function (u) { return u.kich_hoat !== 'Không'; }).map(function (u) { return { v: u.email, l: u.ho_ten + ' — ' + RT.ROLES[u.vai_tro] }; }), d.me.email) + '</select></label>';
     } else {
-      who = '<div class="who"><span class="nm">' + esc(d.me.ho_ten) + '</span><span class="role role-' + d.me.vai_tro + '">' + esc(RT.ROLES[d.me.vai_tro]) + '</span></div>';
+      who = '';
     }
     var t = today(), dowFull = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'][RT.dow(t)];
     $('#top').innerHTML =
       '<div class="util"><div class="util-in"><span><b>' + esc(unitName()) + '</b></span><span>' + dowFull + ', ' + fdy(t) + ' · <span title="Phiên bản ứng dụng">v' + esc(RT.VERSION) + '</span></span></div></div>' +
+      '<div class="me-bar"><div class="util-in"><span>Đang dùng tài khoản: <b>' + esc(d.me.ho_ten) + '</b> <span class="role role-' + d.me.vai_tro + '">' + esc(RT.ROLES[d.me.vai_tro]) + (d.me.chuc_vu ? ' · ' + esc(d.me.chuc_vu) : '') + '</span> <span class="me-mail">' + esc(d.me.email) + '</span></span>' +
+      (window.DEMO ? '' : '<a class="me-switch" href="https://accounts.google.com/Logout" target="_blank" rel="noopener">Không phải bạn? Đăng xuất Google</a>') + '</div></div>' +
       noticeBar() +
       '<div class="top-in"><div class="brand"><span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v4M12 17.5v4M2.5 12h4M17.5 12h4M5.3 5.3l2.8 2.8M15.9 15.9l2.8 2.8M18.7 5.3l-2.8 2.8M8.1 15.9l-2.8 2.8"/></svg></span><span>Điều phối Xạ trị<small>Bác sĩ · Kỹ sư · KTV · Điều dưỡng</small></span></div>' +
       '<div class="search"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>' +

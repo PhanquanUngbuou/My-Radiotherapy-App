@@ -309,3 +309,11 @@ td.rs-today .rs-cell{border-color:var(--accent-2)}
   box-shadow:var(--shadow-lg);cursor:pointer}
 .fab span{font-size:20px;line-height:1}
 @media (max-width:760px){ .fab{display:flex} #add-bn{display:none} .main-in{padding-bottom:110px} .toast{bottom:calc(88px + env(safe-area-inset-bottom,0px))} }
+
+/* Thanh "Đang dùng tài khoản" */
+.me-bar{background:var(--accent-soft);border-bottom:1px solid var(--line);font-size:13px}
+.me-bar .util-in{display:flex;flex-wrap:wrap;gap:4px 12px;justify-content:space-between;align-items:center;padding-block:6px}
+.me-bar b{color:var(--ink)}
+.me-mail{color:var(--muted);font-size:12px}
+.me-switch{color:var(--accent);font-weight:600;font-size:12.5px;white-space:nowrap}
+@media (max-width:700px){ .me-mail{display:block} }

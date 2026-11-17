@@ -1,4 +1,4 @@
-// Điều phối Xạ trị · phiên bản v2.3
+// Điều phối Xạ trị · phiên bản v2.4
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -9,7 +9,7 @@
  */
 var RT = (function () {
   'use strict';
-  var VERSION = '2.3';
+  var VERSION = '2.4';
 
   var STATUS_ORDER = ['MO_PHONG', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA', 'DANG_XA', 'TAM_NGUNG', 'HOAN_THANH'];
   var STATUS = {
