@@ -11,6 +11,7 @@
 - **Quản trị**: tài khoản bác sĩ và điều dưỡng bắt buộc chọn khoa.
 - **Lý do ưu tiên / cấp cứu**: BN "Ưu tiên" và "Cấp cứu" bắt buộc ghi lý do (khi thêm BN, Contour xong, Đổi ưu tiên, sửa BN, boost). Lý do hiện dưới nhãn ưu tiên và trong chi tiết BN. Cột mới `ly_do_uu_tien`, `tg_nop_kh` (cần chạy `setup`).
 - **Tô màu BN đang chuẩn bị xạ** (mô phỏng → chờ vào xạ): cấp cứu nền đỏ, ưu tiên nền cam, thường để nguyên.
+- **Xếp lịch xạ** (Chờ vào xạ chưa có lịch, Sắp chuyển xạ): xếp theo nhóm Cấp cứu → Boost → Thường / Ưu tiên, trong nhóm ai sẵn sàng trước xếp trước; có chú thích màu (đỏ cấp cứu, tím boost, cam ưu tiên). "Sắp chuyển xạ" có cả KH boost.
 - **Thứ tự trong Lập kế hoạch và QA**: cấp cứu lên trước, sau đó ai nộp trước (giờ bấm "Contour xong") làm trước; "Ưu tiên" không còn vượt lên trên, chỉ tô màu.
 
 ## v2.6

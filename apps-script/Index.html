@@ -449,6 +449,23 @@ tbody tr.pr-row-1.click:hover td{background:var(--pr1-bg)}
   .cards tr.pr-row-0 td:first-child,.cards tr.pr-row-1 td:first-child{box-shadow:none}
 }
 
+/* v2.7: boost nền tím; chú thích màu */
+:root{--prb-bg:#e7defb}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--prb-bg:#2f2347} }
+:root[data-theme="dark"]{--prb-bg:#2f2347}
+tbody tr.pr-row-b,tbody tr.pr-row-b td,tbody tr.pr-row-b.click:hover td{background:var(--prb-bg)}
+tbody tr.pr-row-b td:first-child{box-shadow:inset 4px 0 0 var(--ks)}
+.pr-legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pr-legend .lg{font-size:12.5px;font-weight:600;padding:2px 10px;border-radius:6px;border-left:4px solid transparent}
+.pr-legend .lg0{background:var(--pr0-bg);border-color:var(--crit)}
+.pr-legend .lgb{background:var(--prb-bg);border-color:var(--ks)}
+.pr-legend .lg1{background:var(--pr1-bg);border-color:#e07b00}
+.pr-legend .lg2{background:var(--surface);border:1px solid var(--line);border-left-width:4px}
+@media (max-width:760px){
+  .cards tr.pr-row-b{box-shadow:inset 5px 0 0 var(--ks)}
+  .cards tr.pr-row-b td:first-child{box-shadow:none}
+}
+
 </style>
 </head>
 <body>
@@ -1903,7 +1920,18 @@ if (typeof module !== 'undefined') module.exports = RT;
   function prCell(p) { return prPill(p) + (p.ly_do_uu_tien && p.uu_tien !== 'Thường' ? '<span class="sub pr-why">' + esc(p.ly_do_uu_tien) + '</span>' : ''); }
   /** Tô nền dòng BN đang trong quy trình chuẩn bị: cấp cứu đỏ, ưu tiên cam */
   var PR_ROW_ST = ['MO_PHONG', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA'];
-  function prRowCls(p) { return p && PR_ROW_ST.indexOf(p.trang_thai) >= 0 ? (p.uu_tien === 'Cấp cứu' ? ' pr-row-0' : p.uu_tien === 'Ưu tiên' ? ' pr-row-1' : '') : ''; }
+  function prRowCls(p) { return p && PR_ROW_ST.indexOf(p.trang_thai) >= 0 ? (p.uu_tien === 'Cấp cứu' ? ' pr-row-0' : p._g ? ' pr-row-b' : p.uu_tien === 'Ưu tiên' ? ' pr-row-1' : '') : ''; }
+  /** Xếp lịch xạ: nhóm Cấp cứu → Boost → Thường / Ưu tiên; trong nhóm, sẵn sàng trước đứng trước */
+  function schedRank(p) { return p.uu_tien === 'Cấp cứu' ? 0 : p._g ? 1 : 2; }
+  function readyTime(p) { return p.trang_thai === 'CHO_XA' ? (p.ngay_qa || p.ngay_kh_xong || '') : RT.submitTime(p); }
+  function schedOrder(a, b) {
+    var ra = schedRank(a), rb = schedRank(b);
+    if (ra !== rb) return ra - rb;
+    var ta = readyTime(a), tb = readyTime(b);
+    if (ta !== tb) return ta < tb ? -1 : 1;
+    return a.id < b.id ? -1 : 1;
+  }
+  var PR_LEGEND = '<div class="pr-legend"><span class="lg lg0">Cấp cứu</span><span class="lg lgb">Boost</span><span class="lg lg1">Ưu tiên</span><span class="lg lg2">Thường</span></div>';
   function prioReasonField(val) {
     return '<div class="field full" data-prio-why><label><span data-prio-lb>Lý do ưu tiên</span> <span class="req">*</span></label><input type="text" name="ly_do_uu_tien" maxlength="200" value="' + esc(val || '') + '"></div>';
   }
@@ -2464,7 +2492,7 @@ if (typeof module !== 'undefined') module.exports = RT;
       { h: 'Contour xong', cls: 'nowrap', v: function (p) { var n = daysSince(p.ngay_contour_xong); return '<span class="num">' + fdw(p.ngay_contour_xong) + '</span><span class="sub"' + (n >= 3 ? ' style="color:var(--warn)"' : '') + '>chờ ' + n + ' ngày</span>'; } },
       C.dx, C.rx, { h: 'Hạn', v: deadline },
       { h: '', cls: 'act', v: function (p) { return can('claimPlan') ? btn('claimPlan', p.id, 'Nhận ca', 'primary') : ''; } }
-    ], 'Thứ tự: Cấp cứu → boost sắp tới lượt xạ → nộp trước làm trước. Nền đỏ: cấp cứu, nền cam: ưu tiên.', 'Không có ca nào chờ nhận.');
+    ], 'Thứ tự: Cấp cứu → boost sắp tới lượt xạ → nộp trước làm trước. Nền đỏ: cấp cứu, tím: boost, cam: ưu tiên.', 'Không có ca nào chờ nhận.');
     html += group('kd', 'Ca tôi đang lập kế hoạch', doing, [C.pt, C.pr, C.bs,
       { h: 'Nhận ca', cls: 'nowrap', v: function (p) { var n = daysSince(p.ngay_nhan_kh); return '<span class="num">' + fdw(p.ngay_nhan_kh) + '</span><span class="sub"' + (n >= 3 ? ' style="color:var(--warn)"' : '') + '>' + n + ' ngày</span>'; } },
       C.dx, C.rx, { h: 'Hạn', v: deadline },
@@ -2502,7 +2530,7 @@ if (typeof module !== 'undefined') module.exports = RT;
       { h: 'Contour xong', cls: 'nowrap', v: function (p) { return '<span class="num">' + fdw(p.ngay_contour_xong) + '</span><span class="sub">chờ ' + daysSince(p.ngay_contour_xong) + ' ngày</span>'; } },
       C.dx, C.rx, { h: 'Hạn', v: function (p) { return boostFlag(p) || '<span class="muted">—</span>'; } }, C.bs,
       { h: '', cls: 'act', v: function (p) { return can('claimPlan') ? btn('claimPlan', p.id, 'Nhận ca') + btn('planDone', p.id, 'Lập KH xong', 'primary') : ''; } }
-    ], 'Thứ tự: Cấp cứu → boost sắp tới lượt xạ → nộp trước làm trước. Nền đỏ: cấp cứu, nền cam: ưu tiên.', 'Không có ca nào chờ lập kế hoạch.');
+    ], 'Thứ tự: Cấp cứu → boost sắp tới lượt xạ → nộp trước làm trước. Nền đỏ: cấp cứu, tím: boost, cam: ưu tiên.', 'Không có ca nào chờ lập kế hoạch.');
     html += group('doing', 'Đang lập kế hoạch', doing, [C.pt, C.pr,
       { h: 'Kỹ sư', cls: 'nowrap', v: function (p) { return esc(nameOf(p.ks_email)) + '<span class="sub">nhận ' + fd(p.ngay_nhan_kh) + ' · ' + daysSince(p.ngay_nhan_kh) + ' ngày</span>'; } },
       C.dx, C.rx, { h: 'Hạn', v: function (p) { return boostFlag(p) || '<span class="muted">—</span>'; } },
@@ -2663,11 +2691,11 @@ if (typeof module !== 'undefined') module.exports = RT;
   // ---------- KTV: xếp lịch ----------
   function renderSchedule() {
     var t = today();
-    var noDate = pts().filter(function (p) { return p.trang_thai === 'CHO_XA' && !p.ngay_du_kien; });
+    var noDate = pts().filter(function (p) { return p.trang_thai === 'CHO_XA' && !p.ngay_du_kien; }).sort(schedOrder);
     var dated = pts().filter(function (p) { return p.trang_thai === 'CHO_XA' && p.ngay_du_kien; }).sort(function (a, b) { return a.ngay_du_kien < b.ngay_du_kien ? -1 : 1; });
-    var upcoming = pts().filter(function (p) { return ['CHO_KH', 'DANG_KH', 'CHO_QA'].indexOf(p.trang_thai) >= 0; }).sort(function (a, b) { return RT.STATUS_ORDER.indexOf(b.trang_thai) - RT.STATUS_ORDER.indexOf(a.trang_thai); });
+    var upcoming = items().filter(function (p) { return ['CHO_KH', 'DANG_KH', 'CHO_QA'].indexOf(p.trang_thai) >= 0; }).sort(schedOrder);
     var tx = pts().filter(function (p) { return p.trang_thai === 'DANG_XA'; }).sort(function (a, b) { return (RT.needsOffDay(b) ? 1 : 0) - (RT.needsOffDay(a) ? 1 : 0) || a.ho_ten.localeCompare(b.ho_ten, 'vi'); });
-    var schedAct = { h: '', cls: 'act', v: function (p) { return can('schedule') ? btn('schedule', p.id, p.trang_thai === 'DANG_XA' ? 'Đổi lịch' : 'Xếp lịch', p.ngay_du_kien || p.trang_thai === 'DANG_XA' ? '' : 'primary') : ''; } };
+    var schedAct = { h: '', cls: 'act', v: function (p) { if (p._g) return ''; return can('schedule') ? btn('schedule', p.id, p.trang_thai === 'DANG_XA' ? 'Đổi lịch' : 'Xếp lịch', p.ngay_du_kien || p.trang_thai === 'DANG_XA' ? '' : 'primary') : ''; } };
 
     // tải máy 6 ngày làm việc tới
     var days = [], d = t;
@@ -2679,7 +2707,7 @@ if (typeof module !== 'undefined') module.exports = RT;
       return '<div class="' + (day === t ? 'today' : '') + '"><span class="d">' + fdw(day) + '</span><span class="v">' + n + '</span></div>';
     }).join('');
 
-    var html = '<div class="page-head"><div><h1>Xếp lịch xạ</h1><p>3D-CRT: xạ T2–T6. IMRT/VMAT: chọn một ngày nghỉ trong tuần, xạ bù Thứ Bảy.</p></div></div>';
+    var html = '<div class="page-head"><div><h1>Xếp lịch xạ</h1><p>3D-CRT: xạ T2–T6. IMRT/VMAT: chọn một ngày nghỉ trong tuần, xạ bù Thứ Bảy.</p>' + PR_LEGEND + '</div></div>';
     html += '<section class="group"><div class="group-head"><h2>Số BN dự kiến xạ 6 ngày tới</h2><span class="hint">Dùng để cân đối ngày nghỉ của BN IMRT/VMAT</span></div><div class="load">' + load + '</div></section>';
     var sims = items().filter(function (x) { return x.trang_thai === 'MO_PHONG'; }).sort(function (a, b) { return (a.ngay_mo_phong || '9') < (b.ngay_mo_phong || '9') ? -1 : 1; });
     if (sims.length) html += group('sim', 'Chờ mô phỏng', sims, [C.pt, C.rx, { h: 'Loại', v: function (p) { return p._g ? '<span class="tag boost">Mô phỏng lại (boost)</span>' : 'Mô phỏng lần đầu'; } },
@@ -2688,10 +2716,10 @@ if (typeof module !== 'undefined') module.exports = RT;
       { h: '', cls: 'act', v: function (p) { return can('simDone') ? btn('simDone', p.id, 'Đã mô phỏng xong', 'primary') : ''; } }], null, '');
     html += group('nodate', 'Chờ vào xạ, chưa có lịch', noDate, [C.pt, C.rx, C.week,
       { h: 'Sẵn sàng từ', cls: 'nowrap', v: function (p) { var s = p.ngay_qa || p.ngay_kh_xong; return '<span class="num">' + fd(s) + '</span><span class="sub">' + (p.qa_ket_qua === 'Đạt' ? 'QA đạt' : 'Không cần QA') + '</span>'; } },
-      C.bs, schedAct], null, 'Tất cả BN chờ vào xạ đã có lịch.');
+      C.pr, C.bs, schedAct], 'Thứ tự: Cấp cứu → Boost → Thường / Ưu tiên; trong mỗi nhóm, sẵn sàng trước xếp trước.', 'Tất cả BN chờ vào xạ đã có lịch.');
     html += group('dated', 'Chờ vào xạ, đã có lịch', dated, [C.pt, C.rx, C.expected, C.week, C.end, schedAct], null, 'Không có.');
     html += group('tx', 'Đang xạ', tx, [C.pt, C.rx, C.week, C.prog, C.end, schedAct], null, 'Không có bệnh nhân đang xạ.');
-    html += group('up', 'Sắp chuyển xạ', upcoming, [C.pt, C.rx, C.st, C.expected, schedAct], 'BN đang lập KH hoặc chờ QA; có thể xếp trước ngày dự kiến.', 'Không có.');
+    html += group('up', 'Sắp chuyển xạ', upcoming, [C.pt, C.rx, C.pr, C.st, { h: C.expected.h, cls: 'nowrap', v: function (p) { return p._g ? (boostFlag(p) || '<span class="muted">Boost nối tiếp GĐ trước</span>') : C.expected.v(p); } }, schedAct], 'BN đang lập KH hoặc chờ QA (kể cả KH boost). Xếp: Cấp cứu → Boost → nộp trước. Có thể xếp lịch trước ngày dự kiến.', 'Không có.');
     return html;
   }
 
