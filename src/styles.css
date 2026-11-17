@@ -386,3 +386,35 @@ html.modal-open,html.modal-open body{overflow:hidden;overscroll-behavior:none}
   .cards td.act .btn{flex:1 1 auto;justify-content:center;min-height:42px}
   tbody tr.click:hover td{background:none}
 }
+
+/* v2.6 */
+.viewas-bar{background:var(--warn-soft);border-bottom:1px solid var(--line);font-size:13px}
+.viewas-bar .util-in{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;padding-block:6px}
+.viewas-bar select{padding:5px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);max-width:320px}
+.viewas-bar.on{background:var(--warn);color:#fff}
+.viewas-bar.on .btn{background:#fff;color:var(--ink)}
+.st-modes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.st-mode{text-align:left;border:1.5px solid var(--line);background:var(--surface);border-radius:14px;padding:12px 14px;cursor:pointer;display:grid;gap:3px;color:var(--ink)}
+.st-mode small{color:var(--muted);font-size:12.5px}
+.st-mode[aria-pressed=true]{border-color:var(--accent);background:var(--accent-soft)}
+@media (max-width:760px){.st-modes{grid-template-columns:1fr}}
+.ff{grid-template-columns:repeat(3,1fr)}
+@media (max-width:760px){.ff{grid-template-columns:1fr}}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.chip{display:inline-flex;align-items:center;gap:4px;background:var(--accent-soft);border-radius:16px;padding:3px 6px 3px 10px;font-size:13px}
+.chip button{border:0;background:none;cursor:pointer;font-size:16px;color:var(--muted)}
+.lnk{border:0;background:none;color:var(--accent);font-weight:700;cursor:pointer;text-decoration:underline;font:inherit;padding:0}
+.lnk.sm{display:block;font-size:12.5px;font-weight:600;text-align:left;margin-top:2px}
+.nurse-tbl td,.nurse-tbl th{font-size:15px}
+.nurse-tbl tr.strong td{font-weight:700;background:var(--surface-3)}
+.load.ends div{align-content:start}
+.h1-sub{font-size:20px;margin-top:18px}
+.cal .c.late{background:var(--warn-soft);outline:1px solid var(--warn)}
+.cal .c.miss.nr{outline:1.5px dashed var(--crit)}
+.cal button.c{font:inherit;color:inherit;border:0;cursor:pointer;text-align:left}
+@media (max-width:760px){
+  .nurse-tbl{table-layout:fixed}
+  .nurse-tbl td,.nurse-tbl th{padding:8px 6px;font-size:14px}
+  .nurse-tbl td:first-child,.nurse-tbl th:first-child{width:44%;padding-left:12px}
+  .nurse-tbl th .sub{font-size:11px;white-space:normal}
+}

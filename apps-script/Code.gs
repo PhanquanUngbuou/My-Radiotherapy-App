@@ -1,4 +1,4 @@
-// Điều phối Xạ trị · phiên bản v2.5
+// Điều phối Xạ trị · phiên bản v2.6
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
@@ -85,7 +85,7 @@ function api(action, payload) {
     // Kiểm tra nhanh có thay đổi không (không đọc Google Sheet) để giao diện biết khi nào cần tải lại
     if (action === 'rev') return JSON.stringify({ ok: true, rev: PropertiesService.getScriptProperties().getProperty('REV') || '0' });
     if (action === 'searchArchive') return JSON.stringify(searchArchive_(payload || {}));
-    var READ_ONLY = { bootstrap: 1, getLog: 1, getRoster: 1, report: 1, lookupHis: 1, archiveCourse: 1 };
+    var READ_ONLY = { bootstrap: 1, getLog: 1, getRoster: 1, report: 1, lookupHis: 1, archiveCourse: 1, findPatients: 1 };
     if (!READ_ONLY[action]) {
       lock = LockService.getScriptLock();
       lock.waitLock(30000);
@@ -99,18 +99,19 @@ function api(action, payload) {
       extra.his = ctx.hisLookup(String((payload || {}).ma_his || '').trim()).map(stripRow_);
     } else if (action === 'archiveCourse') {
       extra.course = archiveCourse_(String((payload || {}).id || ''));
-    } else if (action === 'report' || action === 'exportReport') {
+    } else if (action === 'report' || action === 'exportReport' || action === 'findPatients' || action === 'exportPatients') {
       var p0 = payload || {};
-      var data = { patients: ctx.patients, phases: ctx.phases, fractions: ctx.fractions, users: ctx.users, dm: ctx.dm };
-      // Khoảng ngày cũ hơn 60 ngày: đọc thêm dữ liệu đã lưu trữ
-      if (p0.tu < RT.addDays(ctx.today, -ARCHIVE_DAYS)) {
-        var ss2 = ss_();
-        data.patients = data.patients.concat(readTable_(ss2, ARCHIVE.BenhNhan).rows);
-        data.phases = data.phases.concat(readTable_(ss2, ARCHIVE.GiaiDoan).rows);
-        data.fractions = data.fractions.concat(readArchiveFx_(ss2, p0.tu, p0.den));
+      var data = statsData_(ctx, p0.tu, p0.den);
+      // Quản trị "xem như" người khác: thống kê theo phạm vi của người đó
+      var who = ctx.user;
+      if (p0.as && ctx.user.vai_tro === 'ADMIN') who = ctx.users.filter(function (u) { return u.email === String(p0.as).toLowerCase(); })[0] || ctx.user;
+      if (action === 'findPatients' || action === 'exportPatients') {
+        extra.found = RT.findPatients(data, p0, who);
+        if (action === 'exportPatients') extra.sheet = writePatients_(extra.found, ctx.user);
+      } else {
+        extra.report = RT.report(data, p0.tu, p0.den, who, p0.chi_tiet);
+        if (action === 'exportReport') extra.sheet = writeReport_(extra.report, ctx.user);
       }
-      extra.report = RT.report(data, p0.tu, p0.den, ctx.user, p0.chi_tiet);
-      if (action === 'exportReport') extra.sheet = writeReport_(extra.report, ctx.user);
     } else if (action === 'getRoster') {
       var a0 = (payload || {}).tu, b0 = (payload || {}).den;
       extra.roster = ctx.roster.filter(function (r) { return r.ngay >= a0 && r.ngay <= b0; }).map(function (r) { var o = {}; RT.COLS.PhanCong.forEach(function (c) { o[c] = r[c] || ''; }); return o; });
@@ -119,7 +120,7 @@ function api(action, payload) {
       SpreadsheetApp.flush();
       PropertiesService.getScriptProperties().setProperty('REV', String(Date.now()));
     }
-    return JSON.stringify({ ok: true, msg: msg, data: RT.view(ctx), log: extra.log, roster: extra.roster, report: extra.report, sheet: extra.sheet, his: extra.his, course: extra.course, rev: PropertiesService.getScriptProperties().getProperty('REV') || '0' });
+    return JSON.stringify({ ok: true, msg: msg, data: RT.view(ctx), log: extra.log, roster: extra.roster, report: extra.report, found: extra.found, sheet: extra.sheet, his: extra.his, course: extra.course, rev: PropertiesService.getScriptProperties().getProperty('REV') || '0' });
   } catch (e) {
     return JSON.stringify({ ok: false, error: String(e && e.message || e) });
   } finally {
@@ -305,6 +306,13 @@ function writeReport_(r, user) {
   addRows('THEO BÁC SĨ', ['Số BN xạ', 'Số lượt xạ', ''], r.theo_bac_si, function (x) { return [x.ten, x.bn_xa, x.luot_xa, '']; });
   addRows('THEO KTV', ['Số BN', 'Số buổi ghi', ''], r.theo_ktv, function (x) { return [x.ten, x.bn_xa, x.luot_xa, '']; });
   addRows('THEO KỸ SƯ', ['Số kế hoạch', 'Có QA', ''], r.theo_ky_su, function (x) { return [x.ten, x.ke_hoach, x.co_qa, '']; });
+  rows.push(['', '', '', '']); rows.push(['VẮNG BUỔI XẠ', 'Số lượt', '', '']);
+  rows.push(['Tổng lượt vắng', o.vang_luot || 0, 'Số BN vắng', o.vang_bn || 0]);
+  Object.keys(o.vang_ly_do || {}).forEach(function (k) { rows.push([k, o.vang_ly_do[k], '', '']); });
+  if (r.theo_ngay) {
+    rows.push(['', '', '', '']); rows.push(['THEO NGÀY', 'Lượt xạ', 'Lượt vắng', 'Theo kỹ thuật']);
+    r.theo_ngay.forEach(function (d) { rows.push([d.ngay, d.luot, d.vang, Object.keys(d.ky_thuat).map(function (k) { return k + ': ' + d.ky_thuat[k]; }).join(', ')]); });
+  }
   addRows('THEO MÃ ICD-10', ['BN bắt đầu xạ', 'BN có xạ trong kỳ', 'Số lượt xạ'], r.theo_icd, function (x) { var n = RT.icdName(x.ma); return [x.ma + (n ? ' · ' + n : ''), x.bn_bat_dau, x.bn_xa, x.luot_xa]; });
   addRows('THEO VỊ TRÍ XẠ', ['BN bắt đầu xạ', 'BN có xạ trong kỳ', 'Số lượt xạ'], r.theo_vi_tri, function (x) { return [x.ma, x.bn_bat_dau, x.bn_xa, x.luot_xa]; });
   sh.getRange(1, 1, rows.length, 4).setValues(rows);
@@ -469,4 +477,37 @@ function archiveCourse_(id) {
     phases: readTable_(ss, ARCHIVE.GiaiDoan).rows.filter(function (g) { return g.bn_id === id && g.trang_thai !== 'HUY'; }).map(stripRow_),
     fractions: readArchiveFx_(ss, p.ngay_bat_dau || p.ngay_tao, p.ngay_ket_thuc || '').filter(function (f) { return f.bn_id === id && f.da_huy !== 'Có'; }).map(stripRow_)
   };
+}
+
+/** Dữ liệu cho thống kê: trang chính, thêm lưu trữ nếu khoảng ngày cũ hơn 60 ngày */
+function statsData_(ctx, tu, den) {
+  var data = { patients: ctx.patients, phases: ctx.phases, fractions: ctx.fractions, exceptions: ctx.exceptions, holidays: ctx.holidays,
+    users: ctx.users, dm: ctx.dm, today: ctx.today };
+  if (tu && tu < RT.addDays(ctx.today, -ARCHIVE_DAYS)) {
+    var ss2 = ss_();
+    data.patients = data.patients.concat(readTable_(ss2, ARCHIVE.BenhNhan).rows.map(function (p) { p._luu = 1; return p; }));
+    data.phases = data.phases.concat(readTable_(ss2, ARCHIVE.GiaiDoan).rows);
+    data.fractions = data.fractions.concat(readArchiveFx_(ss2, tu, ''));
+    data.exceptions = data.exceptions.concat(readTable_(ss2, ARCHIVE.LichNgoaiLe).rows.filter(function (e) { return e.loai === 'VANG' && e.ngay >= tu; }));
+  }
+  return data;
+}
+
+/** Ghi danh sách BN tìm được ra một trang tính mới để tải Excel */
+function writePatients_(r, user) {
+  var ss = ss_();
+  var sh = ss.insertSheet(('DanhSach ' + r.tu + ' den ' + r.den + ' ' + Utilities.formatDate(new Date(), TZ, 'HHmmss')).slice(0, 90));
+  var head = ['Mã đợt', 'Mã HIS', 'Họ tên', 'Năm sinh', 'Giới', 'Mã ICD', 'Tên bệnh (ICD)', 'Chẩn đoán', 'Vị trí xạ', 'Kỹ thuật', 'Tổng liều (Gy)', 'Số buổi',
+    'Mục đích', 'BS điều trị', 'Khoa', 'Trạng thái', 'Ngày nhập', 'Bắt đầu xạ', 'Kết thúc xạ', 'Lượt xạ trong kỳ'];
+  var rows = [['DANH SÁCH BỆNH NHÂN'].concat(head.slice(1).map(function () { return ''; })),
+    ['Từ ' + r.tu + ' đến ' + r.den + ' · ' + r.so_bn + ' BN · ' + r.luot + ' lượt xạ · Người lập: ' + user.ho_ten].concat(head.slice(1).map(function () { return ''; })), head];
+  r.rows.forEach(function (x) {
+    rows.push([x.id, x.ma_his, x.ho_ten, x.nam_sinh, x.gioi, x.icd, RT.icdName(x.icd), x.chan_doan, x.vi_tri, x.ky_thuat, x.tong_lieu, x.so_buoi,
+      x.muc_dich, x.bs, x.khoa, RT.STATUS[x.trang_thai] || x.trang_thai, x.ngay_tao, x.ngay_bat_dau, x.ngay_ket_thuc, x.luot_trong_ky]);
+  });
+  sh.getRange(1, 1, rows.length, head.length).setNumberFormat('@').setValues(rows.map(function (rw) { return rw.map(function (v) { return v == null ? '' : String(v); }); }));
+  sh.getRange(3, 1, 1, head.length).setFontWeight('bold').setBackground('#e3f4ee');
+  sh.getRange(1, 1).setFontWeight('bold').setFontSize(13);
+  sh.setFrozenRows(3);
+  return { name: sh.getName(), url: ss.getUrl() + '#gid=' + sh.getSheetId() };
 }

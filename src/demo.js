@@ -187,6 +187,15 @@ window.DEMO = (function () {
     var hung = patients[0], d = fwd(2);
     exceptions.push({ id: 'L1', bn_id: hung.id, may: '', ngay: d, loai: 'NGHI', ghi_chu: 'BN xin nghỉ đi khám răng', nguoi: 'ktv.linh@demo', thoi_gian: today + 'T08:00:00', da_xoa: '' });
     exceptions.push({ id: 'L2', bn_id: '', may: 'Máy gia tốc 1', ngay: fwd(7), loai: 'MAY_NGHI', ghi_chu: 'Bảo trì định kỳ', nguoi: 'ktv.linh@demo', thoi_gian: today + 'T08:00:00', da_xoa: '' });
+    // Vắng có lý do (một số ngày vắng để trống lý do), một buổi ghi bù
+    var env0 = RT.makeEnv(today, holidays, exceptions, phases, 'Máy gia tốc 1'), why = ['Mệt / tác dụng phụ', 'Bận việc riêng', 'Đang điều trị khác (nội trú, cấp cứu…)'], k = 0;
+    patients.forEach(function (pp) {
+      if (pp.trang_thai !== 'DANG_XA') return;
+      var c0 = RT.course(pp, fractions, env0);
+      c0.missed.slice(-3, -1).forEach(function (d0) { exceptions.push({ id: 'V' + (++k), bn_id: pp.id, may: '', ngay: d0, loai: 'VANG', ghi_chu: why[k % 3], nguoi: 'ktv.linh@demo', thoi_gian: d0 + 'T16:00:00', da_xoa: '' }); });
+    });
+    var fb = fractions.filter(function (f) { return f.ngay < today && f.ngay >= RT.addDays(today, -5); })[0];
+    if (fb) { fb.ghi_bu = 'Có'; fb.ly_do_bu = 'BN có xạ, quên tích xác nhận'; }
     // BN đã chuyển sang lưu trữ
     var old = { id: 'XT25-0418', ma_his: '25118003', ho_ten: 'Lò Văn Pao', nam_sinh: '1958', gioi: 'Nam', chan_doan: 'K vòm họng T2N1M0', khoa: 'Xạ trị theo yêu cầu', bs_email: 'bs.hai@demo', ky_thuat: 'VMAT', tong_lieu: '70', so_buoi: '35', igrt: 'CBCT hằng tuần', sgrt: 'Không', uu_tien: 'Thường', trang_thai: 'HOAN_THANH', may: 'Máy gia tốc 1' };
     RT.COLS.BenhNhan.forEach(function (c) { if (old[c] == null) old[c] = ''; });
@@ -239,7 +248,15 @@ window.DEMO = (function () {
       } else if (action === 'getRoster') {
         return JSON.stringify({ ok: true, data: RT.view(c), roster: roster.filter(function (r) { return r.ngay >= payload.tu && r.ngay <= payload.den; }), rev: String(rev) });
       } else if (action === 'report') {
-        return JSON.stringify({ ok: true, report: RT.report({ patients: patients, phases: phases, fractions: fractions, users: users, dm: dm }, payload.tu, payload.den, c.user, payload.chi_tiet) });
+        var who = payload.as ? users.filter(function (x) { return x.email === payload.as; })[0] || c.user : c.user;
+        var dta = { patients: patients.concat(archive.patients), phases: phases, fractions: fractions.concat(archive.fractions), exceptions: exceptions, holidays: holidays, users: users, dm: dm, today: today };
+        return JSON.stringify({ ok: true, report: RT.report(dta, payload.tu, payload.den, who, payload.chi_tiet) });
+      } else if (action === 'findPatients') {
+        var who2 = payload.as ? users.filter(function (x) { return x.email === payload.as; })[0] || c.user : c.user;
+        var arc = archive.patients.map(function (x) { var o = JSON.parse(JSON.stringify(x)); o._luu = 1; return o; });
+        return JSON.stringify({ ok: true, found: RT.findPatients({ patients: patients.concat(arc), phases: phases, fractions: fractions.concat(archive.fractions), users: users, dm: dm }, payload, who2) });
+      } else if (action === 'exportPatients') {
+        throw new Error('Bản demo không tạo được trang Excel. Bản thật sẽ ghi ra Google Sheet.');
       } else if (action === 'exportReport') {
         throw new Error('Bản demo không tạo được trang báo cáo. Bản thật sẽ ghi ra Google Sheet.');
       } else if (action === 'getLog') {

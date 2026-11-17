@@ -1,5 +1,18 @@
 # Lịch sử phiên bản
 
+## v2.6
+- **Thống kê làm lại**: chọn loại trước (Lượt xạ trị · Vắng buổi xạ · Tìm danh sách BN), chọn khoảng thời gian, rồi xem.
+  - Lượt xạ trị: tổng lượt, BN được xạ, bắt đầu / kết thúc, lượt vắng, theo kỹ thuật, bảng theo từng ngày (khoảng ≤ 2 tháng), theo khoa, máy, người, ICD, vị trí.
+  - Vắng buổi xạ: số lượt, số BN, theo lý do, danh sách từng buổi vắng (bấm để mở BN).
+  - Tìm danh sách BN: theo mốc (có xạ / bắt đầu / kết thúc / nhập), mặt bệnh ICD (nhiều mã, gõ 3 ký tự lấy cả nhóm), vị trí, kỹ thuật, BS, khoa, mục đích, trạng thái. Danh sách gọn, bấm từng BN xem đầy đủ (kể cả đợt đã lưu trữ). Xuất Excel.
+  - Điều dưỡng thường được dùng thống kê của khoa mình.
+- **Màn hình điều dưỡng**: số liệu Hôm qua / Hôm nay / Tuần này (tổng lượt, theo kỹ thuật, BN mới vào, kết thúc, lượt vắng, BN vắng, buổi ghi bù), đang xạ / chờ vào xạ / tạm ngừng, sắp kết thúc xạ theo từng ngày, danh sách BN đang vắng (số buổi vắng liên tiếp, lý do). Bấm con số để xem danh sách BN.
+- **Ghi vắng buổi xạ**: nút "Vắng" trong Xạ hôm nay, chọn lý do (danh mục LY_DO_VANG sửa được trong Quản trị). Buổi có lịch mà không ghi gì tính là "vắng chưa rõ lý do". Bấm ngày vắng trên lịch xạ của BN để ghi / sửa lý do. BS, ĐD, KTV đều ghi được.
+- **Báo bác sĩ** khi BN của mình vắng từ 2 buổi liên tiếp (chuông + mục "BN vắng từ 2 buổi liên tiếp").
+- **Ghi bù buổi xạ quên tích**: chọn ngày đã qua (trong 7 ngày) hoặc bấm ngày vắng trên lịch → "BN có xạ, quên ghi"; bắt buộc lý do, lưu vết trong nhật ký, ngày ghi bù có màu vàng trên lịch.
+- **Nhận ca lập kế hoạch phải chọn kỹ sư phụ trách**; có nút "Đổi kỹ sư" cho ca đang lập.
+- **Quản trị "Xem như"**: chọn một người (BS, KS, KTV, ĐD, tài khoản khoa) để xem đúng màn hình của họ, chỉ xem, không thao tác.
+
 ## v2.5
 - Form "Thêm bệnh nhân" sắp xếp lại: Mã HIS · Họ tên · Năm sinh · Giới → Bước hiện tại (danh sách chọn, bắt buộc) kèm ô liên quan → Bác sĩ điều trị, Khoa. Phần còn lại gom vào mục "Thông tin thêm", tự mở khi bước đã chọn cần đủ thông tin chuyên môn.
 - Mã ICD-10 (danh mục Bộ Y tế, mã C và D) đặt ngay trước Chẩn đoán: gõ mã hiện tên bệnh, ô chẩn đoán còn trống thì tự điền. Không bắt buộc lúc nhập, bắt buộc khi "Contour xong".

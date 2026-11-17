@@ -74,7 +74,7 @@ r = api('bs@x.vn', 'createPatient', { ma_his: '00123456', ho_ten: 'Nguyễn Văn
 assert(!r.ok && r.error.startsWith('DUP_HIS:'), 'cảnh báo trùng mã HIS');
 
 ok('bs@x.vn', 'contourDone', { id, uu_tien: 'Cấp cứu' });
-ok('ks@x.vn', 'claimPlan', { id });
+ok('ks@x.vn', 'claimPlan', { id, ks_email: 'ks@x.vn' });
 ok('ks@x.vn', 'planDone', { id, can_qa: true });
 r = ok('ks@x.vn', 'qaResult', { id, dat: true });
 assert.strictEqual(r.data.patients[0].trang_thai, 'CHO_XA');
@@ -86,8 +86,8 @@ assert.strictEqual(r.data.fractions.length, 1);
 r = api('ktv@x.vn', 'logFraction', { bn_id: id, ngay: today });
 assert(!r.ok && r.error === 'DUP_DAY', 'chặn ghi trùng ngày');
 const y1 = ctx.RT.addDays(today, -1), y2 = ctx.RT.addDays(today, -2);
-ok('ktv@x.vn', 'logFraction', { bn_id: id, ngay: y1 });
-r = ok('ktv@x.vn', 'logFraction', { bn_id: id, ngay: y2 });
+ok('ktv@x.vn', 'logFraction', { bn_id: id, ngay: y1, ly_do_bu: 'quên tích' });
+r = ok('ktv@x.vn', 'logFraction', { bn_id: id, ngay: y2, ly_do_bu: 'quên tích' });
 assert.strictEqual(r.data.patients[0].trang_thai, 'HOAN_THANH', 'đủ buổi thì hoàn thành');
 assert.strictEqual(r.data.patients[0].ngay_bat_dau, y2);
 const fid = r.data.fractions.find(f => f.ngay === today).id;
@@ -147,12 +147,12 @@ let bp = r.data.patients.find(x => x.ma_his === '5001');
 let g = r.data.phases.find(x => x.bn_id === bp.id);
 assert.strictEqual(g.trang_thai, 'CONTOUR'); assert.strictEqual(bp.vi_tri, 'Tiểu khung');
 const d1 = ctx.RT.addDays(today, -2), d2 = ctx.RT.addDays(today, -1);
-ok('ktv@x.vn', 'logFraction', { bn_id: bp.id, ngay: d1 });
-ok('ktv@x.vn', 'logFraction', { bn_id: bp.id, ngay: d2 });
+ok('ktv@x.vn', 'logFraction', { bn_id: bp.id, ngay: d1, ly_do_bu: 'quên tích' });
+ok('ktv@x.vn', 'logFraction', { bn_id: bp.id, ngay: d2, ly_do_bu: 'quên tích' });
 r = api('ktv@x.vn', 'logFraction', { bn_id: bp.id, ngay: today });
 assert(!r.ok && /chưa sẵn sàng/.test(r.error), 'chặn xạ khi KH boost chưa sẵn sàng: ' + r.error);
 ok('bs@x.vn', 'contourDone', { id: g.id, uu_tien: 'Ưu tiên' });
-ok('ks@x.vn', 'claimPlan', { id: g.id });
+ok('ks@x.vn', 'claimPlan', { id: g.id, ks_email: 'ks@x.vn' });
 ok('ks@x.vn', 'planDone', { id: g.id, can_qa: true });
 r = ok('ks@x.vn', 'qaResult', { id: g.id, dat: true });
 assert.strictEqual(r.data.phases.find(x => x.id === g.id).trang_thai, 'SAN_SANG');
@@ -281,7 +281,7 @@ assert.strictEqual(r.data.exceptions.filter(e => e.loai === 'THONG_BAO').length,
 // KTV trưởng huỷ buổi xạ cũ hơn 2 ngày
 r = ok('ktv@x.vn', 'createPatient', { ma_his: '9201', ho_ten: 'Huỷ cũ', nam_sinh: '1960', bs_email: 'bs@x.vn', icd: 'C50.9', chan_doan: 'K', ky_thuat: '3D-CRT', tong_lieu: '30', so_buoi: '10', trang_thai: 'CHO_XA' });
 let hp = r.data.patients.find(x => x.ma_his === '9201');
-r = ok('ktv@x.vn', 'logFraction', { bn_id: hp.id, ngay: ctx.RT.addDays(today, -5) });
+r = ok('ktv@x.vn', 'logFraction', { bn_id: hp.id, ngay: ctx.RT.addDays(today, -5), ly_do_bu: 'quên tích' });
 let oldFx = r.data.fractions.find(f => f.bn_id === hp.id);
 assert(!api('ktv@x.vn', 'undoFraction', { id: oldFx.id, ly_do: 'nhầm' }).ok, 'KTV thường không huỷ buổi quá 2 ngày');
 ok('ktvt@x.vn', 'undoFraction', { id: oldFx.id, ly_do: 'nhầm' });
@@ -318,7 +318,7 @@ ok('admin@x.vn', 'saveUser', { email: 'ddt@x.vn', ho_ten: 'ĐD trưởng', vai_t
 const mk2 = (his, bs, khoa) => ok('ktv@x.vn', 'createPatient', { ma_his: his, ho_ten: 'TK ' + his, nam_sinh: '1960', bs_email: bs, khoa, icd: 'C50.9', chan_doan: 'K', ky_thuat: 'IMRT', tong_lieu: '20', so_buoi: '10', trang_thai: 'CHO_XA' }).data.patients.find(x => x.ma_his === his);
 const pA = mk2('R1', 'bs@x.vn', 'Xạ trị'), pB = mk2('R2', 'bs2@x.vn', 'Xạ trị'), pC = mk2('R3', 'bs2@x.vn', 'Xạ trị theo yêu cầu');
 const dR = ctx.RT.addDays(today, -1);
-[[pA, dR], [pA, today], [pB, today], [pC, today]].forEach(([p, d]) => ok('ktv@x.vn', 'logFraction', { bn_id: p.id, ngay: d, hinh_anh: ['CBCT'] }));
+[[pA, dR], [pA, today], [pB, today], [pC, today]].forEach(([p, d]) => ok('ktv@x.vn', 'logFraction', { bn_id: p.id, ngay: d, hinh_anh: ['CBCT'], ly_do_bu: 'quên tích' }));
 const rep = (who) => { currentEmail = who; return JSON.parse(ctx.api('report', { tu: dR, den: today })); };
 let R0 = rep('admin@x.vn');
 assert(R0.ok, R0.error);
@@ -341,7 +341,7 @@ let rKTVT = rep('ktvt@x.vn').report;
 assert(rKTVT.theo_ktv && !rKTVT.theo_bac_si, 'KTV trưởng thấy nhóm KTV, không thấy theo bác sĩ');
 let rKS = rep('ks@x.vn').report;
 assert(!rKS.theo_bac_si && rKS.theo_ky_su, 'kỹ sư không thấy theo bác sĩ');
-currentEmail = 'dd@x.vn'; assert(!JSON.parse(ctx.api('report', { tu: dR, den: today })).ok, 'điều dưỡng thường không có thống kê');
+currentEmail = 'dd@x.vn'; assert(JSON.parse(ctx.api('report', { tu: dR, den: today })).ok, 'v2.6: điều dưỡng thường được xem thống kê');
 currentEmail = 'tk@x.vn'; let ex = JSON.parse(ctx.api('exportReport', { tu: dR, den: today }));
 assert(ex.ok && ex.sheet && /BaoCao/.test(ex.sheet.name), 'xuất trang báo cáo');
 
@@ -383,4 +383,38 @@ assert(Array.isArray(rp.report.theo_icd) && Array.isArray(rp.report.theo_vi_tri)
 const anyIcd = rp.report.theo_icd[0];
 if (anyIcd) { rp = ok('admin@x.vn', 'report', { tu: ctx.RT.addDays(today, -30), den: today, chi_tiet: { loai: 'icd', ma: anyIcd.ma } }); assert(rp.report.chi_tiet.length >= anyIcd.bn_xa, 'danh sách BN theo mã ICD'); }
 assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
+// ---- v2.6 ----
+{
+  r = ok('bs@x.vn', 'createPatient', { ma_his: 'V26', ho_ten: 'BN Vắng', nam_sinh: '1960', icd: 'C34.9', chan_doan: 'K phổi', vi_tri: 'Phổi', ky_thuat: 'VMAT', tong_lieu: '60', so_buoi: '30', trang_thai: 'CHO_KH' });
+  const pv = r.data.patients.find(x => x.ma_his === 'V26');
+  assert(!api('ks@x.vn', 'claimPlan', { id: pv.id }).ok, 'nhận ca phải chọn kỹ sư');
+  assert(!api('ks@x.vn', 'claimPlan', { id: pv.id, ks_email: 'bs@x.vn' }).ok, 'phải chọn đúng kỹ sư');
+  ok('ks@x.vn', 'claimPlan', { id: pv.id, ks_email: 'ks@x.vn' });
+  r = ok('admin@x.vn', 'claimPlan', { id: pv.id, ks_email: 'ks@x.vn' });
+  ok('ks@x.vn', 'planDone', { id: pv.id, can_qa: false });
+  // bắt đầu xạ từ 6 ngày làm việc trước, chỉ xạ buổi đầu
+  let st0 = today; for (let k = 0; k < 4;) { st0 = ctx.RT.addDays(st0, -1); if (ctx.RT.dow(st0) >= 1 && ctx.RT.dow(st0) <= 5) k++; }
+  assert(!api('ktv@x.vn', 'logFraction', { bn_id: pv.id, ngay: st0 }).ok, 'ghi bù phải có lý do');
+  ok('ktv@x.vn', 'logFraction', { bn_id: pv.id, ngay: st0, ly_do_bu: 'Quên tích' });
+  const fxb = sheets.BuoiXa.data.find(row => row.includes(pv.id) && row.includes(st0));
+  assert(fxb.includes('Có') && fxb.includes('Quên tích'), 'đánh dấu ghi bù và lý do');
+  let d2 = ctx.RT.addDays(st0, 1); while (ctx.RT.dow(d2) === 0 || ctx.RT.dow(d2) === 6) d2 = ctx.RT.addDays(d2, 1);
+  assert(!api('ktv@x.vn', 'markAbsent', { bn_id: pv.id, ngay: d2 }).ok, 'ghi vắng cần lý do');
+  ok('dd@x.vn', 'markAbsent', { bn_id: pv.id, ngay: d2, ly_do: 'Mệt / tác dụng phụ' });
+  const env = ctx.RT.makeEnv(today, [], JSON.parse(ctx.api('bootstrap')).data.exceptions, [], 'Máy gia tốc 1');
+  r = ok('admin@x.vn', 'bootstrap');
+  const pv2 = r.data.patients.find(x => x.id === pv.id);
+  const cv = ctx.RT.course(pv2, r.data.fractions, ctx.RT.makeEnv(today, [], r.data.exceptions, r.data.phases, 'Máy gia tốc 1'));
+  assert(cv.absent[d2] === 'Mệt / tác dụng phụ' && cv.streak >= 2, 'vắng có lý do, vắng liên tiếp ' + cv.streak);
+  rp = ok('dd@x.vn', 'report', { tu: st0, den: today });
+  assert(rp.report.tong_quan.vang_luot >= 2 && rp.report.tong_quan.vang_ly_do['Chưa rõ lý do'] >= 1 && rp.report.theo_ngay.length, 'thống kê vắng theo lý do và theo ngày');
+  // ghi bù cho ngày đã ghi vắng thì bỏ ghi vắng
+  ok('ktv@x.vn', 'logFraction', { bn_id: pv.id, ngay: d2, ly_do_bu: 'Thực ra có xạ' });
+  r = ok('admin@x.vn', 'bootstrap');
+  assert(!r.data.exceptions.some(e => e.loai === 'VANG' && e.bn_id === pv.id && e.ngay === d2), 'ghi bù xoá ghi vắng');
+  let fp = ok('dd@x.vn', 'findPatients', { tu: st0, den: today, moc: 'xa', icd: ['C34'] });
+  assert(fp.found.rows.some(x => x.id === pv.id) && fp.found.rows.every(x => /^C34/.test(x.icd)), 'tìm BN theo mã ICD');
+  fp = ok('admin@x.vn', 'findPatients', { tu: st0, den: today, moc: 'xa', icd: ['C50'], as: 'bs@x.vn' });
+  assert(fp.found.pham_vi === 'Của tôi', 'quản trị xem như bác sĩ');
+}
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');
