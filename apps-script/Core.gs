@@ -1,4 +1,4 @@
-// Điều phối Xạ trị · phiên bản v2.1
+// Điều phối Xạ trị · phiên bản v2.2
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -9,7 +9,7 @@
  */
 var RT = (function () {
   'use strict';
-  var VERSION = '2.1';
+  var VERSION = '2.2';
 
   var STATUS_ORDER = ['MO_PHONG', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA', 'DANG_XA', 'TAM_NGUNG', 'HOAN_THANH'];
   var STATUS = {
@@ -42,7 +42,7 @@ var RT = (function () {
     BuoiXa: ['id', 'bn_id', 'ngay', 'buoi_so', 'ktv_email', 'thoi_gian', 'hinh_anh', 'ghi_chu',
       'da_huy', 'huy_boi', 'ly_do_huy', 'gd'],
     LichNgoaiLe: ['id', 'bn_id', 'may', 'ngay', 'loai', 'ghi_chu', 'nguoi', 'thoi_gian', 'da_xoa'],
-    NguoiDung: ['email', 'ho_ten', 'vai_tro', 'kich_hoat', 'chuc_vu', 'khoa'],
+    NguoiDung: ['email', 'ho_ten', 'vai_tro', 'kich_hoat', 'chuc_vu', 'khoa', 'tro_ly_cho'],
     PhanCong: ['id', 'ngay', 'vi_tri', 'nhan_vien', 'ghi_chu', 'nguoi', 'thoi_gian'],
     DanhMuc: ['loai', 'gia_tri'],
     NhatKy: ['thoi_gian', 'email', 'thao_tac', 'bn_id', 'chi_tiet']
@@ -109,6 +109,8 @@ var RT = (function () {
     setRoster: ['KTV trưởng'], copyRoster: ['KTV trưởng'], machineDown: ['KTV trưởng'], machineUp: ['KTV trưởng'],
     setNotice: CHUC_VU, clearNotice: CHUC_VU
   };
+  /** Các bác sĩ mà người này phụ trách bệnh nhân: chính mình + bác sĩ chính nếu là trợ lý */
+  function myDoctors(u) { return u ? [u.email].concat(u.tro_ly_cho ? [u.tro_ly_cho] : []) : []; }
   function isLead(u) { return !!(u && u.chuc_vu && CHUC_VU.indexOf(u.chuc_vu) >= 0); }
   function can(role, action, user) {
     if ((PERM[action] || []).indexOf(role) >= 0) return true;
@@ -742,7 +744,7 @@ var RT = (function () {
       var p = findP(ctx, a.id);
       if (!a.ly_do) fail('Cần ghi lý do huỷ hồ sơ.');
       if (ctx.user.vai_tro !== 'ADMIN') {
-        if (p.bs_email !== ctx.user.email) fail('Chỉ bác sĩ điều trị hoặc quản trị được huỷ hồ sơ này.');
+        if (myDoctors(ctx.user).indexOf(p.bs_email) < 0) fail('Chỉ bác sĩ điều trị hoặc quản trị được huỷ hồ sơ này.');
         if (fxOf(p, ctx.fractions).length) fail('BN đã có buổi xạ, chỉ quản trị được huỷ hồ sơ.');
       }
       p.trang_thai = 'HUY';
@@ -763,10 +765,19 @@ var RT = (function () {
       if (isNew) { u = { email: email }; ctx.users.push(u); }
       var cv = String(a.chuc_vu || '');
       var kh2 = String(a.khoa || '');
+      var tl = String(a.tro_ly_cho || '').trim().toLowerCase();
+      if (tl) {
+        if (tl === email) fail('Không thể là trợ lý cho chính mình.');
+        var chinh = ctx.users.filter(function (x) { return x.email === tl && x.kich_hoat !== 'Không'; })[0];
+        if (!chinh || (chinh.vai_tro !== 'BS' && chinh.vai_tro !== 'ADMIN')) fail('Bác sĩ chính không có trong danh sách bác sĩ.');
+        if (chinh.tro_ly_cho) fail(chinh.ho_ten + ' đang là trợ lý, không thể có trợ lý riêng.');
+        var khac = ctx.users.filter(function (x) { return x.email !== email && x.tro_ly_cho === tl && x.kich_hoat !== 'Không'; })[0];
+        if (khac && kh !== 'Không') fail(chinh.ho_ten + ' đã có trợ lý ' + khac.ho_ten + '. Mỗi bác sĩ tạm thời chỉ có 1 trợ lý; hãy bỏ trợ lý cũ trước.');
+      }
       if (kh2 && staffKhoa(ctx.dm).indexOf(kh2) < 0) fail('Khoa không có trong danh mục.');
       if (KHOA_STATS.indexOf(cv) >= 0 && !kh2) fail('Chức vụ "' + cv + '" cần chọn khoa.');
       if (cv && CHUC_VU.indexOf(cv) < 0) fail('Chức vụ không hợp lệ.');
-      u.ho_ten = String(a.ho_ten).trim(); u.vai_tro = vt; u.kich_hoat = kh; u.chuc_vu = cv; u.khoa = kh2;
+      u.ho_ten = String(a.ho_ten).trim(); u.vai_tro = vt; u.kich_hoat = kh; u.chuc_vu = cv; u.khoa = kh2; u.tro_ly_cho = tl;
       ctx.saveUser(u);
       ctx.log(isNew ? 'Thêm người dùng' : 'Sửa người dùng', '', email + ' · ' + vt + (cv ? ' · ' + cv : '') + ' · ' + kh);
       return (isNew ? 'Đã thêm ' : 'Đã cập nhật ') + u.ho_ten + '.';
@@ -869,9 +880,9 @@ var RT = (function () {
     pts.forEach(function (p) { ids[p.id] = 1; });
     function pick(o, cols) { var r = {}; cols.forEach(function (c) { r[c] = o[c] == null ? '' : String(o[c]); }); return r; }
     return {
-      me: { email: ctx.user.email, ho_ten: ctx.user.ho_ten, vai_tro: ctx.user.vai_tro, kich_hoat: ctx.user.kich_hoat || 'Có', chuc_vu: ctx.user.chuc_vu || '', khoa: ctx.user.khoa || '' },
+      me: { email: ctx.user.email, ho_ten: ctx.user.ho_ten, vai_tro: ctx.user.vai_tro, kich_hoat: ctx.user.kich_hoat || 'Có', chuc_vu: ctx.user.chuc_vu || '', khoa: ctx.user.khoa || '', tro_ly_cho: ctx.user.tro_ly_cho || '' },
       today: ctx.today,
-      users: ctx.users.map(function (u) { return { email: u.email, ho_ten: u.ho_ten, vai_tro: u.vai_tro, kich_hoat: u.kich_hoat === 'Không' ? 'Không' : 'Có', chuc_vu: u.chuc_vu || '', khoa: u.khoa || '' }; }),
+      users: ctx.users.map(function (u) { return { email: u.email, ho_ten: u.ho_ten, vai_tro: u.vai_tro, kich_hoat: u.kich_hoat === 'Không' ? 'Không' : 'Có', chuc_vu: u.chuc_vu || '', khoa: u.khoa || '', tro_ly_cho: u.tro_ly_cho || '' }; }),
       dm: ctx.dm,
       holidays: ctx.holidays,
       patients: pts.map(function (p) { return pick(p, COLS.BenhNhan); }),
@@ -922,8 +933,9 @@ var RT = (function () {
       ovFx = fx.filter(function (f) { return inKhoa(P[f.bn_id]); });
       ovPts = Object.keys(P).map(function (k) { return P[k]; }).filter(inKhoa);
     } else if (u.vai_tro === 'BS' || u.vai_tro === 'ADMIN') {
-      ovFx = fx.filter(function (f) { return P[f.bn_id].bs_email === u.email; });
-      ovPts = Object.keys(P).map(function (k) { return P[k]; }).filter(function (p) { return p.bs_email === u.email; });
+      var docs = myDoctors(u);
+      ovFx = fx.filter(function (f) { return docs.indexOf(P[f.bn_id].bs_email) >= 0; });
+      ovPts = Object.keys(P).map(function (k) { return P[k]; }).filter(function (p) { return docs.indexOf(p.bs_email) >= 0; });
     } else if (u.vai_tro === 'KTV') {
       ovFx = fx.filter(function (f) { return f.ktv_email === u.email || sc.byKtv; });
       ovPts = [];
@@ -960,7 +972,7 @@ var RT = (function () {
     var out = { tu: tu, den: den, pham_vi: sc.label, tong_quan: ov };
     // Theo bác sĩ: trưởng khoa / ĐD trưởng / tài khoản khoa / quản trị thấy cả khoa; bác sĩ chỉ thấy dòng của mình
     if (sc.byDoctor) out.theo_bac_si = rows(function (f) { return P[f.bn_id].bs_email; }, function (f) { return inKhoa(P[f.bn_id]); });
-    else if (u.vai_tro === 'BS') out.theo_bac_si = rows(function (f) { return P[f.bn_id].bs_email; }, function (f, k) { return k === u.email; });
+    else if (u.vai_tro === 'BS') out.theo_bac_si = rows(function (f) { return P[f.bn_id].bs_email; }, function (f, k) { return myDoctors(u).indexOf(k) >= 0; });
     if (sc.byKtv) out.theo_ktv = rows(function (f) { return f.ktv_email; });
     else if (u.vai_tro === 'KTV') out.theo_ktv = rows(function (f) { return f.ktv_email; }, function (f, k) { return k === u.email; });
     if (sc.byKs || u.vai_tro === 'KS') {
@@ -996,7 +1008,7 @@ var RT = (function () {
   }
 
   return {
-    VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, report: report, staffKhoa: staffKhoa, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
+    VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, report: report, staffKhoa: staffKhoa, myDoctors: myDoctors, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,

@@ -177,6 +177,7 @@ function buildCtx_() {
     u.kich_hoat = u.kich_hoat === 'Không' ? 'Không' : 'Có';
     u.chuc_vu = String(u.chuc_vu || '').trim();
     u.khoa = String(u.khoa || '').trim();
+    u.tro_ly_cho = String(u.tro_ly_cho || '').trim().toLowerCase();
     return u;
   });
   var user = users.filter(function (u) { return u.email === email && u.kich_hoat !== 'Không'; })[0];

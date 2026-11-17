@@ -353,8 +353,9 @@
   function renderHome() {
     var isBs = role() === 'BS' || role() === 'ADMIN';
     var scope = isBs ? S.scope : 'all';
-    var list = pts().filter(function (p) { return scope === 'all' || p.bs_email === me().email; });
-    var ilist = items().filter(function (p) { return scope === 'all' || p.bs_email === me().email; });
+    var docs = RT.myDoctors(me());
+    var list = pts().filter(function (p) { return scope === 'all' || docs.indexOf(p.bs_email) >= 0; });
+    var ilist = items().filter(function (p) { return scope === 'all' || docs.indexOf(p.bs_email) >= 0; });
     var by = function (st, useItems) { return (useItems ? ilist : list).filter(function (p) { return st.indexOf(p.trang_thai) >= 0; }); };
     var queue = RT.planningQueue(items(), boostLeft);
     var qpos = function (p) { for (var i = 0; i < queue.length; i++) if (queue[i].id === p.id) return i + 1; return 0; };
@@ -364,7 +365,7 @@
     g.tx.sort(function (a, b) { return (course(b).missed.length - course(a).missed.length) || (course(a).end < course(b).end ? -1 : 1); });
     var doneSoon = list.filter(function (p) { return p.trang_thai === 'DANG_XA' && course(p).end && RT.diffDays(today(), course(p).end) <= 6; }).length;
 
-    var html = '<div class="page-head"><div><h1>' + (scope === 'all' ? 'Toàn bộ bệnh nhân' : 'Bệnh nhân của ' + esc(me().ho_ten)) + '</h1>' +
+    var html = '<div class="page-head"><div><h1>' + (scope === 'all' ? 'Toàn bộ bệnh nhân' : 'Bệnh nhân của ' + esc(me().ho_ten) + (me().tro_ly_cho ? ' và ' + esc(nameOf(me().tro_ly_cho)) + ' <span class="tag">Trợ lý</span>' : '')) + '</h1>' +
       '<p>' + fdw(today()) + '/' + today().slice(0, 4) + ' · ' + list.filter(function (p) { return p.trang_thai !== 'HOAN_THANH'; }).length + ' bệnh nhân đang trong quy trình</p></div>' +
       (isBs ? '<div class="seg" role="group" aria-label="Phạm vi"><button data-scope="mine" aria-pressed="' + (scope === 'mine') + '">Của tôi</button><button data-scope="all" aria-pressed="' + (scope === 'all') + '">Cả khoa</button></div>' : '') + '</div>';
     html += '<div class="kpis">' + HOME_GROUPS.map(function (x) {
@@ -378,7 +379,7 @@
     var contourActs = { h: '', cls: 'act', v: function (p) {
       if (p.trang_thai === 'MO_PHONG') return (p.ngay_mo_phong ? '<span class="muted">hẹn ' + fdw(p.ngay_mo_phong) + '</span> ' : '<span class="pill st-MO_PHONG">' + (p._g ? 'Chờ mô phỏng lại' : 'Chờ mô phỏng') + '</span> ') +
         (can('simDone') ? btn('simDone', p.id, 'Đã mô phỏng xong') : '');
-      return (boostFlag(p) ? boostFlag(p) + ' ' : '') + (can('contourDone') && (p.bs_email === me().email || role() === 'ADMIN') ? btn('contourDone', p.id, 'Contour xong', 'primary') : '');
+      return (boostFlag(p) ? boostFlag(p) + ' ' : '') + (can('contourDone') && (RT.myDoctors(me()).indexOf(p.bs_email) >= 0 || role() === 'ADMIN') ? btn('contourDone', p.id, 'Contour xong', 'primary') : '');
     } };
     html += group('contour', 'Đang contour', g.contour, [C.pt, C.dx, C.rx, C.pr,
       { h: 'Từ ngày', cls: 'nowrap', v: function (p) { return '<span class="num">' + fd(p.ngay_tao) + '</span><span class="sub">' + daysSince(p.ngay_tao) + ' ngày</span>'; } },
@@ -691,7 +692,7 @@
   }
   /** So sánh dữ liệu cũ và mới (do người khác cập nhật) để báo việc mới cho đúng người */
   function computeNotes(oldD, newD) {
-    var meU = newD.me, mine = function (p) { return p.bs_email === meU.email; };
+    var meU = newD.me, mine = function (p) { return RT.myDoctors(meU).indexOf(p.bs_email) >= 0; };
     var r = meU.vai_tro, out = [];
     var st = {}, gst = {};
     oldD.patients.forEach(function (p) { st[p.id] = p.trang_thai; });
@@ -885,7 +886,7 @@
       '<span class="hint">Người dùng cần có tài khoản Google. Với Gmail cá nhân, nhớ chia sẻ Google Sheet cho họ.</span></div><div class="card"><div class="tbl-wrap"><table><thead><tr><th>Họ tên</th><th>Email</th><th>Vai trò</th><th>Chức vụ</th><th>Khoa</th><th>Trạng thái</th><th></th></tr></thead><tbody>' +
       users.map(function (u) {
         return '<tr class="' + (u.kich_hoat === 'Không' ? 'off-user' : '') + '"><td><b>' + esc(u.ho_ten) + '</b></td><td class="mono">' + esc(u.email) + '</td><td><span class="role role-' + esc(u.vai_tro) + '">' + esc(RT.ROLES[u.vai_tro] || u.vai_tro) + '</span></td>' +
-          '<td>' + esc(u.chuc_vu || '') + '</td><td>' + esc(u.khoa || '') + '</td><td>' + (u.kich_hoat === 'Không' ? 'Đã khoá' : 'Hoạt động') + '</td><td class="act"><button class="btn" data-admin="editUser" data-email="' + esc(u.email) + '">Sửa</button></td></tr>';
+          '<td>' + esc(u.chuc_vu || '') + (u.tro_ly_cho ? '<span class="sub">Trợ lý cho ' + esc(nameOf(u.tro_ly_cho)) + '</span>' : '') + '</td><td>' + esc(u.khoa || '') + '</td><td>' + (u.kich_hoat === 'Không' ? 'Đã khoá' : 'Hoạt động') + '</td><td class="act"><button class="btn" data-admin="editUser" data-email="' + esc(u.email) + '">Sửa</button></td></tr>';
       }).join('') + '</tbody></table></div></div></section>';
     var dmBox = function (loai, title, help, ph, type) {
       var list = d.dm[loai] || [];
@@ -930,7 +931,8 @@
         field('Vai trò', '<select name="vai_tro">' + opts(['BS', 'KS', 'KTV', 'DD', 'ADMIN'].map(function (r) { return { v: r, l: RT.ROLES[r] }; }), u.vai_tro) + '</select>') +
         field('Trạng thái', '<select name="kich_hoat">' + opts([{ v: 'Có', l: 'Hoạt động' }, { v: 'Không', l: 'Khoá tài khoản' }], u.kich_hoat) + '</select>') +
         field('Chức vụ', '<select name="chuc_vu">' + opts(RT.CHUC_VU, u.chuc_vu || '', 'Không') + '</select>', '', 'Trưởng khoa, ĐD trưởng, tài khoản khoa: xem thống kê cả khoa. KTV trưởng: phân công, huỷ buổi xạ ghi nhầm.') +
-        field('Khoa', '<select name="khoa">' + opts(RT.staffKhoa(S.data.dm), u.khoa || '', '—') + '</select>', '', 'Bắt buộc với trưởng khoa, ĐD trưởng, tài khoản khoa') + '</div>',
+        field('Khoa', '<select name="khoa">' + opts(RT.staffKhoa(S.data.dm), u.khoa || '', '—') + '</select>', '', 'Bắt buộc với trưởng khoa, ĐD trưởng, tài khoản khoa') +
+        field('Trợ lý cho bác sĩ', '<select name="tro_ly_cho">' + opts(S.data.users.filter(function (x) { return x.kich_hoat !== 'Không' && x.email !== u.email && !x.tro_ly_cho && (x.vai_tro === 'BS' || isDoctor(x)); }).map(function (x) { return { v: x.email, l: x.ho_ten }; }), u.tro_ly_cho || '', 'Không (bác sĩ bình thường)') + '</select>', 'full', 'Chỉ cho bác sĩ trợ lý: thấy và làm việc trên BN của bác sĩ chính, xem được thống kê của bác sĩ chính. BN vẫn đứng tên bác sĩ chính.') + '</div>',
       validate: function (v) { if (!v.ho_ten) return 'Cần nhập họ tên.'; if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.email)) return 'Email không hợp lệ.'; if (['Trưởng khoa', 'Điều dưỡng trưởng', 'Tài khoản khoa'].indexOf(v.chuc_vu) >= 0 && !v.khoa) return 'Chức vụ này cần chọn khoa.'; return ''; },
       onOk: function (v) { run('saveUser', v); } });
   }
@@ -1127,7 +1129,7 @@
     if (can('resume') && st === 'TAM_NGUNG') b('resume', 'Tiếp tục xạ');
     if (can('updatePatient')) b('edit', 'Sửa thông tin');
     if (can('endEarly') && ['CHO_XA', 'DANG_XA', 'TAM_NGUNG'].indexOf(st) >= 0) b('endEarly', 'Kết thúc sớm', 'danger');
-    if (can('deletePatient') && (role() === 'ADMIN' || (p.bs_email === me().email && !course(p).done))) b('deletePatient', 'Huỷ hồ sơ', 'danger');
+    if (can('deletePatient') && (role() === 'ADMIN' || (RT.myDoctors(me()).indexOf(p.bs_email) >= 0 && !course(p).done))) b('deletePatient', 'Huỷ hồ sơ', 'danger');
     return a.join('');
   }
 
@@ -1286,7 +1288,7 @@
       } });
   }
   function patientForm(p, prefill) {
-    var isNew = !p, d = S.data.dm, v0 = p || prefill || { bs_email: isDoctor(me()) ? me().email : '', khoa: d.KHOA[0], uu_tien: 'Thường', igrt: 'Không', sgrt: 'Không' };
+    var isNew = !p, d = S.data.dm, v0 = p || prefill || { bs_email: isDoctor(me()) ? (me().tro_ly_cho || me().email) : '', khoa: d.KHOA[0], uu_tien: 'Thường', igrt: 'Không', sgrt: 'Không' };
     var mucDich = d.MUC_DICH || RT.DEFAULT_DM.MUC_DICH;
     var bsList = doctors().map(function (u) { return { v: u.email, l: u.ho_ten }; });
     var inp = function (name, type, attrs) { return '<input type="' + (type || 'text') + '" name="' + name + '" value="' + esc(v0[name] || '') + '" ' + (attrs || '') + '>'; };

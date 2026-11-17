@@ -41,21 +41,21 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
 </style>
 <div class="wrap">
   <div class="intro">
-    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v2.1</h1>
+    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v2.2</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v2.1 · bản lưu a21ed35 · 17/11/2026 01:51. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v2.1”.</span>
+    <span class="rev">Phiên bản v2.2 · bản lưu 230e50d · 17/11/2026 02:08. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v2.2”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Code">Code.gs <span class="ver">· v2.1</span></h2>
+        <h2 id="h-Code">Code.gs <span class="ver">· v2.2</span></h2>
         <p>File có sẵn tên Code.gs: xoá hết nội dung cũ, dán vào.</p>
-        <span class="size">382 dòng · 19 KB</span>
+        <span class="size">383 dòng · 19 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v2.1)</button>
+      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v2.2)</button>
     </div>
-    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v2.1
+    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v2.2
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
@@ -235,6 +235,7 @@ function buildCtx_() {
     u.kich_hoat = u.kich_hoat === &#x27;Không&#x27; ? &#x27;Không&#x27; : &#x27;Có&#x27;;
     u.chuc_vu = String(u.chuc_vu || &#x27;&#x27;).trim();
     u.khoa = String(u.khoa || &#x27;&#x27;).trim();
+    u.tro_ly_cho = String(u.tro_ly_cho || &#x27;&#x27;).trim().toLowerCase();
     return u;
   });
   var user = users.filter(function (u) { return u.email === email &amp;&amp; u.kich_hoat !== &#x27;Không&#x27;; })[0];
@@ -441,13 +442,13 @@ function moveRows_(ss, fromName, toName, pred) {
   <section class="card" aria-labelledby="h-Core">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Core">Core.gs <span class="ver">· v2.1</span></h2>
+        <h2 id="h-Core">Core.gs <span class="ver">· v2.2</span></h2>
         <p>Bấm + → Script (Tập lệnh), đặt tên Core.</p>
-        <span class="size">1,008 dòng · 59 KB</span>
+        <span class="size">1,020 dòng · 60 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v2.1)</button>
+      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v2.2)</button>
     </div>
-    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v2.1
+    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v2.2
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -458,7 +459,7 @@ function moveRows_(ss, fromName, toName, pred) {
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;2.1&#x27;;
+  var VERSION = &#x27;2.2&#x27;;
 
   var STATUS_ORDER = [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;];
   var STATUS = {
@@ -491,7 +492,7 @@ var RT = (function () {
     BuoiXa: [&#x27;id&#x27;, &#x27;bn_id&#x27;, &#x27;ngay&#x27;, &#x27;buoi_so&#x27;, &#x27;ktv_email&#x27;, &#x27;thoi_gian&#x27;, &#x27;hinh_anh&#x27;, &#x27;ghi_chu&#x27;,
       &#x27;da_huy&#x27;, &#x27;huy_boi&#x27;, &#x27;ly_do_huy&#x27;, &#x27;gd&#x27;],
     LichNgoaiLe: [&#x27;id&#x27;, &#x27;bn_id&#x27;, &#x27;may&#x27;, &#x27;ngay&#x27;, &#x27;loai&#x27;, &#x27;ghi_chu&#x27;, &#x27;nguoi&#x27;, &#x27;thoi_gian&#x27;, &#x27;da_xoa&#x27;],
-    NguoiDung: [&#x27;email&#x27;, &#x27;ho_ten&#x27;, &#x27;vai_tro&#x27;, &#x27;kich_hoat&#x27;, &#x27;chuc_vu&#x27;, &#x27;khoa&#x27;],
+    NguoiDung: [&#x27;email&#x27;, &#x27;ho_ten&#x27;, &#x27;vai_tro&#x27;, &#x27;kich_hoat&#x27;, &#x27;chuc_vu&#x27;, &#x27;khoa&#x27;, &#x27;tro_ly_cho&#x27;],
     PhanCong: [&#x27;id&#x27;, &#x27;ngay&#x27;, &#x27;vi_tri&#x27;, &#x27;nhan_vien&#x27;, &#x27;ghi_chu&#x27;, &#x27;nguoi&#x27;, &#x27;thoi_gian&#x27;],
     DanhMuc: [&#x27;loai&#x27;, &#x27;gia_tri&#x27;],
     NhatKy: [&#x27;thoi_gian&#x27;, &#x27;email&#x27;, &#x27;thao_tac&#x27;, &#x27;bn_id&#x27;, &#x27;chi_tiet&#x27;]
@@ -558,6 +559,8 @@ var RT = (function () {
     setRoster: [&#x27;KTV trưởng&#x27;], copyRoster: [&#x27;KTV trưởng&#x27;], machineDown: [&#x27;KTV trưởng&#x27;], machineUp: [&#x27;KTV trưởng&#x27;],
     setNotice: CHUC_VU, clearNotice: CHUC_VU
   };
+  /** Các bác sĩ mà người này phụ trách bệnh nhân: chính mình + bác sĩ chính nếu là trợ lý */
+  function myDoctors(u) { return u ? [u.email].concat(u.tro_ly_cho ? [u.tro_ly_cho] : []) : []; }
   function isLead(u) { return !!(u &amp;&amp; u.chuc_vu &amp;&amp; CHUC_VU.indexOf(u.chuc_vu) &gt;= 0); }
   function can(role, action, user) {
     if ((PERM[action] || []).indexOf(role) &gt;= 0) return true;
@@ -1191,7 +1194,7 @@ var RT = (function () {
       var p = findP(ctx, a.id);
       if (!a.ly_do) fail(&#x27;Cần ghi lý do huỷ hồ sơ.&#x27;);
       if (ctx.user.vai_tro !== &#x27;ADMIN&#x27;) {
-        if (p.bs_email !== ctx.user.email) fail(&#x27;Chỉ bác sĩ điều trị hoặc quản trị được huỷ hồ sơ này.&#x27;);
+        if (myDoctors(ctx.user).indexOf(p.bs_email) &lt; 0) fail(&#x27;Chỉ bác sĩ điều trị hoặc quản trị được huỷ hồ sơ này.&#x27;);
         if (fxOf(p, ctx.fractions).length) fail(&#x27;BN đã có buổi xạ, chỉ quản trị được huỷ hồ sơ.&#x27;);
       }
       p.trang_thai = &#x27;HUY&#x27;;
@@ -1212,10 +1215,19 @@ var RT = (function () {
       if (isNew) { u = { email: email }; ctx.users.push(u); }
       var cv = String(a.chuc_vu || &#x27;&#x27;);
       var kh2 = String(a.khoa || &#x27;&#x27;);
+      var tl = String(a.tro_ly_cho || &#x27;&#x27;).trim().toLowerCase();
+      if (tl) {
+        if (tl === email) fail(&#x27;Không thể là trợ lý cho chính mình.&#x27;);
+        var chinh = ctx.users.filter(function (x) { return x.email === tl &amp;&amp; x.kich_hoat !== &#x27;Không&#x27;; })[0];
+        if (!chinh || (chinh.vai_tro !== &#x27;BS&#x27; &amp;&amp; chinh.vai_tro !== &#x27;ADMIN&#x27;)) fail(&#x27;Bác sĩ chính không có trong danh sách bác sĩ.&#x27;);
+        if (chinh.tro_ly_cho) fail(chinh.ho_ten + &#x27; đang là trợ lý, không thể có trợ lý riêng.&#x27;);
+        var khac = ctx.users.filter(function (x) { return x.email !== email &amp;&amp; x.tro_ly_cho === tl &amp;&amp; x.kich_hoat !== &#x27;Không&#x27;; })[0];
+        if (khac &amp;&amp; kh !== &#x27;Không&#x27;) fail(chinh.ho_ten + &#x27; đã có trợ lý &#x27; + khac.ho_ten + &#x27;. Mỗi bác sĩ tạm thời chỉ có 1 trợ lý; hãy bỏ trợ lý cũ trước.&#x27;);
+      }
       if (kh2 &amp;&amp; staffKhoa(ctx.dm).indexOf(kh2) &lt; 0) fail(&#x27;Khoa không có trong danh mục.&#x27;);
       if (KHOA_STATS.indexOf(cv) &gt;= 0 &amp;&amp; !kh2) fail(&#x27;Chức vụ &quot;&#x27; + cv + &#x27;&quot; cần chọn khoa.&#x27;);
       if (cv &amp;&amp; CHUC_VU.indexOf(cv) &lt; 0) fail(&#x27;Chức vụ không hợp lệ.&#x27;);
-      u.ho_ten = String(a.ho_ten).trim(); u.vai_tro = vt; u.kich_hoat = kh; u.chuc_vu = cv; u.khoa = kh2;
+      u.ho_ten = String(a.ho_ten).trim(); u.vai_tro = vt; u.kich_hoat = kh; u.chuc_vu = cv; u.khoa = kh2; u.tro_ly_cho = tl;
       ctx.saveUser(u);
       ctx.log(isNew ? &#x27;Thêm người dùng&#x27; : &#x27;Sửa người dùng&#x27;, &#x27;&#x27;, email + &#x27; · &#x27; + vt + (cv ? &#x27; · &#x27; + cv : &#x27;&#x27;) + &#x27; · &#x27; + kh);
       return (isNew ? &#x27;Đã thêm &#x27; : &#x27;Đã cập nhật &#x27;) + u.ho_ten + &#x27;.&#x27;;
@@ -1318,9 +1330,9 @@ var RT = (function () {
     pts.forEach(function (p) { ids[p.id] = 1; });
     function pick(o, cols) { var r = {}; cols.forEach(function (c) { r[c] = o[c] == null ? &#x27;&#x27; : String(o[c]); }); return r; }
     return {
-      me: { email: ctx.user.email, ho_ten: ctx.user.ho_ten, vai_tro: ctx.user.vai_tro, kich_hoat: ctx.user.kich_hoat || &#x27;Có&#x27;, chuc_vu: ctx.user.chuc_vu || &#x27;&#x27;, khoa: ctx.user.khoa || &#x27;&#x27; },
+      me: { email: ctx.user.email, ho_ten: ctx.user.ho_ten, vai_tro: ctx.user.vai_tro, kich_hoat: ctx.user.kich_hoat || &#x27;Có&#x27;, chuc_vu: ctx.user.chuc_vu || &#x27;&#x27;, khoa: ctx.user.khoa || &#x27;&#x27;, tro_ly_cho: ctx.user.tro_ly_cho || &#x27;&#x27; },
       today: ctx.today,
-      users: ctx.users.map(function (u) { return { email: u.email, ho_ten: u.ho_ten, vai_tro: u.vai_tro, kich_hoat: u.kich_hoat === &#x27;Không&#x27; ? &#x27;Không&#x27; : &#x27;Có&#x27;, chuc_vu: u.chuc_vu || &#x27;&#x27;, khoa: u.khoa || &#x27;&#x27; }; }),
+      users: ctx.users.map(function (u) { return { email: u.email, ho_ten: u.ho_ten, vai_tro: u.vai_tro, kich_hoat: u.kich_hoat === &#x27;Không&#x27; ? &#x27;Không&#x27; : &#x27;Có&#x27;, chuc_vu: u.chuc_vu || &#x27;&#x27;, khoa: u.khoa || &#x27;&#x27;, tro_ly_cho: u.tro_ly_cho || &#x27;&#x27; }; }),
       dm: ctx.dm,
       holidays: ctx.holidays,
       patients: pts.map(function (p) { return pick(p, COLS.BenhNhan); }),
@@ -1371,8 +1383,9 @@ var RT = (function () {
       ovFx = fx.filter(function (f) { return inKhoa(P[f.bn_id]); });
       ovPts = Object.keys(P).map(function (k) { return P[k]; }).filter(inKhoa);
     } else if (u.vai_tro === &#x27;BS&#x27; || u.vai_tro === &#x27;ADMIN&#x27;) {
-      ovFx = fx.filter(function (f) { return P[f.bn_id].bs_email === u.email; });
-      ovPts = Object.keys(P).map(function (k) { return P[k]; }).filter(function (p) { return p.bs_email === u.email; });
+      var docs = myDoctors(u);
+      ovFx = fx.filter(function (f) { return docs.indexOf(P[f.bn_id].bs_email) &gt;= 0; });
+      ovPts = Object.keys(P).map(function (k) { return P[k]; }).filter(function (p) { return docs.indexOf(p.bs_email) &gt;= 0; });
     } else if (u.vai_tro === &#x27;KTV&#x27;) {
       ovFx = fx.filter(function (f) { return f.ktv_email === u.email || sc.byKtv; });
       ovPts = [];
@@ -1409,7 +1422,7 @@ var RT = (function () {
     var out = { tu: tu, den: den, pham_vi: sc.label, tong_quan: ov };
     // Theo bác sĩ: trưởng khoa / ĐD trưởng / tài khoản khoa / quản trị thấy cả khoa; bác sĩ chỉ thấy dòng của mình
     if (sc.byDoctor) out.theo_bac_si = rows(function (f) { return P[f.bn_id].bs_email; }, function (f) { return inKhoa(P[f.bn_id]); });
-    else if (u.vai_tro === &#x27;BS&#x27;) out.theo_bac_si = rows(function (f) { return P[f.bn_id].bs_email; }, function (f, k) { return k === u.email; });
+    else if (u.vai_tro === &#x27;BS&#x27;) out.theo_bac_si = rows(function (f) { return P[f.bn_id].bs_email; }, function (f, k) { return myDoctors(u).indexOf(k) &gt;= 0; });
     if (sc.byKtv) out.theo_ktv = rows(function (f) { return f.ktv_email; });
     else if (u.vai_tro === &#x27;KTV&#x27;) out.theo_ktv = rows(function (f) { return f.ktv_email; }, function (f, k) { return k === u.email; });
     if (sc.byKs || u.vai_tro === &#x27;KS&#x27;) {
@@ -1445,7 +1458,7 @@ var RT = (function () {
   }
 
   return {
-    VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, report: report, staffKhoa: staffKhoa, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
+    VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, report: report, staffKhoa: staffKhoa, myDoctors: myDoctors, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
@@ -1459,14 +1472,14 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
   <section class="card" aria-labelledby="h-Index">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Index">Index.html <span class="ver">· v2.1</span></h2>
+        <h2 id="h-Index">Index.html <span class="ver">· v2.2</span></h2>
         <p>Bấm + → HTML, đặt tên Index (chữ I hoa).</p>
-        <span class="size">2,807 dòng · 209 KB</span>
+        <span class="size">2,821 dòng · 212 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v2.1)</button>
+      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v2.2)</button>
     </div>
     <textarea id="t-Index" readonly spellcheck="false" aria-label="Nội dung Index.html">&lt;!DOCTYPE html&gt;
-&lt;!-- Điều phối Xạ trị · phiên bản v2.1 --&gt;
+&lt;!-- Điều phối Xạ trị · phiên bản v2.2 --&gt;
 &lt;html lang=&quot;vi&quot;&gt;
 &lt;head&gt;
 &lt;base target=&quot;_top&quot;&gt;
@@ -1802,7 +1815,7 @@ td.rs-today .rs-cell{border-color:var(--accent-2)}
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;2.1&#x27;;
+  var VERSION = &#x27;2.2&#x27;;
 
   var STATUS_ORDER = [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;];
   var STATUS = {
@@ -1835,7 +1848,7 @@ var RT = (function () {
     BuoiXa: [&#x27;id&#x27;, &#x27;bn_id&#x27;, &#x27;ngay&#x27;, &#x27;buoi_so&#x27;, &#x27;ktv_email&#x27;, &#x27;thoi_gian&#x27;, &#x27;hinh_anh&#x27;, &#x27;ghi_chu&#x27;,
       &#x27;da_huy&#x27;, &#x27;huy_boi&#x27;, &#x27;ly_do_huy&#x27;, &#x27;gd&#x27;],
     LichNgoaiLe: [&#x27;id&#x27;, &#x27;bn_id&#x27;, &#x27;may&#x27;, &#x27;ngay&#x27;, &#x27;loai&#x27;, &#x27;ghi_chu&#x27;, &#x27;nguoi&#x27;, &#x27;thoi_gian&#x27;, &#x27;da_xoa&#x27;],
-    NguoiDung: [&#x27;email&#x27;, &#x27;ho_ten&#x27;, &#x27;vai_tro&#x27;, &#x27;kich_hoat&#x27;, &#x27;chuc_vu&#x27;, &#x27;khoa&#x27;],
+    NguoiDung: [&#x27;email&#x27;, &#x27;ho_ten&#x27;, &#x27;vai_tro&#x27;, &#x27;kich_hoat&#x27;, &#x27;chuc_vu&#x27;, &#x27;khoa&#x27;, &#x27;tro_ly_cho&#x27;],
     PhanCong: [&#x27;id&#x27;, &#x27;ngay&#x27;, &#x27;vi_tri&#x27;, &#x27;nhan_vien&#x27;, &#x27;ghi_chu&#x27;, &#x27;nguoi&#x27;, &#x27;thoi_gian&#x27;],
     DanhMuc: [&#x27;loai&#x27;, &#x27;gia_tri&#x27;],
     NhatKy: [&#x27;thoi_gian&#x27;, &#x27;email&#x27;, &#x27;thao_tac&#x27;, &#x27;bn_id&#x27;, &#x27;chi_tiet&#x27;]
@@ -1902,6 +1915,8 @@ var RT = (function () {
     setRoster: [&#x27;KTV trưởng&#x27;], copyRoster: [&#x27;KTV trưởng&#x27;], machineDown: [&#x27;KTV trưởng&#x27;], machineUp: [&#x27;KTV trưởng&#x27;],
     setNotice: CHUC_VU, clearNotice: CHUC_VU
   };
+  /** Các bác sĩ mà người này phụ trách bệnh nhân: chính mình + bác sĩ chính nếu là trợ lý */
+  function myDoctors(u) { return u ? [u.email].concat(u.tro_ly_cho ? [u.tro_ly_cho] : []) : []; }
   function isLead(u) { return !!(u &amp;&amp; u.chuc_vu &amp;&amp; CHUC_VU.indexOf(u.chuc_vu) &gt;= 0); }
   function can(role, action, user) {
     if ((PERM[action] || []).indexOf(role) &gt;= 0) return true;
@@ -2535,7 +2550,7 @@ var RT = (function () {
       var p = findP(ctx, a.id);
       if (!a.ly_do) fail(&#x27;Cần ghi lý do huỷ hồ sơ.&#x27;);
       if (ctx.user.vai_tro !== &#x27;ADMIN&#x27;) {
-        if (p.bs_email !== ctx.user.email) fail(&#x27;Chỉ bác sĩ điều trị hoặc quản trị được huỷ hồ sơ này.&#x27;);
+        if (myDoctors(ctx.user).indexOf(p.bs_email) &lt; 0) fail(&#x27;Chỉ bác sĩ điều trị hoặc quản trị được huỷ hồ sơ này.&#x27;);
         if (fxOf(p, ctx.fractions).length) fail(&#x27;BN đã có buổi xạ, chỉ quản trị được huỷ hồ sơ.&#x27;);
       }
       p.trang_thai = &#x27;HUY&#x27;;
@@ -2556,10 +2571,19 @@ var RT = (function () {
       if (isNew) { u = { email: email }; ctx.users.push(u); }
       var cv = String(a.chuc_vu || &#x27;&#x27;);
       var kh2 = String(a.khoa || &#x27;&#x27;);
+      var tl = String(a.tro_ly_cho || &#x27;&#x27;).trim().toLowerCase();
+      if (tl) {
+        if (tl === email) fail(&#x27;Không thể là trợ lý cho chính mình.&#x27;);
+        var chinh = ctx.users.filter(function (x) { return x.email === tl &amp;&amp; x.kich_hoat !== &#x27;Không&#x27;; })[0];
+        if (!chinh || (chinh.vai_tro !== &#x27;BS&#x27; &amp;&amp; chinh.vai_tro !== &#x27;ADMIN&#x27;)) fail(&#x27;Bác sĩ chính không có trong danh sách bác sĩ.&#x27;);
+        if (chinh.tro_ly_cho) fail(chinh.ho_ten + &#x27; đang là trợ lý, không thể có trợ lý riêng.&#x27;);
+        var khac = ctx.users.filter(function (x) { return x.email !== email &amp;&amp; x.tro_ly_cho === tl &amp;&amp; x.kich_hoat !== &#x27;Không&#x27;; })[0];
+        if (khac &amp;&amp; kh !== &#x27;Không&#x27;) fail(chinh.ho_ten + &#x27; đã có trợ lý &#x27; + khac.ho_ten + &#x27;. Mỗi bác sĩ tạm thời chỉ có 1 trợ lý; hãy bỏ trợ lý cũ trước.&#x27;);
+      }
       if (kh2 &amp;&amp; staffKhoa(ctx.dm).indexOf(kh2) &lt; 0) fail(&#x27;Khoa không có trong danh mục.&#x27;);
       if (KHOA_STATS.indexOf(cv) &gt;= 0 &amp;&amp; !kh2) fail(&#x27;Chức vụ &quot;&#x27; + cv + &#x27;&quot; cần chọn khoa.&#x27;);
       if (cv &amp;&amp; CHUC_VU.indexOf(cv) &lt; 0) fail(&#x27;Chức vụ không hợp lệ.&#x27;);
-      u.ho_ten = String(a.ho_ten).trim(); u.vai_tro = vt; u.kich_hoat = kh; u.chuc_vu = cv; u.khoa = kh2;
+      u.ho_ten = String(a.ho_ten).trim(); u.vai_tro = vt; u.kich_hoat = kh; u.chuc_vu = cv; u.khoa = kh2; u.tro_ly_cho = tl;
       ctx.saveUser(u);
       ctx.log(isNew ? &#x27;Thêm người dùng&#x27; : &#x27;Sửa người dùng&#x27;, &#x27;&#x27;, email + &#x27; · &#x27; + vt + (cv ? &#x27; · &#x27; + cv : &#x27;&#x27;) + &#x27; · &#x27; + kh);
       return (isNew ? &#x27;Đã thêm &#x27; : &#x27;Đã cập nhật &#x27;) + u.ho_ten + &#x27;.&#x27;;
@@ -2662,9 +2686,9 @@ var RT = (function () {
     pts.forEach(function (p) { ids[p.id] = 1; });
     function pick(o, cols) { var r = {}; cols.forEach(function (c) { r[c] = o[c] == null ? &#x27;&#x27; : String(o[c]); }); return r; }
     return {
-      me: { email: ctx.user.email, ho_ten: ctx.user.ho_ten, vai_tro: ctx.user.vai_tro, kich_hoat: ctx.user.kich_hoat || &#x27;Có&#x27;, chuc_vu: ctx.user.chuc_vu || &#x27;&#x27;, khoa: ctx.user.khoa || &#x27;&#x27; },
+      me: { email: ctx.user.email, ho_ten: ctx.user.ho_ten, vai_tro: ctx.user.vai_tro, kich_hoat: ctx.user.kich_hoat || &#x27;Có&#x27;, chuc_vu: ctx.user.chuc_vu || &#x27;&#x27;, khoa: ctx.user.khoa || &#x27;&#x27;, tro_ly_cho: ctx.user.tro_ly_cho || &#x27;&#x27; },
       today: ctx.today,
-      users: ctx.users.map(function (u) { return { email: u.email, ho_ten: u.ho_ten, vai_tro: u.vai_tro, kich_hoat: u.kich_hoat === &#x27;Không&#x27; ? &#x27;Không&#x27; : &#x27;Có&#x27;, chuc_vu: u.chuc_vu || &#x27;&#x27;, khoa: u.khoa || &#x27;&#x27; }; }),
+      users: ctx.users.map(function (u) { return { email: u.email, ho_ten: u.ho_ten, vai_tro: u.vai_tro, kich_hoat: u.kich_hoat === &#x27;Không&#x27; ? &#x27;Không&#x27; : &#x27;Có&#x27;, chuc_vu: u.chuc_vu || &#x27;&#x27;, khoa: u.khoa || &#x27;&#x27;, tro_ly_cho: u.tro_ly_cho || &#x27;&#x27; }; }),
       dm: ctx.dm,
       holidays: ctx.holidays,
       patients: pts.map(function (p) { return pick(p, COLS.BenhNhan); }),
@@ -2715,8 +2739,9 @@ var RT = (function () {
       ovFx = fx.filter(function (f) { return inKhoa(P[f.bn_id]); });
       ovPts = Object.keys(P).map(function (k) { return P[k]; }).filter(inKhoa);
     } else if (u.vai_tro === &#x27;BS&#x27; || u.vai_tro === &#x27;ADMIN&#x27;) {
-      ovFx = fx.filter(function (f) { return P[f.bn_id].bs_email === u.email; });
-      ovPts = Object.keys(P).map(function (k) { return P[k]; }).filter(function (p) { return p.bs_email === u.email; });
+      var docs = myDoctors(u);
+      ovFx = fx.filter(function (f) { return docs.indexOf(P[f.bn_id].bs_email) &gt;= 0; });
+      ovPts = Object.keys(P).map(function (k) { return P[k]; }).filter(function (p) { return docs.indexOf(p.bs_email) &gt;= 0; });
     } else if (u.vai_tro === &#x27;KTV&#x27;) {
       ovFx = fx.filter(function (f) { return f.ktv_email === u.email || sc.byKtv; });
       ovPts = [];
@@ -2753,7 +2778,7 @@ var RT = (function () {
     var out = { tu: tu, den: den, pham_vi: sc.label, tong_quan: ov };
     // Theo bác sĩ: trưởng khoa / ĐD trưởng / tài khoản khoa / quản trị thấy cả khoa; bác sĩ chỉ thấy dòng của mình
     if (sc.byDoctor) out.theo_bac_si = rows(function (f) { return P[f.bn_id].bs_email; }, function (f) { return inKhoa(P[f.bn_id]); });
-    else if (u.vai_tro === &#x27;BS&#x27;) out.theo_bac_si = rows(function (f) { return P[f.bn_id].bs_email; }, function (f, k) { return k === u.email; });
+    else if (u.vai_tro === &#x27;BS&#x27;) out.theo_bac_si = rows(function (f) { return P[f.bn_id].bs_email; }, function (f, k) { return myDoctors(u).indexOf(k) &gt;= 0; });
     if (sc.byKtv) out.theo_ktv = rows(function (f) { return f.ktv_email; });
     else if (u.vai_tro === &#x27;KTV&#x27;) out.theo_ktv = rows(function (f) { return f.ktv_email; }, function (f, k) { return k === u.email; });
     if (sc.byKs || u.vai_tro === &#x27;KS&#x27;) {
@@ -2789,7 +2814,7 @@ var RT = (function () {
   }
 
   return {
-    VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, report: report, staffKhoa: staffKhoa, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
+    VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, report: report, staffKhoa: staffKhoa, myDoctors: myDoctors, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
@@ -3156,8 +3181,9 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
   function renderHome() {
     var isBs = role() === &#x27;BS&#x27; || role() === &#x27;ADMIN&#x27;;
     var scope = isBs ? S.scope : &#x27;all&#x27;;
-    var list = pts().filter(function (p) { return scope === &#x27;all&#x27; || p.bs_email === me().email; });
-    var ilist = items().filter(function (p) { return scope === &#x27;all&#x27; || p.bs_email === me().email; });
+    var docs = RT.myDoctors(me());
+    var list = pts().filter(function (p) { return scope === &#x27;all&#x27; || docs.indexOf(p.bs_email) &gt;= 0; });
+    var ilist = items().filter(function (p) { return scope === &#x27;all&#x27; || docs.indexOf(p.bs_email) &gt;= 0; });
     var by = function (st, useItems) { return (useItems ? ilist : list).filter(function (p) { return st.indexOf(p.trang_thai) &gt;= 0; }); };
     var queue = RT.planningQueue(items(), boostLeft);
     var qpos = function (p) { for (var i = 0; i &lt; queue.length; i++) if (queue[i].id === p.id) return i + 1; return 0; };
@@ -3167,7 +3193,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     g.tx.sort(function (a, b) { return (course(b).missed.length - course(a).missed.length) || (course(a).end &lt; course(b).end ? -1 : 1); });
     var doneSoon = list.filter(function (p) { return p.trang_thai === &#x27;DANG_XA&#x27; &amp;&amp; course(p).end &amp;&amp; RT.diffDays(today(), course(p).end) &lt;= 6; }).length;
 
-    var html = &#x27;&lt;div class=&quot;page-head&quot;&gt;&lt;div&gt;&lt;h1&gt;&#x27; + (scope === &#x27;all&#x27; ? &#x27;Toàn bộ bệnh nhân&#x27; : &#x27;Bệnh nhân của &#x27; + esc(me().ho_ten)) + &#x27;&lt;/h1&gt;&#x27; +
+    var html = &#x27;&lt;div class=&quot;page-head&quot;&gt;&lt;div&gt;&lt;h1&gt;&#x27; + (scope === &#x27;all&#x27; ? &#x27;Toàn bộ bệnh nhân&#x27; : &#x27;Bệnh nhân của &#x27; + esc(me().ho_ten) + (me().tro_ly_cho ? &#x27; và &#x27; + esc(nameOf(me().tro_ly_cho)) + &#x27; &lt;span class=&quot;tag&quot;&gt;Trợ lý&lt;/span&gt;&#x27; : &#x27;&#x27;)) + &#x27;&lt;/h1&gt;&#x27; +
       &#x27;&lt;p&gt;&#x27; + fdw(today()) + &#x27;/&#x27; + today().slice(0, 4) + &#x27; · &#x27; + list.filter(function (p) { return p.trang_thai !== &#x27;HOAN_THANH&#x27;; }).length + &#x27; bệnh nhân đang trong quy trình&lt;/p&gt;&lt;/div&gt;&#x27; +
       (isBs ? &#x27;&lt;div class=&quot;seg&quot; role=&quot;group&quot; aria-label=&quot;Phạm vi&quot;&gt;&lt;button data-scope=&quot;mine&quot; aria-pressed=&quot;&#x27; + (scope === &#x27;mine&#x27;) + &#x27;&quot;&gt;Của tôi&lt;/button&gt;&lt;button data-scope=&quot;all&quot; aria-pressed=&quot;&#x27; + (scope === &#x27;all&#x27;) + &#x27;&quot;&gt;Cả khoa&lt;/button&gt;&lt;/div&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/div&gt;&#x27;;
     html += &#x27;&lt;div class=&quot;kpis&quot;&gt;&#x27; + HOME_GROUPS.map(function (x) {
@@ -3181,7 +3207,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     var contourActs = { h: &#x27;&#x27;, cls: &#x27;act&#x27;, v: function (p) {
       if (p.trang_thai === &#x27;MO_PHONG&#x27;) return (p.ngay_mo_phong ? &#x27;&lt;span class=&quot;muted&quot;&gt;hẹn &#x27; + fdw(p.ngay_mo_phong) + &#x27;&lt;/span&gt; &#x27; : &#x27;&lt;span class=&quot;pill st-MO_PHONG&quot;&gt;&#x27; + (p._g ? &#x27;Chờ mô phỏng lại&#x27; : &#x27;Chờ mô phỏng&#x27;) + &#x27;&lt;/span&gt; &#x27;) +
         (can(&#x27;simDone&#x27;) ? btn(&#x27;simDone&#x27;, p.id, &#x27;Đã mô phỏng xong&#x27;) : &#x27;&#x27;);
-      return (boostFlag(p) ? boostFlag(p) + &#x27; &#x27; : &#x27;&#x27;) + (can(&#x27;contourDone&#x27;) &amp;&amp; (p.bs_email === me().email || role() === &#x27;ADMIN&#x27;) ? btn(&#x27;contourDone&#x27;, p.id, &#x27;Contour xong&#x27;, &#x27;primary&#x27;) : &#x27;&#x27;);
+      return (boostFlag(p) ? boostFlag(p) + &#x27; &#x27; : &#x27;&#x27;) + (can(&#x27;contourDone&#x27;) &amp;&amp; (RT.myDoctors(me()).indexOf(p.bs_email) &gt;= 0 || role() === &#x27;ADMIN&#x27;) ? btn(&#x27;contourDone&#x27;, p.id, &#x27;Contour xong&#x27;, &#x27;primary&#x27;) : &#x27;&#x27;);
     } };
     html += group(&#x27;contour&#x27;, &#x27;Đang contour&#x27;, g.contour, [C.pt, C.dx, C.rx, C.pr,
       { h: &#x27;Từ ngày&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { return &#x27;&lt;span class=&quot;num&quot;&gt;&#x27; + fd(p.ngay_tao) + &#x27;&lt;/span&gt;&lt;span class=&quot;sub&quot;&gt;&#x27; + daysSince(p.ngay_tao) + &#x27; ngày&lt;/span&gt;&#x27;; } },
@@ -3494,7 +3520,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
   }
   /** So sánh dữ liệu cũ và mới (do người khác cập nhật) để báo việc mới cho đúng người */
   function computeNotes(oldD, newD) {
-    var meU = newD.me, mine = function (p) { return p.bs_email === meU.email; };
+    var meU = newD.me, mine = function (p) { return RT.myDoctors(meU).indexOf(p.bs_email) &gt;= 0; };
     var r = meU.vai_tro, out = [];
     var st = {}, gst = {};
     oldD.patients.forEach(function (p) { st[p.id] = p.trang_thai; });
@@ -3688,7 +3714,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
       &#x27;&lt;span class=&quot;hint&quot;&gt;Người dùng cần có tài khoản Google. Với Gmail cá nhân, nhớ chia sẻ Google Sheet cho họ.&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;tbl-wrap&quot;&gt;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Họ tên&lt;/th&gt;&lt;th&gt;Email&lt;/th&gt;&lt;th&gt;Vai trò&lt;/th&gt;&lt;th&gt;Chức vụ&lt;/th&gt;&lt;th&gt;Khoa&lt;/th&gt;&lt;th&gt;Trạng thái&lt;/th&gt;&lt;th&gt;&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&#x27; +
       users.map(function (u) {
         return &#x27;&lt;tr class=&quot;&#x27; + (u.kich_hoat === &#x27;Không&#x27; ? &#x27;off-user&#x27; : &#x27;&#x27;) + &#x27;&quot;&gt;&lt;td&gt;&lt;b&gt;&#x27; + esc(u.ho_ten) + &#x27;&lt;/b&gt;&lt;/td&gt;&lt;td class=&quot;mono&quot;&gt;&#x27; + esc(u.email) + &#x27;&lt;/td&gt;&lt;td&gt;&lt;span class=&quot;role role-&#x27; + esc(u.vai_tro) + &#x27;&quot;&gt;&#x27; + esc(RT.ROLES[u.vai_tro] || u.vai_tro) + &#x27;&lt;/span&gt;&lt;/td&gt;&#x27; +
-          &#x27;&lt;td&gt;&#x27; + esc(u.chuc_vu || &#x27;&#x27;) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + esc(u.khoa || &#x27;&#x27;) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + (u.kich_hoat === &#x27;Không&#x27; ? &#x27;Đã khoá&#x27; : &#x27;Hoạt động&#x27;) + &#x27;&lt;/td&gt;&lt;td class=&quot;act&quot;&gt;&lt;button class=&quot;btn&quot; data-admin=&quot;editUser&quot; data-email=&quot;&#x27; + esc(u.email) + &#x27;&quot;&gt;Sửa&lt;/button&gt;&lt;/td&gt;&lt;/tr&gt;&#x27;;
+          &#x27;&lt;td&gt;&#x27; + esc(u.chuc_vu || &#x27;&#x27;) + (u.tro_ly_cho ? &#x27;&lt;span class=&quot;sub&quot;&gt;Trợ lý cho &#x27; + esc(nameOf(u.tro_ly_cho)) + &#x27;&lt;/span&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + esc(u.khoa || &#x27;&#x27;) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + (u.kich_hoat === &#x27;Không&#x27; ? &#x27;Đã khoá&#x27; : &#x27;Hoạt động&#x27;) + &#x27;&lt;/td&gt;&lt;td class=&quot;act&quot;&gt;&lt;button class=&quot;btn&quot; data-admin=&quot;editUser&quot; data-email=&quot;&#x27; + esc(u.email) + &#x27;&quot;&gt;Sửa&lt;/button&gt;&lt;/td&gt;&lt;/tr&gt;&#x27;;
       }).join(&#x27;&#x27;) + &#x27;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;&lt;/div&gt;&lt;/section&gt;&#x27;;
     var dmBox = function (loai, title, help, ph, type) {
       var list = d.dm[loai] || [];
@@ -3733,7 +3759,8 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
         field(&#x27;Vai trò&#x27;, &#x27;&lt;select name=&quot;vai_tro&quot;&gt;&#x27; + opts([&#x27;BS&#x27;, &#x27;KS&#x27;, &#x27;KTV&#x27;, &#x27;DD&#x27;, &#x27;ADMIN&#x27;].map(function (r) { return { v: r, l: RT.ROLES[r] }; }), u.vai_tro) + &#x27;&lt;/select&gt;&#x27;) +
         field(&#x27;Trạng thái&#x27;, &#x27;&lt;select name=&quot;kich_hoat&quot;&gt;&#x27; + opts([{ v: &#x27;Có&#x27;, l: &#x27;Hoạt động&#x27; }, { v: &#x27;Không&#x27;, l: &#x27;Khoá tài khoản&#x27; }], u.kich_hoat) + &#x27;&lt;/select&gt;&#x27;) +
         field(&#x27;Chức vụ&#x27;, &#x27;&lt;select name=&quot;chuc_vu&quot;&gt;&#x27; + opts(RT.CHUC_VU, u.chuc_vu || &#x27;&#x27;, &#x27;Không&#x27;) + &#x27;&lt;/select&gt;&#x27;, &#x27;&#x27;, &#x27;Trưởng khoa, ĐD trưởng, tài khoản khoa: xem thống kê cả khoa. KTV trưởng: phân công, huỷ buổi xạ ghi nhầm.&#x27;) +
-        field(&#x27;Khoa&#x27;, &#x27;&lt;select name=&quot;khoa&quot;&gt;&#x27; + opts(RT.staffKhoa(S.data.dm), u.khoa || &#x27;&#x27;, &#x27;—&#x27;) + &#x27;&lt;/select&gt;&#x27;, &#x27;&#x27;, &#x27;Bắt buộc với trưởng khoa, ĐD trưởng, tài khoản khoa&#x27;) + &#x27;&lt;/div&gt;&#x27;,
+        field(&#x27;Khoa&#x27;, &#x27;&lt;select name=&quot;khoa&quot;&gt;&#x27; + opts(RT.staffKhoa(S.data.dm), u.khoa || &#x27;&#x27;, &#x27;—&#x27;) + &#x27;&lt;/select&gt;&#x27;, &#x27;&#x27;, &#x27;Bắt buộc với trưởng khoa, ĐD trưởng, tài khoản khoa&#x27;) +
+        field(&#x27;Trợ lý cho bác sĩ&#x27;, &#x27;&lt;select name=&quot;tro_ly_cho&quot;&gt;&#x27; + opts(S.data.users.filter(function (x) { return x.kich_hoat !== &#x27;Không&#x27; &amp;&amp; x.email !== u.email &amp;&amp; !x.tro_ly_cho &amp;&amp; (x.vai_tro === &#x27;BS&#x27; || isDoctor(x)); }).map(function (x) { return { v: x.email, l: x.ho_ten }; }), u.tro_ly_cho || &#x27;&#x27;, &#x27;Không (bác sĩ bình thường)&#x27;) + &#x27;&lt;/select&gt;&#x27;, &#x27;full&#x27;, &#x27;Chỉ cho bác sĩ trợ lý: thấy và làm việc trên BN của bác sĩ chính, xem được thống kê của bác sĩ chính. BN vẫn đứng tên bác sĩ chính.&#x27;) + &#x27;&lt;/div&gt;&#x27;,
       validate: function (v) { if (!v.ho_ten) return &#x27;Cần nhập họ tên.&#x27;; if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.email)) return &#x27;Email không hợp lệ.&#x27;; if ([&#x27;Trưởng khoa&#x27;, &#x27;Điều dưỡng trưởng&#x27;, &#x27;Tài khoản khoa&#x27;].indexOf(v.chuc_vu) &gt;= 0 &amp;&amp; !v.khoa) return &#x27;Chức vụ này cần chọn khoa.&#x27;; return &#x27;&#x27;; },
       onOk: function (v) { run(&#x27;saveUser&#x27;, v); } });
   }
@@ -3930,7 +3957,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     if (can(&#x27;resume&#x27;) &amp;&amp; st === &#x27;TAM_NGUNG&#x27;) b(&#x27;resume&#x27;, &#x27;Tiếp tục xạ&#x27;);
     if (can(&#x27;updatePatient&#x27;)) b(&#x27;edit&#x27;, &#x27;Sửa thông tin&#x27;);
     if (can(&#x27;endEarly&#x27;) &amp;&amp; [&#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;].indexOf(st) &gt;= 0) b(&#x27;endEarly&#x27;, &#x27;Kết thúc sớm&#x27;, &#x27;danger&#x27;);
-    if (can(&#x27;deletePatient&#x27;) &amp;&amp; (role() === &#x27;ADMIN&#x27; || (p.bs_email === me().email &amp;&amp; !course(p).done))) b(&#x27;deletePatient&#x27;, &#x27;Huỷ hồ sơ&#x27;, &#x27;danger&#x27;);
+    if (can(&#x27;deletePatient&#x27;) &amp;&amp; (role() === &#x27;ADMIN&#x27; || (RT.myDoctors(me()).indexOf(p.bs_email) &gt;= 0 &amp;&amp; !course(p).done))) b(&#x27;deletePatient&#x27;, &#x27;Huỷ hồ sơ&#x27;, &#x27;danger&#x27;);
     return a.join(&#x27;&#x27;);
   }
 
@@ -4089,7 +4116,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
       } });
   }
   function patientForm(p, prefill) {
-    var isNew = !p, d = S.data.dm, v0 = p || prefill || { bs_email: isDoctor(me()) ? me().email : &#x27;&#x27;, khoa: d.KHOA[0], uu_tien: &#x27;Thường&#x27;, igrt: &#x27;Không&#x27;, sgrt: &#x27;Không&#x27; };
+    var isNew = !p, d = S.data.dm, v0 = p || prefill || { bs_email: isDoctor(me()) ? (me().tro_ly_cho || me().email) : &#x27;&#x27;, khoa: d.KHOA[0], uu_tien: &#x27;Thường&#x27;, igrt: &#x27;Không&#x27;, sgrt: &#x27;Không&#x27; };
     var mucDich = d.MUC_DICH || RT.DEFAULT_DM.MUC_DICH;
     var bsList = doctors().map(function (u) { return { v: u.email, l: u.ho_ten }; });
     var inp = function (name, type, attrs) { return &#x27;&lt;input type=&quot;&#x27; + (type || &#x27;text&#x27;) + &#x27;&quot; name=&quot;&#x27; + name + &#x27;&quot; value=&quot;&#x27; + esc(v0[name] || &#x27;&#x27;) + &#x27;&quot; &#x27; + (attrs || &#x27;&#x27;) + &#x27;&gt;&#x27;; };

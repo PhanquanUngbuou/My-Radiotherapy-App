@@ -1,5 +1,8 @@
 # Lịch sử phiên bản
 
+## v2.2
+- **Bác sĩ trợ lý**: ô "Trợ lý cho bác sĩ" trong Quản trị. Trợ lý thấy BN của bác sĩ chính trong "Bệnh nhân của tôi", nhận chuông việc mới, thêm BN tự chọn bác sĩ chính, xem thống kê của bác sĩ chính. BN vẫn đứng tên bác sĩ chính. Mỗi bác sĩ chính tối đa 1 trợ lý.
+
 ## v2.1
 - Người dùng chọn được khoa "Vật lý xạ trị" (khoa của kỹ sư; bệnh nhân vẫn chỉ thuộc Xạ trị / Xạ trị theo yêu cầu).
 - Trưởng khoa Vật lý xạ trị và tài khoản khoa Vật lý xem thống kê theo từng kỹ sư.

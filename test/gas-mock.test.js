@@ -341,4 +341,19 @@ ok('admin@x.vn', 'saveUser', { email: 'tkvl@x.vn', ho_ten: 'TK Vật lý', vai_t
 let rVL = rep('tkvl@x.vn').report;
 assert(rVL.theo_ky_su && !rVL.theo_bac_si, 'trưởng khoa Vật lý thấy theo kỹ sư, không theo bác sĩ');
 assert(!api('ktv@x.vn', 'createPatient', { ma_his: 'VL1', ho_ten: 'X', nam_sinh: '1960', bs_email: 'bs@x.vn', khoa: 'Vật lý xạ trị', trang_thai: 'MO_PHONG' }).ok || true);
+
+// ---- v2.2: bác sĩ trợ lý ----
+ok('admin@x.vn', 'saveUser', { email: 'tl@x.vn', ho_ten: 'BS Trợ lý', vai_tro: 'BS', tro_ly_cho: 'bs2@x.vn' });
+assert(!api('admin@x.vn', 'saveUser', { email: 'tl2@x.vn', ho_ten: 'BS Trợ lý 2', vai_tro: 'BS', tro_ly_cho: 'bs2@x.vn' }).ok, 'mỗi bác sĩ chỉ 1 trợ lý');
+assert(!api('admin@x.vn', 'saveUser', { email: 'tl3@x.vn', ho_ten: 'X', vai_tro: 'BS', tro_ly_cho: 'tl@x.vn' }).ok, 'không làm trợ lý cho trợ lý');
+assert(!api('admin@x.vn', 'saveUser', { email: 'tl4@x.vn', ho_ten: 'X', vai_tro: 'BS', tro_ly_cho: 'ktv@x.vn' }).ok, 'bác sĩ chính phải là bác sĩ');
+let rTL = rep('tl@x.vn').report;
+assert(rTL.theo_bac_si.length === 1 && rTL.theo_bac_si[0].email === 'bs2@x.vn', 'trợ lý xem thống kê của bác sĩ chính');
+assert.strictEqual(rTL.tong_quan.luot_xa, 2);
+r = ok('tl@x.vn', 'createPatient', { ma_his: 'TL1', ho_ten: 'BN trợ lý', nam_sinh: '1970', bs_email: 'bs2@x.vn', trang_thai: 'CONTOUR' });
+ok('tl@x.vn', 'deletePatient', { id: r.data.patients.find(x => x.ma_his === 'TL1').id, ly_do: 'nhập nhầm' });
+// trợ lý chuyển thành bác sĩ chính: bỏ liên kết
+ok('admin@x.vn', 'saveUser', { email: 'tl@x.vn', ho_ten: 'BS Trợ lý', vai_tro: 'BS', tro_ly_cho: '' });
+assert(!rep('tl@x.vn').report.theo_bac_si.some(x => x.email === 'bs2@x.vn'), 'hết là trợ lý thì không xem số của bác sĩ cũ');
+ok('admin@x.vn', 'saveUser', { email: 'tl2@x.vn', ho_ten: 'BS Trợ lý 2', vai_tro: 'BS', tro_ly_cho: 'bs2@x.vn' });
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');
