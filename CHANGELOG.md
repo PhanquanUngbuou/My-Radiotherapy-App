@@ -9,6 +9,8 @@
 - "Bệnh nhân của tôi" theo vai trò. Kỹ sư: ca contour xong chờ nhận, ca mình đang lập (BS điều trị, nhận từ ngày nào, mấy ngày, hạn), ca mình chờ QA, ca mình đã chuyển xạ. KTV gắn với máy và ca nên không có ô này: mở thẳng Xạ trị › Hôm nay, có thêm số BN chờ vào xạ (bao nhiêu chưa xếp lịch), mô phỏng hôm nay, danh sách chờ xếp lịch. BS, ĐD: như cũ.
 - Điều dưỡng (và khi bấm "Cả khoa"): tổng quan theo khoa (mặc định khoa của mình, chọn được cả hai khoa): số BN từng bước, chờ vào xạ kèm ngày xạ dự kiến, đang xạ kèm ngày kết thúc dự kiến; dải "Vào xạ và kết thúc xạ 10 ngày tới" đếm số BN bắt đầu / kết thúc mỗi ngày. Bấm vào BN để xem nhật ký từng buổi xạ.
 - Nút "+ Thêm bệnh nhân" chuyển lên hàng trên cạnh chuông, không bị menu dài đẩy khuất.
+- Trên điện thoại danh sách BN hiện thành từng thẻ đọc dọc (tên BN trên cùng, các thông tin xếp 2 cột có nhãn, nút thao tác to bên dưới), không phải lướt ngang.
+- Tăng độ tương phản chữ/nền: chữ chính và chữ phụ đậm hơn, đường kẻ rõ hơn, chữ phụ to hơn một chút.
 - Trên điện thoại các form mở toàn màn hình, nút lưu luôn dính ở đáy, thêm nút "Lưu" ở góc trên; trang phía sau không bị cuộn theo.
 - Trang "ChiMuc" (chỉ mục mọi đợt xạ, kể cả lưu trữ) để tra mã HIS và tìm lưu trữ nhanh dù dữ liệu nhiều năm. Buổi xạ lưu trữ tách theo năm (LuuTru_BuoiXa_2026, …).
 

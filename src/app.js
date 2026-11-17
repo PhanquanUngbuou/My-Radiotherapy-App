@@ -340,10 +340,11 @@
   // ---------- bảng ----------
   function table(rows, cols, emptyText) {
     if (!rows.length) return '<div class="card"><div class="empty">' + esc(emptyText || 'Không có bệnh nhân.') + '</div></div>';
-    return '<div class="card"><div class="tbl-wrap"><table><thead><tr>' + cols.map(function (c) { return '<th>' + c.h + '</th>'; }).join('') +
+    var lb = cols.map(function (c) { return esc(String(c.h || '').replace(/<[^>]*>/g, '')); });
+    return '<div class="card"><div class="tbl-wrap cards"><table><thead><tr>' + cols.map(function (c) { return '<th>' + c.h + '</th>'; }).join('') +
       '</tr></thead><tbody>' + rows.map(function (p, i) {
-        return '<tr class="click" tabindex="0" data-open="' + esc(p._pid || p.id) + '">' + cols.map(function (c) {
-          return '<td class="' + (c.cls || '') + '">' + c.v(p, i) + '</td>';
+        return '<tr class="click" tabindex="0" data-open="' + esc(p._pid || p.id) + '">' + cols.map(function (c, k) {
+          return '<td class="' + (c.cls || '') + '" data-l="' + lb[k] + '">' + c.v(p, i) + '</td>';
         }).join('') + '</tr>';
       }).join('') + '</tbody></table></div></div>';
   }
