@@ -43,7 +43,7 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
   <div class="intro">
     <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v2.7</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v2.7 · bản lưu 2a27e4c · 17/11/2026 15:28. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v2.7”.</span>
+    <span class="rev">Phiên bản v2.7 · bản lưu d83590f · 17/11/2026 15:35. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v2.7”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
@@ -865,12 +865,12 @@ var RT = (function () {
       return planOrder(a, b);
     });
   }
-  /** Mức ưu tiên và lý do: &quot;Ưu tiên&quot; bắt buộc ghi lý do; &quot;Thường&quot; thì xoá lý do. */
+  /** Mức ưu tiên và lý do: &quot;Cấp cứu&quot; và &quot;Ưu tiên&quot; bắt buộc ghi lý do; &quot;Thường&quot; thì xoá lý do. */
   function checkPrio(x, reason, strict) {
     if (x.uu_tien &amp;&amp; PRIORITY_RANK[x.uu_tien] == null) fail(&#x27;Mức ưu tiên không hợp lệ.&#x27;);
     if (!x.uu_tien || x.uu_tien === &#x27;Thường&#x27;) { x.ly_do_uu_tien = &#x27;&#x27;; return; }
     if (reason !== undefined) x.ly_do_uu_tien = String(reason || &#x27;&#x27;).trim();
-    if (strict !== false &amp;&amp; x.uu_tien === &#x27;Ưu tiên&#x27; &amp;&amp; !x.ly_do_uu_tien) fail(&#x27;BN &quot;Ưu tiên&quot; cần ghi rõ lý do ưu tiên.&#x27;);
+    if (strict !== false &amp;&amp; !x.ly_do_uu_tien) fail(&#x27;BN &quot;&#x27; + x.uu_tien + &#x27;&quot; cần ghi rõ lý do &#x27; + (x.uu_tien === &#x27;Cấp cứu&#x27; ? &#x27;cấp cứu&#x27; : &#x27;ưu tiên&#x27;) + &#x27;.&#x27;);
   }
 
   // ---------- Thao tác ----------
@@ -1918,7 +1918,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
       <div class="meta">
         <h2 id="h-Index">Index.html <span class="ver">· v2.7</span></h2>
         <p>Bấm + → HTML, đặt tên Index (chữ I hoa).</p>
-        <span class="size">3,864 dòng · 370 KB</span>
+        <span class="size">3,863 dòng · 370 KB</span>
       </div>
       <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v2.7)</button>
     </div>
@@ -2671,12 +2671,12 @@ var RT = (function () {
       return planOrder(a, b);
     });
   }
-  /** Mức ưu tiên và lý do: &quot;Ưu tiên&quot; bắt buộc ghi lý do; &quot;Thường&quot; thì xoá lý do. */
+  /** Mức ưu tiên và lý do: &quot;Cấp cứu&quot; và &quot;Ưu tiên&quot; bắt buộc ghi lý do; &quot;Thường&quot; thì xoá lý do. */
   function checkPrio(x, reason, strict) {
     if (x.uu_tien &amp;&amp; PRIORITY_RANK[x.uu_tien] == null) fail(&#x27;Mức ưu tiên không hợp lệ.&#x27;);
     if (!x.uu_tien || x.uu_tien === &#x27;Thường&#x27;) { x.ly_do_uu_tien = &#x27;&#x27;; return; }
     if (reason !== undefined) x.ly_do_uu_tien = String(reason || &#x27;&#x27;).trim();
-    if (strict !== false &amp;&amp; x.uu_tien === &#x27;Ưu tiên&#x27; &amp;&amp; !x.ly_do_uu_tien) fail(&#x27;BN &quot;Ưu tiên&quot; cần ghi rõ lý do ưu tiên.&#x27;);
+    if (strict !== false &amp;&amp; !x.ly_do_uu_tien) fail(&#x27;BN &quot;&#x27; + x.uu_tien + &#x27;&quot; cần ghi rõ lý do &#x27; + (x.uu_tien === &#x27;Cấp cứu&#x27; ? &#x27;cấp cứu&#x27; : &#x27;ưu tiên&#x27;) + &#x27;.&#x27;);
   }
 
   // ---------- Thao tác ----------
@@ -3828,16 +3828,15 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
   /** Tô nền dòng BN đang trong quy trình chuẩn bị: cấp cứu đỏ, ưu tiên cam */
   var PR_ROW_ST = [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;];
   function prRowCls(p) { return p &amp;&amp; PR_ROW_ST.indexOf(p.trang_thai) &gt;= 0 ? (p.uu_tien === &#x27;Cấp cứu&#x27; ? &#x27; pr-row-0&#x27; : p.uu_tien === &#x27;Ưu tiên&#x27; ? &#x27; pr-row-1&#x27; : &#x27;&#x27;) : &#x27;&#x27;; }
-  var PRIO_PH = &#x27;VD: theo chỉ đạo Ban Giám đốc, người nhà nhân viên, BN ở xa…&#x27;;
   function prioReasonField(val) {
-    return &#x27;&lt;div class=&quot;field full&quot; data-prio-why&gt;&lt;label&gt;Lý do ưu tiên &lt;span class=&quot;req&quot; data-prio-req&gt;*&lt;/span&gt;&lt;/label&gt;&lt;input type=&quot;text&quot; name=&quot;ly_do_uu_tien&quot; maxlength=&quot;200&quot; value=&quot;&#x27; + esc(val || &#x27;&#x27;) + &#x27;&quot; placeholder=&quot;&#x27; + PRIO_PH + &#x27;&quot;&gt;&lt;span class=&quot;help&quot;&gt;Bắt buộc với BN “Ưu tiên”; không bắt buộc với cấp cứu.&lt;/span&gt;&lt;/div&gt;&#x27;;
+    return &#x27;&lt;div class=&quot;field full&quot; data-prio-why&gt;&lt;label&gt;&lt;span data-prio-lb&gt;Lý do ưu tiên&lt;/span&gt; &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&lt;/label&gt;&lt;input type=&quot;text&quot; name=&quot;ly_do_uu_tien&quot; maxlength=&quot;200&quot; value=&quot;&#x27; + esc(val || &#x27;&#x27;) + &#x27;&quot;&gt;&lt;/div&gt;&#x27;;
   }
   function bindPrio(form) {
     var box = $(&#x27;[data-prio-why]&#x27;, form); if (!box) return;
-    var upd = function () { var v = formValues(form).uu_tien || &#x27;Thường&#x27;; box.hidden = v === &#x27;Thường&#x27;; $(&#x27;[data-prio-req]&#x27;, form).hidden = v !== &#x27;Ưu tiên&#x27;; };
+    var upd = function () { var v = formValues(form).uu_tien || &#x27;Thường&#x27;; box.hidden = v === &#x27;Thường&#x27;; $(&#x27;[data-prio-lb]&#x27;, form).textContent = v === &#x27;Cấp cứu&#x27; ? &#x27;Lý do cấp cứu&#x27; : &#x27;Lý do ưu tiên&#x27;; };
     $$(&#x27;[name=uu_tien]&#x27;, form).forEach(function (el) { el.addEventListener(&#x27;change&#x27;, upd); }); upd();
   }
-  function prioError(v) { return v.uu_tien === &#x27;Ưu tiên&#x27; &amp;&amp; !String(v.ly_do_uu_tien || &#x27;&#x27;).trim() ? &#x27;BN “Ưu tiên” cần ghi rõ lý do ưu tiên.&#x27; : &#x27;&#x27;; }
+  function prioError(v) { return v.uu_tien &amp;&amp; v.uu_tien !== &#x27;Thường&#x27; &amp;&amp; !String(v.ly_do_uu_tien || &#x27;&#x27;).trim() ? &#x27;BN “&#x27; + v.uu_tien + &#x27;” cần ghi rõ lý do &#x27; + (v.uu_tien === &#x27;Cấp cứu&#x27; ? &#x27;cấp cứu&#x27; : &#x27;ưu tiên&#x27;) + &#x27;.&#x27; : &#x27;&#x27;; }
   function rx(p) { if (!p._g &amp;&amp; RT.missingRx(p).length) return &#x27;&lt;span class=&quot;flag&quot;&gt;Chưa đủ chỉ định&lt;/span&gt;&#x27; + (p.ky_thuat ? &#x27; &#x27; + esc(p.ky_thuat) : &#x27;&#x27;); return esc(p.ky_thuat) + &#x27; · &lt;span class=&quot;num&quot;&gt;&#x27; + esc(p.tong_lieu) + &#x27; Gy/&#x27; + esc(p.so_buoi) + &#x27;&lt;/span&gt;&#x27;; }
   function ptCell(p) {
     return &#x27;&lt;div class=&quot;pt&quot;&gt;&lt;b&gt;&#x27; + esc(p.ho_ten) + &#x27;&lt;/b&gt;&#x27; + (p._g ? &#x27; &lt;span class=&quot;tag boost&quot;&gt;Boost GĐ&#x27; + esc(p._g.stt) + &#x27;&lt;/span&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;span class=&quot;sub&quot;&gt;&lt;span class=&quot;mono&quot;&gt;&#x27; + esc(p.ma_his) + &#x27;&lt;/span&gt;&#x27; +
@@ -5437,7 +5436,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
       field(&#x27;SGRT&#x27;, &#x27;&lt;select name=&quot;sgrt&quot;&gt;&#x27; + opts([&#x27;Không&#x27;, &#x27;Có&#x27;], p.sgrt || &#x27;Không&#x27;) + &#x27;&lt;/select&gt;&#x27;) + &#x27;&lt;/div&gt;&#x27; : &#x27;&#x27;;
     modal({ title: &#x27;Contour xong, chuyển kỹ sư&#x27;, ok: &#x27;Chuyển kỹ sư&#x27;, body: whoBox(p) + fill +
       &#x27;&lt;div class=&quot;field&quot;&gt;&lt;span class=&quot;lb&quot;&gt;Mức ưu tiên lập kế hoạch&lt;/span&gt;&lt;div class=&quot;radios&quot;&gt;&#x27; + [
-        [&#x27;Cấp cứu&#x27;, &#x27;Chèn ép tủy, chảy máu, tắc nghẽn… Lập kế hoạch ngay.&#x27;],
+        [&#x27;Cấp cứu&#x27;, &#x27;Lập kế hoạch ngay, tô nền đỏ. Cần ghi rõ lý do.&#x27;],
         [&#x27;Ưu tiên&#x27;, &#x27;Tô nền cam để kỹ sư chú ý. Cần ghi rõ lý do.&#x27;],
         [&#x27;Thường&#x27;, &#x27;Theo thứ tự contour xong trước làm trước.&#x27;]
       ].map(function (x) { return &#x27;&lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;uu_tien&quot; value=&quot;&#x27; + x[0] + &#x27;&quot;&#x27; + ((p.uu_tien || &#x27;Thường&#x27;) === x[0] ? &#x27; checked&#x27; : &#x27;&#x27;) + &#x27;&gt;&lt;span&gt;&lt;b&gt;&#x27; + x[0] + &#x27;&lt;/b&gt;&lt;small&gt;&#x27; + x[1] + &#x27;&lt;/small&gt;&lt;/span&gt;&lt;/label&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;/div&gt;&lt;/div&gt;&#x27; + prioReasonField(p.ly_do_uu_tien),

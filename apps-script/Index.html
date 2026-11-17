@@ -747,12 +747,12 @@ var RT = (function () {
       return planOrder(a, b);
     });
   }
-  /** Mức ưu tiên và lý do: "Ưu tiên" bắt buộc ghi lý do; "Thường" thì xoá lý do. */
+  /** Mức ưu tiên và lý do: "Cấp cứu" và "Ưu tiên" bắt buộc ghi lý do; "Thường" thì xoá lý do. */
   function checkPrio(x, reason, strict) {
     if (x.uu_tien && PRIORITY_RANK[x.uu_tien] == null) fail('Mức ưu tiên không hợp lệ.');
     if (!x.uu_tien || x.uu_tien === 'Thường') { x.ly_do_uu_tien = ''; return; }
     if (reason !== undefined) x.ly_do_uu_tien = String(reason || '').trim();
-    if (strict !== false && x.uu_tien === 'Ưu tiên' && !x.ly_do_uu_tien) fail('BN "Ưu tiên" cần ghi rõ lý do ưu tiên.');
+    if (strict !== false && !x.ly_do_uu_tien) fail('BN "' + x.uu_tien + '" cần ghi rõ lý do ' + (x.uu_tien === 'Cấp cứu' ? 'cấp cứu' : 'ưu tiên') + '.');
   }
 
   // ---------- Thao tác ----------
@@ -1904,16 +1904,15 @@ if (typeof module !== 'undefined') module.exports = RT;
   /** Tô nền dòng BN đang trong quy trình chuẩn bị: cấp cứu đỏ, ưu tiên cam */
   var PR_ROW_ST = ['MO_PHONG', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA'];
   function prRowCls(p) { return p && PR_ROW_ST.indexOf(p.trang_thai) >= 0 ? (p.uu_tien === 'Cấp cứu' ? ' pr-row-0' : p.uu_tien === 'Ưu tiên' ? ' pr-row-1' : '') : ''; }
-  var PRIO_PH = 'VD: theo chỉ đạo Ban Giám đốc, người nhà nhân viên, BN ở xa…';
   function prioReasonField(val) {
-    return '<div class="field full" data-prio-why><label>Lý do ưu tiên <span class="req" data-prio-req>*</span></label><input type="text" name="ly_do_uu_tien" maxlength="200" value="' + esc(val || '') + '" placeholder="' + PRIO_PH + '"><span class="help">Bắt buộc với BN “Ưu tiên”; không bắt buộc với cấp cứu.</span></div>';
+    return '<div class="field full" data-prio-why><label><span data-prio-lb>Lý do ưu tiên</span> <span class="req">*</span></label><input type="text" name="ly_do_uu_tien" maxlength="200" value="' + esc(val || '') + '"></div>';
   }
   function bindPrio(form) {
     var box = $('[data-prio-why]', form); if (!box) return;
-    var upd = function () { var v = formValues(form).uu_tien || 'Thường'; box.hidden = v === 'Thường'; $('[data-prio-req]', form).hidden = v !== 'Ưu tiên'; };
+    var upd = function () { var v = formValues(form).uu_tien || 'Thường'; box.hidden = v === 'Thường'; $('[data-prio-lb]', form).textContent = v === 'Cấp cứu' ? 'Lý do cấp cứu' : 'Lý do ưu tiên'; };
     $$('[name=uu_tien]', form).forEach(function (el) { el.addEventListener('change', upd); }); upd();
   }
-  function prioError(v) { return v.uu_tien === 'Ưu tiên' && !String(v.ly_do_uu_tien || '').trim() ? 'BN “Ưu tiên” cần ghi rõ lý do ưu tiên.' : ''; }
+  function prioError(v) { return v.uu_tien && v.uu_tien !== 'Thường' && !String(v.ly_do_uu_tien || '').trim() ? 'BN “' + v.uu_tien + '” cần ghi rõ lý do ' + (v.uu_tien === 'Cấp cứu' ? 'cấp cứu' : 'ưu tiên') + '.' : ''; }
   function rx(p) { if (!p._g && RT.missingRx(p).length) return '<span class="flag">Chưa đủ chỉ định</span>' + (p.ky_thuat ? ' ' + esc(p.ky_thuat) : ''); return esc(p.ky_thuat) + ' · <span class="num">' + esc(p.tong_lieu) + ' Gy/' + esc(p.so_buoi) + '</span>'; }
   function ptCell(p) {
     return '<div class="pt"><b>' + esc(p.ho_ten) + '</b>' + (p._g ? ' <span class="tag boost">Boost GĐ' + esc(p._g.stt) + '</span>' : '') + '<span class="sub"><span class="mono">' + esc(p.ma_his) + '</span>' +
@@ -3513,7 +3512,7 @@ if (typeof module !== 'undefined') module.exports = RT;
       field('SGRT', '<select name="sgrt">' + opts(['Không', 'Có'], p.sgrt || 'Không') + '</select>') + '</div>' : '';
     modal({ title: 'Contour xong, chuyển kỹ sư', ok: 'Chuyển kỹ sư', body: whoBox(p) + fill +
       '<div class="field"><span class="lb">Mức ưu tiên lập kế hoạch</span><div class="radios">' + [
-        ['Cấp cứu', 'Chèn ép tủy, chảy máu, tắc nghẽn… Lập kế hoạch ngay.'],
+        ['Cấp cứu', 'Lập kế hoạch ngay, tô nền đỏ. Cần ghi rõ lý do.'],
         ['Ưu tiên', 'Tô nền cam để kỹ sư chú ý. Cần ghi rõ lý do.'],
         ['Thường', 'Theo thứ tự contour xong trước làm trước.']
       ].map(function (x) { return '<label><input type="radio" name="uu_tien" value="' + x[0] + '"' + ((p.uu_tien || 'Thường') === x[0] ? ' checked' : '') + '><span><b>' + x[0] + '</b><small>' + x[1] + '</small></span></label>'; }).join('') + '</div></div>' + prioReasonField(p.ly_do_uu_tien),

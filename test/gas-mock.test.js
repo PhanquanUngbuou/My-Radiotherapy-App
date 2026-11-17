@@ -73,7 +73,7 @@ assert.strictEqual(r.data.patients[0].trang_thai, 'CONTOUR');
 r = api('bs@x.vn', 'createPatient', { ma_his: '00123456', ho_ten: 'Nguyễn Văn A', nam_sinh: '1960', icd: 'C50.9', chan_doan: 'K vòm', ky_thuat: 'VMAT', tong_lieu: '6', so_buoi: '3' });
 assert(!r.ok && r.error.startsWith('DUP_HIS:'), 'cảnh báo trùng mã HIS');
 
-ok('bs@x.vn', 'contourDone', { id, uu_tien: 'Cấp cứu' });
+ok('bs@x.vn', 'contourDone', { id, uu_tien: 'Cấp cứu', ly_do_uu_tien: 'Chèn ép tủy' });
 ok('ks@x.vn', 'claimPlan', { id, ks_email: 'ks@x.vn' });
 ok('ks@x.vn', 'planDone', { id, can_qa: true });
 r = ok('ks@x.vn', 'qaResult', { id, dat: true });
@@ -470,7 +470,8 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   assert(!r.ok && /lý do ưu tiên/.test(r.error), 'Ưu tiên phải ghi lý do');
   ok('bs@x.vn', 'contourDone', { id: q1.id, uu_tien: 'Ưu tiên', ly_do_uu_tien: 'Người nhà nhân viên' });
   ok('bs@x.vn', 'contourDone', { id: q2.id, uu_tien: 'Thường', ly_do_uu_tien: 'bỏ qua' });
-  r = ok('bs@x.vn', 'contourDone', { id: q3.id, uu_tien: 'Cấp cứu' });
+  assert(!api('bs@x.vn', 'contourDone', { id: q3.id, uu_tien: 'Cấp cứu' }).ok, 'cấp cứu cũng phải ghi lý do');
+  r = ok('bs@x.vn', 'contourDone', { id: q3.id, uu_tien: 'Cấp cứu', ly_do_uu_tien: 'Chèn ép tủy' });
   const g = (id) => r.data.patients.find(x => x.id === id);
   assert.strictEqual(g(q1.id).ly_do_uu_tien, 'Người nhà nhân viên', 'lưu lý do');
   assert.strictEqual(g(q2.id).ly_do_uu_tien, '', 'BN thường không lưu lý do');

@@ -280,12 +280,12 @@ var RT = (function () {
       return planOrder(a, b);
     });
   }
-  /** Mức ưu tiên và lý do: "Ưu tiên" bắt buộc ghi lý do; "Thường" thì xoá lý do. */
+  /** Mức ưu tiên và lý do: "Cấp cứu" và "Ưu tiên" bắt buộc ghi lý do; "Thường" thì xoá lý do. */
   function checkPrio(x, reason, strict) {
     if (x.uu_tien && PRIORITY_RANK[x.uu_tien] == null) fail('Mức ưu tiên không hợp lệ.');
     if (!x.uu_tien || x.uu_tien === 'Thường') { x.ly_do_uu_tien = ''; return; }
     if (reason !== undefined) x.ly_do_uu_tien = String(reason || '').trim();
-    if (strict !== false && x.uu_tien === 'Ưu tiên' && !x.ly_do_uu_tien) fail('BN "Ưu tiên" cần ghi rõ lý do ưu tiên.');
+    if (strict !== false && !x.ly_do_uu_tien) fail('BN "' + x.uu_tien + '" cần ghi rõ lý do ' + (x.uu_tien === 'Cấp cứu' ? 'cấp cứu' : 'ưu tiên') + '.');
   }
 
   // ---------- Thao tác ----------
