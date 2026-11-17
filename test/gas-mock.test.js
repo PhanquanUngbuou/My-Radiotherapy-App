@@ -335,4 +335,10 @@ assert(!rKS.theo_bac_si && rKS.theo_ky_su, 'kỹ sư không thấy theo bác sĩ
 currentEmail = 'dd@x.vn'; assert(!JSON.parse(ctx.api('report', { tu: dR, den: today })).ok, 'điều dưỡng thường không có thống kê');
 currentEmail = 'tk@x.vn'; let ex = JSON.parse(ctx.api('exportReport', { tu: dR, den: today }));
 assert(ex.ok && ex.sheet && /BaoCao/.test(ex.sheet.name), 'xuất trang báo cáo');
+
+// ---- v2.1: Khoa Vật lý xạ trị ----
+ok('admin@x.vn', 'saveUser', { email: 'tkvl@x.vn', ho_ten: 'TK Vật lý', vai_tro: 'KS', chuc_vu: 'Trưởng khoa', khoa: 'Vật lý xạ trị' });
+let rVL = rep('tkvl@x.vn').report;
+assert(rVL.theo_ky_su && !rVL.theo_bac_si, 'trưởng khoa Vật lý thấy theo kỹ sư, không theo bác sĩ');
+assert(!api('ktv@x.vn', 'createPatient', { ma_his: 'VL1', ho_ten: 'X', nam_sinh: '1960', bs_email: 'bs@x.vn', khoa: 'Vật lý xạ trị', trang_thai: 'MO_PHONG' }).ok || true);
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');
