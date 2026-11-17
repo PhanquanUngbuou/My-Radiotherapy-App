@@ -300,7 +300,7 @@ button.wk:hover{border-color:var(--accent-2)}
  */
 var RT = (function () {
   'use strict';
-  var VERSION = '1.6';
+  var VERSION = '1.7';
 
   var STATUS_ORDER = ['MO_PHONG', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA', 'DANG_XA', 'TAM_NGUNG', 'HOAN_THANH'];
   var STATUS = {
@@ -378,7 +378,7 @@ var RT = (function () {
     addPhase: ['BS', 'ADMIN'],
     updatePhase: ['BS', 'ADMIN'],
     deletePhase: ['BS', 'ADMIN'],
-    simDone: ['KTV', 'BS', 'ADMIN'],
+    simDone: ['KTV', 'BS', 'KS', 'ADMIN'],
     saveUser: ['ADMIN'],
     dmAdd: ['ADMIN'],
     dmRemove: ['ADMIN']
@@ -1692,7 +1692,8 @@ window.DEMO = (function () {
     }).join('') + '</div>';
 
     var contourActs = { h: '', cls: 'act', v: function (p) {
-      if (p.trang_thai === 'MO_PHONG') return '<span class="pill st-MO_PHONG">' + (p._g ? 'Chờ mô phỏng lại' : 'Chờ mô phỏng') + '</span>' + (p.ngay_mo_phong ? '<span class="sub">hẹn ' + fdw(p.ngay_mo_phong) + '</span>' : '');
+      if (p.trang_thai === 'MO_PHONG') return (p.ngay_mo_phong ? '<span class="muted">hẹn ' + fdw(p.ngay_mo_phong) + '</span> ' : '<span class="pill st-MO_PHONG">' + (p._g ? 'Chờ mô phỏng lại' : 'Chờ mô phỏng') + '</span> ') +
+        (can('simDone') ? btn('simDone', p.id, 'Đã mô phỏng xong') : '');
       return (boostFlag(p) ? boostFlag(p) + ' ' : '') + (can('contourDone') && (p.bs_email === me().email || role() === 'ADMIN') ? btn('contourDone', p.id, 'Contour xong', 'primary') : '');
     } };
     html += group('contour', 'Đang contour', g.contour, [C.pt, C.dx, C.rx, C.pr,
@@ -1749,6 +1750,11 @@ window.DEMO = (function () {
       C.rx, { h: 'Ngày xạ dự kiến', cls: 'nowrap', v: function (p) { return p._g ? (boostFlag(p) || '<span class="muted">—</span>') : p.ngay_du_kien ? '<span class="num">' + fdw(p.ngay_du_kien) + '</span>' : '<span class="muted">—</span>'; } },
       { h: '', cls: 'act', v: function (p) { return can('qaResult') ? btn('qaPass', p.id, 'QA đạt', 'ok') + btn('qaFail', p.id, 'Không đạt', 'danger') : ''; } }
     ], null, 'Không có kế hoạch chờ QA.');
+    var upcoming = items().filter(function (p) { return p.trang_thai === 'MO_PHONG' || p.trang_thai === 'CONTOUR'; })
+      .sort(function (a, b) { return RT.STATUS_ORDER.indexOf(b.trang_thai) - RT.STATUS_ORDER.indexOf(a.trang_thai) || prRank(a) - prRank(b); });
+    html += group('upcoming', 'Sắp tới: chờ mô phỏng / bác sĩ đang contour', upcoming, [C.pt, C.st, C.pr, C.dx, C.rx, C.bs,
+      { h: '', cls: 'act', v: function (p) { return p.trang_thai === 'MO_PHONG' && can('simDone') ? btn('simDone', p.id, 'Đã mô phỏng xong') : ''; } }],
+      'Để kỹ sư biết trước ca sắp tới. BN đã chụp CT mô phỏng mà chưa cập nhật thì bấm “Đã mô phỏng xong”.', 'Không có.');
     html += group('recent', 'Đã chuyển xạ trong 7 ngày qua', recent, [C.pt, C.rx,
       { h: 'KH xong', cls: 'nowrap', v: function (p) { return '<span class="num">' + fd(p.ngay_kh_xong) + '</span><span class="sub">' + esc(nameOf(p.ks_email)) + '</span>'; } },
       { h: 'QA', v: function (p) { return p.qa_ket_qua === 'Đạt' ? '<span class="flag ok">Đạt ' + fd(p.ngay_qa) + '</span>' : '<span class="muted">' + esc(p.qa_ket_qua) + '</span>'; } },
@@ -2399,9 +2405,9 @@ window.DEMO = (function () {
           '<div class="field" data-boost><label>Kỹ thuật boost</label><select name="b_ky_thuat">' + opts(d.KY_THUAT, '', 'Chọn') + '</select></div>' +
           '<div class="field" data-boost><label>Liều boost (Gy) / số buổi</label><div style="display:flex;gap:6px"><input type="number" step="0.01" name="b_tong_lieu" placeholder="Gy" aria-label="Liều boost"><input type="number" step="1" name="b_so_buoi" placeholder="buổi" aria-label="Số buổi boost"></div></div>' +
           '<div class="field full" data-boost><span class="lb">Kế hoạch boost</span><div class="radios">' + BOOST_KINDS.map(function (k, i) { return '<label><input type="radio" name="b_buoc" value="' + k[0] + '"' + (i === 0 ? ' checked' : '') + '><span><b>' + k[1] + '</b><small>' + k[2] + '</small></span></label>'; }).join('') + '</div></div>' : '') +
-        (isNew ? '<div class="field full"><span class="lb">Bước hiện tại của bệnh nhân</span><div class="radios">' +
-          '<label><input type="radio" name="trang_thai" value="MO_PHONG"><span><b>Chờ mô phỏng</b><small>Đã có chỉ định xạ, chưa chụp CT mô phỏng</small></span></label>' +
-          '<label><input type="radio" name="trang_thai" value="CONTOUR" checked><span><b>Đang contour</b><small>Đã mô phỏng, bác sĩ đang vẽ thể tích</small></span></label>' +
+        (isNew ? '<div class="field full"><span class="lb">Bước hiện tại của bệnh nhân <span class="req">*</span></span><div class="radios">' +
+          '<label><input type="radio" name="trang_thai" value="MO_PHONG"><span><b>Chưa mô phỏng</b><small>Đã có chỉ định xạ, chưa chụp CT mô phỏng</small></span></label>' +
+          '<label><input type="radio" name="trang_thai" value="CONTOUR"><span><b>Đã mô phỏng, đang contour</b><small>Đã chụp CT mô phỏng, bác sĩ đang vẽ thể tích</small></span></label>' +
           '<label><input type="radio" name="trang_thai" value="CHO_KH"><span><b>Đã contour xong</b><small>Chuyển ngay vào hàng đợi lập kế hoạch của kỹ sư</small></span></label>' +
           '<label><input type="radio" name="trang_thai" value="CHO_XA"><span><b>Đã có kế hoạch, chờ vào xạ</b><small>Dùng khi bắt đầu dùng ứng dụng với BN đã lập KH xong</small></span></label>' +
           '<label><input type="radio" name="trang_thai" value="DANG_XA"><span><b>Đang xạ dở</b><small>BN đã xạ một số buổi trước khi dùng ứng dụng</small></span></label></div></div>' +
@@ -2430,6 +2436,7 @@ window.DEMO = (function () {
         if (!v.ho_ten) return 'Cần nhập họ tên.';
         if (!v.nam_sinh) return 'Cần nhập năm sinh hoặc tuổi.';
         if (!v.bs_email) return 'Cần chọn bác sĩ điều trị.';
+        if (isNew && !v.trang_thai) return 'Cần chọn bước hiện tại của bệnh nhân (chưa mô phỏng, đang contour…).';
         var early = isNew ? (!v.trang_thai || v.trang_thai === 'MO_PHONG' || v.trang_thai === 'CONTOUR') && !v.co_boost : ['MO_PHONG', 'CONTOUR'].indexOf(p.trang_thai) >= 0;
         if (!early) {
           var miss = RT.missingRx(v);

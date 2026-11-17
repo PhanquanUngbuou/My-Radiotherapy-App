@@ -1,4 +1,4 @@
-// Điều phối Xạ trị · phiên bản v1.6
+// Điều phối Xạ trị · phiên bản v1.7
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -9,7 +9,7 @@
  */
 var RT = (function () {
   'use strict';
-  var VERSION = '1.6';
+  var VERSION = '1.7';
 
   var STATUS_ORDER = ['MO_PHONG', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA', 'DANG_XA', 'TAM_NGUNG', 'HOAN_THANH'];
   var STATUS = {
@@ -87,7 +87,7 @@ var RT = (function () {
     addPhase: ['BS', 'ADMIN'],
     updatePhase: ['BS', 'ADMIN'],
     deletePhase: ['BS', 'ADMIN'],
-    simDone: ['KTV', 'BS', 'ADMIN'],
+    simDone: ['KTV', 'BS', 'KS', 'ADMIN'],
     saveUser: ['ADMIN'],
     dmAdd: ['ADMIN'],
     dmRemove: ['ADMIN']

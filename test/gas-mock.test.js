@@ -239,4 +239,13 @@ hc = r.data.patients.find(x => x.id === hc.id);
 assert.strictEqual(hc.trang_thai, 'CHO_KH'); assert.strictEqual(hc.so_buoi, '15'); assert.strictEqual(hc.vi_tri, 'Vú trái');
 r = ok('bs@x.vn', 'updatePatient', { id: hc.id, ghi_chu: 'ok' });
 assert(!api('bs@x.vn', 'updatePatient', { id: hc.id, so_buoi: '' }).ok, 'sau khi chuyển kỹ sư không được xoá trống chỉ định');
+// ---- v1.7: kỹ sư và bác sĩ chuyển được Chờ mô phỏng -> Đang contour ----
+r = ok('dd@x.vn', 'createPatient', { ma_his: '9101', ho_ten: 'MP KS', nam_sinh: '1970', bs_email: 'bs@x.vn', trang_thai: 'MO_PHONG' });
+let m1 = r.data.patients.find(x => x.ma_his === '9101');
+r = ok('ks@x.vn', 'simDone', { id: m1.id });
+assert.strictEqual(r.data.patients.find(x => x.id === m1.id).trang_thai, 'CONTOUR', 'kỹ sư chuyển được');
+r = ok('dd@x.vn', 'createPatient', { ma_his: '9102', ho_ten: 'MP BS', nam_sinh: '1970', bs_email: 'bs@x.vn', trang_thai: 'MO_PHONG' });
+let m2 = r.data.patients.find(x => x.ma_his === '9102');
+ok('bs@x.vn', 'simDone', { id: m2.id });
+assert(!api('dd@x.vn', 'simDone', { id: m2.id }).ok, 'điều dưỡng không chuyển');
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');

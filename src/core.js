@@ -86,7 +86,7 @@ var RT = (function () {
     addPhase: ['BS', 'ADMIN'],
     updatePhase: ['BS', 'ADMIN'],
     deletePhase: ['BS', 'ADMIN'],
-    simDone: ['KTV', 'BS', 'ADMIN'],
+    simDone: ['KTV', 'BS', 'KS', 'ADMIN'],
     saveUser: ['ADMIN'],
     dmAdd: ['ADMIN'],
     dmRemove: ['ADMIN']

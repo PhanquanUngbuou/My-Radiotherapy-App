@@ -41,21 +41,21 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
 </style>
 <div class="wrap">
   <div class="intro">
-    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v1.6</h1>
+    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v1.7</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v1.6 · bản lưu 12a2827 · 16/11/2026 09:37. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v1.6”.</span>
+    <span class="rev">Phiên bản v1.7 · bản lưu 678d45e · 17/11/2026 00:45. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v1.7”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Code">Code.gs <span class="ver">· v1.6</span></h2>
+        <h2 id="h-Code">Code.gs <span class="ver">· v1.7</span></h2>
         <p>File có sẵn tên Code.gs: xoá hết nội dung cũ, dán vào.</p>
         <span class="size">321 dòng · 15 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v1.6)</button>
+      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v1.7)</button>
     </div>
-    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v1.6
+    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v1.7
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
@@ -380,13 +380,13 @@ function moveRows_(ss, fromName, toName, pred) {
   <section class="card" aria-labelledby="h-Core">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Core">Core.gs <span class="ver">· v1.6</span></h2>
+        <h2 id="h-Core">Core.gs <span class="ver">· v1.7</span></h2>
         <p>Bấm + → Script (Tập lệnh), đặt tên Core.</p>
         <span class="size">831 dòng · 47 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v1.6)</button>
+      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v1.7)</button>
     </div>
-    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v1.6
+    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v1.7
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -397,7 +397,7 @@ function moveRows_(ss, fromName, toName, pred) {
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;1.6&#x27;;
+  var VERSION = &#x27;1.7&#x27;;
 
   var STATUS_ORDER = [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;];
   var STATUS = {
@@ -475,7 +475,7 @@ var RT = (function () {
     addPhase: [&#x27;BS&#x27;, &#x27;ADMIN&#x27;],
     updatePhase: [&#x27;BS&#x27;, &#x27;ADMIN&#x27;],
     deletePhase: [&#x27;BS&#x27;, &#x27;ADMIN&#x27;],
-    simDone: [&#x27;KTV&#x27;, &#x27;BS&#x27;, &#x27;ADMIN&#x27;],
+    simDone: [&#x27;KTV&#x27;, &#x27;BS&#x27;, &#x27;KS&#x27;, &#x27;ADMIN&#x27;],
     saveUser: [&#x27;ADMIN&#x27;],
     dmAdd: [&#x27;ADMIN&#x27;],
     dmRemove: [&#x27;ADMIN&#x27;]
@@ -1221,14 +1221,14 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
   <section class="card" aria-labelledby="h-Index">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Index">Index.html <span class="ver">· v1.6</span></h2>
+        <h2 id="h-Index">Index.html <span class="ver">· v1.7</span></h2>
         <p>Bấm + → HTML, đặt tên Index (chữ I hoa).</p>
-        <span class="size">2,339 dòng · 173 KB</span>
+        <span class="size">2,346 dòng · 174 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v1.6)</button>
+      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v1.7)</button>
     </div>
     <textarea id="t-Index" readonly spellcheck="false" aria-label="Nội dung Index.html">&lt;!DOCTYPE html&gt;
-&lt;!-- Điều phối Xạ trị · phiên bản v1.6 --&gt;
+&lt;!-- Điều phối Xạ trị · phiên bản v1.7 --&gt;
 &lt;html lang=&quot;vi&quot;&gt;
 &lt;head&gt;
 &lt;base target=&quot;_top&quot;&gt;
@@ -1536,7 +1536,7 @@ button.wk:hover{border-color:var(--accent-2)}
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;1.6&#x27;;
+  var VERSION = &#x27;1.7&#x27;;
 
   var STATUS_ORDER = [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;];
   var STATUS = {
@@ -1614,7 +1614,7 @@ var RT = (function () {
     addPhase: [&#x27;BS&#x27;, &#x27;ADMIN&#x27;],
     updatePhase: [&#x27;BS&#x27;, &#x27;ADMIN&#x27;],
     deletePhase: [&#x27;BS&#x27;, &#x27;ADMIN&#x27;],
-    simDone: [&#x27;KTV&#x27;, &#x27;BS&#x27;, &#x27;ADMIN&#x27;],
+    simDone: [&#x27;KTV&#x27;, &#x27;BS&#x27;, &#x27;KS&#x27;, &#x27;ADMIN&#x27;],
     saveUser: [&#x27;ADMIN&#x27;],
     dmAdd: [&#x27;ADMIN&#x27;],
     dmRemove: [&#x27;ADMIN&#x27;]
@@ -2720,7 +2720,8 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     }).join(&#x27;&#x27;) + &#x27;&lt;/div&gt;&#x27;;
 
     var contourActs = { h: &#x27;&#x27;, cls: &#x27;act&#x27;, v: function (p) {
-      if (p.trang_thai === &#x27;MO_PHONG&#x27;) return &#x27;&lt;span class=&quot;pill st-MO_PHONG&quot;&gt;&#x27; + (p._g ? &#x27;Chờ mô phỏng lại&#x27; : &#x27;Chờ mô phỏng&#x27;) + &#x27;&lt;/span&gt;&#x27; + (p.ngay_mo_phong ? &#x27;&lt;span class=&quot;sub&quot;&gt;hẹn &#x27; + fdw(p.ngay_mo_phong) + &#x27;&lt;/span&gt;&#x27; : &#x27;&#x27;);
+      if (p.trang_thai === &#x27;MO_PHONG&#x27;) return (p.ngay_mo_phong ? &#x27;&lt;span class=&quot;muted&quot;&gt;hẹn &#x27; + fdw(p.ngay_mo_phong) + &#x27;&lt;/span&gt; &#x27; : &#x27;&lt;span class=&quot;pill st-MO_PHONG&quot;&gt;&#x27; + (p._g ? &#x27;Chờ mô phỏng lại&#x27; : &#x27;Chờ mô phỏng&#x27;) + &#x27;&lt;/span&gt; &#x27;) +
+        (can(&#x27;simDone&#x27;) ? btn(&#x27;simDone&#x27;, p.id, &#x27;Đã mô phỏng xong&#x27;) : &#x27;&#x27;);
       return (boostFlag(p) ? boostFlag(p) + &#x27; &#x27; : &#x27;&#x27;) + (can(&#x27;contourDone&#x27;) &amp;&amp; (p.bs_email === me().email || role() === &#x27;ADMIN&#x27;) ? btn(&#x27;contourDone&#x27;, p.id, &#x27;Contour xong&#x27;, &#x27;primary&#x27;) : &#x27;&#x27;);
     } };
     html += group(&#x27;contour&#x27;, &#x27;Đang contour&#x27;, g.contour, [C.pt, C.dx, C.rx, C.pr,
@@ -2777,6 +2778,11 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
       C.rx, { h: &#x27;Ngày xạ dự kiến&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { return p._g ? (boostFlag(p) || &#x27;&lt;span class=&quot;muted&quot;&gt;—&lt;/span&gt;&#x27;) : p.ngay_du_kien ? &#x27;&lt;span class=&quot;num&quot;&gt;&#x27; + fdw(p.ngay_du_kien) + &#x27;&lt;/span&gt;&#x27; : &#x27;&lt;span class=&quot;muted&quot;&gt;—&lt;/span&gt;&#x27;; } },
       { h: &#x27;&#x27;, cls: &#x27;act&#x27;, v: function (p) { return can(&#x27;qaResult&#x27;) ? btn(&#x27;qaPass&#x27;, p.id, &#x27;QA đạt&#x27;, &#x27;ok&#x27;) + btn(&#x27;qaFail&#x27;, p.id, &#x27;Không đạt&#x27;, &#x27;danger&#x27;) : &#x27;&#x27;; } }
     ], null, &#x27;Không có kế hoạch chờ QA.&#x27;);
+    var upcoming = items().filter(function (p) { return p.trang_thai === &#x27;MO_PHONG&#x27; || p.trang_thai === &#x27;CONTOUR&#x27;; })
+      .sort(function (a, b) { return RT.STATUS_ORDER.indexOf(b.trang_thai) - RT.STATUS_ORDER.indexOf(a.trang_thai) || prRank(a) - prRank(b); });
+    html += group(&#x27;upcoming&#x27;, &#x27;Sắp tới: chờ mô phỏng / bác sĩ đang contour&#x27;, upcoming, [C.pt, C.st, C.pr, C.dx, C.rx, C.bs,
+      { h: &#x27;&#x27;, cls: &#x27;act&#x27;, v: function (p) { return p.trang_thai === &#x27;MO_PHONG&#x27; &amp;&amp; can(&#x27;simDone&#x27;) ? btn(&#x27;simDone&#x27;, p.id, &#x27;Đã mô phỏng xong&#x27;) : &#x27;&#x27;; } }],
+      &#x27;Để kỹ sư biết trước ca sắp tới. BN đã chụp CT mô phỏng mà chưa cập nhật thì bấm “Đã mô phỏng xong”.&#x27;, &#x27;Không có.&#x27;);
     html += group(&#x27;recent&#x27;, &#x27;Đã chuyển xạ trong 7 ngày qua&#x27;, recent, [C.pt, C.rx,
       { h: &#x27;KH xong&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { return &#x27;&lt;span class=&quot;num&quot;&gt;&#x27; + fd(p.ngay_kh_xong) + &#x27;&lt;/span&gt;&lt;span class=&quot;sub&quot;&gt;&#x27; + esc(nameOf(p.ks_email)) + &#x27;&lt;/span&gt;&#x27;; } },
       { h: &#x27;QA&#x27;, v: function (p) { return p.qa_ket_qua === &#x27;Đạt&#x27; ? &#x27;&lt;span class=&quot;flag ok&quot;&gt;Đạt &#x27; + fd(p.ngay_qa) + &#x27;&lt;/span&gt;&#x27; : &#x27;&lt;span class=&quot;muted&quot;&gt;&#x27; + esc(p.qa_ket_qua) + &#x27;&lt;/span&gt;&#x27;; } },
@@ -3427,9 +3433,9 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
           &#x27;&lt;div class=&quot;field&quot; data-boost&gt;&lt;label&gt;Kỹ thuật boost&lt;/label&gt;&lt;select name=&quot;b_ky_thuat&quot;&gt;&#x27; + opts(d.KY_THUAT, &#x27;&#x27;, &#x27;Chọn&#x27;) + &#x27;&lt;/select&gt;&lt;/div&gt;&#x27; +
           &#x27;&lt;div class=&quot;field&quot; data-boost&gt;&lt;label&gt;Liều boost (Gy) / số buổi&lt;/label&gt;&lt;div style=&quot;display:flex;gap:6px&quot;&gt;&lt;input type=&quot;number&quot; step=&quot;0.01&quot; name=&quot;b_tong_lieu&quot; placeholder=&quot;Gy&quot; aria-label=&quot;Liều boost&quot;&gt;&lt;input type=&quot;number&quot; step=&quot;1&quot; name=&quot;b_so_buoi&quot; placeholder=&quot;buổi&quot; aria-label=&quot;Số buổi boost&quot;&gt;&lt;/div&gt;&lt;/div&gt;&#x27; +
           &#x27;&lt;div class=&quot;field full&quot; data-boost&gt;&lt;span class=&quot;lb&quot;&gt;Kế hoạch boost&lt;/span&gt;&lt;div class=&quot;radios&quot;&gt;&#x27; + BOOST_KINDS.map(function (k, i) { return &#x27;&lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;b_buoc&quot; value=&quot;&#x27; + k[0] + &#x27;&quot;&#x27; + (i === 0 ? &#x27; checked&#x27; : &#x27;&#x27;) + &#x27;&gt;&lt;span&gt;&lt;b&gt;&#x27; + k[1] + &#x27;&lt;/b&gt;&lt;small&gt;&#x27; + k[2] + &#x27;&lt;/small&gt;&lt;/span&gt;&lt;/label&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;/div&gt;&lt;/div&gt;&#x27; : &#x27;&#x27;) +
-        (isNew ? &#x27;&lt;div class=&quot;field full&quot;&gt;&lt;span class=&quot;lb&quot;&gt;Bước hiện tại của bệnh nhân&lt;/span&gt;&lt;div class=&quot;radios&quot;&gt;&#x27; +
-          &#x27;&lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;trang_thai&quot; value=&quot;MO_PHONG&quot;&gt;&lt;span&gt;&lt;b&gt;Chờ mô phỏng&lt;/b&gt;&lt;small&gt;Đã có chỉ định xạ, chưa chụp CT mô phỏng&lt;/small&gt;&lt;/span&gt;&lt;/label&gt;&#x27; +
-          &#x27;&lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;trang_thai&quot; value=&quot;CONTOUR&quot; checked&gt;&lt;span&gt;&lt;b&gt;Đang contour&lt;/b&gt;&lt;small&gt;Đã mô phỏng, bác sĩ đang vẽ thể tích&lt;/small&gt;&lt;/span&gt;&lt;/label&gt;&#x27; +
+        (isNew ? &#x27;&lt;div class=&quot;field full&quot;&gt;&lt;span class=&quot;lb&quot;&gt;Bước hiện tại của bệnh nhân &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&lt;/span&gt;&lt;div class=&quot;radios&quot;&gt;&#x27; +
+          &#x27;&lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;trang_thai&quot; value=&quot;MO_PHONG&quot;&gt;&lt;span&gt;&lt;b&gt;Chưa mô phỏng&lt;/b&gt;&lt;small&gt;Đã có chỉ định xạ, chưa chụp CT mô phỏng&lt;/small&gt;&lt;/span&gt;&lt;/label&gt;&#x27; +
+          &#x27;&lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;trang_thai&quot; value=&quot;CONTOUR&quot;&gt;&lt;span&gt;&lt;b&gt;Đã mô phỏng, đang contour&lt;/b&gt;&lt;small&gt;Đã chụp CT mô phỏng, bác sĩ đang vẽ thể tích&lt;/small&gt;&lt;/span&gt;&lt;/label&gt;&#x27; +
           &#x27;&lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;trang_thai&quot; value=&quot;CHO_KH&quot;&gt;&lt;span&gt;&lt;b&gt;Đã contour xong&lt;/b&gt;&lt;small&gt;Chuyển ngay vào hàng đợi lập kế hoạch của kỹ sư&lt;/small&gt;&lt;/span&gt;&lt;/label&gt;&#x27; +
           &#x27;&lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;trang_thai&quot; value=&quot;CHO_XA&quot;&gt;&lt;span&gt;&lt;b&gt;Đã có kế hoạch, chờ vào xạ&lt;/b&gt;&lt;small&gt;Dùng khi bắt đầu dùng ứng dụng với BN đã lập KH xong&lt;/small&gt;&lt;/span&gt;&lt;/label&gt;&#x27; +
           &#x27;&lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;trang_thai&quot; value=&quot;DANG_XA&quot;&gt;&lt;span&gt;&lt;b&gt;Đang xạ dở&lt;/b&gt;&lt;small&gt;BN đã xạ một số buổi trước khi dùng ứng dụng&lt;/small&gt;&lt;/span&gt;&lt;/label&gt;&lt;/div&gt;&lt;/div&gt;&#x27; +
@@ -3458,6 +3464,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
         if (!v.ho_ten) return &#x27;Cần nhập họ tên.&#x27;;
         if (!v.nam_sinh) return &#x27;Cần nhập năm sinh hoặc tuổi.&#x27;;
         if (!v.bs_email) return &#x27;Cần chọn bác sĩ điều trị.&#x27;;
+        if (isNew &amp;&amp; !v.trang_thai) return &#x27;Cần chọn bước hiện tại của bệnh nhân (chưa mô phỏng, đang contour…).&#x27;;
         var early = isNew ? (!v.trang_thai || v.trang_thai === &#x27;MO_PHONG&#x27; || v.trang_thai === &#x27;CONTOUR&#x27;) &amp;&amp; !v.co_boost : [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;].indexOf(p.trang_thai) &gt;= 0;
         if (!early) {
           var miss = RT.missingRx(v);

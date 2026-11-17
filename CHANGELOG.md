@@ -1,5 +1,10 @@
 # Lịch sử phiên bản
 
+## v1.7
+- Bác sĩ và kỹ sư (ngoài KTV) bấm được "Đã mô phỏng xong" để chuyển BN từ Chờ mô phỏng sang Đang contour; nút có ngay trong danh sách.
+- Trang Lập kế hoạch của kỹ sư có thêm mục "Sắp tới: chờ mô phỏng / bác sĩ đang contour".
+- Thêm BN: bắt buộc chọn bước hiện tại (không chọn sẵn); đổi tên bước thành "Chưa mô phỏng" và "Đã mô phỏng, đang contour".
+
 ## v1.6
 - Thêm BN chỉ bắt buộc phần hành chính: họ tên, mã HIS, năm sinh (hoặc tuổi), bác sĩ điều trị. Phần chuyên môn có thể để trống ở bước Chờ mô phỏng / Đang contour.
 - Bác sĩ bấm "Contour xong": nếu thiếu chẩn đoán, kỹ thuật, liều, số buổi thì nhập luôn trong hộp đó; đủ mới chuyển kỹ sư.
