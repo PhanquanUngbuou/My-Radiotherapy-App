@@ -302,3 +302,10 @@ button.wk:hover{border-color:var(--accent-2)}
 .rs-note{display:block;width:100%;font-size:11.5px;color:var(--muted)}
 .rs-today{background:var(--accent-soft)}
 td.rs-today .rs-cell{border-color:var(--accent-2)}
+
+/* Nút nổi thêm BN trên điện thoại (nút ở thanh tab bị khuất khi màn hình hẹp) */
+.fab{display:none;position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:30;
+  align-items:center;gap:6px;border:0;border-radius:28px;padding:13px 20px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:15px;
+  box-shadow:var(--shadow-lg);cursor:pointer}
+.fab span{font-size:20px;line-height:1}
+@media (max-width:760px){ .fab{display:flex} #add-bn{display:none} .main-in{padding-bottom:110px} .toast{bottom:calc(88px + env(safe-area-inset-bottom,0px))} }

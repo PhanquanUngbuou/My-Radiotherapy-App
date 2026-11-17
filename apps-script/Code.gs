@@ -1,4 +1,4 @@
-// Điều phối Xạ trị · phiên bản v2.2
+// Điều phối Xạ trị · phiên bản v2.3
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.

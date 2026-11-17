@@ -109,7 +109,7 @@ var RT = (function () {
     setNotice: CHUC_VU, clearNotice: CHUC_VU
   };
   /** Các bác sĩ mà người này phụ trách bệnh nhân: chính mình + bác sĩ chính nếu là trợ lý */
-  function myDoctors(u) { return u ? [u.email].concat(u.tro_ly_cho ? [u.tro_ly_cho] : []) : []; }
+  function myDoctors(u) { return u ? [u.email].concat(u.tro_ly_cho && u.vai_tro === 'BS' ? [u.tro_ly_cho] : []) : []; }
   function isLead(u) { return !!(u && u.chuc_vu && CHUC_VU.indexOf(u.chuc_vu) >= 0); }
   function can(role, action, user) {
     if ((PERM[action] || []).indexOf(role) >= 0) return true;
@@ -765,6 +765,7 @@ var RT = (function () {
       var cv = String(a.chuc_vu || '');
       var kh2 = String(a.khoa || '');
       var tl = String(a.tro_ly_cho || '').trim().toLowerCase();
+      if (tl && vt !== 'BS') fail('Chỉ bác sĩ mới được gán làm trợ lý cho bác sĩ khác.');
       if (tl) {
         if (tl === email) fail('Không thể là trợ lý cho chính mình.');
         var chinh = ctx.users.filter(function (x) { return x.email === tl && x.kich_hoat !== 'Không'; })[0];

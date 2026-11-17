@@ -41,21 +41,21 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
 </style>
 <div class="wrap">
   <div class="intro">
-    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v2.2</h1>
+    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v2.3</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v2.2 · bản lưu 230e50d · 17/11/2026 02:08. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v2.2”.</span>
+    <span class="rev">Phiên bản v2.3 · bản lưu 2571a5f · 17/11/2026 03:07. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v2.3”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Code">Code.gs <span class="ver">· v2.2</span></h2>
+        <h2 id="h-Code">Code.gs <span class="ver">· v2.3</span></h2>
         <p>File có sẵn tên Code.gs: xoá hết nội dung cũ, dán vào.</p>
         <span class="size">383 dòng · 19 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v2.2)</button>
+      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v2.3)</button>
     </div>
-    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v2.2
+    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v2.3
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
@@ -442,13 +442,13 @@ function moveRows_(ss, fromName, toName, pred) {
   <section class="card" aria-labelledby="h-Core">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Core">Core.gs <span class="ver">· v2.2</span></h2>
+        <h2 id="h-Core">Core.gs <span class="ver">· v2.3</span></h2>
         <p>Bấm + → Script (Tập lệnh), đặt tên Core.</p>
-        <span class="size">1,020 dòng · 60 KB</span>
+        <span class="size">1,021 dòng · 61 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v2.2)</button>
+      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v2.3)</button>
     </div>
-    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v2.2
+    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v2.3
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -459,7 +459,7 @@ function moveRows_(ss, fromName, toName, pred) {
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;2.2&#x27;;
+  var VERSION = &#x27;2.3&#x27;;
 
   var STATUS_ORDER = [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;];
   var STATUS = {
@@ -560,7 +560,7 @@ var RT = (function () {
     setNotice: CHUC_VU, clearNotice: CHUC_VU
   };
   /** Các bác sĩ mà người này phụ trách bệnh nhân: chính mình + bác sĩ chính nếu là trợ lý */
-  function myDoctors(u) { return u ? [u.email].concat(u.tro_ly_cho ? [u.tro_ly_cho] : []) : []; }
+  function myDoctors(u) { return u ? [u.email].concat(u.tro_ly_cho &amp;&amp; u.vai_tro === &#x27;BS&#x27; ? [u.tro_ly_cho] : []) : []; }
   function isLead(u) { return !!(u &amp;&amp; u.chuc_vu &amp;&amp; CHUC_VU.indexOf(u.chuc_vu) &gt;= 0); }
   function can(role, action, user) {
     if ((PERM[action] || []).indexOf(role) &gt;= 0) return true;
@@ -1216,6 +1216,7 @@ var RT = (function () {
       var cv = String(a.chuc_vu || &#x27;&#x27;);
       var kh2 = String(a.khoa || &#x27;&#x27;);
       var tl = String(a.tro_ly_cho || &#x27;&#x27;).trim().toLowerCase();
+      if (tl &amp;&amp; vt !== &#x27;BS&#x27;) fail(&#x27;Chỉ bác sĩ mới được gán làm trợ lý cho bác sĩ khác.&#x27;);
       if (tl) {
         if (tl === email) fail(&#x27;Không thể là trợ lý cho chính mình.&#x27;);
         var chinh = ctx.users.filter(function (x) { return x.email === tl &amp;&amp; x.kich_hoat !== &#x27;Không&#x27;; })[0];
@@ -1472,14 +1473,14 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
   <section class="card" aria-labelledby="h-Index">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Index">Index.html <span class="ver">· v2.2</span></h2>
+        <h2 id="h-Index">Index.html <span class="ver">· v2.3</span></h2>
         <p>Bấm + → HTML, đặt tên Index (chữ I hoa).</p>
-        <span class="size">2,821 dòng · 212 KB</span>
+        <span class="size">2,836 dòng · 213 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v2.2)</button>
+      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v2.3)</button>
     </div>
     <textarea id="t-Index" readonly spellcheck="false" aria-label="Nội dung Index.html">&lt;!DOCTYPE html&gt;
-&lt;!-- Điều phối Xạ trị · phiên bản v2.2 --&gt;
+&lt;!-- Điều phối Xạ trị · phiên bản v2.3 --&gt;
 &lt;html lang=&quot;vi&quot;&gt;
 &lt;head&gt;
 &lt;base target=&quot;_top&quot;&gt;
@@ -1795,6 +1796,13 @@ button.wk:hover{border-color:var(--accent-2)}
 .rs-today{background:var(--accent-soft)}
 td.rs-today .rs-cell{border-color:var(--accent-2)}
 
+/* Nút nổi thêm BN trên điện thoại (nút ở thanh tab bị khuất khi màn hình hẹp) */
+.fab{display:none;position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:30;
+  align-items:center;gap:6px;border:0;border-radius:28px;padding:13px 20px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:15px;
+  box-shadow:var(--shadow-lg);cursor:pointer}
+.fab span{font-size:20px;line-height:1}
+@media (max-width:760px){ .fab{display:flex} #add-bn{display:none} .main-in{padding-bottom:110px} .toast{bottom:calc(88px + env(safe-area-inset-bottom,0px))} }
+
 &lt;/style&gt;
 &lt;/head&gt;
 &lt;body&gt;
@@ -1815,7 +1823,7 @@ td.rs-today .rs-cell{border-color:var(--accent-2)}
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;2.2&#x27;;
+  var VERSION = &#x27;2.3&#x27;;
 
   var STATUS_ORDER = [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;];
   var STATUS = {
@@ -1916,7 +1924,7 @@ var RT = (function () {
     setNotice: CHUC_VU, clearNotice: CHUC_VU
   };
   /** Các bác sĩ mà người này phụ trách bệnh nhân: chính mình + bác sĩ chính nếu là trợ lý */
-  function myDoctors(u) { return u ? [u.email].concat(u.tro_ly_cho ? [u.tro_ly_cho] : []) : []; }
+  function myDoctors(u) { return u ? [u.email].concat(u.tro_ly_cho &amp;&amp; u.vai_tro === &#x27;BS&#x27; ? [u.tro_ly_cho] : []) : []; }
   function isLead(u) { return !!(u &amp;&amp; u.chuc_vu &amp;&amp; CHUC_VU.indexOf(u.chuc_vu) &gt;= 0); }
   function can(role, action, user) {
     if ((PERM[action] || []).indexOf(role) &gt;= 0) return true;
@@ -2572,6 +2580,7 @@ var RT = (function () {
       var cv = String(a.chuc_vu || &#x27;&#x27;);
       var kh2 = String(a.khoa || &#x27;&#x27;);
       var tl = String(a.tro_ly_cho || &#x27;&#x27;).trim().toLowerCase();
+      if (tl &amp;&amp; vt !== &#x27;BS&#x27;) fail(&#x27;Chỉ bác sĩ mới được gán làm trợ lý cho bác sĩ khác.&#x27;);
       if (tl) {
         if (tl === email) fail(&#x27;Không thể là trợ lý cho chính mình.&#x27;);
         var chinh = ctx.users.filter(function (x) { return x.email === tl &amp;&amp; x.kich_hoat !== &#x27;Không&#x27;; })[0];
@@ -3087,7 +3096,8 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
       &#x27;&lt;nav class=&quot;tabs&quot;&gt;&lt;div class=&quot;tabs-in&quot; role=&quot;tablist&quot;&gt;&#x27; + tabs.map(function (t) {
         return &#x27;&lt;button class=&quot;tab&quot; role=&quot;tab&quot; data-tab=&quot;&#x27; + t + &#x27;&quot; aria-selected=&quot;&#x27; + (S.tab === t) + &#x27;&quot;&gt;&#x27; + esc(TABS[t].label()) + &#x27;&lt;/button&gt;&#x27;;
       }).join(&#x27;&#x27;) + &#x27;&lt;span class=&quot;spacer&quot;&gt;&lt;/span&gt;&#x27; +
-      (can(&#x27;createPatient&#x27;) ? &#x27;&lt;button class=&quot;btn primary&quot; id=&quot;add-bn&quot;&gt;+ Thêm bệnh nhân&lt;/button&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/div&gt;&lt;/nav&gt;&#x27;;
+      (can(&#x27;createPatient&#x27;) ? &#x27;&lt;button class=&quot;btn primary&quot; id=&quot;add-bn&quot;&gt;+ Thêm bệnh nhân&lt;/button&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/div&gt;&lt;/nav&gt;&#x27; +
+      (can(&#x27;createPatient&#x27;) ? &#x27;&lt;button class=&quot;fab&quot; id=&quot;add-bn-fab&quot; aria-label=&quot;Thêm bệnh nhân&quot;&gt;&lt;span aria-hidden=&quot;true&quot;&gt;+&lt;/span&gt; Thêm BN&lt;/button&gt;&#x27; : &#x27;&#x27;);
     $$(&#x27;.tab&#x27;).forEach(function (b) { b.onclick = function () { S.tab = b.dataset.tab; render(); window.scrollTo(0, 0); }; });
     var q = $(&#x27;#q&#x27;);
     q.oninput = function () {
@@ -3096,6 +3106,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
       else renderMain();
     };
     if ($(&#x27;#add-bn&#x27;)) $(&#x27;#add-bn&#x27;).onclick = function () { patientForm(null); };
+    if ($(&#x27;#add-bn-fab&#x27;)) $(&#x27;#add-bn-fab&#x27;).onclick = function () { patientForm(null); };
     $$(&#x27;[data-clearnotice]&#x27;).forEach(function (b) { b.onclick = function () { run(&#x27;clearNotice&#x27;, { id: b.dataset.clearnotice }); }; });
     bindBell();
     if ($(&#x27;#demo-user&#x27;)) $(&#x27;#demo-user&#x27;).onchange = function (e) { S.tab = null; run(&#x27;demoSwitch&#x27;, { email: e.target.value }); };
@@ -3760,8 +3771,13 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
         field(&#x27;Trạng thái&#x27;, &#x27;&lt;select name=&quot;kich_hoat&quot;&gt;&#x27; + opts([{ v: &#x27;Có&#x27;, l: &#x27;Hoạt động&#x27; }, { v: &#x27;Không&#x27;, l: &#x27;Khoá tài khoản&#x27; }], u.kich_hoat) + &#x27;&lt;/select&gt;&#x27;) +
         field(&#x27;Chức vụ&#x27;, &#x27;&lt;select name=&quot;chuc_vu&quot;&gt;&#x27; + opts(RT.CHUC_VU, u.chuc_vu || &#x27;&#x27;, &#x27;Không&#x27;) + &#x27;&lt;/select&gt;&#x27;, &#x27;&#x27;, &#x27;Trưởng khoa, ĐD trưởng, tài khoản khoa: xem thống kê cả khoa. KTV trưởng: phân công, huỷ buổi xạ ghi nhầm.&#x27;) +
         field(&#x27;Khoa&#x27;, &#x27;&lt;select name=&quot;khoa&quot;&gt;&#x27; + opts(RT.staffKhoa(S.data.dm), u.khoa || &#x27;&#x27;, &#x27;—&#x27;) + &#x27;&lt;/select&gt;&#x27;, &#x27;&#x27;, &#x27;Bắt buộc với trưởng khoa, ĐD trưởng, tài khoản khoa&#x27;) +
-        field(&#x27;Trợ lý cho bác sĩ&#x27;, &#x27;&lt;select name=&quot;tro_ly_cho&quot;&gt;&#x27; + opts(S.data.users.filter(function (x) { return x.kich_hoat !== &#x27;Không&#x27; &amp;&amp; x.email !== u.email &amp;&amp; !x.tro_ly_cho &amp;&amp; (x.vai_tro === &#x27;BS&#x27; || isDoctor(x)); }).map(function (x) { return { v: x.email, l: x.ho_ten }; }), u.tro_ly_cho || &#x27;&#x27;, &#x27;Không (bác sĩ bình thường)&#x27;) + &#x27;&lt;/select&gt;&#x27;, &#x27;full&#x27;, &#x27;Chỉ cho bác sĩ trợ lý: thấy và làm việc trên BN của bác sĩ chính, xem được thống kê của bác sĩ chính. BN vẫn đứng tên bác sĩ chính.&#x27;) + &#x27;&lt;/div&gt;&#x27;,
-      validate: function (v) { if (!v.ho_ten) return &#x27;Cần nhập họ tên.&#x27;; if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.email)) return &#x27;Email không hợp lệ.&#x27;; if ([&#x27;Trưởng khoa&#x27;, &#x27;Điều dưỡng trưởng&#x27;, &#x27;Tài khoản khoa&#x27;].indexOf(v.chuc_vu) &gt;= 0 &amp;&amp; !v.khoa) return &#x27;Chức vụ này cần chọn khoa.&#x27;; return &#x27;&#x27;; },
+        field(&#x27;Trợ lý cho bác sĩ&#x27;, &#x27;&lt;select name=&quot;tro_ly_cho&quot; id=&quot;tl-sel&quot;&gt;&#x27; + opts(S.data.users.filter(function (x) { return x.kich_hoat !== &#x27;Không&#x27; &amp;&amp; x.email !== u.email &amp;&amp; !x.tro_ly_cho &amp;&amp; (x.vai_tro === &#x27;BS&#x27; || isDoctor(x)); }).map(function (x) { return { v: x.email, l: x.ho_ten }; }), u.tro_ly_cho || &#x27;&#x27;, &#x27;Không (bác sĩ bình thường)&#x27;) + &#x27;&lt;/select&gt;&#x27;, &#x27;full&#x27;, &#x27;Chỉ cho bác sĩ trợ lý: thấy và làm việc trên BN của bác sĩ chính, xem được thống kê của bác sĩ chính. BN vẫn đứng tên bác sĩ chính.&#x27;) + &#x27;&lt;/div&gt;&#x27;,
+      onMount: function (form) {
+        var vt = $(&#x27;select[name=vai_tro]&#x27;, form), tl = $(&#x27;#tl-sel&#x27;, form), box = tl &amp;&amp; tl.closest(&#x27;.field&#x27;);
+        var upd = function () { if (!box) return; box.hidden = vt.value !== &#x27;BS&#x27;; if (vt.value !== &#x27;BS&#x27;) tl.value = &#x27;&#x27;; };
+        vt.addEventListener(&#x27;change&#x27;, upd); upd();
+      },
+      validate: function (v) { if (!v.ho_ten) return &#x27;Cần nhập họ tên.&#x27;; if (v.tro_ly_cho &amp;&amp; v.vai_tro !== &#x27;BS&#x27;) return &#x27;Chỉ bác sĩ mới được gán làm trợ lý.&#x27;; if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.email)) return &#x27;Email không hợp lệ.&#x27;; if ([&#x27;Trưởng khoa&#x27;, &#x27;Điều dưỡng trưởng&#x27;, &#x27;Tài khoản khoa&#x27;].indexOf(v.chuc_vu) &gt;= 0 &amp;&amp; !v.khoa) return &#x27;Chức vụ này cần chọn khoa.&#x27;; return &#x27;&#x27;; },
       onOk: function (v) { run(&#x27;saveUser&#x27;, v); } });
   }
 

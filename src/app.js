@@ -259,7 +259,8 @@
       '<nav class="tabs"><div class="tabs-in" role="tablist">' + tabs.map(function (t) {
         return '<button class="tab" role="tab" data-tab="' + t + '" aria-selected="' + (S.tab === t) + '">' + esc(TABS[t].label()) + '</button>';
       }).join('') + '<span class="spacer"></span>' +
-      (can('createPatient') ? '<button class="btn primary" id="add-bn">+ Thêm bệnh nhân</button>' : '') + '</div></nav>';
+      (can('createPatient') ? '<button class="btn primary" id="add-bn">+ Thêm bệnh nhân</button>' : '') + '</div></nav>' +
+      (can('createPatient') ? '<button class="fab" id="add-bn-fab" aria-label="Thêm bệnh nhân"><span aria-hidden="true">+</span> Thêm BN</button>' : '');
     $$('.tab').forEach(function (b) { b.onclick = function () { S.tab = b.dataset.tab; render(); window.scrollTo(0, 0); }; });
     var q = $('#q');
     q.oninput = function () {
@@ -268,6 +269,7 @@
       else renderMain();
     };
     if ($('#add-bn')) $('#add-bn').onclick = function () { patientForm(null); };
+    if ($('#add-bn-fab')) $('#add-bn-fab').onclick = function () { patientForm(null); };
     $$('[data-clearnotice]').forEach(function (b) { b.onclick = function () { run('clearNotice', { id: b.dataset.clearnotice }); }; });
     bindBell();
     if ($('#demo-user')) $('#demo-user').onchange = function (e) { S.tab = null; run('demoSwitch', { email: e.target.value }); };
@@ -932,8 +934,13 @@
         field('Trạng thái', '<select name="kich_hoat">' + opts([{ v: 'Có', l: 'Hoạt động' }, { v: 'Không', l: 'Khoá tài khoản' }], u.kich_hoat) + '</select>') +
         field('Chức vụ', '<select name="chuc_vu">' + opts(RT.CHUC_VU, u.chuc_vu || '', 'Không') + '</select>', '', 'Trưởng khoa, ĐD trưởng, tài khoản khoa: xem thống kê cả khoa. KTV trưởng: phân công, huỷ buổi xạ ghi nhầm.') +
         field('Khoa', '<select name="khoa">' + opts(RT.staffKhoa(S.data.dm), u.khoa || '', '—') + '</select>', '', 'Bắt buộc với trưởng khoa, ĐD trưởng, tài khoản khoa') +
-        field('Trợ lý cho bác sĩ', '<select name="tro_ly_cho">' + opts(S.data.users.filter(function (x) { return x.kich_hoat !== 'Không' && x.email !== u.email && !x.tro_ly_cho && (x.vai_tro === 'BS' || isDoctor(x)); }).map(function (x) { return { v: x.email, l: x.ho_ten }; }), u.tro_ly_cho || '', 'Không (bác sĩ bình thường)') + '</select>', 'full', 'Chỉ cho bác sĩ trợ lý: thấy và làm việc trên BN của bác sĩ chính, xem được thống kê của bác sĩ chính. BN vẫn đứng tên bác sĩ chính.') + '</div>',
-      validate: function (v) { if (!v.ho_ten) return 'Cần nhập họ tên.'; if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.email)) return 'Email không hợp lệ.'; if (['Trưởng khoa', 'Điều dưỡng trưởng', 'Tài khoản khoa'].indexOf(v.chuc_vu) >= 0 && !v.khoa) return 'Chức vụ này cần chọn khoa.'; return ''; },
+        field('Trợ lý cho bác sĩ', '<select name="tro_ly_cho" id="tl-sel">' + opts(S.data.users.filter(function (x) { return x.kich_hoat !== 'Không' && x.email !== u.email && !x.tro_ly_cho && (x.vai_tro === 'BS' || isDoctor(x)); }).map(function (x) { return { v: x.email, l: x.ho_ten }; }), u.tro_ly_cho || '', 'Không (bác sĩ bình thường)') + '</select>', 'full', 'Chỉ cho bác sĩ trợ lý: thấy và làm việc trên BN của bác sĩ chính, xem được thống kê của bác sĩ chính. BN vẫn đứng tên bác sĩ chính.') + '</div>',
+      onMount: function (form) {
+        var vt = $('select[name=vai_tro]', form), tl = $('#tl-sel', form), box = tl && tl.closest('.field');
+        var upd = function () { if (!box) return; box.hidden = vt.value !== 'BS'; if (vt.value !== 'BS') tl.value = ''; };
+        vt.addEventListener('change', upd); upd();
+      },
+      validate: function (v) { if (!v.ho_ten) return 'Cần nhập họ tên.'; if (v.tro_ly_cho && v.vai_tro !== 'BS') return 'Chỉ bác sĩ mới được gán làm trợ lý.'; if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.email)) return 'Email không hợp lệ.'; if (['Trưởng khoa', 'Điều dưỡng trưởng', 'Tài khoản khoa'].indexOf(v.chuc_vu) >= 0 && !v.khoa) return 'Chức vụ này cần chọn khoa.'; return ''; },
       onOk: function (v) { run('saveUser', v); } });
   }
 

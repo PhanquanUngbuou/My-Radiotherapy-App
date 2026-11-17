@@ -356,4 +356,7 @@ ok('tl@x.vn', 'deletePatient', { id: r.data.patients.find(x => x.ma_his === 'TL1
 ok('admin@x.vn', 'saveUser', { email: 'tl@x.vn', ho_ten: 'BS Trợ lý', vai_tro: 'BS', tro_ly_cho: '' });
 assert(!rep('tl@x.vn').report.theo_bac_si.some(x => x.email === 'bs2@x.vn'), 'hết là trợ lý thì không xem số của bác sĩ cũ');
 ok('admin@x.vn', 'saveUser', { email: 'tl2@x.vn', ho_ten: 'BS Trợ lý 2', vai_tro: 'BS', tro_ly_cho: 'bs2@x.vn' });
+// ---- v2.3 ----
+assert(!api('admin@x.vn', 'saveUser', { email: 'kttl@x.vn', ho_ten: 'KTV trợ lý', vai_tro: 'KTV', tro_ly_cho: 'bs@x.vn' }).ok, 'chỉ bác sĩ làm trợ lý');
+assert.strictEqual(JSON.stringify(ctx.RT.myDoctors({ email: 'a', vai_tro: 'KS', tro_ly_cho: 'b' })), '["a"]', 'không phải BS thì liên kết trợ lý không có tác dụng');
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');
