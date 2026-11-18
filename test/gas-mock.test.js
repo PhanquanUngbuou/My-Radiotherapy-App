@@ -165,7 +165,7 @@ assert.strictEqual(cb.total, 4); assert.strictEqual(cb.doseDone, 7); assert.stri
 r = ok('bs@x.vn', 'addPhase', { bn_id: bp.id, ky_thuat: '3D-CRT', tong_lieu: '4', so_buoi: '2', buoc: 'MO_PHONG' });
 let g3 = r.data.phases.find(x => x.bn_id === bp.id && x.stt === '3');
 assert.strictEqual(g3.trang_thai, 'MO_PHONG');
-ok('ktv@x.vn', 'simDone', { id: g3.id });
+ok('ktv@x.vn', 'simDone', { id: g3.id, nguoi_mo_phong: ['ktv@x.vn'] });
 r = ok('bs@x.vn', 'deletePhase', { id: g3.id, ly_do: 'đổi ý' });
 assert(!r.data.phases.some(x => x.id === g3.id));
 // ---- Lịch tuần: đổi ngày, máy nghỉ ----
@@ -219,7 +219,7 @@ r = ok('bs@x.vn', 'createPatient', { ma_his: '7001', ho_ten: 'Chờ MP', nam_sin
 let mp = r.data.patients.find(x => x.ma_his === '7001');
 assert.strictEqual(mp.trang_thai, 'MO_PHONG'); assert.strictEqual(mp.ngay_mo_phong, today);
 assert(!api('bs@x.vn', 'contourDone', { id: mp.id }).ok, 'chưa mô phỏng thì chưa contour xong được');
-r = ok('ktv@x.vn', 'simDone', { id: mp.id });
+r = ok('ktv@x.vn', 'simDone', { id: mp.id, nguoi_mo_phong: ['ktv@x.vn'] });
 assert.strictEqual(r.data.patients.find(x => x.id === mp.id).trang_thai, 'CONTOUR');
 ok('bs@x.vn', 'contourDone', { id: mp.id });
 // ---- Danh mục mặc định (VI_TRI chưa có trên sheet) giữ nguyên khi thêm/xoá ----
@@ -239,7 +239,7 @@ r = ok('dd@x.vn', 'createPatient', { ma_his: '8001', ho_ten: 'Chỉ hành chính
 let hc = r.data.patients.find(x => x.ma_his === '8001');
 assert.strictEqual(hc.nam_sinh, String(parseInt(today.slice(0, 4), 10) - 61), 'tuổi đổi ra năm sinh');
 assert(!api('dd@x.vn', 'createPatient', { ma_his: '8002', ho_ten: 'X', nam_sinh: '1960', bs_email: 'bs@x.vn', trang_thai: 'CHO_KH' }).ok, 'chuyển thẳng kỹ sư thì phải đủ chuyên môn');
-ok('ktv@x.vn', 'simDone', { id: hc.id });
+ok('ktv@x.vn', 'simDone', { id: hc.id, nguoi_mo_phong: ['ktv@x.vn'] });
 r = api('bs@x.vn', 'contourDone', { id: hc.id });
 assert(!r.ok && /chẩn đoán, kỹ thuật, tổng liều, số buổi/.test(r.error), 'contour xong khi thiếu chuyên môn bị chặn: ' + r.error);
 r = api('bs@x.vn', 'contourDone', { id: hc.id, chan_doan: 'K vú', ky_thuat: '3D-CRT', tong_lieu: '40.05' });
@@ -252,12 +252,12 @@ assert(!api('bs@x.vn', 'updatePatient', { id: hc.id, so_buoi: '' }).ok, 'sau khi
 // ---- v1.7: kỹ sư và bác sĩ chuyển được Chờ mô phỏng -> Đang contour ----
 r = ok('dd@x.vn', 'createPatient', { ma_his: '9101', ho_ten: 'MP KS', nam_sinh: '1970', bs_email: 'bs@x.vn', trang_thai: 'MO_PHONG' });
 let m1 = r.data.patients.find(x => x.ma_his === '9101');
-r = ok('ks@x.vn', 'simDone', { id: m1.id });
+r = ok('ks@x.vn', 'simDone', { id: m1.id, nguoi_mo_phong: ['ktv@x.vn'] });
 assert.strictEqual(r.data.patients.find(x => x.id === m1.id).trang_thai, 'CONTOUR', 'kỹ sư chuyển được');
 r = ok('dd@x.vn', 'createPatient', { ma_his: '9102', ho_ten: 'MP BS', nam_sinh: '1970', bs_email: 'bs@x.vn', trang_thai: 'MO_PHONG' });
 let m2 = r.data.patients.find(x => x.ma_his === '9102');
-ok('bs@x.vn', 'simDone', { id: m2.id });
-assert(!api('dd@x.vn', 'simDone', { id: m2.id }).ok, 'điều dưỡng không chuyển');
+ok('bs@x.vn', 'simDone', { id: m2.id, nguoi_mo_phong: ['ktv@x.vn'] });
+assert(!api('dd@x.vn', 'simDone', { id: m2.id, nguoi_mo_phong: ['ktv@x.vn'] }).ok, 'điều dưỡng không chuyển');
 
 // ---- v1.8: chức vụ, thông báo máy, KTV trưởng ----
 ok('admin@x.vn', 'saveUser', { email: 'ktvt@x.vn', ho_ten: 'KTV trưởng', vai_tro: 'KTV', chuc_vu: 'KTV trưởng' });
@@ -375,10 +375,10 @@ let pi = r.data.patients.find(x => x.ma_his === 'ICD1');
 r = api('bs@x.vn', 'contourDone', { id: pi.id, chan_doan: 'K vòm', vi_tri: 'Đầu cổ', ky_thuat: 'VMAT', tong_lieu: '70', so_buoi: '35' });
 assert(!r.ok && /ICD/.test(r.error), 'contour xong bắt buộc ICD');
 r = ok('bs@x.vn', 'contourDone', { id: pi.id, icd: 'c119', chan_doan: 'K vòm', vi_tri: 'Đầu cổ', ky_thuat: 'VMAT', tong_lieu: '70', so_buoi: '35' });
-assert.strictEqual(r.data.patients.find(x => x.id === pi.id).icd, 'C11.9', 'chuẩn hoá mã ICD');
-assert(sheets.ChiMuc.data.some(row => row.includes(pi.id) && row.includes('C11.9')), 'chỉ mục được cập nhật khi lưu');
+assert.strictEqual(r.data.patients.find(x => x.id === pi.id).icd, 'C11', 'v2.8: mã ICD rút về 3 ký tự');
+assert(sheets.ChiMuc.data.some(row => row.includes(pi.id) && row.includes('C11')), 'chỉ mục được cập nhật khi lưu');
 assert(!api('bs@x.vn', 'createPatient', { ma_his: 'ICD1', ho_ten: 'BN ICD', nam_sinh: '1970' }).ok, 'trùng HIS đang điều trị');
-assert.strictEqual(ctx.RT.icdName('C11.9').length > 0, true);
+assert.strictEqual(ctx.RT.icdName('C11.9').length > 0, true, 'mã 4 ký tự vẫn ra tên nhóm');
 let rp = ok('admin@x.vn', 'report', { tu: ctx.RT.addDays(today, -30), den: today });
 assert(Array.isArray(rp.report.theo_icd) && Array.isArray(rp.report.theo_vi_tri), 'thống kê theo ICD và vị trí');
 const anyIcd = rp.report.theo_icd[0];
@@ -550,5 +550,51 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   pp = ok('tk@x.vn', 'confirmPause', { id: c1.id }).data.patients.find(x => x.id === c1.id);
   assert(!ctx.RT.pauseAsk(pp, today) && ctx.RT.pauseAsk(pp, ctx.RT.addDays(today, 7)), 'hỏi lại sau 7 ngày');
   ok('admin@x.vn', 'dmAdd', { loai: 'CHI_TIEU', gia_tri: 'Xạ trị: 90-100' });
+}
+// ---- v2.8: ICD 3 ký tự, người mô phỏng, KTV xạ, báo cáo khoa, gửi lại không trùng, tài khoản khoa ----
+{
+  assert.strictEqual(ctx.RT.normIcd('c15.1'), 'C15'); assert.strictEqual(ctx.RT.normIcd('C151'), 'C15');
+  assert(!ctx.RT.isIcd('C15.1') && ctx.RT.isIcd('C15'));
+  ok('admin@x.vn', 'saveUser', { email: 'ktv@x.vn', ho_ten: 'KTV C', vai_tro: 'KTV', ky_hieu: 'C' });
+  ok('admin@x.vn', 'saveUser', { email: 'ktvt@x.vn', ho_ten: 'KTV trưởng', vai_tro: 'KTV', chuc_vu: 'KTV trưởng', ky_hieu: 'IT' });
+  r = ok('tk@x.vn', 'createPatient', { ma_his: 'BC1', ho_ten: 'Báo cáo Một', nam_sinh: '1960', gioi: 'Nữ', icd: 'C50.9', chan_doan: 'K vú', ky_thuat: 'VMAT', tong_lieu: '50', so_buoi: '25', trang_thai: 'MO_PHONG' });
+  let b1 = r.data.patients.find(x => x.ma_his === 'BC1');
+  assert.strictEqual(b1.icd, 'C50', 'lưu mã 3 ký tự');
+  assert(!api('ktv@x.vn', 'simDone', { id: b1.id }).ok, 'phải chọn người mô phỏng');
+  assert(!api('ktv@x.vn', 'simDone', { id: b1.id, nguoi_mo_phong: ['a@x.vn'] }).ok, 'người mô phỏng phải là người dùng');
+  r = ok('ktv@x.vn', 'simDone', { id: b1.id, nguoi_mo_phong: ['ktv@x.vn', 'ktvt@x.vn'], mat_na: true, tiem_thuoc: false });
+  b1 = r.data.patients.find(x => x.id === b1.id);
+  assert(b1.nguoi_mo_phong === 'ktv@x.vn, ktvt@x.vn' && b1.mat_na === 'Có' && b1.tiem_thuoc === 'Không', 'lưu người mô phỏng, mặt nạ');
+  ok('tk@x.vn', 'contourDone', { id: b1.id });
+  ok('ks@x.vn', 'claimPlan', { id: b1.id, ks_email: 'ks@x.vn' });
+  ok('ks@x.vn', 'planDone', { id: b1.id, can_qa: false });
+  r = ok('ktv@x.vn', 'logFraction', { bn_id: b1.id, ngay: today, ktv_xa: ['ktv@x.vn', 'ktvt@x.vn'] });
+  assert.strictEqual(r.data.fractions.find(f => f.bn_id === b1.id).ktv_xa, 'ktv@x.vn, ktvt@x.vn', 'lưu KTV xạ ca đó');
+  // báo cáo khoa
+  assert(!api('bs@x.vn', 'khoaReport', { tu: today, den: today }).ok, 'BS thường không lập báo cáo khoa');
+  let kr = ok('tk@x.vn', 'khoaReport', { tu: ctx.RT.addDays(today, -1), den: today }).kreport;
+  assert.strictEqual(kr.khoa, 'Xạ trị');
+  assert(kr.mo_phong.some(x => x.ma_his === 'BC1' && x.mat_na && /^C, /.test(x.nguoi)), 'sổ mô phỏng');
+  const vmg = kr.thang[0].nhom.find(g => g.ten === 'IMRT/VMAT'), row = vmg.rows.find(x => x.ma_his === 'BC1');
+  assert(row && row.o[String(+today.slice(8))] === 'C/IT' && row.kt === 'VM' && row.ks === 'x' && row.nu === '1960', 'ô ngày ghi ký hiệu KTV');
+  assert.strictEqual(row.thanh_tien, 21000 + 37500, 'thành tiền = buổi + setup buổi đầu');
+  currentEmail = 'tk@x.vn'; let ek = JSON.parse(ctx.api('exportKhoaReport', { tu: ctx.RT.addDays(today, -1), den: today }));
+  assert(ek.ok && ek.sheet && Object.keys(sheets).some(n => /^Xa IMRT-VMAT/.test(n)) && Object.keys(sheets).some(n => /^So mo phong/.test(n)), 'xuất trang báo cáo khoa');
+  // gửi lại cùng mã thao tác: không tạo trùng
+  const store = {}; ctx.CacheService = { getScriptCache: () => ({ get: k => (k in store ? store[k] : null), put: (k, v) => { store[k] = v; } }) };
+  const n0 = sheets.BenhNhan.getLastRow();
+  ok('tk@x.vn', 'createPatient', { ma_his: 'RID1', ho_ten: 'Gửi lại', nam_sinh: '1960', trang_thai: 'CONTOUR', _rid: 'abc123' });
+  r = ok('tk@x.vn', 'createPatient', { ma_his: 'RID1', ho_ten: 'Gửi lại', nam_sinh: '1960', trang_thai: 'CONTOUR', _rid: 'abc123' });
+  assert.strictEqual(sheets.BenhNhan.getLastRow(), n0 + 1, 'gửi lại không tạo trùng BN');
+  assert(r.data.patients.some(x => x.ma_his === 'RID1'));
+  delete ctx.CacheService;
+  // tài khoản khoa làm việc của ĐD và KTV
+  assert(ctx.RT.can('DD', 'logFraction', { chuc_vu: 'Tài khoản khoa' }) && ctx.RT.can('DD', 'simDone', { chuc_vu: 'Tài khoản khoa' }), 'tài khoản khoa có quyền KTV');
+  assert(!ctx.RT.can('DD', 'logFraction', { chuc_vu: '' }), 'ĐD thường không ghi buổi xạ');
+  // setup rút mã ICD cũ về 3 ký tự
+  const col = sheets.BenhNhan.data[0].indexOf('icd'); sheets.BenhNhan.data[1][col] = 'C34.1';
+  vm.runInContext('setup()', ctx);
+  assert.strictEqual(sheets.BenhNhan.data[1][col], 'C34', 'setup rút mã ICD cũ');
+  assert(sheets.BuoiXa.data[0].includes('ktv_xa') && sheets.NguoiDung.data[0].includes('ky_hieu'), 'cột mới');
 }
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');

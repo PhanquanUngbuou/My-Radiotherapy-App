@@ -13,7 +13,7 @@ window.DEMO = (function () {
     { email: 'bs.chi@demo', ho_ten: 'BS. Vũ Chi', vai_tro: 'BS', khoa: 'Xạ trị', tro_ly_cho: 'bs.thu@demo' },
     { email: 'ks.nam@demo', ho_ten: 'KS. Đỗ Nam', vai_tro: 'KS' },
     { email: 'ks.ha@demo', ho_ten: 'KS. Vũ Hà', vai_tro: 'KS' },
-    { email: 'ktv.linh@demo', ho_ten: 'KTV. Hoàng Linh', vai_tro: 'KTV', chuc_vu: 'KTV trưởng' },
+    { email: 'ktv.linh@demo', ho_ten: 'KTV. Hoàng Linh', vai_tro: 'KTV', chuc_vu: 'KTV trưởng', ky_hieu: 'HL' },
     { email: 'ktv.son@demo', ho_ten: 'KTV. Trần Sơn', vai_tro: 'KTV' },
     { email: 'ktv.ha@demo', ho_ten: 'KTV. Lê Hà', vai_tro: 'KTV' },
     { email: 'dd.mai@demo', ho_ten: 'ĐD. Mai Anh', vai_tro: 'DD', chuc_vu: 'Điều dưỡng trưởng', khoa: 'Xạ trị theo yêu cầu' },
@@ -64,6 +64,7 @@ window.DEMO = (function () {
     if (p.uu_tien === 'Ưu tiên' && !p.ly_do_uu_tien) p.ly_do_uu_tien = ['Người nhà nhân viên bệnh viện', 'Theo chỉ đạo Ban Giám đốc', 'BN ở xa, cần xạ sớm để về'][seq % 3];
     if (p.uu_tien === 'Cấp cứu' && !p.ly_do_uu_tien) p.ly_do_uu_tien = /chèn ép/i.test(p.chan_doan) ? 'Chèn ép tủy' : 'Đau nhiều, dọa chèn ép tủy';
     if (p.chan_doan && !p.icd) demoIcd(p);
+    if (p.icd) p.icd = RT.normIcd(p.icd);
     patients.push(p);
     return p;
   }
@@ -95,7 +96,7 @@ window.DEMO = (function () {
       var f = {};
       RT.COLS.BuoiXa.forEach(function (c) { f[c] = ''; });
       f.id = 'B' + p.id + '-' + n; f.bn_id = p.id; f.ngay = s; f.buoi_so = String(n); f.gd = n > RT.num(p.so_buoi) ? '2' : '1';
-      f.ktv_email = 'ktv.linh@demo'; f.thoi_gian = s + 'T' + pad(7 + n % 9) + ':' + pad(n * 7 % 60) + ':00'; f.hinh_anh = img(p, n);
+      f.ktv_email = 'ktv.linh@demo'; f.ktv_xa = ['ktv.son@demo, ktv.ha@demo', 'ktv.linh@demo, ktv.son@demo', 'ktv.ha@demo, ktv.linh@demo'][n % 3]; f.thoi_gian = s + 'T' + pad(7 + n % 9) + ':' + pad(n * 7 % 60) + ':00'; f.hinh_anh = img(p, n);
       fractions.push(f);
     }
     p.ngay_bat_dau = start;
@@ -217,6 +218,14 @@ window.DEMO = (function () {
     archive.patients.push(old);
   })();
 
+  // Dữ liệu mô phỏng giả: ngày mô phỏng trước ngày bắt đầu / contour xong, người mô phỏng, mặt nạ, tiêm thuốc
+  patients.forEach(function (p, i) {
+    if (p.trang_thai === 'MO_PHONG' || p.nguoi_mo_phong) return;
+    var ref = p.ngay_bat_dau || p.ngay_contour_xong || p.ngay_tao || today;
+    p.ngay_mo_phong = p.ngay_mo_phong && p.ngay_mo_phong <= today ? p.ngay_mo_phong : RT.addDays(ref, -(3 + i % 4));
+    p.nguoi_mo_phong = i % 2 ? 'ktv.son@demo, ktv.ha@demo' : 'ktv.ha@demo';
+    p.mat_na = /vòm|họng|amidan|thanh quản|não|lưỡi/i.test(p.chan_doan) ? 'Có' : 'Không'; p.tiem_thuoc = i % 3 ? 'Có' : 'Không';
+  });
   function archIdx() { return archive.patients.map(function (p) { return RT.indexRow(p, archive.fractions, archive.phases, true); }); }
   function ctx() {
     var u = users.filter(function (x) { return x.email === current; })[0];
@@ -258,6 +267,9 @@ window.DEMO = (function () {
         var who = payload.as ? users.filter(function (x) { return x.email === payload.as; })[0] || c.user : c.user;
         var dta = { patients: patients.concat(archive.patients), phases: phases, fractions: fractions.concat(archive.fractions), exceptions: exceptions, holidays: holidays, users: users, dm: dm, today: today };
         return JSON.stringify({ ok: true, report: RT.report(dta, payload.tu, payload.den, who, payload.chi_tiet, payload.pv) });
+      } else if (action === 'khoaReport') {
+        var who3 = payload.as ? users.filter(function (x) { return x.email === payload.as; })[0] || c.user : c.user;
+        return JSON.stringify({ ok: true, kreport: RT.khoaReport({ patients: patients.concat(archive.patients), phases: phases, fractions: fractions.concat(archive.fractions), users: users, dm: dm }, payload, who3) });
       } else if (action === 'findPatients') {
         var who2 = payload.as ? users.filter(function (x) { return x.email === payload.as; })[0] || c.user : c.user;
         var arc = archive.patients.map(function (x) { var o = JSON.parse(JSON.stringify(x)); o._luu = 1; return o; });

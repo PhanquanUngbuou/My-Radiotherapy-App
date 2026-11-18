@@ -459,3 +459,11 @@ tbody tr.pr-row-b td:first-child{box-shadow:inset 4px 0 0 var(--ks)}
 .quota-info:empty{display:none}
 table.quota td .sub{white-space:nowrap}
 .approve-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;border-left:4px solid var(--accent)}
+
+/* v2.8: chọn nhanh liều / số buổi, chọn nhân viên, bảng báo cáo khoa */
+.qp{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.qp button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 11px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;min-height:32px}
+.qp button:hover{border-color:var(--accent);color:var(--accent)}
+.checks.staff label span small{font-weight:500}
+table.rpt th,table.rpt td{padding:6px 8px;font-size:13px}
+table.rpt.grid th.d,table.rpt.grid td.d{padding:4px 3px;min-width:26px;text-align:center;font-size:12px;border-left:1px solid var(--line)}

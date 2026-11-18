@@ -1,4 +1,4 @@
-// Điều phối Xạ trị · phiên bản v2.7
+// Điều phối Xạ trị · phiên bản v2.8
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
@@ -48,6 +48,20 @@ function setup() {
     sh.getRange(1, 1, sh.getMaxRows(), Math.max(cols.length, sh.getLastColumn())).setNumberFormat('@');
   });
 
+  // Trang lưu trữ buổi xạ theo năm: bổ sung cột mới
+  archiveFxSheets_(ss).forEach(function (n) {
+    var sh = ss.getSheetByName(n), head = sh.getRange(1, 1, 1, Math.max(sh.getLastColumn(), 1)).getValues()[0].map(String);
+    RT.COLS.BuoiXa.forEach(function (c) { if (head.indexOf(c) < 0) { head.push(c); sh.getRange(1, head.length).setValue(c).setFontWeight('bold').setBackground('#e3f4ee'); } });
+  });
+  // v2.8: mã ICD-10 chỉ dùng 3 ký tự (C15.1 → C15)
+  [SHEET_NAMES.BN, ARCHIVE.BenhNhan, SHEET_NAMES.IDX].forEach(function (n) {
+    var t = readTable_(ss, n), col = t.head.indexOf('icd');
+    if (col < 0 || !t.rows.length) return;
+    var rng = t.sheet.getRange(2, col + 1, t.sheet.getLastRow() - 1, 1), vals = rng.getValues(), changed = false;
+    vals.forEach(function (r) { var v = String(r[0] || ''); if (v && RT.normIcd(v) !== v) { r[0] = RT.normIcd(v); changed = true; } });
+    if (changed) rng.setNumberFormat('@').setValues(vals);
+  });
+
   var dm = ss.getSheetByName(SHEET_NAMES.DM);
   // Bổ sung các danh mục còn thiếu (lần đầu, hoặc danh mục mới khi nâng cấp)
   var have = {};
@@ -85,7 +99,7 @@ function api(action, payload) {
     // Kiểm tra nhanh có thay đổi không (không đọc Google Sheet) để giao diện biết khi nào cần tải lại
     if (action === 'rev') return JSON.stringify({ ok: true, rev: PropertiesService.getScriptProperties().getProperty('REV') || '0' });
     if (action === 'searchArchive') return JSON.stringify(searchArchive_(payload || {}));
-    var READ_ONLY = { bootstrap: 1, getLog: 1, getRoster: 1, report: 1, lookupHis: 1, archiveCourse: 1, findPatients: 1 };
+    var READ_ONLY = { bootstrap: 1, getLog: 1, getRoster: 1, report: 1, lookupHis: 1, archiveCourse: 1, findPatients: 1, khoaReport: 1 };
     if (!READ_ONLY[action]) {
       lock = LockService.getScriptLock();
       lock.waitLock(30000);
@@ -114,15 +128,31 @@ function api(action, payload) {
         extra.report = RT.report(data, p0.tu, p0.den, who, p0.chi_tiet, p0.pv);
         if (action === 'exportReport') extra.sheet = writeReport_(extra.report, ctx.user);
       }
+    } else if (action === 'khoaReport' || action === 'exportKhoaReport') {
+      var k0 = payload || {};
+      var kd = statsData_(ctx, k0.tu, k0.den);
+      var kwho = ctx.user;
+      if (k0.as && ctx.user.vai_tro === 'ADMIN') kwho = ctx.users.filter(function (u) { return u.email === String(k0.as).toLowerCase(); })[0] || ctx.user;
+      extra.kreport = RT.khoaReport(kd, k0, kwho);
+      if (action === 'exportKhoaReport') extra.sheet = writeKhoaReport_(extra.kreport, ctx.user, k0.loai);
     } else if (action === 'getRoster') {
       var a0 = (payload || {}).tu, b0 = (payload || {}).den;
       extra.roster = ctx.roster.filter(function (r) { return r.ngay >= a0 && r.ngay <= b0; }).map(function (r) { var o = {}; RT.COLS.PhanCong.forEach(function (c) { o[c] = r[c] || ''; }); return o; });
     } else if (action !== 'bootstrap') {
+      // Gửi lại sau lỗi mạng: nếu máy chủ đã làm thao tác này rồi thì không làm lại (tránh tạo trùng BN)
+      var rid = payload && payload._rid ? 'rid_' + String(payload._rid).slice(0, 60) : '';
+      var cache = rid && typeof CacheService !== 'undefined' ? CacheService.getScriptCache() : null;
+      var done = cache ? cache.get(rid) : null;
+      if (done !== null && done !== undefined) {
+        msg = done;
+      } else {
       msg = RT.handle(ctx, action, payload || {});
+      if (cache) cache.put(rid, msg || 'Đã lưu.', 1800);
       SpreadsheetApp.flush();
       PropertiesService.getScriptProperties().setProperty('REV', String(Date.now()));
+      }
     }
-    return JSON.stringify({ ok: true, msg: msg, data: RT.view(ctx), log: extra.log, roster: extra.roster, report: extra.report, found: extra.found, sheet: extra.sheet, his: extra.his, course: extra.course, rev: PropertiesService.getScriptProperties().getProperty('REV') || '0' });
+    return JSON.stringify({ ok: true, msg: msg, data: RT.view(ctx), log: extra.log, roster: extra.roster, report: extra.report, kreport: extra.kreport, found: extra.found, sheet: extra.sheet, his: extra.his, course: extra.course, rev: PropertiesService.getScriptProperties().getProperty('REV') || '0' });
   } catch (e) {
     return JSON.stringify({ ok: false, error: String(e && e.message || e) });
   } finally {
@@ -494,6 +524,55 @@ function statsData_(ctx, tu, den) {
     data.exceptions = data.exceptions.concat(readTable_(ss2, ARCHIVE.LichNgoaiLe).rows.filter(function (e) { return e.loai === 'VANG' && e.ngay >= tu; }));
   }
   return data;
+}
+
+/** Báo cáo khoa ra trang tính: sổ mô phỏng, bảng xạ trị mỗi tháng / nhóm kỹ thuật, trang tổng hợp. loai: 'mo_phong' | 'xa' | '' (cả hai) */
+function writeKhoaReport_(r, user, loai) {
+  var ss = ss_(), stamp = Utilities.formatDate(new Date(), TZ, 'HHmmss'), made = [];
+  var head0 = function (title) { return [[title], ['Khoa: ' + (r.khoa || 'Cả hai khoa') + ' · Từ ' + r.tu + ' đến ' + r.den + ' · Người lập: ' + user.ho_ten], ['']]; };
+  var sign = function (w) { var out = [[''], r.ky_ten.map(function (k) { return String(k).split(':')[0].trim(); }), [], [], [], r.ky_ten.map(function (k) { return (String(k).split(':')[1] || '').trim(); })];
+    return out.map(function (row) { row = row || []; var x = []; for (var i = 0; i < w; i++) x.push(row[i] == null ? '' : row[i]); return x; }); };
+  var put = function (name, rows, w) {
+    var sh = ss.insertSheet((name + ' ' + stamp).slice(0, 95));
+    var data = rows.map(function (row) { var x = []; for (var i = 0; i < w; i++) x.push(row[i] == null ? '' : row[i]); return x; });
+    sh.getRange(1, 1, data.length, w).setNumberFormat('@').setValues(data);
+    sh.getRange(1, 1, 1, 1).setFontWeight('bold').setFontSize(13);
+    made.push(sh);
+    return sh;
+  };
+  if (loai !== 'xa') {
+    var h = ['Ngày', 'Họ tên BN', 'Tuổi Nam', 'Tuổi Nữ', 'Số BA', 'Ngày xạ ĐT', 'Chẩn đoán', 'Mặt nạ', 'Tiêm thuốc', 'Không tiêm', 'Bác sỹ', 'Máy', 'Kỹ thuật', 'Người mô phỏng'];
+    var rows = head0('SỔ MÔ PHỎNG CT').concat([h]).concat(r.mo_phong.map(function (x) {
+      return [x.ngay, x.ho_ten, x.nam, x.nu, x.ma_his, x.ngay_xa, x.chan_doan, x.mat_na ? 'x' : '', x.tiem ? 'x' : '', x.tiem ? '' : 'x', x.bs, x.may, x.ky_thuat, x.nguoi];
+    })).concat([['Tổng: ' + r.tong.mo_phong + ' BN · mặt nạ ' + r.tong.mat_na + ' · tiêm thuốc ' + r.tong.tiem]]).concat(sign(h.length));
+    put('So mo phong', rows, h.length).getRange(4, 1, 1, h.length).setFontWeight('bold').setBackground('#e3f4ee');
+  }
+  if (loai !== 'mo_phong') {
+    r.thang.forEach(function (m) {
+      m.nhom.forEach(function (g) {
+        var vm = g.ten === 'IMRT/VMAT';
+        var h1 = ['STT', 'Họ và tên BN', 'Tuổi Nam', 'Tuổi Nữ', 'Bệnh án', 'Chẩn đoán', 'BS', 'KS'].concat(vm ? ['VM', 'dMLC'] : []).concat(m.ngay).concat(['Đơn giá', 'Số buổi', 'Setup', 'Thành tiền']);
+        var rows = head0('BẢNG THEO DÕI XẠ TRỊ ' + g.ten + ' · THÁNG ' + m.thang.slice(5) + '/' + m.thang.slice(0, 4)).concat([h1]);
+        g.rows.forEach(function (x, i) {
+          rows.push([i + 1, x.ho_ten, x.nam, x.nu, x.ma_his, x.chan_doan, x.bs, x.ks].concat(vm ? [x.kt === 'VM' ? 'x' : '', x.kt === 'dMLC' ? 'x' : ''] : [])
+            .concat(m.ngay.map(function (d) { return x.o[d] || ''; })).concat([r.don_gia, x.so_buoi, x.setup ? r.gia_setup : '', x.thanh_tien]));
+        });
+        var tot = ['Tổng cộng']; while (tot.length < h1.length - 4) tot.push('');
+        rows.push(tot.concat(['', g.so_buoi, g.setup ? g.setup * r.gia_setup : '', g.thanh_tien]));
+        rows = rows.concat(sign(h1.length));
+        var sh = put('Xa ' + g.ten.replace('/', '-') + ' T' + m.thang.slice(5) + '-' + m.thang.slice(0, 4), rows, h1.length);
+        sh.getRange(4, 1, 1, h1.length).setFontWeight('bold').setBackground('#e3f4ee');
+      });
+    });
+    var t = r.tong, rows2 = head0('TỔNG HỢP XẠ TRỊ').concat([['Số BN được xạ', t.bn_xa], ['Tổng số buổi xạ', t.so_buoi]]);
+    Object.keys(t.theo_nhom).forEach(function (k) { rows2.push(['  ' + k, t.theo_nhom[k]]); });
+    rows2.push(['Số setup', t.setup], ['Thành tiền', t.thanh_tien], [''], ['Theo KTV (số buổi tham gia)', '']);
+    t.theo_ktv.forEach(function (x) { rows2.push(['  ' + x.ten + ' (' + x.ky_hieu + ')', x.so_buoi]); });
+    rows2.push([''], ['Theo bác sĩ (số buổi xạ)', '']);
+    t.theo_bs.forEach(function (x) { rows2.push(['  ' + x.ten, x.so_buoi]); });
+    put('Tong hop xa', rows2, 2);
+  }
+  return { name: made.length ? made[0].getName() + (made.length > 1 ? ' (và ' + (made.length - 1) + ' trang khác)' : '') : '', url: ss.getUrl() + (made.length ? '#gid=' + made[0].getSheetId() : '') };
 }
 
 /** Ghi danh sách BN tìm được ra một trang tính mới để tải Excel */
