@@ -1,5 +1,13 @@
 # Lịch sử phiên bản
 
+## v2.9
+- **Thống kê chia thành từng mục riêng, hỏi gì trả lời đó**: chọn mục → chọn kỳ (ngày / tuần / tháng / quý / 6 tháng / năm) → tải hoặc xem đúng mục đó.
+  - Tải Excel ngay: **Sổ mô phỏng CT**, **Bảng thanh toán 3D**, **Bảng thanh toán VMAT** (mỗi tháng một trang).
+  - Xem trên app + tải Excel: Tổng hợp mô phỏng (mặt nạ, tiêm thuốc, dụng cụ, kỹ thuật, mục đích, BS, KTV; bấm dòng ra danh sách BN), Theo KTV / bác sĩ, Lượt xạ trị, Vắng buổi xạ, Tìm danh sách BN.
+- **Tải file .xlsx thẳng về máy** (máy tính và điện thoại); **không còn tạo trang báo cáo trong Google Sheet**. Bộ tạo Excel chỉ tải về khi bấm nút lần đầu, app mở bình thường không nặng thêm.
+- **Bảng thanh toán thủ thuật gia tốc giống y file mẫu tháng 10**: trang "3D" và "VMAT", dòng chú thích ký hiệu KTV, "Khoa …" (bỏ chữ VARIAN; trang VMAT có "BẢNG THANH TOÁN THỦ THUẬT GIA TỐC", "(IMRT)"), tiêu đề gộp ô (Tuổi Nam / Nữ, Người làm BS / KS, KT VM / IMRT, Tháng … năm … trên 31 cột ngày), Thành tiền · Đơn giá · Số buổi · Setup với công thức như file, dòng tổng, khung ký tên đúng vị trí; độ rộng cột, phông Times New Roman, đường kẻ như mẫu. Trang VMAT gồm BN VMAT (x cột VM) và IMRT (x cột IMRT); cột BS ghi tên gọi.
+- **Sổ mô phỏng CT giống y trang "tháng 10"**: tiêu đề 2 dòng gộp ô, cột Ngày ghi số ngày, phông Times New Roman 14, kẻ khung.
+
 ## v2.8
 - **Thêm BN chỉ hiện khi máy chủ đã lưu xong** (không còn hiện trước rồi biến mất). Lỗi mạng thì tự gửi lại 3 lần; vẫn lỗi thì mở lại form giữ nguyên thông tin đã nhập, bấm "Gửi lại". Mọi thao tác lưu đều tự gửi lại khi lỗi mạng và có mã riêng để máy chủ không làm trùng (không tạo trùng BN).
 - **Báo cáo khoa** (Thống kê › Báo cáo khoa) theo mẫu khoa đang dùng; kỳ ngày / tuần / tháng / quý / 6 tháng / năm; Quản trị, KTV trưởng chọn khoa, Trưởng khoa / ĐD trưởng / tài khoản khoa xem khoa mình.

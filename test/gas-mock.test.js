@@ -343,8 +343,8 @@ assert(rKTVT.theo_ktv && !rKTVT.theo_bac_si, 'KTV trưởng thấy nhóm KTV, kh
 let rKS = rep('ks@x.vn').report;
 assert(!rKS.theo_bac_si && rKS.theo_ky_su, 'kỹ sư không thấy theo bác sĩ');
 currentEmail = 'dd@x.vn'; assert(JSON.parse(ctx.api('report', { tu: dR, den: today })).ok, 'v2.6: điều dưỡng thường được xem thống kê');
-currentEmail = 'tk@x.vn'; let ex = JSON.parse(ctx.api('exportReport', { tu: dR, den: today }));
-assert(ex.ok && ex.sheet && /BaoCao/.test(ex.sheet.name), 'xuất trang báo cáo');
+const nSheets = Object.keys(sheets).length; currentEmail = 'tk@x.vn'; assert(!JSON.parse(ctx.api('exportReport', { tu: dR, den: today })).ok, 'v2.9: không còn tạo trang báo cáo trong Sheet');
+assert.strictEqual(Object.keys(sheets).length, nSheets, 'không tạo trang mới');
 
 // ---- v2.1: Khoa Vật lý xạ trị ----
 ok('admin@x.vn', 'saveUser', { email: 'tkvl@x.vn', ho_ten: 'TK Vật lý', vai_tro: 'KS', chuc_vu: 'Trưởng khoa', khoa: 'Vật lý xạ trị' });
@@ -577,11 +577,11 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   let kr = ok('tk@x.vn', 'khoaReport', { tu: ctx.RT.addDays(today, -1), den: today }).kreport;
   assert.strictEqual(kr.khoa, 'Xạ trị');
   assert(kr.mo_phong.some(x => x.ma_his === 'BC1' && x.mat_na && x.mat_na_loai === '5 điểm' && x.dung_cu.length === 2 && /^C, /.test(x.nguoi)), 'sổ mô phỏng');
-  const vmg = kr.thang[0].nhom.find(g => g.ten === 'IMRT'), row = vmg.rows.find(x => x.ma_his === 'BC1');
+  const vmg = kr.thang[0].nhom.find(g => g.ten === 'VMAT'), row = vmg.rows.find(x => x.ma_his === 'BC1');
   assert(row && row.o[String(+today.slice(8))] === 'C/IT' && row.nu === '1960', 'ô ngày ghi ký hiệu KTV');
   assert.strictEqual(row.thanh_tien, 21000, 'thành tiền = số buổi × đơn giá (không tính setup)');
-  currentEmail = 'tk@x.vn'; let ek = JSON.parse(ctx.api('exportKhoaReport', { tu: ctx.RT.addDays(today, -1), den: today }));
-  assert(ek.ok && ek.sheet && Object.keys(sheets).some(n => /^Xa IMRT/.test(n)) && Object.keys(sheets).some(n => /^Tong hop mo phong/.test(n)) && Object.keys(sheets).some(n => /^So mo phong/.test(n)), 'xuất trang báo cáo khoa');
+  assert(kr.chu_thich.some(x => x[0] === 'IT') && row.kt === 'VM' && row.bs_ten === 'A', 'chú thích ký hiệu KTV, cột VM, tên BS');
+
   let fm = ok('tk@x.vn', 'findPatients', { tu: ctx.RT.addDays(today, -1), den: today, moc: 'nhap', mat_na: '5 điểm', dung_cu: 'Nêm lưỡi', tiem_thuoc: 'Không' }).found;
   assert(fm.rows.some(x => x.ma_his === 'BC1') && fm.rows.every(x => x.mat_na === '5 điểm'), 'tìm BN theo mặt nạ, dụng cụ, tiêm thuốc');
   assert(!ok('tk@x.vn', 'findPatients', { tu: ctx.RT.addDays(today, -1), den: today, moc: 'nhap', mat_na: 'khong', dung_cu: 'Nêm lưỡi' }).found.rows.some(x => x.ma_his === 'BC1'));

@@ -1195,7 +1195,8 @@ var RT = (function () {
     // Bảng xạ trị
     var gia = priceOf(dm, 'buoi', 21000);
     var techOf = function (fx) { var p = P[fx.bn_id], g = fx.gd && fx.gd !== '1' ? G[fx.bn_id + '|' + fx.gd] : null; return (g ? g.ky_thuat : p.ky_thuat) || ''; };
-    var grpOf = function (k) { return /IMRT|VMAT/i.test(k) ? 'IMRT' : '3D'; };
+    var grpOf = function (k) { return /IMRT|VMAT/i.test(k) ? 'VMAT' : '3D'; };
+    var given = function (e) { var w = shortName(users, e).split(/\s+/); return w[w.length - 1] || ''; };
     var fx = data.fractions.filter(function (x) { return x.da_huy !== 'Có' && inR(x.ngay) && P[x.bn_id]; }).sort(function (a, b) { return a.ngay < b.ngay ? -1 : 1; });
     var months = {}, ktvCount = {}, bsCount = {}, tong = { so_buoi: 0, tien: 0, theo_nhom: {} };
     fx.forEach(function (x) {
@@ -1205,8 +1206,8 @@ var RT = (function () {
       var key = p.id;
       if (!T.rows[key]) {
         var a = age(p);
-        T.rows[key] = { id: p.id, ho_ten: p.ho_ten, nam: a.nam, nu: a.nu || a.khac, ma_his: p.ma_his, chan_doan: p.chan_doan, icd: p.icd, bs: shortName(users, p.bs_email),
-          o: {}, so_buoi: 0, thanh_tien: 0 };
+        T.rows[key] = { id: p.id, ho_ten: p.ho_ten, nam: a.nam, nu: a.nu || a.khac, ma_his: p.ma_his, chan_doan: p.chan_doan, bs: shortName(users, p.bs_email), bs_ten: given(p.bs_email),
+          kt: /VMAT/i.test(k) ? 'VM' : /IMRT/i.test(k) ? 'IMRT' : '', o: {}, so_buoi: 0, thanh_tien: 0 };
         T.order.push(key);
       }
       var r = T.rows[key];
@@ -1222,14 +1223,16 @@ var RT = (function () {
       var M = months[m];
       var first = m + '-01' < tu ? tu : m + '-01', lastDay = addDays(addDays(m + '-01', 32).slice(0, 7) + '-01', -1), last = lastDay > den ? den : lastDay;
       var days = []; for (var d = first; d <= last; d = addDays(d, 1)) days.push(String(+d.slice(8)));
-      return { thang: m, ngay: days, nhom: ['3D', 'IMRT'].filter(function (g) { return M.nhom[g]; }).map(function (g) {
+      return { thang: m, ngay: days, nhom: ['3D', 'VMAT'].filter(function (g) { return M.nhom[g]; }).map(function (g) {
         var T = M.nhom[g], rows = T.order.map(function (k) { var r = T.rows[k]; r.thanh_tien = r.so_buoi * gia; tong.tien += r.thanh_tien; return r; });
         return { ten: g, rows: rows, so_buoi: rows.reduce(function (s, r) { return s + r.so_buoi; }, 0), thanh_tien: rows.reduce(function (s, r) { return s + r.thanh_tien; }, 0) };
       }) };
     });
     var bnXa = {}; fx.forEach(function (x) { bnXa[x.bn_id] = 1; });
     return {
-      tu: tu, den: den, khoa: khoa, don_gia: gia, ky_ten: (dm.KY_TEN || DEFAULT_DM.KY_TEN).slice(),
+      tu: tu, den: den, khoa: khoa, don_gia: gia,
+      chu_thich: users.filter(function (x) { return x.vai_tro === 'KTV' && x.kich_hoat !== 'Không'; }).map(function (x) { return [initials(users, x.email), shortName(users, x.email)]; }),
+      ky_ten: (dm.KY_TEN || DEFAULT_DM.KY_TEN).slice(),
       mo_phong: mp, thang: thang,
       tong: { mo_phong: mp.length, mat_na: mp.filter(function (x) { return x.mat_na; }).length, tiem: mp.filter(function (x) { return x.tiem; }).length,
         bn_xa: Object.keys(bnXa).length, so_buoi: tong.so_buoi, theo_nhom: tong.theo_nhom, thanh_tien: tong.tien,

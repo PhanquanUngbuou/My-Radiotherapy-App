@@ -29,7 +29,7 @@ def gas():
     html = ('<!DOCTYPE html>\n<!-- Điều phối Xạ trị · phiên bản v' + VERSION + ' -->\n<html lang="vi">\n<head>\n<base target="_top">\n<meta charset="utf-8">\n'
             '<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>Điều phối Xạ trị</title>\n'
             + FONTS + '\n<style>\n' + read("styles.css") + '\n</style>\n</head>\n<body>\n' + SHELL.format(demo="") +
-            '\n<script>\n' + read("icd10.js") + '\n</script>\n<script>\n' + read("core.js") + '\n</script>\n<script>\n' + read("app.js") + '\n</script>\n</body>\n</html>\n')
+            '\n<script>\n' + read("icd10.js") + '\n</script>\n<script>\n' + read("core.js") + '\n</script>\n<script>\n' + read("xlsx.js") + '\n</script>\n<script>\n' + read("app.js") + '\n</script>\n</body>\n</html>\n')
     (out / "Index.html").write_text(html, encoding="utf-8")
 
 def demo():
@@ -40,7 +40,7 @@ def demo():
     html = ('<title>Điều phối Xạ trị</title>\n<meta name="claude:viewport-fit-sides" content="cover">\n' + FONTS +
             '\n<style>\n' + read("styles.css") + '\n</style>\n' + SHELL.format(demo=DEMO_BAR) +
             '\n<script>\n' + read("icd10.js") + '\n</script>\n<script>\n' + read("core.js") + '\n</script>\n<script>\n' + read("demo.js") + '\n</script>\n' + date_js +
-            '\n<script>\n' + read("app.js") + '\n</script>\n')
+            '\n<script>\n' + read("xlsx.js") + '\n</script>\n<script>\n' + read("app.js") + '\n</script>\n')
     (out / "index.html").write_text(html, encoding="utf-8")
 
 if __name__ == "__main__":
