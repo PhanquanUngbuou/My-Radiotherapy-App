@@ -14,6 +14,13 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
    - Đối chiếu khi tải: "3D x buổi + VMAT y buổi = tổng z buổi của khoa" để chắc không sót.
    - Đã chốt: bỏ hẳn cột KT (VM / IMRT) trên trang VMAT (trang VMAT có cùng bố cục cột như trang 3D).
 
+2. **Bỏ chọn KTV khi "Đã mô phỏng xong" và khi ghi buổi xạ**; thống kê lấy người theo **lịch phân công tuần** của KTV trưởng.
+   - Mô phỏng: người mô phỏng = người được phân công vị trí có chữ "Mô phỏng" ngày đó. Form mô phỏng chỉ còn mặt nạ, tiêm thuốc, dụng cụ.
+   - Xạ trị: ô ngày trên bảng thanh toán = ký hiệu KTV được phân công máy của BN, ca sáng / chiều theo giờ ghi buổi xạ (trước 12 giờ là ca sáng).
+   - Ngày chưa có phân công: tạm lấy người bấm ghi buổi xạ, báo "x ngày chưa có lịch phân công" khi tải.
+   - Dữ liệu cũ đã chọn tay (v2.8–v2.9) vẫn giữ; báo cáo ưu tiên lịch phân công.
+   - Chờ anh chốt: tên vị trí phân công đang dùng; sửa lịch phân công về sau thì báo cáo đổi theo (đề xuất: đổi theo).
+
 (Đã làm trong v2.8: xem CHANGELOG.)
 
 (Đã làm trong v2.7: phân quyền thống kê, ĐD theo khoa, khoa theo BS, lý do ưu tiên / cấp cứu, màu và thứ tự lập KH / xếp lịch, chỉ tiêu khoa, đề xuất / duyệt lịch, nhắc vắng và tạm ngừng.)
