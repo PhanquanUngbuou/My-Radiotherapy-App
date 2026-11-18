@@ -22,4 +22,9 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
 5. **Ghi buổi xạ: chọn KTV xạ ca đó (thường 2 người)**, gợi ý sẵn theo bảng phân công / lần trước. Người dùng có thêm "ký hiệu" (VD: T, Đ) để in bảng.
 6. **Tài khoản khoa làm được việc của ĐD và KTV thường.**
 
+7. **Lỗi trên điện thoại: thêm BN hiện ra rồi mấy giây sau báo "network error" và mất.** (Ưu tiên cao; chờ anh chọn làm v2.7.1 hay gộp v2.8; chờ ảnh lỗi trong "Trình thực thi" Apps Script.)
+   - Lỗi kết nối: tự gửi lại 2–3 lần; mỗi thao tác kèm mã riêng để máy chủ không tạo trùng.
+   - Không mất dữ liệu đã nhập: giữ BN "Chưa lưu, đang thử lại" + nút "Gửi lại".
+   - Thông báo lỗi tiếng Việt rõ ràng; rút gọn dữ liệu trả về sau mỗi lần lưu.
+
 (Đã làm trong v2.7: phân quyền thống kê, ĐD theo khoa, khoa theo BS, lý do ưu tiên / cấp cứu, màu và thứ tự lập KH / xếp lịch, chỉ tiêu khoa, đề xuất / duyệt lịch, nhắc vắng và tạm ngừng.)
