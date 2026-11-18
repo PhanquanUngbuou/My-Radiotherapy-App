@@ -466,7 +466,7 @@ function archiveCourse_(id) {
 /** Dữ liệu cho thống kê: trang chính, thêm lưu trữ nếu khoảng ngày cũ hơn 60 ngày */
 function statsData_(ctx, tu, den) {
   var data = { patients: ctx.patients, phases: ctx.phases, fractions: ctx.fractions, exceptions: ctx.exceptions, holidays: ctx.holidays,
-    users: ctx.users, dm: ctx.dm, today: ctx.today };
+    users: ctx.users, dm: ctx.dm, today: ctx.today, roster: ctx.roster };
   if (tu && tu < RT.addDays(ctx.today, -ARCHIVE_DAYS)) {
     var ss2 = ss_();
     data.patients = data.patients.concat(readTable_(ss2, ARCHIVE.BenhNhan).rows.map(function (p) { p._luu = 1; return p; }));

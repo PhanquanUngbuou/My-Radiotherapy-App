@@ -560,7 +560,6 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   r = ok('tk@x.vn', 'createPatient', { ma_his: 'BC1', ho_ten: 'Báo cáo Một', nam_sinh: '1960', gioi: 'Nữ', icd: 'C50.9', chan_doan: 'K vú', ky_thuat: 'VMAT', tong_lieu: '50', so_buoi: '25', trang_thai: 'MO_PHONG' });
   let b1 = r.data.patients.find(x => x.ma_his === 'BC1');
   assert.strictEqual(b1.icd, 'C50', 'lưu mã 3 ký tự');
-  assert(!api('ktv@x.vn', 'simDone', { id: b1.id }).ok, 'phải chọn người mô phỏng');
   assert(!api('ktv@x.vn', 'simDone', { id: b1.id, nguoi_mo_phong: ['a@x.vn'] }).ok, 'người mô phỏng phải là người dùng');
   assert(!api('ktv@x.vn', 'simDone', { id: b1.id, nguoi_mo_phong: ['ks@x.vn'] }).ok, 'người mô phỏng phải là KTV');
   assert(!api('ktv@x.vn', 'simDone', { id: b1.id, nguoi_mo_phong: ['ktv@x.vn'], mat_na: '7 điểm' }).ok, 'loại mặt nạ theo danh mục');
@@ -578,7 +577,8 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   assert.strictEqual(kr.khoa, 'Xạ trị');
   assert(kr.mo_phong.some(x => x.ma_his === 'BC1' && x.mat_na && x.mat_na_loai === '5 điểm' && x.dung_cu.length === 2 && /^C, /.test(x.nguoi)), 'sổ mô phỏng');
   const vmg = kr.thang[0].nhom.find(g => g.ten === 'VMAT'), row = vmg.rows.find(x => x.ma_his === 'BC1');
-  assert(row && row.o[String(+today.slice(8))] === 'C/IT' && row.nu === '1960', 'ô ngày ghi ký hiệu KTV');
+  assert(row && row.o[String(+today.slice(8))] === 'C/IT' && row.nu === '1960', 'chưa có lịch phân công máy: tạm ghi người đã chọn');
+  assert(kr.thieu_phan_cong.includes(today), 'báo ngày chưa có lịch phân công');
   assert.strictEqual(row.thanh_tien, 21000, 'thành tiền = số buổi × đơn giá (không tính setup)');
   assert(kr.chu_thich.some(x => x[0] === 'IT') && row.kt === 'VM' && row.bs_ten === 'A', 'chú thích ký hiệu KTV, cột VM, tên BS');
 
@@ -601,5 +601,29 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   vm.runInContext('setup()', ctx);
   assert.strictEqual(sheets.BenhNhan.data[1][col], 'C34', 'setup rút mã ICD cũ');
   assert(sheets.BuoiXa.data[0].includes('ktv_xa') && sheets.NguoiDung.data[0].includes('ky_hieu'), 'cột mới');
+}
+// ---- v2.10: bảng 3D / VMAT đủ mọi kỹ thuật, KTV theo lịch phân công ----
+{
+  const mkT = (his, kt) => ok('tk@x.vn', 'createPatient', { ma_his: his, ho_ten: 'KT ' + his, nam_sinh: '1960', icd: 'C50', chan_doan: 'K', ky_thuat: kt, tong_lieu: '20', so_buoi: '5', trang_thai: 'CHO_XA' }).data.patients.find(x => x.ma_his === his);
+  const s1 = mkT('SR1', 'SRS/SBRT'), s2 = mkT('KH1', 'Khác'), s3 = mkT('3D1', '3D-CRT');
+  const y = ctx.RT.addDays(today, -1);
+  [s1, s2, s3].forEach(p => ok('ktv@x.vn', 'logFraction', { bn_id: p.id, ngay: y, ly_do_bu: 'test' }));
+  ok('ktvt@x.vn', 'setRoster', { ngay: y, vi_tri: 'Máy gia tốc 1 – ca sáng', nhan_vien: ['ktvt@x.vn'] });
+  ok('ktvt@x.vn', 'setRoster', { ngay: y, vi_tri: 'Máy gia tốc 1 – ca chiều', nhan_vien: ['ktv@x.vn'] });
+  ok('ktvt@x.vn', 'setRoster', { ngay: y, vi_tri: 'Mô phỏng CT', nhan_vien: ['ktv@x.vn', 'ktvt@x.vn'] });
+  let k2 = ok('tk@x.vn', 'khoaReport', { tu: y, den: y }).kreport;
+  const nh = n => (k2.thang[0].nhom.find(g => g.ten === n) || { rows: [] }).rows.map(r => r.ma_his);
+  assert(nh('VMAT').includes('SR1') && nh('VMAT').includes('KH1') && nh('3D').includes('3D1') && !nh('3D').includes('SR1'), 'SRS/SBRT, Khác vào bảng VMAT; 3D-CRT vào bảng 3D');
+  assert.strictEqual((k2.tong.theo_nhom['3D'] || 0) + (k2.tong.theo_nhom.VMAT || 0), k2.tong.so_buoi, 'hai bảng đủ mọi buổi xạ');
+  const cell = k2.thang[0].nhom.find(g => g.ten === '3D').rows.find(r => r.ma_his === '3D1').o[String(+y.slice(8))];
+  assert(cell === 'IT/C', 'ghi bù không rõ ca: lấy cả hai ca của máy theo lịch phân công: ' + cell);
+  assert(!k2.thieu_phan_cong.includes(y), 'ngày có lịch phân công');
+  // mô phỏng: không chọn người, lấy theo lịch phân công vị trí mô phỏng
+  r = ok('tk@x.vn', 'createPatient', { ma_his: 'MP10', ho_ten: 'Mô phỏng mới', nam_sinh: '1970', trang_thai: 'MO_PHONG' });
+  const mp10 = r.data.patients.find(x => x.ma_his === 'MP10');
+  ok('ktvt@x.vn', 'setRoster', { ngay: today, vi_tri: 'Mô phỏng CT', nhan_vien: ['ktvt@x.vn'] });
+  ok('ktv@x.vn', 'simDone', { id: mp10.id, mat_na: 'Không', tiem_thuoc: 'Có' });
+  k2 = ok('tk@x.vn', 'khoaReport', { tu: today, den: today }).kreport;
+  assert(k2.mo_phong.find(x => x.ma_his === 'MP10').nguoi === 'trưởng', 'người mô phỏng theo lịch phân công');
 }
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');

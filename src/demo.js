@@ -270,7 +270,7 @@ window.DEMO = (function () {
         return JSON.stringify({ ok: true, report: RT.report(dta, payload.tu, payload.den, who, payload.chi_tiet, payload.pv) });
       } else if (action === 'khoaReport') {
         var who3 = payload.as ? users.filter(function (x) { return x.email === payload.as; })[0] || c.user : c.user;
-        return JSON.stringify({ ok: true, kreport: RT.khoaReport({ patients: patients.concat(archive.patients), phases: phases, fractions: fractions.concat(archive.fractions), users: users, dm: dm }, payload, who3) });
+        return JSON.stringify({ ok: true, kreport: RT.khoaReport({ patients: patients.concat(archive.patients), phases: phases, fractions: fractions.concat(archive.fractions), users: users, dm: dm, roster: roster }, payload, who3) });
       } else if (action === 'findPatients') {
         var who2 = payload.as ? users.filter(function (x) { return x.email === payload.as; })[0] || c.user : c.user;
         var arc = archive.patients.map(function (x) { var o = JSON.parse(JSON.stringify(x)); o._luu = 1; return o; });

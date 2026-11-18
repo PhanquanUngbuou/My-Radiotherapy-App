@@ -467,3 +467,13 @@ table.quota td .sub{white-space:nowrap}
 .checks.staff label span small{font-weight:500}
 table.rpt th,table.rpt td{padding:6px 8px;font-size:13px}
 table.rpt.grid th.d,table.rpt.grid td.d{padding:4px 3px;min-width:26px;text-align:center;font-size:12px;border-left:1px solid var(--line)}
+
+/* v2.10: menu nhỏ trang Xạ hôm nay */
+.subnav{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 14px;padding:6px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.subnav button{border:0;background:none;font:inherit;font-weight:600;font-size:14px;color:var(--ink);padding:8px 12px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:6px;min-height:40px}
+.subnav button .c{background:var(--surface-2);border-radius:999px;padding:1px 8px;font-size:12.5px}
+.subnav button[aria-pressed=true]{background:var(--accent);color:#fff}
+.subnav button[aria-pressed=true] .c{background:rgba(255,255,255,.25);color:#fff}
+.tag.first{background:var(--accent-soft);color:var(--accent)}
+.note{font-size:13.5px;color:var(--muted);margin:-4px 0 12px}
+@media (max-width:760px){.subnav{display:grid;grid-template-columns:1fr 1fr;background:none;border:0;padding:0}.subnav button{border:1px solid var(--line);background:var(--surface);justify-content:space-between;min-height:44px}}

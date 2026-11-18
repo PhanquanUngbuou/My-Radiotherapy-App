@@ -1,5 +1,10 @@
 # Lịch sử phiên bản
 
+## v2.10
+- **Hai bảng thanh toán đủ toàn bộ lượt xạ của khoa**: bảng 3D = 3D-CRT; bảng VMAT = mọi kỹ thuật còn lại (VMAT, IMRT, SRS/SBRT, Khác…), tính chung, bỏ cột KT (VM / IMRT). Khi tải có dòng đối chiếu "3D … + VMAT … = tổng … buổi của khoa".
+- **Không chọn KTV khi mô phỏng xong và khi ghi buổi xạ nữa.** Báo cáo lấy người theo **lịch phân công tuần**: KTV xạ = người phân công máy của BN đúng ca (trước 12 giờ là ca sáng; buổi ghi bù lấy cả hai ca); người mô phỏng = người phân công vị trí "Mô phỏng". Ngày chưa có lịch phân công máy: tạm ghi người bấm xác nhận và báo danh sách ngày đó khi tải.
+- **Xạ trị › Hôm nay có menu nhỏ hàng ngang**: Xạ buổi đầu (đã làm / tổng ca setup, gồm cả buổi đầu giai đoạn boost) · Cần xạ hôm nay · Đã xạ · Vắng hôm nay · Nghỉ hôm nay · Tạm ngừng. Bấm mục nào hiện danh sách mục đó; trên điện thoại thành ô bấm 2 cột. BN chờ mô phỏng xem ở tab Mô phỏng; chờ xếp lịch ở Xạ trị › Chờ xếp lịch.
+
 ## v2.9
 - **Thống kê chia thành từng mục riêng, hỏi gì trả lời đó**: chọn mục → chọn kỳ (ngày / tuần / tháng / quý / 6 tháng / năm) → tải hoặc xem đúng mục đó.
   - Tải Excel ngay: **Sổ mô phỏng CT**, **Bảng thanh toán 3D**, **Bảng thanh toán VMAT** (mỗi tháng một trang).

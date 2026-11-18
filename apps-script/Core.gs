@@ -1,4 +1,4 @@
-// Điều phối Xạ trị · phiên bản v2.9
+// Điều phối Xạ trị · phiên bản v2.10
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -9,7 +9,7 @@
  */
 var RT = (function () {
   'use strict';
-  var VERSION = '2.9';
+  var VERSION = '2.10';
 
   var STATUS_ORDER = ['MO_PHONG', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA', 'DANG_XA', 'TAM_NGUNG', 'HOAN_THANH'];
   var STATUS = {
@@ -713,8 +713,7 @@ var RT = (function () {
     simDone: function (ctx, a) {
       var t = target(ctx, a.id);
       need(t.x, ['MO_PHONG']);
-      var nguoi = staffList(ctx, a.nguoi_mo_phong);
-      if (!nguoi.length) fail('Chọn KTV mô phỏng (1 hoặc 2 người).');
+      var nguoi = staffList(ctx, a.nguoi_mo_phong);  // v2.10: không chọn nữa, người mô phỏng lấy theo lịch phân công
       if (nguoi.length > 2) fail('Chọn tối đa 2 người mô phỏng.');
       nguoi.forEach(function (e) { if (!ctx.users.some(function (u) { return u.email === e && u.vai_tro === 'KTV'; })) fail(userName(ctx, e) + ' không phải KTV.'); });
       var mn = String(a.mat_na || 'Không').trim();
@@ -723,7 +722,7 @@ var RT = (function () {
       if (a.dung_cu_khac && String(a.dung_cu_khac).trim()) dc.push('Khác: ' + String(a.dung_cu_khac).trim().replace(/,/g, ';'));
       t.x.trang_thai = 'CONTOUR'; t.x.ngay_mo_phong = ctx.today;
       t.x.nguoi_mo_phong = nguoi.join(', '); t.x.mat_na = mn; t.x.tiem_thuoc = a.tiem_thuoc === true || a.tiem_thuoc === 'Có' ? 'Có' : 'Không'; t.x.dung_cu = dc.join(', ');
-      saveT(ctx, t, t.g ? 'Mô phỏng lại xong' : 'Mô phỏng xong', nguoi.map(function (e) { return userName(ctx, e); }).join(', ') + ' · mặt nạ: ' + mn + ' · tiêm thuốc: ' + t.x.tiem_thuoc + (dc.length ? ' · ' + dc.join(', ') : ''));
+      saveT(ctx, t, t.g ? 'Mô phỏng lại xong' : 'Mô phỏng xong', 'mặt nạ: ' + mn + ' · tiêm thuốc: ' + t.x.tiem_thuoc + (dc.length ? ' · ' + dc.join(', ') : ''));
       ctx.phases.forEach(function (g) {
         if (!t.g && g.bn_id === t.p.id && g.di_cung === 'Có' && g.trang_thai === 'MO_PHONG') {
           g.trang_thai = 'CONTOUR'; g.ngay_mo_phong = ctx.today; saveT(ctx, { g: g, p: t.p, x: g }, 'Mô phỏng xong', 'cùng GĐ1');
@@ -1179,7 +1178,11 @@ var RT = (function () {
     var P = {}; data.patients.forEach(function (p) { if (p.trang_thai !== 'HUY' && (!khoa || p.khoa === khoa)) P[p.id] = p; });
     var G = {}; (data.phases || []).forEach(function (g) { if (g.trang_thai !== 'HUY') G[g.bn_id + '|' + g.stt] = g; });
     var age = function (p) { return { nam: p.gioi === 'Nam' ? p.nam_sinh : '', nu: p.gioi === 'Nữ' ? p.nam_sinh : '', khac: p.gioi ? '' : p.nam_sinh }; };
-    // Sổ mô phỏng
+    // Sổ mô phỏng: người mô phỏng = người phân công vị trí có chữ "mô phỏng" ngày đó
+    var simPeople = function (x) {
+      var o = []; (data.roster || []).forEach(function (r) { if (r.ngay === x.ngay_mo_phong && /mo phong/.test(fold(r.vi_tri))) splitList(r.nhan_vien).forEach(function (e) { if (o.indexOf(e) < 0) o.push(e); }); });
+      return o.length ? o : String(x.nguoi_mo_phong || '').split(/,\s*/).filter(Boolean);
+    };
     var mp = [];
     var addMp = function (p, x, boost) {
       if (!inR(x.ngay_mo_phong) || x.trang_thai === 'MO_PHONG') return;
@@ -1188,7 +1191,7 @@ var RT = (function () {
         mat_na: !!x.mat_na && x.mat_na !== 'Không', mat_na_loai: x.mat_na && x.mat_na !== 'Có' ? x.mat_na : (x.mat_na === 'Có' ? 'Có (chưa ghi loại)' : 'Không'),
         tiem: x.tiem_thuoc === 'Có', dung_cu: String(x.dung_cu || '').split(/,\s*/).filter(Boolean), muc_dich: p.muc_dich || '',
         bs: shortName(users, p.bs_email), ngay_xa: p.ngay_bat_dau || p.ngay_du_kien || '',
-        ky_thuat: x.ky_thuat || p.ky_thuat || '', nguoi: String(x.nguoi_mo_phong || '').split(/,\s*/).filter(Boolean).map(function (e) { return shortName(users, e); }).join(', ') });
+        ky_thuat: x.ky_thuat || p.ky_thuat || '', nguoi: simPeople(x).map(function (e) { return shortName(users, e); }).join(', ') });
     };
     Object.keys(P).forEach(function (id) { var p = P[id]; if (p.nguoi_mo_phong || p.mat_na) addMp(p, p, false); });
     (data.phases || []).forEach(function (g) { var p = P[g.bn_id]; if (p && g.trang_thai !== 'HUY' && (g.nguoi_mo_phong || g.mat_na)) addMp(p, g, true); });
@@ -1196,9 +1199,22 @@ var RT = (function () {
     // Bảng xạ trị
     var gia = priceOf(dm, 'buoi', 21000);
     var techOf = function (fx) { var p = P[fx.bn_id], g = fx.gd && fx.gd !== '1' ? G[fx.bn_id + '|' + fx.gd] : null; return (g ? g.ky_thuat : p.ky_thuat) || ''; };
-    var grpOf = function (k) { return /IMRT|VMAT/i.test(k) ? 'VMAT' : '3D'; };
+    var grpOf = function (k) { return /3D/i.test(k) ? '3D' : 'VMAT'; };  // chỉ 3D-CRT vào bảng 3D, mọi kỹ thuật khác vào bảng VMAT
     var given = function (e) { var w = shortName(users, e).split(/\s+/); return w[w.length - 1] || ''; };
     var fx = data.fractions.filter(function (x) { return x.da_huy !== 'Có' && inR(x.ngay) && P[x.bn_id]; }).sort(function (a, b) { return a.ngay < b.ngay ? -1 : 1; });
+    // Người theo lịch phân công tuần: KTV xạ = vị trí bắt đầu bằng tên máy của BN, đúng ca (trước 12 giờ là ca sáng)
+    var RO = {}; (data.roster || []).forEach(function (r) { if (inR(r.ngay) && r.nhan_vien) (RO[r.ngay] = RO[r.ngay] || []).push(r); });
+    var thieu = {}, defMay = ((dm || {}).MAY || [])[0] || '';
+    var people = function (rows) { var o = []; rows.forEach(function (r) { splitList(r.nhan_vien).forEach(function (e) { if (o.indexOf(e) < 0) o.push(e); }); }); return o; };
+    function rosterKtv(x, p) {
+      var may = fold(p.may || defMay), rows = (RO[x.ngay] || []).filter(function (r) { return may && fold(r.vi_tri).indexOf(may) === 0; });
+      var h = +String(x.thoi_gian || '').slice(11, 13), ca = h && h < 12 ? 'sang' : 'chieu';
+      var byCa = x.ghi_bu === 'Có' ? [] : rows.filter(function (r) { return fold(r.vi_tri).indexOf(ca) >= 0; });
+      var o = people(byCa.length ? byCa : rows);
+      if (o.length) return o;
+      thieu[x.ngay] = 1;
+      return String(x.ktv_xa || x.ktv_email || '').split(/,\s*/).filter(Boolean);
+    }
     var months = {}, ktvCount = {}, bsCount = {}, tong = { so_buoi: 0, tien: 0, theo_nhom: {} };
     fx.forEach(function (x) {
       var p = P[x.bn_id], k = techOf(x), grp = grpOf(k), m = x.ngay.slice(0, 7);
@@ -1212,7 +1228,7 @@ var RT = (function () {
         T.order.push(key);
       }
       var r = T.rows[key];
-      var ktvs = String(x.ktv_xa || x.ktv_email || '').split(/,\s*/).filter(Boolean);
+      var ktvs = rosterKtv(x, p);
       var day = String(+x.ngay.slice(8));
       r.o[day] = (r.o[day] ? r.o[day] + '/' : '') + ktvs.map(function (e) { return initials(users, e); }).join('/');
       r.so_buoi++;
@@ -1232,6 +1248,7 @@ var RT = (function () {
     var bnXa = {}; fx.forEach(function (x) { bnXa[x.bn_id] = 1; });
     return {
       tu: tu, den: den, khoa: khoa, don_gia: gia,
+      thieu_phan_cong: Object.keys(thieu).sort(),
       chu_thich: users.filter(function (x) { return x.vai_tro === 'KTV' && x.kich_hoat !== 'Không'; }).map(function (x) { return [initials(users, x.email), shortName(users, x.email)]; }),
       ky_ten: (dm.KY_TEN || DEFAULT_DM.KY_TEN).slice(),
       mo_phong: mp, thang: thang,

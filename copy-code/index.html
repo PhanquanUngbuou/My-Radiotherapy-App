@@ -41,21 +41,21 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
 </style>
 <div class="wrap">
   <div class="intro">
-    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v2.9</h1>
+    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v2.10</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v2.9 · bản lưu 059f1df · 18/11/2026 04:04. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v2.9”.</span>
+    <span class="rev">Phiên bản v2.10 · bản lưu 413b79d · 18/11/2026 09:41. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v2.10”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Code">Code.gs <span class="ver">· v2.9</span></h2>
+        <h2 id="h-Code">Code.gs <span class="ver">· v2.10</span></h2>
         <p>File có sẵn tên Code.gs: xoá hết nội dung cũ, dán vào.</p>
         <span class="size">481 dòng · 25 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v2.9)</button>
+      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v2.10)</button>
     </div>
-    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v2.9
+    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v2.10
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
@@ -524,7 +524,7 @@ function archiveCourse_(id) {
 /** Dữ liệu cho thống kê: trang chính, thêm lưu trữ nếu khoảng ngày cũ hơn 60 ngày */
 function statsData_(ctx, tu, den) {
   var data = { patients: ctx.patients, phases: ctx.phases, fractions: ctx.fractions, exceptions: ctx.exceptions, holidays: ctx.holidays,
-    users: ctx.users, dm: ctx.dm, today: ctx.today };
+    users: ctx.users, dm: ctx.dm, today: ctx.today, roster: ctx.roster };
   if (tu &amp;&amp; tu &lt; RT.addDays(ctx.today, -ARCHIVE_DAYS)) {
     var ss2 = ss_();
     data.patients = data.patients.concat(readTable_(ss2, ARCHIVE.BenhNhan).rows.map(function (p) { p._luu = 1; return p; }));
@@ -540,13 +540,13 @@ function statsData_(ctx, tu, den) {
   <section class="card" aria-labelledby="h-Core">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Core">Core.gs <span class="ver">· v2.9</span></h2>
+        <h2 id="h-Core">Core.gs <span class="ver">· v2.10</span></h2>
         <p>Bấm + → Script (Tập lệnh), đặt tên Core.</p>
-        <span class="size">1,606 dòng · 114 KB</span>
+        <span class="size">1,623 dòng · 116 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v2.9)</button>
+      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v2.10)</button>
     </div>
-    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v2.9
+    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v2.10
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -557,7 +557,7 @@ function statsData_(ctx, tu, den) {
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;2.9&#x27;;
+  var VERSION = &#x27;2.10&#x27;;
 
   var STATUS_ORDER = [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;];
   var STATUS = {
@@ -1261,8 +1261,7 @@ var RT = (function () {
     simDone: function (ctx, a) {
       var t = target(ctx, a.id);
       need(t.x, [&#x27;MO_PHONG&#x27;]);
-      var nguoi = staffList(ctx, a.nguoi_mo_phong);
-      if (!nguoi.length) fail(&#x27;Chọn KTV mô phỏng (1 hoặc 2 người).&#x27;);
+      var nguoi = staffList(ctx, a.nguoi_mo_phong);  // v2.10: không chọn nữa, người mô phỏng lấy theo lịch phân công
       if (nguoi.length &gt; 2) fail(&#x27;Chọn tối đa 2 người mô phỏng.&#x27;);
       nguoi.forEach(function (e) { if (!ctx.users.some(function (u) { return u.email === e &amp;&amp; u.vai_tro === &#x27;KTV&#x27;; })) fail(userName(ctx, e) + &#x27; không phải KTV.&#x27;); });
       var mn = String(a.mat_na || &#x27;Không&#x27;).trim();
@@ -1271,7 +1270,7 @@ var RT = (function () {
       if (a.dung_cu_khac &amp;&amp; String(a.dung_cu_khac).trim()) dc.push(&#x27;Khác: &#x27; + String(a.dung_cu_khac).trim().replace(/,/g, &#x27;;&#x27;));
       t.x.trang_thai = &#x27;CONTOUR&#x27;; t.x.ngay_mo_phong = ctx.today;
       t.x.nguoi_mo_phong = nguoi.join(&#x27;, &#x27;); t.x.mat_na = mn; t.x.tiem_thuoc = a.tiem_thuoc === true || a.tiem_thuoc === &#x27;Có&#x27; ? &#x27;Có&#x27; : &#x27;Không&#x27;; t.x.dung_cu = dc.join(&#x27;, &#x27;);
-      saveT(ctx, t, t.g ? &#x27;Mô phỏng lại xong&#x27; : &#x27;Mô phỏng xong&#x27;, nguoi.map(function (e) { return userName(ctx, e); }).join(&#x27;, &#x27;) + &#x27; · mặt nạ: &#x27; + mn + &#x27; · tiêm thuốc: &#x27; + t.x.tiem_thuoc + (dc.length ? &#x27; · &#x27; + dc.join(&#x27;, &#x27;) : &#x27;&#x27;));
+      saveT(ctx, t, t.g ? &#x27;Mô phỏng lại xong&#x27; : &#x27;Mô phỏng xong&#x27;, &#x27;mặt nạ: &#x27; + mn + &#x27; · tiêm thuốc: &#x27; + t.x.tiem_thuoc + (dc.length ? &#x27; · &#x27; + dc.join(&#x27;, &#x27;) : &#x27;&#x27;));
       ctx.phases.forEach(function (g) {
         if (!t.g &amp;&amp; g.bn_id === t.p.id &amp;&amp; g.di_cung === &#x27;Có&#x27; &amp;&amp; g.trang_thai === &#x27;MO_PHONG&#x27;) {
           g.trang_thai = &#x27;CONTOUR&#x27;; g.ngay_mo_phong = ctx.today; saveT(ctx, { g: g, p: t.p, x: g }, &#x27;Mô phỏng xong&#x27;, &#x27;cùng GĐ1&#x27;);
@@ -1727,7 +1726,11 @@ var RT = (function () {
     var P = {}; data.patients.forEach(function (p) { if (p.trang_thai !== &#x27;HUY&#x27; &amp;&amp; (!khoa || p.khoa === khoa)) P[p.id] = p; });
     var G = {}; (data.phases || []).forEach(function (g) { if (g.trang_thai !== &#x27;HUY&#x27;) G[g.bn_id + &#x27;|&#x27; + g.stt] = g; });
     var age = function (p) { return { nam: p.gioi === &#x27;Nam&#x27; ? p.nam_sinh : &#x27;&#x27;, nu: p.gioi === &#x27;Nữ&#x27; ? p.nam_sinh : &#x27;&#x27;, khac: p.gioi ? &#x27;&#x27; : p.nam_sinh }; };
-    // Sổ mô phỏng
+    // Sổ mô phỏng: người mô phỏng = người phân công vị trí có chữ &quot;mô phỏng&quot; ngày đó
+    var simPeople = function (x) {
+      var o = []; (data.roster || []).forEach(function (r) { if (r.ngay === x.ngay_mo_phong &amp;&amp; /mo phong/.test(fold(r.vi_tri))) splitList(r.nhan_vien).forEach(function (e) { if (o.indexOf(e) &lt; 0) o.push(e); }); });
+      return o.length ? o : String(x.nguoi_mo_phong || &#x27;&#x27;).split(/,\s*/).filter(Boolean);
+    };
     var mp = [];
     var addMp = function (p, x, boost) {
       if (!inR(x.ngay_mo_phong) || x.trang_thai === &#x27;MO_PHONG&#x27;) return;
@@ -1736,7 +1739,7 @@ var RT = (function () {
         mat_na: !!x.mat_na &amp;&amp; x.mat_na !== &#x27;Không&#x27;, mat_na_loai: x.mat_na &amp;&amp; x.mat_na !== &#x27;Có&#x27; ? x.mat_na : (x.mat_na === &#x27;Có&#x27; ? &#x27;Có (chưa ghi loại)&#x27; : &#x27;Không&#x27;),
         tiem: x.tiem_thuoc === &#x27;Có&#x27;, dung_cu: String(x.dung_cu || &#x27;&#x27;).split(/,\s*/).filter(Boolean), muc_dich: p.muc_dich || &#x27;&#x27;,
         bs: shortName(users, p.bs_email), ngay_xa: p.ngay_bat_dau || p.ngay_du_kien || &#x27;&#x27;,
-        ky_thuat: x.ky_thuat || p.ky_thuat || &#x27;&#x27;, nguoi: String(x.nguoi_mo_phong || &#x27;&#x27;).split(/,\s*/).filter(Boolean).map(function (e) { return shortName(users, e); }).join(&#x27;, &#x27;) });
+        ky_thuat: x.ky_thuat || p.ky_thuat || &#x27;&#x27;, nguoi: simPeople(x).map(function (e) { return shortName(users, e); }).join(&#x27;, &#x27;) });
     };
     Object.keys(P).forEach(function (id) { var p = P[id]; if (p.nguoi_mo_phong || p.mat_na) addMp(p, p, false); });
     (data.phases || []).forEach(function (g) { var p = P[g.bn_id]; if (p &amp;&amp; g.trang_thai !== &#x27;HUY&#x27; &amp;&amp; (g.nguoi_mo_phong || g.mat_na)) addMp(p, g, true); });
@@ -1744,9 +1747,22 @@ var RT = (function () {
     // Bảng xạ trị
     var gia = priceOf(dm, &#x27;buoi&#x27;, 21000);
     var techOf = function (fx) { var p = P[fx.bn_id], g = fx.gd &amp;&amp; fx.gd !== &#x27;1&#x27; ? G[fx.bn_id + &#x27;|&#x27; + fx.gd] : null; return (g ? g.ky_thuat : p.ky_thuat) || &#x27;&#x27;; };
-    var grpOf = function (k) { return /IMRT|VMAT/i.test(k) ? &#x27;VMAT&#x27; : &#x27;3D&#x27;; };
+    var grpOf = function (k) { return /3D/i.test(k) ? &#x27;3D&#x27; : &#x27;VMAT&#x27;; };  // chỉ 3D-CRT vào bảng 3D, mọi kỹ thuật khác vào bảng VMAT
     var given = function (e) { var w = shortName(users, e).split(/\s+/); return w[w.length - 1] || &#x27;&#x27;; };
     var fx = data.fractions.filter(function (x) { return x.da_huy !== &#x27;Có&#x27; &amp;&amp; inR(x.ngay) &amp;&amp; P[x.bn_id]; }).sort(function (a, b) { return a.ngay &lt; b.ngay ? -1 : 1; });
+    // Người theo lịch phân công tuần: KTV xạ = vị trí bắt đầu bằng tên máy của BN, đúng ca (trước 12 giờ là ca sáng)
+    var RO = {}; (data.roster || []).forEach(function (r) { if (inR(r.ngay) &amp;&amp; r.nhan_vien) (RO[r.ngay] = RO[r.ngay] || []).push(r); });
+    var thieu = {}, defMay = ((dm || {}).MAY || [])[0] || &#x27;&#x27;;
+    var people = function (rows) { var o = []; rows.forEach(function (r) { splitList(r.nhan_vien).forEach(function (e) { if (o.indexOf(e) &lt; 0) o.push(e); }); }); return o; };
+    function rosterKtv(x, p) {
+      var may = fold(p.may || defMay), rows = (RO[x.ngay] || []).filter(function (r) { return may &amp;&amp; fold(r.vi_tri).indexOf(may) === 0; });
+      var h = +String(x.thoi_gian || &#x27;&#x27;).slice(11, 13), ca = h &amp;&amp; h &lt; 12 ? &#x27;sang&#x27; : &#x27;chieu&#x27;;
+      var byCa = x.ghi_bu === &#x27;Có&#x27; ? [] : rows.filter(function (r) { return fold(r.vi_tri).indexOf(ca) &gt;= 0; });
+      var o = people(byCa.length ? byCa : rows);
+      if (o.length) return o;
+      thieu[x.ngay] = 1;
+      return String(x.ktv_xa || x.ktv_email || &#x27;&#x27;).split(/,\s*/).filter(Boolean);
+    }
     var months = {}, ktvCount = {}, bsCount = {}, tong = { so_buoi: 0, tien: 0, theo_nhom: {} };
     fx.forEach(function (x) {
       var p = P[x.bn_id], k = techOf(x), grp = grpOf(k), m = x.ngay.slice(0, 7);
@@ -1760,7 +1776,7 @@ var RT = (function () {
         T.order.push(key);
       }
       var r = T.rows[key];
-      var ktvs = String(x.ktv_xa || x.ktv_email || &#x27;&#x27;).split(/,\s*/).filter(Boolean);
+      var ktvs = rosterKtv(x, p);
       var day = String(+x.ngay.slice(8));
       r.o[day] = (r.o[day] ? r.o[day] + &#x27;/&#x27; : &#x27;&#x27;) + ktvs.map(function (e) { return initials(users, e); }).join(&#x27;/&#x27;);
       r.so_buoi++;
@@ -1780,6 +1796,7 @@ var RT = (function () {
     var bnXa = {}; fx.forEach(function (x) { bnXa[x.bn_id] = 1; });
     return {
       tu: tu, den: den, khoa: khoa, don_gia: gia,
+      thieu_phan_cong: Object.keys(thieu).sort(),
       chu_thich: users.filter(function (x) { return x.vai_tro === &#x27;KTV&#x27; &amp;&amp; x.kich_hoat !== &#x27;Không&#x27;; }).map(function (x) { return [initials(users, x.email), shortName(users, x.email)]; }),
       ky_ten: (dm.KY_TEN || DEFAULT_DM.KY_TEN).slice(),
       mo_phong: mp, thang: thang,
@@ -2156,14 +2173,14 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
   <section class="card" aria-labelledby="h-Index">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Index">Index.html <span class="ver">· v2.9</span></h2>
+        <h2 id="h-Index">Index.html <span class="ver">· v2.10</span></h2>
         <p>Bấm + → HTML, đặt tên Index (chữ I hoa).</p>
-        <span class="size">4,714 dòng · 389 KB</span>
+        <span class="size">4,738 dòng · 391 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v2.9)</button>
+      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v2.10)</button>
     </div>
     <textarea id="t-Index" readonly spellcheck="false" aria-label="Nội dung Index.html">&lt;!DOCTYPE html&gt;
-&lt;!-- Điều phối Xạ trị · phiên bản v2.9 --&gt;
+&lt;!-- Điều phối Xạ trị · phiên bản v2.10 --&gt;
 &lt;html lang=&quot;vi&quot;&gt;
 &lt;head&gt;
 &lt;base target=&quot;_top&quot;&gt;
@@ -2644,6 +2661,16 @@ table.quota td .sub{white-space:nowrap}
 table.rpt th,table.rpt td{padding:6px 8px;font-size:13px}
 table.rpt.grid th.d,table.rpt.grid td.d{padding:4px 3px;min-width:26px;text-align:center;font-size:12px;border-left:1px solid var(--line)}
 
+/* v2.10: menu nhỏ trang Xạ hôm nay */
+.subnav{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 14px;padding:6px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.subnav button{border:0;background:none;font:inherit;font-weight:600;font-size:14px;color:var(--ink);padding:8px 12px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:6px;min-height:40px}
+.subnav button .c{background:var(--surface-2);border-radius:999px;padding:1px 8px;font-size:12.5px}
+.subnav button[aria-pressed=true]{background:var(--accent);color:#fff}
+.subnav button[aria-pressed=true] .c{background:rgba(255,255,255,.25);color:#fff}
+.tag.first{background:var(--accent-soft);color:var(--accent)}
+.note{font-size:13.5px;color:var(--muted);margin:-4px 0 12px}
+@media (max-width:760px){.subnav{display:grid;grid-template-columns:1fr 1fr;background:none;border:0;padding:0}.subnav button{border:1px solid var(--line);background:var(--surface);justify-content:space-between;min-height:44px}}
+
 &lt;/style&gt;
 &lt;/head&gt;
 &lt;body&gt;
@@ -2670,7 +2697,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;2.9&#x27;;
+  var VERSION = &#x27;2.10&#x27;;
 
   var STATUS_ORDER = [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;];
   var STATUS = {
@@ -3374,8 +3401,7 @@ var RT = (function () {
     simDone: function (ctx, a) {
       var t = target(ctx, a.id);
       need(t.x, [&#x27;MO_PHONG&#x27;]);
-      var nguoi = staffList(ctx, a.nguoi_mo_phong);
-      if (!nguoi.length) fail(&#x27;Chọn KTV mô phỏng (1 hoặc 2 người).&#x27;);
+      var nguoi = staffList(ctx, a.nguoi_mo_phong);  // v2.10: không chọn nữa, người mô phỏng lấy theo lịch phân công
       if (nguoi.length &gt; 2) fail(&#x27;Chọn tối đa 2 người mô phỏng.&#x27;);
       nguoi.forEach(function (e) { if (!ctx.users.some(function (u) { return u.email === e &amp;&amp; u.vai_tro === &#x27;KTV&#x27;; })) fail(userName(ctx, e) + &#x27; không phải KTV.&#x27;); });
       var mn = String(a.mat_na || &#x27;Không&#x27;).trim();
@@ -3384,7 +3410,7 @@ var RT = (function () {
       if (a.dung_cu_khac &amp;&amp; String(a.dung_cu_khac).trim()) dc.push(&#x27;Khác: &#x27; + String(a.dung_cu_khac).trim().replace(/,/g, &#x27;;&#x27;));
       t.x.trang_thai = &#x27;CONTOUR&#x27;; t.x.ngay_mo_phong = ctx.today;
       t.x.nguoi_mo_phong = nguoi.join(&#x27;, &#x27;); t.x.mat_na = mn; t.x.tiem_thuoc = a.tiem_thuoc === true || a.tiem_thuoc === &#x27;Có&#x27; ? &#x27;Có&#x27; : &#x27;Không&#x27;; t.x.dung_cu = dc.join(&#x27;, &#x27;);
-      saveT(ctx, t, t.g ? &#x27;Mô phỏng lại xong&#x27; : &#x27;Mô phỏng xong&#x27;, nguoi.map(function (e) { return userName(ctx, e); }).join(&#x27;, &#x27;) + &#x27; · mặt nạ: &#x27; + mn + &#x27; · tiêm thuốc: &#x27; + t.x.tiem_thuoc + (dc.length ? &#x27; · &#x27; + dc.join(&#x27;, &#x27;) : &#x27;&#x27;));
+      saveT(ctx, t, t.g ? &#x27;Mô phỏng lại xong&#x27; : &#x27;Mô phỏng xong&#x27;, &#x27;mặt nạ: &#x27; + mn + &#x27; · tiêm thuốc: &#x27; + t.x.tiem_thuoc + (dc.length ? &#x27; · &#x27; + dc.join(&#x27;, &#x27;) : &#x27;&#x27;));
       ctx.phases.forEach(function (g) {
         if (!t.g &amp;&amp; g.bn_id === t.p.id &amp;&amp; g.di_cung === &#x27;Có&#x27; &amp;&amp; g.trang_thai === &#x27;MO_PHONG&#x27;) {
           g.trang_thai = &#x27;CONTOUR&#x27;; g.ngay_mo_phong = ctx.today; saveT(ctx, { g: g, p: t.p, x: g }, &#x27;Mô phỏng xong&#x27;, &#x27;cùng GĐ1&#x27;);
@@ -3840,7 +3866,11 @@ var RT = (function () {
     var P = {}; data.patients.forEach(function (p) { if (p.trang_thai !== &#x27;HUY&#x27; &amp;&amp; (!khoa || p.khoa === khoa)) P[p.id] = p; });
     var G = {}; (data.phases || []).forEach(function (g) { if (g.trang_thai !== &#x27;HUY&#x27;) G[g.bn_id + &#x27;|&#x27; + g.stt] = g; });
     var age = function (p) { return { nam: p.gioi === &#x27;Nam&#x27; ? p.nam_sinh : &#x27;&#x27;, nu: p.gioi === &#x27;Nữ&#x27; ? p.nam_sinh : &#x27;&#x27;, khac: p.gioi ? &#x27;&#x27; : p.nam_sinh }; };
-    // Sổ mô phỏng
+    // Sổ mô phỏng: người mô phỏng = người phân công vị trí có chữ &quot;mô phỏng&quot; ngày đó
+    var simPeople = function (x) {
+      var o = []; (data.roster || []).forEach(function (r) { if (r.ngay === x.ngay_mo_phong &amp;&amp; /mo phong/.test(fold(r.vi_tri))) splitList(r.nhan_vien).forEach(function (e) { if (o.indexOf(e) &lt; 0) o.push(e); }); });
+      return o.length ? o : String(x.nguoi_mo_phong || &#x27;&#x27;).split(/,\s*/).filter(Boolean);
+    };
     var mp = [];
     var addMp = function (p, x, boost) {
       if (!inR(x.ngay_mo_phong) || x.trang_thai === &#x27;MO_PHONG&#x27;) return;
@@ -3849,7 +3879,7 @@ var RT = (function () {
         mat_na: !!x.mat_na &amp;&amp; x.mat_na !== &#x27;Không&#x27;, mat_na_loai: x.mat_na &amp;&amp; x.mat_na !== &#x27;Có&#x27; ? x.mat_na : (x.mat_na === &#x27;Có&#x27; ? &#x27;Có (chưa ghi loại)&#x27; : &#x27;Không&#x27;),
         tiem: x.tiem_thuoc === &#x27;Có&#x27;, dung_cu: String(x.dung_cu || &#x27;&#x27;).split(/,\s*/).filter(Boolean), muc_dich: p.muc_dich || &#x27;&#x27;,
         bs: shortName(users, p.bs_email), ngay_xa: p.ngay_bat_dau || p.ngay_du_kien || &#x27;&#x27;,
-        ky_thuat: x.ky_thuat || p.ky_thuat || &#x27;&#x27;, nguoi: String(x.nguoi_mo_phong || &#x27;&#x27;).split(/,\s*/).filter(Boolean).map(function (e) { return shortName(users, e); }).join(&#x27;, &#x27;) });
+        ky_thuat: x.ky_thuat || p.ky_thuat || &#x27;&#x27;, nguoi: simPeople(x).map(function (e) { return shortName(users, e); }).join(&#x27;, &#x27;) });
     };
     Object.keys(P).forEach(function (id) { var p = P[id]; if (p.nguoi_mo_phong || p.mat_na) addMp(p, p, false); });
     (data.phases || []).forEach(function (g) { var p = P[g.bn_id]; if (p &amp;&amp; g.trang_thai !== &#x27;HUY&#x27; &amp;&amp; (g.nguoi_mo_phong || g.mat_na)) addMp(p, g, true); });
@@ -3857,9 +3887,22 @@ var RT = (function () {
     // Bảng xạ trị
     var gia = priceOf(dm, &#x27;buoi&#x27;, 21000);
     var techOf = function (fx) { var p = P[fx.bn_id], g = fx.gd &amp;&amp; fx.gd !== &#x27;1&#x27; ? G[fx.bn_id + &#x27;|&#x27; + fx.gd] : null; return (g ? g.ky_thuat : p.ky_thuat) || &#x27;&#x27;; };
-    var grpOf = function (k) { return /IMRT|VMAT/i.test(k) ? &#x27;VMAT&#x27; : &#x27;3D&#x27;; };
+    var grpOf = function (k) { return /3D/i.test(k) ? &#x27;3D&#x27; : &#x27;VMAT&#x27;; };  // chỉ 3D-CRT vào bảng 3D, mọi kỹ thuật khác vào bảng VMAT
     var given = function (e) { var w = shortName(users, e).split(/\s+/); return w[w.length - 1] || &#x27;&#x27;; };
     var fx = data.fractions.filter(function (x) { return x.da_huy !== &#x27;Có&#x27; &amp;&amp; inR(x.ngay) &amp;&amp; P[x.bn_id]; }).sort(function (a, b) { return a.ngay &lt; b.ngay ? -1 : 1; });
+    // Người theo lịch phân công tuần: KTV xạ = vị trí bắt đầu bằng tên máy của BN, đúng ca (trước 12 giờ là ca sáng)
+    var RO = {}; (data.roster || []).forEach(function (r) { if (inR(r.ngay) &amp;&amp; r.nhan_vien) (RO[r.ngay] = RO[r.ngay] || []).push(r); });
+    var thieu = {}, defMay = ((dm || {}).MAY || [])[0] || &#x27;&#x27;;
+    var people = function (rows) { var o = []; rows.forEach(function (r) { splitList(r.nhan_vien).forEach(function (e) { if (o.indexOf(e) &lt; 0) o.push(e); }); }); return o; };
+    function rosterKtv(x, p) {
+      var may = fold(p.may || defMay), rows = (RO[x.ngay] || []).filter(function (r) { return may &amp;&amp; fold(r.vi_tri).indexOf(may) === 0; });
+      var h = +String(x.thoi_gian || &#x27;&#x27;).slice(11, 13), ca = h &amp;&amp; h &lt; 12 ? &#x27;sang&#x27; : &#x27;chieu&#x27;;
+      var byCa = x.ghi_bu === &#x27;Có&#x27; ? [] : rows.filter(function (r) { return fold(r.vi_tri).indexOf(ca) &gt;= 0; });
+      var o = people(byCa.length ? byCa : rows);
+      if (o.length) return o;
+      thieu[x.ngay] = 1;
+      return String(x.ktv_xa || x.ktv_email || &#x27;&#x27;).split(/,\s*/).filter(Boolean);
+    }
     var months = {}, ktvCount = {}, bsCount = {}, tong = { so_buoi: 0, tien: 0, theo_nhom: {} };
     fx.forEach(function (x) {
       var p = P[x.bn_id], k = techOf(x), grp = grpOf(k), m = x.ngay.slice(0, 7);
@@ -3873,7 +3916,7 @@ var RT = (function () {
         T.order.push(key);
       }
       var r = T.rows[key];
-      var ktvs = String(x.ktv_xa || x.ktv_email || &#x27;&#x27;).split(/,\s*/).filter(Boolean);
+      var ktvs = rosterKtv(x, p);
       var day = String(+x.ngay.slice(8));
       r.o[day] = (r.o[day] ? r.o[day] + &#x27;/&#x27; : &#x27;&#x27;) + ktvs.map(function (e) { return initials(users, e); }).join(&#x27;/&#x27;);
       r.so_buoi++;
@@ -3893,6 +3936,7 @@ var RT = (function () {
     var bnXa = {}; fx.forEach(function (x) { bnXa[x.bn_id] = 1; });
     return {
       tu: tu, den: den, khoa: khoa, don_gia: gia,
+      thieu_phan_cong: Object.keys(thieu).sort(),
       chu_thich: users.filter(function (x) { return x.vai_tro === &#x27;KTV&#x27; &amp;&amp; x.kich_hoat !== &#x27;Không&#x27;; }).map(function (x) { return [initials(users, x.email), shortName(users, x.email)]; }),
       ky_ten: (dm.KY_TEN || DEFAULT_DM.KY_TEN).slice(),
       mo_phong: mp, thang: thang,
@@ -4319,8 +4363,8 @@ var XL = (function () {
   function thanhToan(wb, sheetName, kind, m, g, opt) {
     var vm = kind === &#x27;VMAT&#x27;;
     var ws = wb.addWorksheet(sheetName, { properties: { defaultRowHeight: 16.5 } });
-    var D0 = vm ? 11 : 9, DN = D0 + 30, cTien = DN + 1, cGia = DN + 2, cBuoi = DN + 3, cSetup = DN + 4;
-    if (vm) widths(ws, [[1, 1, 3.66], [2, 2, 13.22], [3, 3, 4.55], [4, 4, 7.0], [5, 5, 7.78], [6, 6, 9.0], [7, 7, 6.44], [8, 8, 4.66], [9, 10, 5.89], [11, 41, 2.89], [42, 42, 9.55], [43, 43, 7.55], [44, 44, 5.55], [45, 45, 9.22], [46, 46, 9.0]]);
+    var D0 = 9, DN = D0 + 30, cTien = DN + 1, cGia = DN + 2, cBuoi = DN + 3, cSetup = DN + 4;
+    if (vm) widths(ws, [[1, 1, 3.66], [2, 2, 13.22], [3, 3, 4.55], [4, 4, 7.0], [5, 5, 7.78], [6, 6, 9.0], [7, 7, 6.44], [8, 8, 4.66], [9, 39, 2.89], [40, 40, 9.55], [41, 41, 7.55], [42, 42, 5.55], [43, 43, 9.22], [44, 44, 9.0]]);
     else widths(ws, [[1, 1, 3.44], [2, 2, 16.66], [3, 3, 5.44], [4, 4, 4.55], [5, 5, 9.44], [6, 6, 10.89], [7, 7, 6.22], [8, 8, 5.66], [9, 17, 2.11], [18, 19, 2.44], [20, 26, 2.66], [27, 36, 2.55], [37, 37, 2.66], [38, 38, 2.55], [39, 39, 2.66], [40, 40, 10.11], [41, 41, 9.33], [42, 42, 8.11], [43, 43, 6.11], [44, 44, 2.55], [45, 45, 8.89]]);
     var y = m.slice(0, 4), mo = +m.slice(5, 7);
     // Dòng 1: (3D) số tháng + chú thích ký hiệu KTV
@@ -4339,11 +4383,9 @@ var XL = (function () {
     hd(3, 1, &#x27;STT&#x27;, { h: &#x27;center&#x27;, v: &#x27;middle&#x27; }); hd(3, 2, &#x27;Họ và tên BN&#x27;, { h: &#x27;left&#x27;, v: &#x27;middle&#x27; }); hd(3, 3, &#x27;Tuổi&#x27;, { h: &#x27;center&#x27;, v: &#x27;middle&#x27; });
     hd(3, 5, &#x27;Bệnh án&#x27;, { h: &#x27;center&#x27;, v: &#x27;middle&#x27; }); hd(3, 6, &#x27;Chẩn đoán&#x27;, { h: &#x27;center&#x27;, v: &#x27;middle&#x27; });
     ws.mergeCells(3, 7, 3, 8); hd(3, 7, &#x27;Người làm&#x27;, { h: &#x27;center&#x27; });
-    if (vm) { ws.mergeCells(3, 9, 3, 10); hd(3, 9, &#x27;KT&#x27;, { h: &#x27;center&#x27;, v: &#x27;middle&#x27; }); }
     ws.mergeCells(3, D0, 3, DN); hd(3, D0, &#x27;Tháng &#x27; + mo + &#x27; năm &#x27; + y, { h: &#x27;center&#x27;, i: true });
     hd(3, cTien, &#x27;Thành \nTiền&#x27;, { h: &#x27;center&#x27;, wrap: true, fmt: ACC });
     hd(4, 3, &#x27;Nam&#x27;, { v: &#x27;middle&#x27; }); hd(4, 4, &#x27;Nữ&#x27;, { v: &#x27;middle&#x27; }); hd(4, 7, &#x27;BS&#x27;, { h: &#x27;center&#x27; }); hd(4, 8, &#x27;KS&#x27;, { h: &#x27;center&#x27; });
-    if (vm) { hd(4, 9, &#x27;VM&#x27;, { h: &#x27;center&#x27;, v: &#x27;middle&#x27; }); hd(4, 10, &#x27;IMRT&#x27;, { h: &#x27;center&#x27;, v: &#x27;middle&#x27; }); }
     for (var d = 1; d &lt;= 31; d++) hd(4, D0 + d - 1, d, { b: false, h: &#x27;center&#x27;, v: &#x27;middle&#x27;, wrap: true });
     if (!vm) hd(4, cGia, &#x27;Đơn giá&#x27;);
     hd(4, cBuoi, &#x27;Số buổi&#x27;); hd(4, cSetup, vm ? &#x27;Setup&#x27; : &#x27;Setup (37500)&#x27;);
@@ -4360,7 +4402,6 @@ var XL = (function () {
       put(ws, r, 5, x.ma_his, { size: size, h: &#x27;center&#x27;, v: &#x27;middle&#x27;, bd: bdD });
       put(ws, r, 6, x.chan_doan, { size: size, h: &#x27;center&#x27;, v: &#x27;middle&#x27;, bd: bdD });
       put(ws, r, 7, x.bs_ten, { size: size, h: &#x27;center&#x27;, v: &#x27;middle&#x27;, wrap: true, bd: bdD });
-      if (vm) { put(ws, r, 9, x.kt === &#x27;VM&#x27; ? &#x27;x&#x27; : null, { size: size, h: &#x27;center&#x27;, v: &#x27;middle&#x27;, bd: bdD }); put(ws, r, 10, x.kt === &#x27;IMRT&#x27; ? &#x27;x&#x27; : null, { size: size, h: &#x27;center&#x27;, v: &#x27;middle&#x27;, bd: bdD }); }
       for (var dd = 1; dd &lt;= 31; dd++) if (x.o[String(dd)]) put(ws, r, D0 + dd - 1, x.o[String(dd)], { size: size, h: &#x27;center&#x27;, bd: bdD });
       var L = colL;
       put(ws, r, cGia, opt.donGia, { size: 12, fmt: &#x27;#,##0&#x27;, bd: bdD });
@@ -4378,7 +4419,7 @@ var XL = (function () {
     put(ws, rt, cTien, { formula: &#x27;SUM(&#x27; + colL(cTien) + r0 + &#x27;:&#x27; + colL(cTien) + (rt - 1) + &#x27;)&#x27;, result: tot * opt.donGia }, { b: true, fmt: ACC, bd: bdT });
     put(ws, rt, cBuoi, { formula: &#x27;SUM(&#x27; + colL(cBuoi) + r0 + &#x27;:&#x27; + colL(cBuoi) + (rt - 1) + &#x27;)&#x27;, result: tot }, { b: true, h: &#x27;center&#x27;, bd: bdT });
     // Khung ký tên
-    var pos = vm ? [[2, 3], [4, 5], [6, 11], [14, 19], [22, 29], [31, 37], [38, 42]] : [[2, 3], [4, 5], [6, 9], [12, 17], [22, 27], [29, 35], [36, 40]];
+    var pos = vm ? [[2, 3], [4, 5], [6, 11], [14, 19], [22, 29], [31, 36], [37, 41]] : [[2, 3], [4, 5], [6, 9], [12, 17], [22, 27], [29, 35], [36, 40]];
     var rk = rt + 2, rn = rt + (vm ? 5 : 6);
     (opt.kyTen || []).slice(0, pos.length).forEach(function (k, i) {
       var p = pos[i], t = String(k).split(&#x27;:&#x27;), title = t[0].trim(), ten = (t.slice(1).join(&#x27;:&#x27;) || &#x27;&#x27;).trim();
@@ -4882,6 +4923,7 @@ var XL = (function () {
     if (S.tab === &#x27;admin&#x27;) bindAdmin();
     if (S.tab === &#x27;tx&#x27; &amp;&amp; S.txSub === &#x27;week&#x27;) bindWeek();
     $$(&#x27;#main [data-txsub]&#x27;).forEach(function (b) { b.onclick = function () { S.tab = &#x27;tx&#x27;; S.txSub = b.dataset.txsub; render(); window.scrollTo(0, 0); }; });
+    $$(&#x27;#main [data-tdsub]&#x27;).forEach(function (b) { b.onclick = function () { S.todaySub = b.dataset.tdsub; renderMain(); }; });
     $$(&#x27;#main [data-nlist]&#x27;).forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); nurseList(b.dataset.nlist); }; });
     $$(&#x27;#main [data-openp]&#x27;).forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); openDetail(b.dataset.openp); }; });
     $$(&#x27;#main [data-gotab]&#x27;).forEach(function (b) { b.onclick = function () { S.tab = b.dataset.gotab; render(); window.scrollTo(0, 0); }; });
@@ -5240,71 +5282,69 @@ var XL = (function () {
   }
 
   // ---------- KTV: xạ hôm nay ----------
+  /** Buổi xạ thứ idx (0 = buổi 1) là buổi đầu của đợt hoặc của một giai đoạn boost: cần setup */
+  function isSetupIdx(c, idx) { return idx === 0 || c.segs.some(function (s) { return s.from === idx &amp;&amp; idx &gt; 0; }); }
+  function setupLabel(c, idx) { var sg = c.segs.filter(function (s) { return s.from === idx &amp;&amp; idx &gt; 0; })[0]; return sg ? &#x27;&lt;span class=&quot;tag boost&quot;&gt;Buổi đầu boost &#x27; + esc(sg.label) + &#x27;&lt;/span&gt;&#x27; : &#x27;&lt;span class=&quot;tag first&quot;&gt;Buổi 1&lt;/span&gt;&#x27;; }
   function renderToday(mine) {
     var t = today();
     var machines = S.data.dm.MAY || [];
     var onM = function (p) { return !S.fMay || (p.may || machines[0]) === S.fMay; };
     var active = pts().filter(function (p) { return onM(p) &amp;&amp; (p.trang_thai === &#x27;DANG_XA&#x27; || (p.trang_thai === &#x27;CHO_XA&#x27; &amp;&amp; p.ngay_du_kien &amp;&amp; p.ngay_du_kien &lt;= t)); });
     var absT = active.filter(function (p) { var c = course(p); return !c.doneToday &amp;&amp; c.absent[t] !== undefined; });
-    var due = active.filter(function (p) { var c = course(p); return c.treatToday &amp;&amp; !c.doneToday &amp;&amp; c.absent[t] === undefined; })
-      .sort(function (a, b) { return (a.trang_thai === &#x27;CHO_XA&#x27; ? 0 : 1) - (b.trang_thai === &#x27;CHO_XA&#x27; ? 0 : 1) || a.ho_ten.localeCompare(b.ho_ten, &#x27;vi&#x27;); });
+    var dueAll = active.filter(function (p) { var c = course(p); return c.treatToday &amp;&amp; !c.doneToday &amp;&amp; c.absent[t] === undefined; })
+      .sort(function (a, b) { return a.ho_ten.localeCompare(b.ho_ten, &#x27;vi&#x27;); });
+    var firstDue = dueAll.filter(function (p) { var c = course(p); return !c.blocked &amp;&amp; isSetupIdx(c, c.done); });
+    var due = dueAll.filter(function (p) { return firstDue.indexOf(p) &lt; 0; });
     var done = pts().filter(function (p) { return onM(p) &amp;&amp; course(p).doneToday; });
+    var todayIdx = function (p) { var c = course(p); for (var k = 0; k &lt; c.fx.length; k++) if (c.fx[k].ngay === t) return k; return -1; };
+    var firstDone = done.filter(function (p) { return isSetupIdx(course(p), todayIdx(p)); });
     var off = active.filter(function (p) { var c = course(p); return !c.treatToday &amp;&amp; !c.doneToday; });
     var paused = pts().filter(function (p) { return onM(p) &amp;&amp; p.trang_thai === &#x27;TAM_NGUNG&#x27;; });
-    var noDate = pts().filter(function (p) { return p.trang_thai === &#x27;CHO_XA&#x27; &amp;&amp; !p.ngay_du_kien; }).length;
     var holiday = S.data.holidays.indexOf(t) &gt;= 0;
-    var waitAll = pts().filter(function (p) { return p.trang_thai === &#x27;CHO_XA&#x27;; });
-    var simToday = items().filter(function (p) { return p.trang_thai === &#x27;MO_PHONG&#x27; &amp;&amp; p.ngay_mo_phong &amp;&amp; p.ngay_mo_phong &lt;= t; }).length;
-
+    var nFirst = firstDue.length + firstDone.length;
+    var sub = S.todaySub || (firstDue.length ? &#x27;first&#x27; : &#x27;due&#x27;);
     var html = dutyBanner() + &#x27;&lt;div class=&quot;page-head&quot;&gt;&lt;div&gt;&lt;h1&gt;&#x27; + &#x27;Xạ hôm nay&#x27; + &#x27; · &#x27; + fdw(t) + &#x27;/&#x27; + t.slice(0, 4) + &#x27;&lt;/h1&gt;&lt;p&gt;&#x27; +
       (holiday ? &#x27;Hôm nay là ngày nghỉ lễ trong danh mục.&#x27; : RT.dow(t) === 6 ? &#x27;Thứ Bảy: xạ bù cho BN IMRT/VMAT có ngày nghỉ trong tuần.&#x27; : RT.dow(t) === 0 ? &#x27;Chủ nhật: không có lịch xạ.&#x27; : &#x27;Bấm “Xác nhận đã xạ” ngay sau khi BN xạ xong.&#x27;) + &#x27;&lt;/p&gt;&lt;/div&gt;&#x27; +
       &#x27;&lt;div class=&quot;filters&quot;&gt;&#x27; + noticeBtn() + (machines.length &gt; 1 ? &#x27;&lt;select data-filter=&quot;fMay&quot; aria-label=&quot;Lọc theo máy&quot;&gt;&#x27; + opts(machines, S.fMay, &#x27;Tất cả máy&#x27;) + &#x27;&lt;/select&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/div&gt;&lt;/div&gt;&#x27;;
-    html += &#x27;&lt;div class=&quot;kpis&quot;&gt;&#x27; + kpi(&#x27;due&#x27;, due.length, &#x27;Cần xạ hôm nay&#x27;, &#x27;var(--accent)&#x27;) + kpi(&#x27;done&#x27;, done.length, &#x27;Đã xạ hôm nay&#x27;, &#x27;var(--ktv)&#x27;) +
-      kpi(&#x27;off&#x27;, off.length, &#x27;Không có lịch hôm nay&#x27;, &#x27;var(--line)&#x27;) + kpi(&#x27;paused&#x27;, paused.length, &#x27;Tạm ngừng&#x27;, &#x27;var(--crit)&#x27;) +
-      kpi(&#x27;wait&#x27;, waitAll.length, &#x27;Chờ vào xạ&#x27;, &#x27;var(--warn)&#x27;, noDate ? &#x27;&lt;span class=&quot;kx&quot; style=&quot;color:var(--warn)&quot;&gt;&#x27; + noDate + &#x27; chưa xếp lịch&lt;/span&gt;&#x27; : &#x27;&#x27;) + kpi(&#x27;simt&#x27;, simToday, &#x27;Mô phỏng hôm nay&#x27;, &#x27;var(--bs)&#x27;) + &#x27;&lt;/div&gt;&#x27;;
     var pend = ktvLead() ? pendingSched().length : 0;
     if (pend) html += &#x27;&lt;div class=&quot;card pad approve-bar&quot;&gt;&lt;b&gt;&#x27; + pend + &#x27; đề xuất lịch xạ chờ bạn duyệt.&lt;/b&gt; &lt;button class=&quot;btn primary&quot; data-txsub=&quot;approve&quot;&gt;Xem và duyệt&lt;/button&gt;&lt;/div&gt;&#x27;;
-    if (noDate &amp;&amp; !mine) html += &#x27;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;empty&quot;&gt;Có &lt;b&gt;&#x27; + noDate + &#x27;&lt;/b&gt; bệnh nhân chờ vào xạ chưa được xếp lịch. &lt;button class=&quot;btn sm&quot; data-txsub=&quot;sched&quot;&gt;Mở “Chờ xếp lịch”&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;&#x27;;
-    var mineExtra = &#x27;&#x27;;
-    if (mine) {
-      var simKey = function (p) { return !p.ngay_mo_phong ? &#x27;5&#x27; : p.ngay_mo_phong &lt;= t ? &#x27;0&#x27; + p.ngay_mo_phong : &#x27;9&#x27; + p.ngay_mo_phong; };
-      var sim = items().filter(function (p) { return p.trang_thai === &#x27;MO_PHONG&#x27;; }).sort(function (a, b) { return simKey(a) &lt; simKey(b) ? -1 : 1; });
-      var noSched = pts().filter(function (p) { return p.trang_thai === &#x27;CHO_XA&#x27; &amp;&amp; !p.ngay_du_kien; });
-      mineExtra += group(&#x27;simt&#x27;, &#x27;Chờ mô phỏng&#x27;, sim, [C.pt,
-        { h: &#x27;Hẹn&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { if (!p.ngay_mo_phong) return &#x27;&lt;span class=&quot;muted&quot;&gt;Chưa hẹn&lt;/span&gt;&#x27;; return &#x27;&lt;span class=&quot;num&quot;&gt;&#x27; + fdw(p.ngay_mo_phong) + &#x27;&lt;/span&gt;&#x27; + (p.ngay_mo_phong &lt; t ? &#x27;&lt;span class=&quot;sub&quot; style=&quot;color:var(--warn)&quot;&gt;quá hẹn &#x27; + RT.diffDays(p.ngay_mo_phong, t) + &#x27; ngày&lt;/span&gt;&#x27; : &#x27;&#x27;); } },
-        C.dx, C.bs, { h: &#x27;&#x27;, cls: &#x27;act&#x27;, v: function (p) { return can(&#x27;simDone&#x27;) ? btn(&#x27;simDone&#x27;, p.id, &#x27;Đã mô phỏng xong&#x27;, &#x27;primary&#x27;) : &#x27;&#x27;; } }],
-        &#x27;&lt;button class=&quot;btn sm&quot; data-gotab=&quot;sim&quot;&gt;Xem tất cả lịch mô phỏng&lt;/button&gt;&#x27;, &#x27;Không có BN chờ mô phỏng.&#x27;);
-      mineExtra += group(&#x27;wait&#x27;, &#x27;Chờ vào xạ, chưa xếp lịch&#x27;, noSched, [C.pt, C.rx, C.bs,
-        { h: &#x27;QA&#x27;, v: function (p) { return p.qa_ket_qua === &#x27;Đạt&#x27; ? &#x27;&lt;span class=&quot;flag ok&quot;&gt;Đạt&lt;/span&gt;&#x27; : &#x27;&lt;span class=&quot;muted&quot;&gt;&#x27; + esc(p.qa_ket_qua || &#x27;—&#x27;) + &#x27;&lt;/span&gt;&#x27;; } },
-        { h: &#x27;&#x27;, cls: &#x27;act&#x27;, v: function (p) { return can(&#x27;schedule&#x27;) ? btn(&#x27;schedule&#x27;, p.id, &#x27;Xếp lịch&#x27;, &#x27;primary&#x27;) : &#x27;&#x27;; } }], null, &#x27;Không có BN chờ xếp lịch.&#x27;);
+    var SUBS = [[&#x27;first&#x27;, &#x27;Xạ buổi đầu&#x27;, nFirst ? firstDone.length + &#x27;/&#x27; + nFirst : &#x27;0&#x27;], [&#x27;due&#x27;, &#x27;Cần xạ hôm nay&#x27;, due.length], [&#x27;done&#x27;, &#x27;Đã xạ&#x27;, done.length],
+      [&#x27;abs&#x27;, &#x27;Vắng hôm nay&#x27;, absT.length], [&#x27;off&#x27;, &#x27;Nghỉ hôm nay&#x27;, off.length], [&#x27;pause&#x27;, &#x27;Tạm ngừng&#x27;, paused.length]];
+    html += &#x27;&lt;nav class=&quot;subnav&quot; aria-label=&quot;Mục hôm nay&quot;&gt;&#x27; + SUBS.map(function (x) { return &#x27;&lt;button data-tdsub=&quot;&#x27; + x[0] + &#x27;&quot; aria-pressed=&quot;&#x27; + (sub === x[0]) + &#x27;&quot;&gt;&#x27; + x[1] + &#x27; &lt;span class=&quot;c&quot;&gt;&#x27; + x[2] + &#x27;&lt;/span&gt;&lt;/button&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;/nav&gt;&#x27;;
+    var kt = { h: &#x27;Kỹ thuật&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { var c = course(p); return esc(c.cur.ky_thuat) + (c.multi ? &#x27; &lt;span class=&quot;tag boost&quot;&gt;&#x27; + c.cur.label + &#x27;&lt;/span&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;span class=&quot;sub&quot;&gt;&#x27; + c.dosePerFx + &#x27; Gy/buổi&lt;/span&gt;&#x27;; } };
+    var igrt = { h: &#x27;IGRT / SGRT&#x27;, v: function (p) { return (p.igrt &amp;&amp; p.igrt !== &#x27;Không&#x27; ? esc(p.igrt) : &#x27;&lt;span class=&quot;muted&quot;&gt;Không IGRT&lt;/span&gt;&#x27;) + (p.sgrt === &#x27;Có&#x27; ? &#x27;&lt;span class=&quot;sub&quot;&gt;Có SGRT&lt;/span&gt;&#x27; : &#x27;&#x27;); } };
+    var act = { h: &#x27;&#x27;, cls: &#x27;act&#x27;, v: function (p) { var c = course(p); if (c.blocked) return &#x27;&lt;span class=&quot;flag crit&quot;&gt;Chờ KH boost &#x27; + esc(c.cur.label) + &#x27;&lt;/span&gt;&#x27;; return (can(&#x27;logFraction&#x27;) ? btn(&#x27;logFx&#x27;, p.id, &#x27;✓ Xác nhận đã xạ&#x27;, &#x27;ok big&#x27;) : &#x27;&#x27;) + (can(&#x27;markAbsent&#x27;) ? btn(&#x27;absent&#x27;, p.id, &#x27;Vắng&#x27;) : &#x27;&#x27;); } };
+    var noTreat = holiday || RT.dow(t) === 0;
+    if (sub === &#x27;first&#x27;) {
+      var list = firstDue.concat(firstDone);
+      return html + &#x27;&lt;p class=&quot;note&quot;&gt;BN vào xạ buổi 1 hôm nay, kể cả buổi đầu giai đoạn boost: cần setup. Đã làm &lt;b&gt;&#x27; + firstDone.length + &#x27;/&#x27; + nFirst + &#x27;&lt;/b&gt; ca.&lt;/p&gt;&#x27; +
+        group(&#x27;first&#x27;, &#x27;Xạ buổi đầu&#x27;, list, [
+          { h: &#x27;Bệnh nhân&#x27;, v: function (p) { var c = course(p), dn = firstDone.indexOf(p) &gt;= 0; return ptCell(p) + &#x27; &#x27; + setupLabel(c, dn ? todayIdx(p) : c.done); } },
+          kt, igrt, C.week, C.bs,
+          { h: &#x27;&#x27;, cls: &#x27;act&#x27;, v: function (p) { if (firstDone.indexOf(p) &gt;= 0) { var f = course(p).fx[todayIdx(p)]; return &#x27;&lt;span class=&quot;flag ok&quot;&gt;Đã xạ &#x27; + String(f.thoi_gian).slice(11, 16) + &#x27;&lt;/span&gt;&#x27;; } return act.v(p); } }
+        ], null, noTreat ? &#x27;Hôm nay không có lịch xạ.&#x27; : &#x27;Hôm nay không có BN xạ buổi đầu.&#x27;);
     }
-
-    html += group(&#x27;due&#x27;, &#x27;Cần xạ hôm nay&#x27;, due, [C.pt,
-      { h: &#x27;Kỹ thuật&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { var c = course(p); return esc(c.cur.ky_thuat) + (c.multi ? &#x27; &lt;span class=&quot;tag boost&quot;&gt;&#x27; + c.cur.label + &#x27;&lt;/span&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;span class=&quot;sub&quot;&gt;&#x27; + c.dosePerFx + &#x27; Gy/buổi&lt;/span&gt;&#x27;; } },
-      { h: &#x27;Buổi&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { var c = course(p); var first = c.done === 0 ? &#x27; &lt;span class=&quot;flag&quot;&gt;Buổi đầu&lt;/span&gt;&#x27; : (c.multi &amp;&amp; c.done === c.cur.from ? &#x27; &lt;span class=&quot;flag&quot;&gt;Buổi đầu &#x27; + c.cur.label + &#x27;&lt;/span&gt;&#x27; : &#x27;&#x27;); return &#x27;&lt;b class=&quot;num&quot;&gt;&#x27; + (c.done + 1) + &#x27;/&#x27; + c.total + &#x27;&lt;/b&gt;&#x27; + first; } },
-      { h: &#x27;IGRT / SGRT&#x27;, v: function (p) { return (p.igrt &amp;&amp; p.igrt !== &#x27;Không&#x27; ? esc(p.igrt) : &#x27;&lt;span class=&quot;muted&quot;&gt;Không IGRT&lt;/span&gt;&#x27;) + (p.sgrt === &#x27;Có&#x27; ? &#x27;&lt;span class=&quot;sub&quot;&gt;Có SGRT&lt;/span&gt;&#x27; : &#x27;&#x27;); } },
-      C.week,
-      { h: &#x27;&#x27;, cls: &#x27;act&#x27;, v: function (p) { var c = course(p); if (c.blocked) return &#x27;&lt;span class=&quot;flag crit&quot;&gt;Chờ KH boost &#x27; + esc(c.cur.label) + &#x27;&lt;/span&gt;&#x27;; return (can(&#x27;logFraction&#x27;) ? btn(&#x27;logFx&#x27;, p.id, &#x27;✓ Xác nhận đã xạ&#x27;, &#x27;ok big&#x27;) : &#x27;&#x27;) + (can(&#x27;markAbsent&#x27;) ? btn(&#x27;absent&#x27;, p.id, &#x27;Vắng&#x27;) : &#x27;&#x27;); } }
-    ], null, holiday || RT.dow(t) === 0 ? &#x27;Hôm nay không có lịch xạ.&#x27; : &#x27;Đã xạ xong tất cả bệnh nhân có lịch hôm nay.&#x27;) + mineExtra;
-    html += group(&#x27;done&#x27;, &#x27;Đã xạ hôm nay&#x27;, done, [C.pt,
+    if (sub === &#x27;due&#x27;) return html + group(&#x27;due&#x27;, &#x27;Cần xạ hôm nay&#x27;, due, [C.pt, kt,
+      { h: &#x27;Buổi&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { var c = course(p); return &#x27;&lt;b class=&quot;num&quot;&gt;&#x27; + (c.done + 1) + &#x27;/&#x27; + c.total + &#x27;&lt;/b&gt;&#x27;; } }, igrt, C.week, act
+    ], null, noTreat ? &#x27;Hôm nay không có lịch xạ.&#x27; : &#x27;Đã xạ xong tất cả bệnh nhân có lịch hôm nay.&#x27;);
+    if (sub === &#x27;done&#x27;) return html + group(&#x27;done&#x27;, &#x27;Đã xạ hôm nay&#x27;, done, [C.pt,
       { h: &#x27;Buổi&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { var c = course(p); return &#x27;&lt;span class=&quot;num&quot;&gt;&#x27; + c.done + &#x27;/&#x27; + c.total + &#x27;&lt;/span&gt;&#x27;; } },
       { h: &#x27;Hình ảnh / định vị&#x27;, v: function (p) { var f = course(p).fx.filter(function (x) { return x.ngay === t; }); return f.map(function (x) { return esc(x.hinh_anh || &#x27;—&#x27;); }).join(&#x27;&lt;br&gt;&#x27;); } },
       { h: &#x27;KTV ghi&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { var f = course(p).fx.filter(function (x) { return x.ngay === t; }); return f.map(function (x) { return esc(nameOf(x.ktv_email)) + &#x27; &lt;span class=&quot;muted mono&quot;&gt;&#x27; + String(x.thoi_gian).slice(11, 16) + &#x27;&lt;/span&gt;&#x27;; }).join(&#x27;&lt;br&gt;&#x27;); } },
       C.st,
       { h: &#x27;&#x27;, cls: &#x27;act&#x27;, v: function (p) { var f = course(p).fx.filter(function (x) { return x.ngay === t; }); return can(&#x27;undoFraction&#x27;) &amp;&amp; f.length ? btn(&#x27;undoFx&#x27;, f[f.length - 1].id, &#x27;Huỷ buổi này&#x27;, &#x27;danger&#x27;) : &#x27;&#x27;; } }
     ], null, &#x27;Chưa ghi buổi xạ nào hôm nay.&#x27;);
-    if (absT.length) html += group(&#x27;abst&#x27;, &#x27;Vắng hôm nay&#x27;, absT, [C.pt, C.rx,
+    if (sub === &#x27;abs&#x27;) return html + group(&#x27;abst&#x27;, &#x27;Vắng hôm nay&#x27;, absT, [C.pt, C.rx,
       { h: &#x27;Lý do&#x27;, v: function (p) { return esc(course(p).absent[t]); } },
-      { h: &#x27;&#x27;, cls: &#x27;act&#x27;, v: function (p) { return (can(&#x27;logFraction&#x27;) ? btn(&#x27;logFx&#x27;, p.id, &#x27;BN đến xạ muộn: ghi buổi xạ&#x27;) : &#x27;&#x27;) + (can(&#x27;markAbsent&#x27;) ? btn(&#x27;absent&#x27;, p.id, &#x27;Sửa lý do&#x27;) : &#x27;&#x27;); } }], null, &#x27;&#x27;);
-    html += group(&#x27;off&#x27;, &#x27;Không có lịch hôm nay&#x27;, off, [C.pt, C.rx, C.week, C.prog,
+      { h: &#x27;&#x27;, cls: &#x27;act&#x27;, v: function (p) { return (can(&#x27;logFraction&#x27;) ? btn(&#x27;logFx&#x27;, p.id, &#x27;BN đến xạ muộn: ghi buổi xạ&#x27;) : &#x27;&#x27;) + (can(&#x27;markAbsent&#x27;) ? btn(&#x27;absent&#x27;, p.id, &#x27;Sửa lý do&#x27;) : &#x27;&#x27;); } }], null, &#x27;Không có BN vắng hôm nay.&#x27;);
+    if (sub === &#x27;off&#x27;) return html + group(&#x27;off&#x27;, &#x27;Nghỉ hôm nay (không có lịch)&#x27;, off, [C.pt, C.rx, C.week, C.prog,
       { h: &#x27;&#x27;, cls: &#x27;act&#x27;, v: function (p) { return can(&#x27;logFraction&#x27;) ? btn(&#x27;logFx&#x27;, p.id, &#x27;Ghi buổi xạ bù&#x27;) : &#x27;&#x27;; } }
     ], &#x27;BN IMRT/VMAT vào ngày nghỉ trong tuần, hoặc BN có ngày bắt đầu sau hôm nay.&#x27;, &#x27;Không có.&#x27;);
-    html += group(&#x27;paused&#x27;, &#x27;Đang tạm ngừng&#x27;, paused, [C.pt, C.prog,
+    return html + group(&#x27;paused&#x27;, &#x27;Đang tạm ngừng&#x27;, paused, [C.pt, C.prog,
       { h: &#x27;Từ ngày&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { return &#x27;&lt;span class=&quot;num&quot;&gt;&#x27; + fdw(p.tam_ngung_tu) + &#x27;&lt;/span&gt;&lt;span class=&quot;sub&quot;&gt;&#x27; + daysSince(p.tam_ngung_tu) + &#x27; ngày&lt;/span&gt;&#x27;; } },
       { h: &#x27;Lý do&#x27;, v: function (p) { return esc(p.ly_do_tam_ngung); } },
       { h: &#x27;&#x27;, cls: &#x27;act&#x27;, v: function (p) { return (can(&#x27;resume&#x27;) ? btn(&#x27;resume&#x27;, p.id, &#x27;Tiếp tục xạ&#x27;) : &#x27;&#x27;) + (can(&#x27;logFraction&#x27;) ? btn(&#x27;logFx&#x27;, p.id, &#x27;Ghi buổi xạ&#x27;, &#x27;primary&#x27;) : &#x27;&#x27;); } }
     ], null, &#x27;Không có bệnh nhân tạm ngừng.&#x27;);
-    return html;
   }
 
   // ---------- KTV: lịch tuần ----------
@@ -5747,7 +5787,10 @@ var XL = (function () {
           if (g) { bn += g.rows.length; buoi += g.so_buoi; }
           XL.thanhToan(wb, months.length === 1 ? kind : kind + &#x27; T&#x27; + (+m.slice(5)) + (m.slice(0, 4) !== months[0].slice(0, 4) ? &#x27;-&#x27; + m.slice(0, 4) : &#x27;&#x27;), kind, m, g, { khoaLabel: kl, legend: r.chu_thich, kyTen: r.ky_ten, donGia: r.don_gia });
         });
-        name = &#x27;Bảng thanh toán &#x27; + kind + &#x27; &#x27; + tag + &#x27; - &#x27; + kl; info = bn + &#x27; lượt BN · &#x27; + buoi + &#x27; buổi · &#x27; + money(buoi * r.don_gia) + &#x27; đ&#x27;;
+        name = &#x27;Bảng thanh toán &#x27; + kind + &#x27; &#x27; + tag + &#x27; - &#x27; + kl;
+        var b3 = r.tong.theo_nhom[&#x27;3D&#x27;] || 0, bv = r.tong.theo_nhom.VMAT || 0;
+        info = buoi + &#x27; buổi · &#x27; + money(buoi * r.don_gia) + &#x27; đ. Đối chiếu: 3D &#x27; + b3 + &#x27; + VMAT &#x27; + bv + &#x27; = tổng &#x27; + r.tong.so_buoi + &#x27; buổi của khoa&#x27; +
+          (r.thieu_phan_cong.length ? &#x27;. Có &#x27; + r.thieu_phan_cong.length + &#x27; ngày chưa có lịch phân công máy (tạm ghi người bấm xác nhận): &#x27; + r.thieu_phan_cong.map(function (d) { return +d.slice(8) + &#x27;/&#x27; + (+d.slice(5, 7)); }).join(&#x27;, &#x27;) : &#x27;&#x27;);
       } else if (mode === &#x27;tongmp&#x27;) {
         XL.simple(wb, &#x27;Tổng hợp mô phỏng&#x27;, &#x27;TỔNG HỢP MÔ PHỎNG · &#x27; + kl, &#x27;Từ &#x27; + fdy(r.tu) + &#x27; đến &#x27; + fdy(r.den) + &#x27; · &#x27; + r.mo_phong.length + &#x27; BN&#x27;,
           MPKEYS.map(function (k) { var o = mpGroup(r, k[1]); return { title: k[0], head: [k[0], &#x27;Số BN&#x27;], rows: Object.keys(o).sort(function (a, b) { return o[b].length - o[a].length; }).map(function (x) { return [x, o[x].length]; }) }; }));
@@ -6345,13 +6388,13 @@ var XL = (function () {
     if (!sel.length) sel = S.lastSim || (role() === &#x27;KTV&#x27; ? [me().email] : []);
     modal({ title: p._g ? &#x27;Đã mô phỏng lại xong (boost)&#x27; : &#x27;Đã mô phỏng xong&#x27;, ok: &#x27;Xác nhận&#x27;,
       body: whoBox(p) + &#x27;&lt;p class=&quot;muted&quot;&gt;Ghi nhận BN đã chụp CT mô phỏng hôm nay. BN chuyển sang bước bác sĩ contour.&lt;/p&gt;&#x27; +
-        &#x27;&lt;div class=&quot;field&quot;&gt;&lt;span class=&quot;lb&quot;&gt;KTV mô phỏng (1 hoặc 2 người) &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&lt;/span&gt;&#x27; + staffChips(&#x27;nguoi_mo_phong&#x27;, list, sel) + &#x27;&lt;/div&gt;&#x27; +
+
         &#x27;&lt;div class=&quot;form&quot;&gt;&#x27; + field(&#x27;Mặt nạ &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&#x27;, &#x27;&lt;select name=&quot;mat_na&quot;&gt;&#x27; + opts([{ v: &#x27;Không&#x27;, l: &#x27;Không làm mặt nạ&#x27; }].concat((S.data.dm.MAT_NA || RT.DEFAULT_DM.MAT_NA).map(function (x) { return { v: x, l: &#x27;Mặt nạ &#x27; + x }; })), &#x27;&#x27;, &#x27;Chọn…&#x27;) + &#x27;&lt;/select&gt;&#x27;) +
         &#x27;&lt;div class=&quot;field&quot;&gt;&lt;span class=&quot;lb&quot;&gt;Tiêm thuốc cản quang &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&lt;/span&gt;&lt;div class=&quot;radios inline&quot;&gt;&lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;tiem_thuoc&quot; value=&quot;Có&quot;&gt;&lt;span&gt;&lt;b&gt;Có&lt;/b&gt;&lt;/span&gt;&lt;/label&gt;&lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;tiem_thuoc&quot; value=&quot;Không&quot;&gt;&lt;span&gt;&lt;b&gt;Không&lt;/b&gt;&lt;/span&gt;&lt;/label&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&#x27; +
         &#x27;&lt;div class=&quot;field&quot;&gt;&lt;span class=&quot;lb&quot;&gt;Dụng cụ khác (nếu có)&lt;/span&gt;&lt;div class=&quot;checks&quot;&gt;&#x27; + (S.data.dm.DUNG_CU || RT.DEFAULT_DM.DUNG_CU).map(function (x) { return &#x27;&lt;label&gt;&lt;input type=&quot;checkbox&quot; name=&quot;dung_cu&quot; data-multi=&quot;1&quot; value=&quot;&#x27; + esc(x) + &#x27;&quot;&gt;&lt;span&gt;&#x27; + esc(x) + &#x27;&lt;/span&gt;&lt;/label&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;/div&gt;&#x27; +
         &#x27;&lt;input type=&quot;text&quot; name=&quot;dung_cu_khac&quot; placeholder=&quot;Khác, tự ghi&quot; style=&quot;margin-top:6px&quot;&gt;&lt;/div&gt;&#x27;,
-      validate: function (v) { var n = (v.nguoi_mo_phong || []).length; if (!n) return &#x27;Chọn KTV mô phỏng.&#x27;; if (n &gt; 2) return &#x27;Chọn tối đa 2 người.&#x27;; if (!v.mat_na) return &#x27;Chọn có làm mặt nạ không.&#x27;; if (!v.tiem_thuoc) return &#x27;Chọn có tiêm thuốc không.&#x27;; return &#x27;&#x27;; },
-      onOk: function (v) { S.lastSim = v.nguoi_mo_phong; run(&#x27;simDone&#x27;, { id: id, nguoi_mo_phong: v.nguoi_mo_phong, mat_na: v.mat_na, tiem_thuoc: v.tiem_thuoc, dung_cu: v.dung_cu || [], dung_cu_khac: v.dung_cu_khac }); } });
+      validate: function (v) { if (!v.mat_na) return &#x27;Chọn có làm mặt nạ không.&#x27;; if (!v.tiem_thuoc) return &#x27;Chọn có tiêm thuốc không.&#x27;; return &#x27;&#x27;; },
+      onOk: function (v) { run(&#x27;simDone&#x27;, { id: id, mat_na: v.mat_na, tiem_thuoc: v.tiem_thuoc, dung_cu: v.dung_cu || [], dung_cu_khac: v.dung_cu_khac }); } });
   }
   /** KTV xạ ca này: theo bảng phân công máy của BN hôm nay (ca sáng / chiều), nếu không có thì lấy lần ghi trước */
   function defaultKtv(p) {
@@ -6403,7 +6446,6 @@ var XL = (function () {
         &#x27;&lt;div class=&quot;field&quot; id=&quot;fx-late&quot;&gt;&lt;label&gt;Lý do ghi bù cho ngày đã qua &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&lt;/label&gt;&lt;input type=&quot;text&quot; name=&quot;ly_do_bu&quot; placeholder=&quot;VD: BN có xạ nhưng quên tích xác nhận&quot;&gt;&lt;span class=&quot;help&quot;&gt;Được lưu vết; ngày ghi bù hiện màu khác trên lịch.&lt;/span&gt;&lt;/div&gt;&#x27; +
         &#x27;&lt;div class=&quot;field&quot;&gt;&lt;span class=&quot;lb&quot;&gt;IGRT / SGRT thực hiện trong buổi này&#x27; + (p.igrt &amp;&amp; p.igrt !== &#x27;Không&#x27; ? &#x27; &lt;span class=&quot;muted&quot;&gt;(kế hoạch: &#x27; + esc(p.igrt) + &#x27;)&lt;/span&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/span&gt;&lt;div class=&quot;checks&quot;&gt;&#x27; +
         S.data.dm.HINH_ANH.map(function (k, i) { return &#x27;&lt;label&gt;&lt;input type=&quot;checkbox&quot; name=&quot;hinh_anh&quot; data-multi=&quot;1&quot; value=&quot;&#x27; + esc(k) + &#x27;&quot;&#x27; + (preset(k) ? &#x27; checked&#x27; : &#x27;&#x27;) + &#x27;&gt;&lt;span&gt;&#x27; + esc(k) + &#x27;&lt;/span&gt;&lt;/label&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;/div&gt;&lt;/div&gt;&#x27; +
-        &#x27;&lt;div class=&quot;field&quot;&gt;&lt;span class=&quot;lb&quot;&gt;KTV xạ ca này (thường 2 người) &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&lt;/span&gt;&#x27; + staffChips(&#x27;ktv_xa&#x27;, ktvList(), defaultKtv(p)) + &#x27;&lt;span class=&quot;help&quot;&gt;Chọn sẵn theo bảng phân công hôm nay hoặc lần ghi trước.&lt;/span&gt;&lt;/div&gt;&#x27; +
         field(&#x27;Ghi chú (không bắt buộc)&#x27;, &#x27;&lt;input type=&quot;text&quot; name=&quot;ghi_chu&quot; placeholder=&quot;VD: chỉnh tư thế 3 mm theo CBCT&quot;&gt;&#x27;) +
         &#x27;&lt;label class=&quot;confirm&quot;&gt;&lt;input type=&quot;checkbox&quot; name=&quot;xac_nhan&quot; id=&quot;fx-confirm&quot;&gt;&lt;span&gt;Tôi đã kiểm tra đúng bệnh nhân &lt;span class=&quot;mono&quot;&gt;&#x27; + esc(p.ma_his) + &#x27;&lt;/span&gt; và xác nhận bệnh nhân đã được xạ xong buổi &#x27; + n + &#x27;.&lt;/span&gt;&lt;/label&gt;&#x27;,
       onMount: function (form) {
@@ -6412,10 +6454,9 @@ var XL = (function () {
         ok.disabled = true;
         cb.onchange = function () { ok.disabled = !cb.checked; };
       },
-      validate: function (v) { if (v.ngay &amp;&amp; v.ngay &lt; t &amp;&amp; !v.ly_do_bu) return &#x27;Ghi bù cho ngày đã qua cần ghi lý do.&#x27;; if (!(v.ktv_xa || []).length) return &#x27;Chọn KTV xạ ca này.&#x27;; if (v.ktv_xa.length &gt; 3) return &#x27;Chọn tối đa 3 KTV.&#x27;; return v.xac_nhan ? &#x27;&#x27; : &#x27;Cần tích xác nhận đã xạ.&#x27;; },
+      validate: function (v) { if (v.ngay &amp;&amp; v.ngay &lt; t &amp;&amp; !v.ly_do_bu) return &#x27;Ghi bù cho ngày đã qua cần ghi lý do.&#x27;; return v.xac_nhan ? &#x27;&#x27; : &#x27;Cần tích xác nhận đã xạ.&#x27;; },
       onOk: function (v) {
-        S.lastKtvXa = v.ktv_xa;
-        var payload = { bn_id: p.id, ngay: v.ngay, hinh_anh: v.hinh_anh, ghi_chu: v.ghi_chu, ly_do_bu: v.ngay &lt; t ? v.ly_do_bu : &#x27;&#x27;, ktv_xa: v.ktv_xa };
+        var payload = { bn_id: p.id, ngay: v.ngay, hinh_anh: v.hinh_anh, ghi_chu: v.ghi_chu, ly_do_bu: v.ngay &lt; t ? v.ly_do_bu : &#x27;&#x27; };
         run(&#x27;logFraction&#x27;, payload, function (e) {
           if (e.error === &#x27;DUP_DAY&#x27;) {
             modal({ title: &#x27;BN đã có buổi xạ ngày này&#x27;, body: whoBox(p) + &#x27;&lt;p&gt;Ngày &#x27; + fdw(v.ngay) + &#x27; đã có một buổi xạ được ghi. Chỉ ghi thêm nếu BN xạ 2 lần trong ngày.&lt;/p&gt;&#x27;,

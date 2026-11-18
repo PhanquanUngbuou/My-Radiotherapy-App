@@ -54,8 +54,8 @@ var XL = (function () {
   function thanhToan(wb, sheetName, kind, m, g, opt) {
     var vm = kind === 'VMAT';
     var ws = wb.addWorksheet(sheetName, { properties: { defaultRowHeight: 16.5 } });
-    var D0 = vm ? 11 : 9, DN = D0 + 30, cTien = DN + 1, cGia = DN + 2, cBuoi = DN + 3, cSetup = DN + 4;
-    if (vm) widths(ws, [[1, 1, 3.66], [2, 2, 13.22], [3, 3, 4.55], [4, 4, 7.0], [5, 5, 7.78], [6, 6, 9.0], [7, 7, 6.44], [8, 8, 4.66], [9, 10, 5.89], [11, 41, 2.89], [42, 42, 9.55], [43, 43, 7.55], [44, 44, 5.55], [45, 45, 9.22], [46, 46, 9.0]]);
+    var D0 = 9, DN = D0 + 30, cTien = DN + 1, cGia = DN + 2, cBuoi = DN + 3, cSetup = DN + 4;
+    if (vm) widths(ws, [[1, 1, 3.66], [2, 2, 13.22], [3, 3, 4.55], [4, 4, 7.0], [5, 5, 7.78], [6, 6, 9.0], [7, 7, 6.44], [8, 8, 4.66], [9, 39, 2.89], [40, 40, 9.55], [41, 41, 7.55], [42, 42, 5.55], [43, 43, 9.22], [44, 44, 9.0]]);
     else widths(ws, [[1, 1, 3.44], [2, 2, 16.66], [3, 3, 5.44], [4, 4, 4.55], [5, 5, 9.44], [6, 6, 10.89], [7, 7, 6.22], [8, 8, 5.66], [9, 17, 2.11], [18, 19, 2.44], [20, 26, 2.66], [27, 36, 2.55], [37, 37, 2.66], [38, 38, 2.55], [39, 39, 2.66], [40, 40, 10.11], [41, 41, 9.33], [42, 42, 8.11], [43, 43, 6.11], [44, 44, 2.55], [45, 45, 8.89]]);
     var y = m.slice(0, 4), mo = +m.slice(5, 7);
     // Dòng 1: (3D) số tháng + chú thích ký hiệu KTV
@@ -74,11 +74,9 @@ var XL = (function () {
     hd(3, 1, 'STT', { h: 'center', v: 'middle' }); hd(3, 2, 'Họ và tên BN', { h: 'left', v: 'middle' }); hd(3, 3, 'Tuổi', { h: 'center', v: 'middle' });
     hd(3, 5, 'Bệnh án', { h: 'center', v: 'middle' }); hd(3, 6, 'Chẩn đoán', { h: 'center', v: 'middle' });
     ws.mergeCells(3, 7, 3, 8); hd(3, 7, 'Người làm', { h: 'center' });
-    if (vm) { ws.mergeCells(3, 9, 3, 10); hd(3, 9, 'KT', { h: 'center', v: 'middle' }); }
     ws.mergeCells(3, D0, 3, DN); hd(3, D0, 'Tháng ' + mo + ' năm ' + y, { h: 'center', i: true });
     hd(3, cTien, 'Thành \nTiền', { h: 'center', wrap: true, fmt: ACC });
     hd(4, 3, 'Nam', { v: 'middle' }); hd(4, 4, 'Nữ', { v: 'middle' }); hd(4, 7, 'BS', { h: 'center' }); hd(4, 8, 'KS', { h: 'center' });
-    if (vm) { hd(4, 9, 'VM', { h: 'center', v: 'middle' }); hd(4, 10, 'IMRT', { h: 'center', v: 'middle' }); }
     for (var d = 1; d <= 31; d++) hd(4, D0 + d - 1, d, { b: false, h: 'center', v: 'middle', wrap: true });
     if (!vm) hd(4, cGia, 'Đơn giá');
     hd(4, cBuoi, 'Số buổi'); hd(4, cSetup, vm ? 'Setup' : 'Setup (37500)');
@@ -95,7 +93,6 @@ var XL = (function () {
       put(ws, r, 5, x.ma_his, { size: size, h: 'center', v: 'middle', bd: bdD });
       put(ws, r, 6, x.chan_doan, { size: size, h: 'center', v: 'middle', bd: bdD });
       put(ws, r, 7, x.bs_ten, { size: size, h: 'center', v: 'middle', wrap: true, bd: bdD });
-      if (vm) { put(ws, r, 9, x.kt === 'VM' ? 'x' : null, { size: size, h: 'center', v: 'middle', bd: bdD }); put(ws, r, 10, x.kt === 'IMRT' ? 'x' : null, { size: size, h: 'center', v: 'middle', bd: bdD }); }
       for (var dd = 1; dd <= 31; dd++) if (x.o[String(dd)]) put(ws, r, D0 + dd - 1, x.o[String(dd)], { size: size, h: 'center', bd: bdD });
       var L = colL;
       put(ws, r, cGia, opt.donGia, { size: 12, fmt: '#,##0', bd: bdD });
@@ -113,7 +110,7 @@ var XL = (function () {
     put(ws, rt, cTien, { formula: 'SUM(' + colL(cTien) + r0 + ':' + colL(cTien) + (rt - 1) + ')', result: tot * opt.donGia }, { b: true, fmt: ACC, bd: bdT });
     put(ws, rt, cBuoi, { formula: 'SUM(' + colL(cBuoi) + r0 + ':' + colL(cBuoi) + (rt - 1) + ')', result: tot }, { b: true, h: 'center', bd: bdT });
     // Khung ký tên
-    var pos = vm ? [[2, 3], [4, 5], [6, 11], [14, 19], [22, 29], [31, 37], [38, 42]] : [[2, 3], [4, 5], [6, 9], [12, 17], [22, 27], [29, 35], [36, 40]];
+    var pos = vm ? [[2, 3], [4, 5], [6, 11], [14, 19], [22, 29], [31, 36], [37, 41]] : [[2, 3], [4, 5], [6, 9], [12, 17], [22, 27], [29, 35], [36, 40]];
     var rk = rt + 2, rn = rt + (vm ? 5 : 6);
     (opt.kyTen || []).slice(0, pos.length).forEach(function (k, i) {
       var p = pos[i], t = String(k).split(':'), title = t[0].trim(), ten = (t.slice(1).join(':') || '').trim();
