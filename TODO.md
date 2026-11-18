@@ -14,4 +14,12 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
    - Dữ liệu cũ có mã 4 ký tự: rút về 3 ký tự khi chạy `setup` (cả trang chính, lưu trữ, `ChiMuc`). Thống kê vốn đã gộp theo 3 ký tự nên số liệu không đổi.
    - Tìm danh sách BN theo ICD: chỉ nhập mã 3 ký tự.
 
+2. **Báo cáo khoa theo mẫu đang dùng** (khoa Xạ trị TYC và khoa Xạ trị), kỳ: ngày / tuần / tháng / quý / bán niên / năm. Chờ anh duyệt kế hoạch (xem trao đổi ngày 18/11).
+   - Báo cáo mô phỏng CT: ngày mô phỏng, BN (tuổi nam/nữ, số BA), chẩn đoán, mặt nạ, tiêm thuốc / không tiêm, BS, máy, ngày xạ dự kiến, kỹ thuật; số tổng.
+   - Bảng theo dõi xạ trị theo tháng, tách 3D và IMRT/VMAT: mỗi BN một dòng, cột ngày 1–31 ghi ký hiệu KTV xạ buổi đó, BS, KS, số buổi, đơn giá, setup, thành tiền, dòng tổng, khung ký tên. Xuất ra trang tính để tải Excel.
+3. **Chọn nhanh tổng liều / số buổi**: liều 70, 66, 60, 50,4, 50, 30 Gy; số buổi 10, 28, 30, 33, 35; vẫn tự nhập được; danh mục sửa trong Quản trị.
+4. **Đã mô phỏng xong: chọn 1–2 người mô phỏng** (+ mặt nạ, tiêm thuốc cản quang).
+5. **Ghi buổi xạ: chọn KTV xạ ca đó (thường 2 người)**, gợi ý sẵn theo bảng phân công / lần trước. Người dùng có thêm "ký hiệu" (VD: T, Đ) để in bảng.
+6. **Tài khoản khoa làm được việc của ĐD và KTV thường.**
+
 (Đã làm trong v2.7: phân quyền thống kê, ĐD theo khoa, khoa theo BS, lý do ưu tiên / cấp cứu, màu và thứ tự lập KH / xếp lịch, chỉ tiêu khoa, đề xuất / duyệt lịch, nhắc vắng và tạm ngừng.)
