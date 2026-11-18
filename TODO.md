@@ -6,9 +6,13 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
 
 **Từ sau v2.7: yêu cầu mới ghi vào đây, chỉ làm phiên bản mới khi anh bảo.**
 
-## Việc chờ
+## Việc chờ (v2.10, chờ anh bảo làm)
 
-(Hiện chưa có. v2.9 đã làm: thống kê từng mục, tải Excel thẳng, bảng thanh toán và sổ mô phỏng y mẫu.)
+1. **Hai bảng thanh toán phải đủ toàn bộ lượt xạ của khoa, mọi kỹ thuật** (ý chị Vân Anh):
+   - Bảng **3D** = 3D-CRT. Bảng **VMAT** = VMAT, IMRT, SRS/SBRT (tính chung, không chia VM / IMRT). Kỹ thuật "Khác" và kỹ thuật mới thêm vào danh mục: chờ anh chốt xếp vào bảng nào.
+   - Mỗi buổi xạ vào đúng 1 bảng theo kỹ thuật của giai đoạn đó (BN 3D có boost VMAT thì có mặt ở cả hai bảng, mỗi bảng đúng số buổi của nó).
+   - Đối chiếu khi tải: "3D x buổi + VMAT y buổi = tổng z buổi của khoa" để chắc không sót.
+   - Cột KT (VM / IMRT) trên trang VMAT: chờ anh chốt bỏ hay để trống.
 
 (Đã làm trong v2.8: xem CHANGELOG.)
 
