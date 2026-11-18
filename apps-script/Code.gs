@@ -71,6 +71,11 @@ function setup() {
     if (!have[loai]) RT.DEFAULT_DM[loai].forEach(function (v) { rows.push([loai, v]); });
   });
   if (!have.NGAY_LE && dm.getLastRow() <= 1) rows.push(['NGAY_LE', '2027-01-01']);
+  // v2.8: bổ sung giá trị mới vào danh mục đã có; bỏ giá setup
+  var cur = dm.getLastRow() > 1 ? dm.getRange(2, 1, dm.getLastRow() - 1, 2).getValues() : [];
+  var hasV = function (l, v) { return cur.some(function (r) { return String(r[0]).toUpperCase() === l && String(r[1]) === v; }); };
+  [['MUC_DICH', 'Tân bổ trợ'], ['MUC_DICH', 'Củng cố']].forEach(function (x) { if (have[x[0]] && !hasV(x[0], x[1])) rows.push(x); });
+  cur.forEach(function (r, i) { if (String(r[0]).toUpperCase() === 'DON_GIA' && /^setup/i.test(String(r[1]))) dm.getRange(i + 2, 1, 1, 2).setValues([['', '']]); });
   if (rows.length) dm.getRange(Math.max(dm.getLastRow(), 1) + 1, 1, rows.length, 2).setNumberFormat('@').setValues(rows);
 
   var users = ss.getSheetByName(SHEET_NAMES.USER);
@@ -541,36 +546,46 @@ function writeKhoaReport_(r, user, loai) {
     return sh;
   };
   if (loai !== 'xa') {
-    var h = ['Ngày', 'Họ tên BN', 'Tuổi Nam', 'Tuổi Nữ', 'Số BA', 'Ngày xạ ĐT', 'Chẩn đoán', 'Mặt nạ', 'Tiêm thuốc', 'Không tiêm', 'Bác sỹ', 'Máy', 'Kỹ thuật', 'Người mô phỏng'];
+    var h = ['Ngày', 'Họ tên BN', 'Tuổi Nam', 'Tuổi Nữ', 'Số BA', 'Chẩn đoán', 'Bác sỹ', 'Mặt nạ', 'Ngày xạ ĐT', 'Kỹ thuật xạ'];
+    var dd = function (d) { return d ? (+d.slice(8)) + '/' + (+d.slice(5, 7)) : ''; };
     var rows = head0('SỔ MÔ PHỎNG CT').concat([h]).concat(r.mo_phong.map(function (x) {
-      return [x.ngay, x.ho_ten, x.nam, x.nu, x.ma_his, x.ngay_xa, x.chan_doan, x.mat_na ? 'x' : '', x.tiem ? 'x' : '', x.tiem ? '' : 'x', x.bs, x.may, x.ky_thuat, x.nguoi];
-    })).concat([['Tổng: ' + r.tong.mo_phong + ' BN · mặt nạ ' + r.tong.mat_na + ' · tiêm thuốc ' + r.tong.tiem]]).concat(sign(h.length));
+      return [dd(x.ngay), x.ho_ten, x.nam, x.nu, x.ma_his, x.chan_doan, x.bs, x.mat_na ? 'x' : '', dd(x.ngay_xa), x.ky_thuat];
+    })).concat([['Tổng: ' + r.tong.mo_phong + ' BN · mặt nạ ' + r.tong.mat_na]]).concat(sign(h.length));
     put('So mo phong', rows, h.length).getRange(4, 1, 1, h.length).setFontWeight('bold').setBackground('#e3f4ee');
   }
   if (loai !== 'mo_phong') {
     r.thang.forEach(function (m) {
       m.nhom.forEach(function (g) {
-        var vm = g.ten === 'IMRT/VMAT';
-        var h1 = ['STT', 'Họ và tên BN', 'Tuổi Nam', 'Tuổi Nữ', 'Bệnh án', 'Chẩn đoán', 'BS', 'KS'].concat(vm ? ['VM', 'dMLC'] : []).concat(m.ngay).concat(['Đơn giá', 'Số buổi', 'Setup', 'Thành tiền']);
+        var h1 = ['STT', 'Họ và tên BN', 'Tuổi Nam', 'Tuổi Nữ', 'Bệnh án', 'Chẩn đoán', 'BS', 'KS'].concat(m.ngay).concat(['Thành tiền', 'Đơn giá', 'Số buổi', 'Setup']);
         var rows = head0('BẢNG THEO DÕI XẠ TRỊ ' + g.ten + ' · THÁNG ' + m.thang.slice(5) + '/' + m.thang.slice(0, 4)).concat([h1]);
         g.rows.forEach(function (x, i) {
-          rows.push([i + 1, x.ho_ten, x.nam, x.nu, x.ma_his, x.chan_doan, x.bs, x.ks].concat(vm ? [x.kt === 'VM' ? 'x' : '', x.kt === 'dMLC' ? 'x' : ''] : [])
-            .concat(m.ngay.map(function (d) { return x.o[d] || ''; })).concat([r.don_gia, x.so_buoi, x.setup ? r.gia_setup : '', x.thanh_tien]));
+          rows.push([i + 1, x.ho_ten, x.nam, x.nu, x.ma_his, x.chan_doan, x.bs, '']
+            .concat(m.ngay.map(function (d) { return x.o[d] || ''; })).concat([x.thanh_tien, r.don_gia, x.so_buoi, '']));
         });
         var tot = ['Tổng cộng']; while (tot.length < h1.length - 4) tot.push('');
-        rows.push(tot.concat(['', g.so_buoi, g.setup ? g.setup * r.gia_setup : '', g.thanh_tien]));
+        rows.push(tot.concat([g.thanh_tien, '', g.so_buoi, '']));
         rows = rows.concat(sign(h1.length));
-        var sh = put('Xa ' + g.ten.replace('/', '-') + ' T' + m.thang.slice(5) + '-' + m.thang.slice(0, 4), rows, h1.length);
+        var sh = put('Xa ' + g.ten + ' T' + m.thang.slice(5) + '-' + m.thang.slice(0, 4), rows, h1.length);
         sh.getRange(4, 1, 1, h1.length).setFontWeight('bold').setBackground('#e3f4ee');
       });
     });
     var t = r.tong, rows2 = head0('TỔNG HỢP XẠ TRỊ').concat([['Số BN được xạ', t.bn_xa], ['Tổng số buổi xạ', t.so_buoi]]);
     Object.keys(t.theo_nhom).forEach(function (k) { rows2.push(['  ' + k, t.theo_nhom[k]]); });
-    rows2.push(['Số setup', t.setup], ['Thành tiền', t.thanh_tien], [''], ['Theo KTV (số buổi tham gia)', '']);
+    rows2.push(['Thành tiền', t.thanh_tien], [''], ['Theo KTV (số buổi tham gia)', '']);
     t.theo_ktv.forEach(function (x) { rows2.push(['  ' + x.ten + ' (' + x.ky_hieu + ')', x.so_buoi]); });
     rows2.push([''], ['Theo bác sĩ (số buổi xạ)', '']);
     t.theo_bs.forEach(function (x) { rows2.push(['  ' + x.ten, x.so_buoi]); });
     put('Tong hop xa', rows2, 2);
+  }
+  if (loai !== 'xa') {
+    // Tổng hợp mô phỏng theo các đầu thông tin
+    var cnt = function (key) { var o = {}; r.mo_phong.forEach(function (x) { [].concat(key(x)).forEach(function (k) { if (k) o[k] = (o[k] || 0) + 1; }); }); return o; };
+    var rows3 = head0('TỔNG HỢP MÔ PHỎNG').concat([['Số BN mô phỏng', r.mo_phong.length]]);
+    [['Mặt nạ', function (x) { return x.mat_na_loai; }], ['Tiêm thuốc', function (x) { return x.tiem ? 'Có' : 'Không'; }], ['Dụng cụ khác', function (x) { return x.dung_cu.map(function (d) { return /^Khác/.test(d) ? 'Khác' : d; }); }],
+     ['Kỹ thuật', function (x) { return x.ky_thuat || '(chưa ghi)'; }], ['Mục đích', function (x) { return x.muc_dich || '(chưa ghi)'; }], ['Bác sĩ', function (x) { return x.bs; }], ['KTV mô phỏng', function (x) { return x.nguoi.split(/,\s*/); }]].forEach(function (d) {
+      var o = cnt(d[1]); rows3.push([''], [d[0].toUpperCase(), 'Số BN']); Object.keys(o).sort(function (a, b) { return o[b] - o[a]; }).forEach(function (k) { rows3.push(['  ' + k, o[k]]); });
+    });
+    put('Tong hop mo phong', rows3, 2);
   }
   return { name: made.length ? made[0].getName() + (made.length > 1 ? ' (và ' + (made.length - 1) + ' trang khác)' : '') : '', url: ss.getUrl() + (made.length ? '#gid=' + made[0].getSheetId() : '') };
 }

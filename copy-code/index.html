@@ -43,7 +43,7 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
   <div class="intro">
     <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v2.8</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v2.8 · bản lưu e905453 · 18/11/2026 02:41. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v2.8”.</span>
+    <span class="rev">Phiên bản v2.8 · bản lưu f27572c · 18/11/2026 03:43. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v2.8”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
@@ -51,7 +51,7 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
       <div class="meta">
         <h2 id="h-Code">Code.gs <span class="ver">· v2.8</span></h2>
         <p>File có sẵn tên Code.gs: xoá hết nội dung cũ, dán vào.</p>
-        <span class="size">596 dòng · 34 KB</span>
+        <span class="size">611 dòng · 36 KB</span>
       </div>
       <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v2.8)</button>
     </div>
@@ -128,6 +128,11 @@ function setup() {
     if (!have[loai]) RT.DEFAULT_DM[loai].forEach(function (v) { rows.push([loai, v]); });
   });
   if (!have.NGAY_LE &amp;&amp; dm.getLastRow() &lt;= 1) rows.push([&#x27;NGAY_LE&#x27;, &#x27;2027-01-01&#x27;]);
+  // v2.8: bổ sung giá trị mới vào danh mục đã có; bỏ giá setup
+  var cur = dm.getLastRow() &gt; 1 ? dm.getRange(2, 1, dm.getLastRow() - 1, 2).getValues() : [];
+  var hasV = function (l, v) { return cur.some(function (r) { return String(r[0]).toUpperCase() === l &amp;&amp; String(r[1]) === v; }); };
+  [[&#x27;MUC_DICH&#x27;, &#x27;Tân bổ trợ&#x27;], [&#x27;MUC_DICH&#x27;, &#x27;Củng cố&#x27;]].forEach(function (x) { if (have[x[0]] &amp;&amp; !hasV(x[0], x[1])) rows.push(x); });
+  cur.forEach(function (r, i) { if (String(r[0]).toUpperCase() === &#x27;DON_GIA&#x27; &amp;&amp; /^setup/i.test(String(r[1]))) dm.getRange(i + 2, 1, 1, 2).setValues([[&#x27;&#x27;, &#x27;&#x27;]]); });
   if (rows.length) dm.getRange(Math.max(dm.getLastRow(), 1) + 1, 1, rows.length, 2).setNumberFormat(&#x27;@&#x27;).setValues(rows);
 
   var users = ss.getSheetByName(SHEET_NAMES.USER);
@@ -598,36 +603,46 @@ function writeKhoaReport_(r, user, loai) {
     return sh;
   };
   if (loai !== &#x27;xa&#x27;) {
-    var h = [&#x27;Ngày&#x27;, &#x27;Họ tên BN&#x27;, &#x27;Tuổi Nam&#x27;, &#x27;Tuổi Nữ&#x27;, &#x27;Số BA&#x27;, &#x27;Ngày xạ ĐT&#x27;, &#x27;Chẩn đoán&#x27;, &#x27;Mặt nạ&#x27;, &#x27;Tiêm thuốc&#x27;, &#x27;Không tiêm&#x27;, &#x27;Bác sỹ&#x27;, &#x27;Máy&#x27;, &#x27;Kỹ thuật&#x27;, &#x27;Người mô phỏng&#x27;];
+    var h = [&#x27;Ngày&#x27;, &#x27;Họ tên BN&#x27;, &#x27;Tuổi Nam&#x27;, &#x27;Tuổi Nữ&#x27;, &#x27;Số BA&#x27;, &#x27;Chẩn đoán&#x27;, &#x27;Bác sỹ&#x27;, &#x27;Mặt nạ&#x27;, &#x27;Ngày xạ ĐT&#x27;, &#x27;Kỹ thuật xạ&#x27;];
+    var dd = function (d) { return d ? (+d.slice(8)) + &#x27;/&#x27; + (+d.slice(5, 7)) : &#x27;&#x27;; };
     var rows = head0(&#x27;SỔ MÔ PHỎNG CT&#x27;).concat([h]).concat(r.mo_phong.map(function (x) {
-      return [x.ngay, x.ho_ten, x.nam, x.nu, x.ma_his, x.ngay_xa, x.chan_doan, x.mat_na ? &#x27;x&#x27; : &#x27;&#x27;, x.tiem ? &#x27;x&#x27; : &#x27;&#x27;, x.tiem ? &#x27;&#x27; : &#x27;x&#x27;, x.bs, x.may, x.ky_thuat, x.nguoi];
-    })).concat([[&#x27;Tổng: &#x27; + r.tong.mo_phong + &#x27; BN · mặt nạ &#x27; + r.tong.mat_na + &#x27; · tiêm thuốc &#x27; + r.tong.tiem]]).concat(sign(h.length));
+      return [dd(x.ngay), x.ho_ten, x.nam, x.nu, x.ma_his, x.chan_doan, x.bs, x.mat_na ? &#x27;x&#x27; : &#x27;&#x27;, dd(x.ngay_xa), x.ky_thuat];
+    })).concat([[&#x27;Tổng: &#x27; + r.tong.mo_phong + &#x27; BN · mặt nạ &#x27; + r.tong.mat_na]]).concat(sign(h.length));
     put(&#x27;So mo phong&#x27;, rows, h.length).getRange(4, 1, 1, h.length).setFontWeight(&#x27;bold&#x27;).setBackground(&#x27;#e3f4ee&#x27;);
   }
   if (loai !== &#x27;mo_phong&#x27;) {
     r.thang.forEach(function (m) {
       m.nhom.forEach(function (g) {
-        var vm = g.ten === &#x27;IMRT/VMAT&#x27;;
-        var h1 = [&#x27;STT&#x27;, &#x27;Họ và tên BN&#x27;, &#x27;Tuổi Nam&#x27;, &#x27;Tuổi Nữ&#x27;, &#x27;Bệnh án&#x27;, &#x27;Chẩn đoán&#x27;, &#x27;BS&#x27;, &#x27;KS&#x27;].concat(vm ? [&#x27;VM&#x27;, &#x27;dMLC&#x27;] : []).concat(m.ngay).concat([&#x27;Đơn giá&#x27;, &#x27;Số buổi&#x27;, &#x27;Setup&#x27;, &#x27;Thành tiền&#x27;]);
+        var h1 = [&#x27;STT&#x27;, &#x27;Họ và tên BN&#x27;, &#x27;Tuổi Nam&#x27;, &#x27;Tuổi Nữ&#x27;, &#x27;Bệnh án&#x27;, &#x27;Chẩn đoán&#x27;, &#x27;BS&#x27;, &#x27;KS&#x27;].concat(m.ngay).concat([&#x27;Thành tiền&#x27;, &#x27;Đơn giá&#x27;, &#x27;Số buổi&#x27;, &#x27;Setup&#x27;]);
         var rows = head0(&#x27;BẢNG THEO DÕI XẠ TRỊ &#x27; + g.ten + &#x27; · THÁNG &#x27; + m.thang.slice(5) + &#x27;/&#x27; + m.thang.slice(0, 4)).concat([h1]);
         g.rows.forEach(function (x, i) {
-          rows.push([i + 1, x.ho_ten, x.nam, x.nu, x.ma_his, x.chan_doan, x.bs, x.ks].concat(vm ? [x.kt === &#x27;VM&#x27; ? &#x27;x&#x27; : &#x27;&#x27;, x.kt === &#x27;dMLC&#x27; ? &#x27;x&#x27; : &#x27;&#x27;] : [])
-            .concat(m.ngay.map(function (d) { return x.o[d] || &#x27;&#x27;; })).concat([r.don_gia, x.so_buoi, x.setup ? r.gia_setup : &#x27;&#x27;, x.thanh_tien]));
+          rows.push([i + 1, x.ho_ten, x.nam, x.nu, x.ma_his, x.chan_doan, x.bs, &#x27;&#x27;]
+            .concat(m.ngay.map(function (d) { return x.o[d] || &#x27;&#x27;; })).concat([x.thanh_tien, r.don_gia, x.so_buoi, &#x27;&#x27;]));
         });
         var tot = [&#x27;Tổng cộng&#x27;]; while (tot.length &lt; h1.length - 4) tot.push(&#x27;&#x27;);
-        rows.push(tot.concat([&#x27;&#x27;, g.so_buoi, g.setup ? g.setup * r.gia_setup : &#x27;&#x27;, g.thanh_tien]));
+        rows.push(tot.concat([g.thanh_tien, &#x27;&#x27;, g.so_buoi, &#x27;&#x27;]));
         rows = rows.concat(sign(h1.length));
-        var sh = put(&#x27;Xa &#x27; + g.ten.replace(&#x27;/&#x27;, &#x27;-&#x27;) + &#x27; T&#x27; + m.thang.slice(5) + &#x27;-&#x27; + m.thang.slice(0, 4), rows, h1.length);
+        var sh = put(&#x27;Xa &#x27; + g.ten + &#x27; T&#x27; + m.thang.slice(5) + &#x27;-&#x27; + m.thang.slice(0, 4), rows, h1.length);
         sh.getRange(4, 1, 1, h1.length).setFontWeight(&#x27;bold&#x27;).setBackground(&#x27;#e3f4ee&#x27;);
       });
     });
     var t = r.tong, rows2 = head0(&#x27;TỔNG HỢP XẠ TRỊ&#x27;).concat([[&#x27;Số BN được xạ&#x27;, t.bn_xa], [&#x27;Tổng số buổi xạ&#x27;, t.so_buoi]]);
     Object.keys(t.theo_nhom).forEach(function (k) { rows2.push([&#x27;  &#x27; + k, t.theo_nhom[k]]); });
-    rows2.push([&#x27;Số setup&#x27;, t.setup], [&#x27;Thành tiền&#x27;, t.thanh_tien], [&#x27;&#x27;], [&#x27;Theo KTV (số buổi tham gia)&#x27;, &#x27;&#x27;]);
+    rows2.push([&#x27;Thành tiền&#x27;, t.thanh_tien], [&#x27;&#x27;], [&#x27;Theo KTV (số buổi tham gia)&#x27;, &#x27;&#x27;]);
     t.theo_ktv.forEach(function (x) { rows2.push([&#x27;  &#x27; + x.ten + &#x27; (&#x27; + x.ky_hieu + &#x27;)&#x27;, x.so_buoi]); });
     rows2.push([&#x27;&#x27;], [&#x27;Theo bác sĩ (số buổi xạ)&#x27;, &#x27;&#x27;]);
     t.theo_bs.forEach(function (x) { rows2.push([&#x27;  &#x27; + x.ten, x.so_buoi]); });
     put(&#x27;Tong hop xa&#x27;, rows2, 2);
+  }
+  if (loai !== &#x27;xa&#x27;) {
+    // Tổng hợp mô phỏng theo các đầu thông tin
+    var cnt = function (key) { var o = {}; r.mo_phong.forEach(function (x) { [].concat(key(x)).forEach(function (k) { if (k) o[k] = (o[k] || 0) + 1; }); }); return o; };
+    var rows3 = head0(&#x27;TỔNG HỢP MÔ PHỎNG&#x27;).concat([[&#x27;Số BN mô phỏng&#x27;, r.mo_phong.length]]);
+    [[&#x27;Mặt nạ&#x27;, function (x) { return x.mat_na_loai; }], [&#x27;Tiêm thuốc&#x27;, function (x) { return x.tiem ? &#x27;Có&#x27; : &#x27;Không&#x27;; }], [&#x27;Dụng cụ khác&#x27;, function (x) { return x.dung_cu.map(function (d) { return /^Khác/.test(d) ? &#x27;Khác&#x27; : d; }); }],
+     [&#x27;Kỹ thuật&#x27;, function (x) { return x.ky_thuat || &#x27;(chưa ghi)&#x27;; }], [&#x27;Mục đích&#x27;, function (x) { return x.muc_dich || &#x27;(chưa ghi)&#x27;; }], [&#x27;Bác sĩ&#x27;, function (x) { return x.bs; }], [&#x27;KTV mô phỏng&#x27;, function (x) { return x.nguoi.split(/,\s*/); }]].forEach(function (d) {
+      var o = cnt(d[1]); rows3.push([&#x27;&#x27;], [d[0].toUpperCase(), &#x27;Số BN&#x27;]); Object.keys(o).sort(function (a, b) { return o[b] - o[a]; }).forEach(function (k) { rows3.push([&#x27;  &#x27; + k, o[k]]); });
+    });
+    put(&#x27;Tong hop mo phong&#x27;, rows3, 2);
   }
   return { name: made.length ? made[0].getName() + (made.length &gt; 1 ? &#x27; (và &#x27; + (made.length - 1) + &#x27; trang khác)&#x27; : &#x27;&#x27;) : &#x27;&#x27;, url: ss.getUrl() + (made.length ? &#x27;#gid=&#x27; + made[0].getSheetId() : &#x27;&#x27;) };
 }
@@ -657,7 +672,7 @@ function writePatients_(r, user) {
       <div class="meta">
         <h2 id="h-Core">Core.gs <span class="ver">· v2.8</span></h2>
         <p>Bấm + → Script (Tập lệnh), đặt tên Core.</p>
-        <span class="size">1,588 dòng · 112 KB</span>
+        <span class="size">1,603 dòng · 114 KB</span>
       </div>
       <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v2.8)</button>
     </div>
@@ -699,10 +714,10 @@ var RT = (function () {
       &#x27;ks_email&#x27;, &#x27;ngay_nhan_kh&#x27;, &#x27;ngay_kh_xong&#x27;, &#x27;can_qa&#x27;, &#x27;qa_ket_qua&#x27;, &#x27;ngay_qa&#x27;, &#x27;ngay_du_kien&#x27;,
       &#x27;ngay_nghi_tuan&#x27;, &#x27;may&#x27;, &#x27;ngay_bat_dau&#x27;, &#x27;ngay_ket_thuc&#x27;, &#x27;tam_ngung_tu&#x27;, &#x27;ly_do_tam_ngung&#x27;,
       &#x27;ghi_chu&#x27;, &#x27;cap_nhat_luc&#x27;, &#x27;cap_nhat_boi&#x27;, &#x27;ly_do_ket_thuc&#x27;, &#x27;muc_lieu&#x27;, &#x27;vi_tri&#x27;, &#x27;muc_dich&#x27;, &#x27;ngay_mo_phong&#x27;, &#x27;nguoi_nhap&#x27;, &#x27;icd&#x27;, &#x27;ly_do_uu_tien&#x27;, &#x27;tg_nop_kh&#x27;,
-      &#x27;de_xuat_lich&#x27;, &#x27;de_xuat_boi&#x27;, &#x27;de_xuat_luc&#x27;, &#x27;xn_tam_ngung&#x27;, &#x27;nguoi_mo_phong&#x27;, &#x27;mat_na&#x27;, &#x27;tiem_thuoc&#x27;],
+      &#x27;de_xuat_lich&#x27;, &#x27;de_xuat_boi&#x27;, &#x27;de_xuat_luc&#x27;, &#x27;xn_tam_ngung&#x27;, &#x27;nguoi_mo_phong&#x27;, &#x27;mat_na&#x27;, &#x27;tiem_thuoc&#x27;, &#x27;dung_cu&#x27;],
     GiaiDoan: [&#x27;id&#x27;, &#x27;bn_id&#x27;, &#x27;stt&#x27;, &#x27;ky_thuat&#x27;, &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;, &#x27;muc_lieu&#x27;, &#x27;trang_thai&#x27;, &#x27;di_cung&#x27;,
       &#x27;uu_tien&#x27;, &#x27;ngay_tao&#x27;, &#x27;ngay_mo_phong&#x27;, &#x27;ngay_contour_xong&#x27;, &#x27;ks_email&#x27;, &#x27;ngay_nhan_kh&#x27;, &#x27;ngay_kh_xong&#x27;,
-      &#x27;can_qa&#x27;, &#x27;qa_ket_qua&#x27;, &#x27;ngay_qa&#x27;, &#x27;ghi_chu&#x27;, &#x27;cap_nhat_luc&#x27;, &#x27;cap_nhat_boi&#x27;, &#x27;ly_do_uu_tien&#x27;, &#x27;tg_nop_kh&#x27;, &#x27;nguoi_mo_phong&#x27;, &#x27;mat_na&#x27;, &#x27;tiem_thuoc&#x27;],
+      &#x27;can_qa&#x27;, &#x27;qa_ket_qua&#x27;, &#x27;ngay_qa&#x27;, &#x27;ghi_chu&#x27;, &#x27;cap_nhat_luc&#x27;, &#x27;cap_nhat_boi&#x27;, &#x27;ly_do_uu_tien&#x27;, &#x27;tg_nop_kh&#x27;, &#x27;nguoi_mo_phong&#x27;, &#x27;mat_na&#x27;, &#x27;tiem_thuoc&#x27;, &#x27;dung_cu&#x27;],
     BuoiXa: [&#x27;id&#x27;, &#x27;bn_id&#x27;, &#x27;ngay&#x27;, &#x27;buoi_so&#x27;, &#x27;ktv_email&#x27;, &#x27;thoi_gian&#x27;, &#x27;hinh_anh&#x27;, &#x27;ghi_chu&#x27;,
       &#x27;da_huy&#x27;, &#x27;huy_boi&#x27;, &#x27;ly_do_huy&#x27;, &#x27;gd&#x27;, &#x27;ghi_bu&#x27;, &#x27;ly_do_bu&#x27;, &#x27;ktv_xa&#x27;],
     LichNgoaiLe: [&#x27;id&#x27;, &#x27;bn_id&#x27;, &#x27;may&#x27;, &#x27;ngay&#x27;, &#x27;loai&#x27;, &#x27;ghi_chu&#x27;, &#x27;nguoi&#x27;, &#x27;thoi_gian&#x27;, &#x27;da_xoa&#x27;],
@@ -725,14 +740,17 @@ var RT = (function () {
     LY_DO_TAM_NGUNG: [&#x27;Tác dụng phụ&#x27;, &#x27;Máy hỏng / bảo trì&#x27;, &#x27;BN xin nghỉ&#x27;, &#x27;Bệnh lý khác, đang điều trị&#x27;, &#x27;Không liên lạc được&#x27;, &#x27;Khác&#x27;],
     NGAY_LE: []
   };
-  DEFAULT_DM.MUC_DICH = [&#x27;Triệt căn&#x27;, &#x27;Bổ trợ&#x27;, &#x27;Giảm nhẹ / triệu chứng&#x27;, &#x27;Xạ lại&#x27;];
+  DEFAULT_DM.MUC_DICH = [&#x27;Triệt căn&#x27;, &#x27;Bổ trợ&#x27;, &#x27;Tân bổ trợ&#x27;, &#x27;Củng cố&#x27;, &#x27;Giảm nhẹ / triệu chứng&#x27;, &#x27;Xạ lại&#x27;];
+  /** Mô phỏng: loại mặt nạ, dụng cụ khác */
+  DEFAULT_DM.MAT_NA = [&#x27;3 điểm&#x27;, &#x27;4 điểm&#x27;, &#x27;5 điểm&#x27;, &#x27;6 điểm&#x27;];
+  DEFAULT_DM.DUNG_CU = [&#x27;Miếng bù da&#x27;, &#x27;Nêm lưỡi&#x27;];
   /** Chỉ tiêu số BN đang xạ của mỗi khoa, dạng &quot;Khoa: tối thiểu-tối đa&quot; */
   DEFAULT_DM.CHI_TIEU = [&#x27;Xạ trị: 90-100&#x27;, &#x27;Xạ trị theo yêu cầu: 80-90&#x27;];
   /** Chọn nhanh khi nhập tổng liều (Gy) và số buổi */
   DEFAULT_DM.LIEU_HAY_DUNG = [&#x27;70&#x27;, &#x27;66&#x27;, &#x27;60&#x27;, &#x27;50.4&#x27;, &#x27;50&#x27;, &#x27;30&#x27;];
   DEFAULT_DM.SO_BUOI_HAY_DUNG = [&#x27;10&#x27;, &#x27;28&#x27;, &#x27;30&#x27;, &#x27;33&#x27;, &#x27;35&#x27;];
-  /** Báo cáo khoa: đơn giá mỗi buổi xạ và giá setup (tính một lần ở buổi xạ đầu tiên của đợt) */
-  DEFAULT_DM.DON_GIA = [&#x27;Buổi xạ: 21000&#x27;, &#x27;Setup: 37500&#x27;];
+  /** Báo cáo khoa: đơn giá mỗi buổi xạ (thành tiền = số buổi × đơn giá; cột setup để trống như sổ khoa) */
+  DEFAULT_DM.DON_GIA = [&#x27;Buổi xạ: 21000&#x27;];
   /** Khung ký tên cuối báo cáo, dạng &quot;Chức danh: Họ tên&quot; (họ tên để trống được) */
   DEFAULT_DM.KY_TEN = [&#x27;Người lập biểu&#x27;, &#x27;Trưởng khoa&#x27;, &#x27;Khoa Vật lý xạ trị&#x27;, &#x27;Phòng TCCB&#x27;, &#x27;Phòng TCKT&#x27;, &#x27;Phòng KHTH&#x27;, &#x27;Giám đốc&#x27;];
   DEFAULT_DM.LY_DO_VANG = [&#x27;Mệt / tác dụng phụ&#x27;, &#x27;Bận việc riêng&#x27;, &#x27;Đang điều trị khác (nội trú, cấp cứu…)&#x27;, &#x27;Không đến, không báo&#x27;, &#x27;Khác&#x27;];
@@ -749,7 +767,7 @@ var RT = (function () {
   /** Đơn vị của nhân viên: các khoa điều trị (danh mục KHOA) + khoa không nhận bệnh nhân */
   var KHOA_KHAC = [&#x27;Vật lý xạ trị&#x27;];
   function staffKhoa(dm) { return (dm.KHOA || []).concat(KHOA_KHAC.filter(function (k) { return (dm.KHOA || []).indexOf(k) &lt; 0; })); }
-  var DM_EDITABLE = [&#x27;VI_TRI_PC&#x27;, &#x27;VI_TRI&#x27;, &#x27;MUC_DICH&#x27;, &#x27;MAY&#x27;, &#x27;NGAY_LE&#x27;, &#x27;KY_THUAT&#x27;, &#x27;IGRT&#x27;, &#x27;HINH_ANH&#x27;, &#x27;KHOA&#x27;, &#x27;LY_DO_TAM_NGUNG&#x27;, &#x27;LY_DO_VANG&#x27;, &#x27;TEN_DON_VI&#x27;, &#x27;CHI_TIEU&#x27;, &#x27;LIEU_HAY_DUNG&#x27;, &#x27;SO_BUOI_HAY_DUNG&#x27;, &#x27;DON_GIA&#x27;, &#x27;KY_TEN&#x27;];
+  var DM_EDITABLE = [&#x27;VI_TRI_PC&#x27;, &#x27;VI_TRI&#x27;, &#x27;MUC_DICH&#x27;, &#x27;MAY&#x27;, &#x27;NGAY_LE&#x27;, &#x27;KY_THUAT&#x27;, &#x27;IGRT&#x27;, &#x27;HINH_ANH&#x27;, &#x27;KHOA&#x27;, &#x27;LY_DO_TAM_NGUNG&#x27;, &#x27;LY_DO_VANG&#x27;, &#x27;TEN_DON_VI&#x27;, &#x27;CHI_TIEU&#x27;, &#x27;LIEU_HAY_DUNG&#x27;, &#x27;SO_BUOI_HAY_DUNG&#x27;, &#x27;DON_GIA&#x27;, &#x27;KY_TEN&#x27;, &#x27;MAT_NA&#x27;, &#x27;DUNG_CU&#x27;];
 
   var PERM = {
     createPatient: [&#x27;BS&#x27;, &#x27;KS&#x27;, &#x27;KTV&#x27;, &#x27;DD&#x27;, &#x27;ADMIN&#x27;],
@@ -1374,11 +1392,16 @@ var RT = (function () {
       var t = target(ctx, a.id);
       need(t.x, [&#x27;MO_PHONG&#x27;]);
       var nguoi = staffList(ctx, a.nguoi_mo_phong);
-      if (!nguoi.length) fail(&#x27;Chọn người mô phỏng (1 hoặc 2 người).&#x27;);
+      if (!nguoi.length) fail(&#x27;Chọn KTV mô phỏng (1 hoặc 2 người).&#x27;);
       if (nguoi.length &gt; 2) fail(&#x27;Chọn tối đa 2 người mô phỏng.&#x27;);
+      nguoi.forEach(function (e) { if (!ctx.users.some(function (u) { return u.email === e &amp;&amp; u.vai_tro === &#x27;KTV&#x27;; })) fail(userName(ctx, e) + &#x27; không phải KTV.&#x27;); });
+      var mn = String(a.mat_na || &#x27;Không&#x27;).trim();
+      if (mn !== &#x27;Không&#x27; &amp;&amp; (ctx.dm.MAT_NA || DEFAULT_DM.MAT_NA).indexOf(mn) &lt; 0) fail(&#x27;Loại mặt nạ không có trong danh mục.&#x27;);
+      var dc = (Array.isArray(a.dung_cu) ? a.dung_cu : String(a.dung_cu || &#x27;&#x27;).split(/,\s*/)).map(function (x) { return String(x).trim(); }).filter(Boolean);
+      if (a.dung_cu_khac &amp;&amp; String(a.dung_cu_khac).trim()) dc.push(&#x27;Khác: &#x27; + String(a.dung_cu_khac).trim().replace(/,/g, &#x27;;&#x27;));
       t.x.trang_thai = &#x27;CONTOUR&#x27;; t.x.ngay_mo_phong = ctx.today;
-      t.x.nguoi_mo_phong = nguoi.join(&#x27;, &#x27;); t.x.mat_na = a.mat_na ? &#x27;Có&#x27; : &#x27;Không&#x27;; t.x.tiem_thuoc = a.tiem_thuoc ? &#x27;Có&#x27; : &#x27;Không&#x27;;
-      saveT(ctx, t, t.g ? &#x27;Mô phỏng lại xong&#x27; : &#x27;Mô phỏng xong&#x27;, nguoi.map(function (e) { return userName(ctx, e); }).join(&#x27;, &#x27;) + (a.mat_na ? &#x27; · mặt nạ&#x27; : &#x27;&#x27;) + (a.tiem_thuoc ? &#x27; · tiêm thuốc&#x27; : &#x27;&#x27;));
+      t.x.nguoi_mo_phong = nguoi.join(&#x27;, &#x27;); t.x.mat_na = mn; t.x.tiem_thuoc = a.tiem_thuoc === true || a.tiem_thuoc === &#x27;Có&#x27; ? &#x27;Có&#x27; : &#x27;Không&#x27;; t.x.dung_cu = dc.join(&#x27;, &#x27;);
+      saveT(ctx, t, t.g ? &#x27;Mô phỏng lại xong&#x27; : &#x27;Mô phỏng xong&#x27;, nguoi.map(function (e) { return userName(ctx, e); }).join(&#x27;, &#x27;) + &#x27; · mặt nạ: &#x27; + mn + &#x27; · tiêm thuốc: &#x27; + t.x.tiem_thuoc + (dc.length ? &#x27; · &#x27; + dc.join(&#x27;, &#x27;) : &#x27;&#x27;));
       ctx.phases.forEach(function (g) {
         if (!t.g &amp;&amp; g.bn_id === t.p.id &amp;&amp; g.di_cung === &#x27;Có&#x27; &amp;&amp; g.trang_thai === &#x27;MO_PHONG&#x27;) {
           g.trang_thai = &#x27;CONTOUR&#x27;; g.ngay_mo_phong = ctx.today; saveT(ctx, { g: g, p: t.p, x: g }, &#x27;Mô phỏng xong&#x27;, &#x27;cùng GĐ1&#x27;);
@@ -1840,18 +1863,20 @@ var RT = (function () {
       if (!inR(x.ngay_mo_phong) || x.trang_thai === &#x27;MO_PHONG&#x27;) return;
       var a = age(p);
       mp.push({ id: p.id, ngay: x.ngay_mo_phong, ho_ten: p.ho_ten, nam: a.nam, nu: a.nu || a.khac, ma_his: p.ma_his, chan_doan: p.chan_doan + (boost ? &#x27; (boost)&#x27; : &#x27;&#x27;), icd: p.icd,
-        mat_na: x.mat_na === &#x27;Có&#x27;, tiem: x.tiem_thuoc === &#x27;Có&#x27;, bs: shortName(users, p.bs_email), may: p.may || &#x27;&#x27;, ngay_xa: p.ngay_bat_dau || p.ngay_du_kien || &#x27;&#x27;,
+        mat_na: !!x.mat_na &amp;&amp; x.mat_na !== &#x27;Không&#x27;, mat_na_loai: x.mat_na &amp;&amp; x.mat_na !== &#x27;Có&#x27; ? x.mat_na : (x.mat_na === &#x27;Có&#x27; ? &#x27;Có (chưa ghi loại)&#x27; : &#x27;Không&#x27;),
+        tiem: x.tiem_thuoc === &#x27;Có&#x27;, dung_cu: String(x.dung_cu || &#x27;&#x27;).split(/,\s*/).filter(Boolean), muc_dich: p.muc_dich || &#x27;&#x27;,
+        bs: shortName(users, p.bs_email), ngay_xa: p.ngay_bat_dau || p.ngay_du_kien || &#x27;&#x27;,
         ky_thuat: x.ky_thuat || p.ky_thuat || &#x27;&#x27;, nguoi: String(x.nguoi_mo_phong || &#x27;&#x27;).split(/,\s*/).filter(Boolean).map(function (e) { return shortName(users, e); }).join(&#x27;, &#x27;) });
     };
     Object.keys(P).forEach(function (id) { var p = P[id]; if (p.nguoi_mo_phong || p.mat_na) addMp(p, p, false); });
     (data.phases || []).forEach(function (g) { var p = P[g.bn_id]; if (p &amp;&amp; g.trang_thai !== &#x27;HUY&#x27; &amp;&amp; (g.nguoi_mo_phong || g.mat_na)) addMp(p, g, true); });
     mp.sort(function (a, b) { return a.ngay &lt; b.ngay ? -1 : a.ngay &gt; b.ngay ? 1 : a.ho_ten.localeCompare(b.ho_ten, &#x27;vi&#x27;); });
     // Bảng xạ trị
-    var gia = priceOf(dm, &#x27;buoi&#x27;, 21000), giaSetup = priceOf(dm, &#x27;setup&#x27;, 37500);
+    var gia = priceOf(dm, &#x27;buoi&#x27;, 21000);
     var techOf = function (fx) { var p = P[fx.bn_id], g = fx.gd &amp;&amp; fx.gd !== &#x27;1&#x27; ? G[fx.bn_id + &#x27;|&#x27; + fx.gd] : null; return (g ? g.ky_thuat : p.ky_thuat) || &#x27;&#x27;; };
-    var grpOf = function (k) { return /IMRT|VMAT/i.test(k) ? &#x27;IMRT/VMAT&#x27; : &#x27;3D&#x27;; };
+    var grpOf = function (k) { return /IMRT|VMAT/i.test(k) ? &#x27;IMRT&#x27; : &#x27;3D&#x27;; };
     var fx = data.fractions.filter(function (x) { return x.da_huy !== &#x27;Có&#x27; &amp;&amp; inR(x.ngay) &amp;&amp; P[x.bn_id]; }).sort(function (a, b) { return a.ngay &lt; b.ngay ? -1 : 1; });
-    var months = {}, ktvCount = {}, bsCount = {}, tong = { so_buoi: 0, tien: 0, setup: 0, theo_nhom: {} };
+    var months = {}, ktvCount = {}, bsCount = {}, tong = { so_buoi: 0, tien: 0, theo_nhom: {} };
     fx.forEach(function (x) {
       var p = P[x.bn_id], k = techOf(x), grp = grpOf(k), m = x.ngay.slice(0, 7);
       var M = months[m] = months[m] || { thang: m, nhom: {} };
@@ -1860,7 +1885,7 @@ var RT = (function () {
       if (!T.rows[key]) {
         var a = age(p);
         T.rows[key] = { id: p.id, ho_ten: p.ho_ten, nam: a.nam, nu: a.nu || a.khac, ma_his: p.ma_his, chan_doan: p.chan_doan, icd: p.icd, bs: shortName(users, p.bs_email),
-          ks: p.ks_email ? &#x27;x&#x27; : &#x27;&#x27;, kt: /VMAT/i.test(k) ? &#x27;VM&#x27; : /IMRT/i.test(k) ? &#x27;dMLC&#x27; : &#x27;&#x27;, o: {}, so_buoi: 0, setup: 0, thanh_tien: 0 };
+          o: {}, so_buoi: 0, thanh_tien: 0 };
         T.order.push(key);
       }
       var r = T.rows[key];
@@ -1868,7 +1893,6 @@ var RT = (function () {
       var day = String(+x.ngay.slice(8));
       r.o[day] = (r.o[day] ? r.o[day] + &#x27;/&#x27; : &#x27;&#x27;) + ktvs.map(function (e) { return initials(users, e); }).join(&#x27;/&#x27;);
       r.so_buoi++;
-      if (x.buoi_so === &#x27;1&#x27;) r.setup = 1;
       ktvs.forEach(function (e) { ktvCount[e] = (ktvCount[e] || 0) + 1; });
       bsCount[p.bs_email] = (bsCount[p.bs_email] || 0) + 1;
       tong.so_buoi++; tong.theo_nhom[grp] = (tong.theo_nhom[grp] || 0) + 1;
@@ -1877,17 +1901,17 @@ var RT = (function () {
       var M = months[m];
       var first = m + &#x27;-01&#x27; &lt; tu ? tu : m + &#x27;-01&#x27;, lastDay = addDays(addDays(m + &#x27;-01&#x27;, 32).slice(0, 7) + &#x27;-01&#x27;, -1), last = lastDay &gt; den ? den : lastDay;
       var days = []; for (var d = first; d &lt;= last; d = addDays(d, 1)) days.push(String(+d.slice(8)));
-      return { thang: m, ngay: days, nhom: [&#x27;3D&#x27;, &#x27;IMRT/VMAT&#x27;].filter(function (g) { return M.nhom[g]; }).map(function (g) {
-        var T = M.nhom[g], rows = T.order.map(function (k) { var r = T.rows[k]; r.thanh_tien = r.so_buoi * gia + r.setup * giaSetup; tong.tien += r.thanh_tien; tong.setup += r.setup; return r; });
-        return { ten: g, rows: rows, so_buoi: rows.reduce(function (s, r) { return s + r.so_buoi; }, 0), setup: rows.reduce(function (s, r) { return s + r.setup; }, 0), thanh_tien: rows.reduce(function (s, r) { return s + r.thanh_tien; }, 0) };
+      return { thang: m, ngay: days, nhom: [&#x27;3D&#x27;, &#x27;IMRT&#x27;].filter(function (g) { return M.nhom[g]; }).map(function (g) {
+        var T = M.nhom[g], rows = T.order.map(function (k) { var r = T.rows[k]; r.thanh_tien = r.so_buoi * gia; tong.tien += r.thanh_tien; return r; });
+        return { ten: g, rows: rows, so_buoi: rows.reduce(function (s, r) { return s + r.so_buoi; }, 0), thanh_tien: rows.reduce(function (s, r) { return s + r.thanh_tien; }, 0) };
       }) };
     });
     var bnXa = {}; fx.forEach(function (x) { bnXa[x.bn_id] = 1; });
     return {
-      tu: tu, den: den, khoa: khoa, don_gia: gia, gia_setup: giaSetup, ky_ten: (dm.KY_TEN || DEFAULT_DM.KY_TEN).slice(),
+      tu: tu, den: den, khoa: khoa, don_gia: gia, ky_ten: (dm.KY_TEN || DEFAULT_DM.KY_TEN).slice(),
       mo_phong: mp, thang: thang,
       tong: { mo_phong: mp.length, mat_na: mp.filter(function (x) { return x.mat_na; }).length, tiem: mp.filter(function (x) { return x.tiem; }).length,
-        bn_xa: Object.keys(bnXa).length, so_buoi: tong.so_buoi, theo_nhom: tong.theo_nhom, setup: tong.setup, thanh_tien: tong.tien,
+        bn_xa: Object.keys(bnXa).length, so_buoi: tong.so_buoi, theo_nhom: tong.theo_nhom, thanh_tien: tong.tien,
         theo_ktv: Object.keys(ktvCount).map(function (e) { return { ten: shortName(users, e), ky_hieu: initials(users, e), so_buoi: ktvCount[e] }; }).sort(function (a, b) { return b.so_buoi - a.so_buoi; }),
         theo_bs: Object.keys(bsCount).map(function (e) { return { ten: shortName(users, e), so_buoi: bsCount[e] }; }).sort(function (a, b) { return b.so_buoi - a.so_buoi; }),
         mp_theo_bs: (function () { var o = {}; mp.forEach(function (x) { o[x.bs] = (o[x.bs] || 0) + 1; }); return Object.keys(o).map(function (k) { return { ten: k, so: o[k] }; }).sort(function (a, b) { return b.so - a.so; }); })() }
@@ -2070,10 +2094,16 @@ var RT = (function () {
       if (f.khoa &amp;&amp; p.khoa !== f.khoa) return false;
       if (f.muc_dich &amp;&amp; p.muc_dich !== f.muc_dich) return false;
       if (f.trang_thai &amp;&amp; p.trang_thai !== f.trang_thai) return false;
+      var mn = p.mat_na &amp;&amp; p.mat_na !== &#x27;Không&#x27; ? p.mat_na : &#x27;&#x27;;
+      if (f.mat_na === &#x27;co&#x27; &amp;&amp; !mn) return false;
+      if (f.mat_na === &#x27;khong&#x27; &amp;&amp; mn) return false;
+      if (f.mat_na &amp;&amp; f.mat_na !== &#x27;co&#x27; &amp;&amp; f.mat_na !== &#x27;khong&#x27; &amp;&amp; mn !== f.mat_na) return false;
+      if (f.tiem_thuoc &amp;&amp; (p.tiem_thuoc || &#x27;Không&#x27;) !== f.tiem_thuoc) return false;
+      if (f.dung_cu &amp;&amp; !String(p.dung_cu || &#x27;&#x27;).split(/,\s*/).some(function (x) { return f.dung_cu === &#x27;Khác&#x27; ? /^Khác/.test(x) : x === f.dung_cu; })) return false;
       return true;
     }).map(function (p) {
       return { id: p.id, ma_his: p.ma_his, ho_ten: p.ho_ten, nam_sinh: p.nam_sinh, gioi: p.gioi, icd: p.icd, chan_doan: p.chan_doan, vi_tri: p.vi_tri,
-        ky_thuat: p.ky_thuat, tong_lieu: p.tong_lieu, so_buoi: p.so_buoi, muc_dich: p.muc_dich, bs_email: p.bs_email, bs: name[p.bs_email] || p.bs_email, khoa: p.khoa,
+        ky_thuat: p.ky_thuat, tong_lieu: p.tong_lieu, so_buoi: p.so_buoi, muc_dich: p.muc_dich, bs_email: p.bs_email, bs: name[p.bs_email] || p.bs_email, khoa: p.khoa, mat_na: p.mat_na || &#x27;&#x27;, tiem_thuoc: p.tiem_thuoc || &#x27;&#x27;, dung_cu: p.dung_cu || &#x27;&#x27;,
         trang_thai: p.trang_thai, ngay_tao: p.ngay_tao, ngay_bat_dau: p.ngay_bat_dau, ngay_ket_thuc: p.ngay_ket_thuc, luot_trong_ky: cnt[p.id] || 0, luu_tru: p._luu ? &#x27;Có&#x27; : &#x27;&#x27; };
     }).sort(function (a, b) { return (a.ngay_bat_dau || a.ngay_tao || &#x27;9&#x27;) &lt; (b.ngay_bat_dau || b.ngay_tao || &#x27;9&#x27;) ? -1 : 1; });
     var luot = rows.reduce(function (s, r) { return s + r.luot_trong_ky; }, 0);
@@ -2255,7 +2285,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
       <div class="meta">
         <h2 id="h-Index">Index.html <span class="ver">· v2.8</span></h2>
         <p>Bấm + → HTML, đặt tên Index (chữ I hoa).</p>
-        <span class="size">4,438 dòng · 367 KB</span>
+        <span class="size">4,485 dòng · 373 KB</span>
       </div>
       <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v2.8)</button>
     </div>
@@ -2794,10 +2824,10 @@ var RT = (function () {
       &#x27;ks_email&#x27;, &#x27;ngay_nhan_kh&#x27;, &#x27;ngay_kh_xong&#x27;, &#x27;can_qa&#x27;, &#x27;qa_ket_qua&#x27;, &#x27;ngay_qa&#x27;, &#x27;ngay_du_kien&#x27;,
       &#x27;ngay_nghi_tuan&#x27;, &#x27;may&#x27;, &#x27;ngay_bat_dau&#x27;, &#x27;ngay_ket_thuc&#x27;, &#x27;tam_ngung_tu&#x27;, &#x27;ly_do_tam_ngung&#x27;,
       &#x27;ghi_chu&#x27;, &#x27;cap_nhat_luc&#x27;, &#x27;cap_nhat_boi&#x27;, &#x27;ly_do_ket_thuc&#x27;, &#x27;muc_lieu&#x27;, &#x27;vi_tri&#x27;, &#x27;muc_dich&#x27;, &#x27;ngay_mo_phong&#x27;, &#x27;nguoi_nhap&#x27;, &#x27;icd&#x27;, &#x27;ly_do_uu_tien&#x27;, &#x27;tg_nop_kh&#x27;,
-      &#x27;de_xuat_lich&#x27;, &#x27;de_xuat_boi&#x27;, &#x27;de_xuat_luc&#x27;, &#x27;xn_tam_ngung&#x27;, &#x27;nguoi_mo_phong&#x27;, &#x27;mat_na&#x27;, &#x27;tiem_thuoc&#x27;],
+      &#x27;de_xuat_lich&#x27;, &#x27;de_xuat_boi&#x27;, &#x27;de_xuat_luc&#x27;, &#x27;xn_tam_ngung&#x27;, &#x27;nguoi_mo_phong&#x27;, &#x27;mat_na&#x27;, &#x27;tiem_thuoc&#x27;, &#x27;dung_cu&#x27;],
     GiaiDoan: [&#x27;id&#x27;, &#x27;bn_id&#x27;, &#x27;stt&#x27;, &#x27;ky_thuat&#x27;, &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;, &#x27;muc_lieu&#x27;, &#x27;trang_thai&#x27;, &#x27;di_cung&#x27;,
       &#x27;uu_tien&#x27;, &#x27;ngay_tao&#x27;, &#x27;ngay_mo_phong&#x27;, &#x27;ngay_contour_xong&#x27;, &#x27;ks_email&#x27;, &#x27;ngay_nhan_kh&#x27;, &#x27;ngay_kh_xong&#x27;,
-      &#x27;can_qa&#x27;, &#x27;qa_ket_qua&#x27;, &#x27;ngay_qa&#x27;, &#x27;ghi_chu&#x27;, &#x27;cap_nhat_luc&#x27;, &#x27;cap_nhat_boi&#x27;, &#x27;ly_do_uu_tien&#x27;, &#x27;tg_nop_kh&#x27;, &#x27;nguoi_mo_phong&#x27;, &#x27;mat_na&#x27;, &#x27;tiem_thuoc&#x27;],
+      &#x27;can_qa&#x27;, &#x27;qa_ket_qua&#x27;, &#x27;ngay_qa&#x27;, &#x27;ghi_chu&#x27;, &#x27;cap_nhat_luc&#x27;, &#x27;cap_nhat_boi&#x27;, &#x27;ly_do_uu_tien&#x27;, &#x27;tg_nop_kh&#x27;, &#x27;nguoi_mo_phong&#x27;, &#x27;mat_na&#x27;, &#x27;tiem_thuoc&#x27;, &#x27;dung_cu&#x27;],
     BuoiXa: [&#x27;id&#x27;, &#x27;bn_id&#x27;, &#x27;ngay&#x27;, &#x27;buoi_so&#x27;, &#x27;ktv_email&#x27;, &#x27;thoi_gian&#x27;, &#x27;hinh_anh&#x27;, &#x27;ghi_chu&#x27;,
       &#x27;da_huy&#x27;, &#x27;huy_boi&#x27;, &#x27;ly_do_huy&#x27;, &#x27;gd&#x27;, &#x27;ghi_bu&#x27;, &#x27;ly_do_bu&#x27;, &#x27;ktv_xa&#x27;],
     LichNgoaiLe: [&#x27;id&#x27;, &#x27;bn_id&#x27;, &#x27;may&#x27;, &#x27;ngay&#x27;, &#x27;loai&#x27;, &#x27;ghi_chu&#x27;, &#x27;nguoi&#x27;, &#x27;thoi_gian&#x27;, &#x27;da_xoa&#x27;],
@@ -2820,14 +2850,17 @@ var RT = (function () {
     LY_DO_TAM_NGUNG: [&#x27;Tác dụng phụ&#x27;, &#x27;Máy hỏng / bảo trì&#x27;, &#x27;BN xin nghỉ&#x27;, &#x27;Bệnh lý khác, đang điều trị&#x27;, &#x27;Không liên lạc được&#x27;, &#x27;Khác&#x27;],
     NGAY_LE: []
   };
-  DEFAULT_DM.MUC_DICH = [&#x27;Triệt căn&#x27;, &#x27;Bổ trợ&#x27;, &#x27;Giảm nhẹ / triệu chứng&#x27;, &#x27;Xạ lại&#x27;];
+  DEFAULT_DM.MUC_DICH = [&#x27;Triệt căn&#x27;, &#x27;Bổ trợ&#x27;, &#x27;Tân bổ trợ&#x27;, &#x27;Củng cố&#x27;, &#x27;Giảm nhẹ / triệu chứng&#x27;, &#x27;Xạ lại&#x27;];
+  /** Mô phỏng: loại mặt nạ, dụng cụ khác */
+  DEFAULT_DM.MAT_NA = [&#x27;3 điểm&#x27;, &#x27;4 điểm&#x27;, &#x27;5 điểm&#x27;, &#x27;6 điểm&#x27;];
+  DEFAULT_DM.DUNG_CU = [&#x27;Miếng bù da&#x27;, &#x27;Nêm lưỡi&#x27;];
   /** Chỉ tiêu số BN đang xạ của mỗi khoa, dạng &quot;Khoa: tối thiểu-tối đa&quot; */
   DEFAULT_DM.CHI_TIEU = [&#x27;Xạ trị: 90-100&#x27;, &#x27;Xạ trị theo yêu cầu: 80-90&#x27;];
   /** Chọn nhanh khi nhập tổng liều (Gy) và số buổi */
   DEFAULT_DM.LIEU_HAY_DUNG = [&#x27;70&#x27;, &#x27;66&#x27;, &#x27;60&#x27;, &#x27;50.4&#x27;, &#x27;50&#x27;, &#x27;30&#x27;];
   DEFAULT_DM.SO_BUOI_HAY_DUNG = [&#x27;10&#x27;, &#x27;28&#x27;, &#x27;30&#x27;, &#x27;33&#x27;, &#x27;35&#x27;];
-  /** Báo cáo khoa: đơn giá mỗi buổi xạ và giá setup (tính một lần ở buổi xạ đầu tiên của đợt) */
-  DEFAULT_DM.DON_GIA = [&#x27;Buổi xạ: 21000&#x27;, &#x27;Setup: 37500&#x27;];
+  /** Báo cáo khoa: đơn giá mỗi buổi xạ (thành tiền = số buổi × đơn giá; cột setup để trống như sổ khoa) */
+  DEFAULT_DM.DON_GIA = [&#x27;Buổi xạ: 21000&#x27;];
   /** Khung ký tên cuối báo cáo, dạng &quot;Chức danh: Họ tên&quot; (họ tên để trống được) */
   DEFAULT_DM.KY_TEN = [&#x27;Người lập biểu&#x27;, &#x27;Trưởng khoa&#x27;, &#x27;Khoa Vật lý xạ trị&#x27;, &#x27;Phòng TCCB&#x27;, &#x27;Phòng TCKT&#x27;, &#x27;Phòng KHTH&#x27;, &#x27;Giám đốc&#x27;];
   DEFAULT_DM.LY_DO_VANG = [&#x27;Mệt / tác dụng phụ&#x27;, &#x27;Bận việc riêng&#x27;, &#x27;Đang điều trị khác (nội trú, cấp cứu…)&#x27;, &#x27;Không đến, không báo&#x27;, &#x27;Khác&#x27;];
@@ -2844,7 +2877,7 @@ var RT = (function () {
   /** Đơn vị của nhân viên: các khoa điều trị (danh mục KHOA) + khoa không nhận bệnh nhân */
   var KHOA_KHAC = [&#x27;Vật lý xạ trị&#x27;];
   function staffKhoa(dm) { return (dm.KHOA || []).concat(KHOA_KHAC.filter(function (k) { return (dm.KHOA || []).indexOf(k) &lt; 0; })); }
-  var DM_EDITABLE = [&#x27;VI_TRI_PC&#x27;, &#x27;VI_TRI&#x27;, &#x27;MUC_DICH&#x27;, &#x27;MAY&#x27;, &#x27;NGAY_LE&#x27;, &#x27;KY_THUAT&#x27;, &#x27;IGRT&#x27;, &#x27;HINH_ANH&#x27;, &#x27;KHOA&#x27;, &#x27;LY_DO_TAM_NGUNG&#x27;, &#x27;LY_DO_VANG&#x27;, &#x27;TEN_DON_VI&#x27;, &#x27;CHI_TIEU&#x27;, &#x27;LIEU_HAY_DUNG&#x27;, &#x27;SO_BUOI_HAY_DUNG&#x27;, &#x27;DON_GIA&#x27;, &#x27;KY_TEN&#x27;];
+  var DM_EDITABLE = [&#x27;VI_TRI_PC&#x27;, &#x27;VI_TRI&#x27;, &#x27;MUC_DICH&#x27;, &#x27;MAY&#x27;, &#x27;NGAY_LE&#x27;, &#x27;KY_THUAT&#x27;, &#x27;IGRT&#x27;, &#x27;HINH_ANH&#x27;, &#x27;KHOA&#x27;, &#x27;LY_DO_TAM_NGUNG&#x27;, &#x27;LY_DO_VANG&#x27;, &#x27;TEN_DON_VI&#x27;, &#x27;CHI_TIEU&#x27;, &#x27;LIEU_HAY_DUNG&#x27;, &#x27;SO_BUOI_HAY_DUNG&#x27;, &#x27;DON_GIA&#x27;, &#x27;KY_TEN&#x27;, &#x27;MAT_NA&#x27;, &#x27;DUNG_CU&#x27;];
 
   var PERM = {
     createPatient: [&#x27;BS&#x27;, &#x27;KS&#x27;, &#x27;KTV&#x27;, &#x27;DD&#x27;, &#x27;ADMIN&#x27;],
@@ -3469,11 +3502,16 @@ var RT = (function () {
       var t = target(ctx, a.id);
       need(t.x, [&#x27;MO_PHONG&#x27;]);
       var nguoi = staffList(ctx, a.nguoi_mo_phong);
-      if (!nguoi.length) fail(&#x27;Chọn người mô phỏng (1 hoặc 2 người).&#x27;);
+      if (!nguoi.length) fail(&#x27;Chọn KTV mô phỏng (1 hoặc 2 người).&#x27;);
       if (nguoi.length &gt; 2) fail(&#x27;Chọn tối đa 2 người mô phỏng.&#x27;);
+      nguoi.forEach(function (e) { if (!ctx.users.some(function (u) { return u.email === e &amp;&amp; u.vai_tro === &#x27;KTV&#x27;; })) fail(userName(ctx, e) + &#x27; không phải KTV.&#x27;); });
+      var mn = String(a.mat_na || &#x27;Không&#x27;).trim();
+      if (mn !== &#x27;Không&#x27; &amp;&amp; (ctx.dm.MAT_NA || DEFAULT_DM.MAT_NA).indexOf(mn) &lt; 0) fail(&#x27;Loại mặt nạ không có trong danh mục.&#x27;);
+      var dc = (Array.isArray(a.dung_cu) ? a.dung_cu : String(a.dung_cu || &#x27;&#x27;).split(/,\s*/)).map(function (x) { return String(x).trim(); }).filter(Boolean);
+      if (a.dung_cu_khac &amp;&amp; String(a.dung_cu_khac).trim()) dc.push(&#x27;Khác: &#x27; + String(a.dung_cu_khac).trim().replace(/,/g, &#x27;;&#x27;));
       t.x.trang_thai = &#x27;CONTOUR&#x27;; t.x.ngay_mo_phong = ctx.today;
-      t.x.nguoi_mo_phong = nguoi.join(&#x27;, &#x27;); t.x.mat_na = a.mat_na ? &#x27;Có&#x27; : &#x27;Không&#x27;; t.x.tiem_thuoc = a.tiem_thuoc ? &#x27;Có&#x27; : &#x27;Không&#x27;;
-      saveT(ctx, t, t.g ? &#x27;Mô phỏng lại xong&#x27; : &#x27;Mô phỏng xong&#x27;, nguoi.map(function (e) { return userName(ctx, e); }).join(&#x27;, &#x27;) + (a.mat_na ? &#x27; · mặt nạ&#x27; : &#x27;&#x27;) + (a.tiem_thuoc ? &#x27; · tiêm thuốc&#x27; : &#x27;&#x27;));
+      t.x.nguoi_mo_phong = nguoi.join(&#x27;, &#x27;); t.x.mat_na = mn; t.x.tiem_thuoc = a.tiem_thuoc === true || a.tiem_thuoc === &#x27;Có&#x27; ? &#x27;Có&#x27; : &#x27;Không&#x27;; t.x.dung_cu = dc.join(&#x27;, &#x27;);
+      saveT(ctx, t, t.g ? &#x27;Mô phỏng lại xong&#x27; : &#x27;Mô phỏng xong&#x27;, nguoi.map(function (e) { return userName(ctx, e); }).join(&#x27;, &#x27;) + &#x27; · mặt nạ: &#x27; + mn + &#x27; · tiêm thuốc: &#x27; + t.x.tiem_thuoc + (dc.length ? &#x27; · &#x27; + dc.join(&#x27;, &#x27;) : &#x27;&#x27;));
       ctx.phases.forEach(function (g) {
         if (!t.g &amp;&amp; g.bn_id === t.p.id &amp;&amp; g.di_cung === &#x27;Có&#x27; &amp;&amp; g.trang_thai === &#x27;MO_PHONG&#x27;) {
           g.trang_thai = &#x27;CONTOUR&#x27;; g.ngay_mo_phong = ctx.today; saveT(ctx, { g: g, p: t.p, x: g }, &#x27;Mô phỏng xong&#x27;, &#x27;cùng GĐ1&#x27;);
@@ -3935,18 +3973,20 @@ var RT = (function () {
       if (!inR(x.ngay_mo_phong) || x.trang_thai === &#x27;MO_PHONG&#x27;) return;
       var a = age(p);
       mp.push({ id: p.id, ngay: x.ngay_mo_phong, ho_ten: p.ho_ten, nam: a.nam, nu: a.nu || a.khac, ma_his: p.ma_his, chan_doan: p.chan_doan + (boost ? &#x27; (boost)&#x27; : &#x27;&#x27;), icd: p.icd,
-        mat_na: x.mat_na === &#x27;Có&#x27;, tiem: x.tiem_thuoc === &#x27;Có&#x27;, bs: shortName(users, p.bs_email), may: p.may || &#x27;&#x27;, ngay_xa: p.ngay_bat_dau || p.ngay_du_kien || &#x27;&#x27;,
+        mat_na: !!x.mat_na &amp;&amp; x.mat_na !== &#x27;Không&#x27;, mat_na_loai: x.mat_na &amp;&amp; x.mat_na !== &#x27;Có&#x27; ? x.mat_na : (x.mat_na === &#x27;Có&#x27; ? &#x27;Có (chưa ghi loại)&#x27; : &#x27;Không&#x27;),
+        tiem: x.tiem_thuoc === &#x27;Có&#x27;, dung_cu: String(x.dung_cu || &#x27;&#x27;).split(/,\s*/).filter(Boolean), muc_dich: p.muc_dich || &#x27;&#x27;,
+        bs: shortName(users, p.bs_email), ngay_xa: p.ngay_bat_dau || p.ngay_du_kien || &#x27;&#x27;,
         ky_thuat: x.ky_thuat || p.ky_thuat || &#x27;&#x27;, nguoi: String(x.nguoi_mo_phong || &#x27;&#x27;).split(/,\s*/).filter(Boolean).map(function (e) { return shortName(users, e); }).join(&#x27;, &#x27;) });
     };
     Object.keys(P).forEach(function (id) { var p = P[id]; if (p.nguoi_mo_phong || p.mat_na) addMp(p, p, false); });
     (data.phases || []).forEach(function (g) { var p = P[g.bn_id]; if (p &amp;&amp; g.trang_thai !== &#x27;HUY&#x27; &amp;&amp; (g.nguoi_mo_phong || g.mat_na)) addMp(p, g, true); });
     mp.sort(function (a, b) { return a.ngay &lt; b.ngay ? -1 : a.ngay &gt; b.ngay ? 1 : a.ho_ten.localeCompare(b.ho_ten, &#x27;vi&#x27;); });
     // Bảng xạ trị
-    var gia = priceOf(dm, &#x27;buoi&#x27;, 21000), giaSetup = priceOf(dm, &#x27;setup&#x27;, 37500);
+    var gia = priceOf(dm, &#x27;buoi&#x27;, 21000);
     var techOf = function (fx) { var p = P[fx.bn_id], g = fx.gd &amp;&amp; fx.gd !== &#x27;1&#x27; ? G[fx.bn_id + &#x27;|&#x27; + fx.gd] : null; return (g ? g.ky_thuat : p.ky_thuat) || &#x27;&#x27;; };
-    var grpOf = function (k) { return /IMRT|VMAT/i.test(k) ? &#x27;IMRT/VMAT&#x27; : &#x27;3D&#x27;; };
+    var grpOf = function (k) { return /IMRT|VMAT/i.test(k) ? &#x27;IMRT&#x27; : &#x27;3D&#x27;; };
     var fx = data.fractions.filter(function (x) { return x.da_huy !== &#x27;Có&#x27; &amp;&amp; inR(x.ngay) &amp;&amp; P[x.bn_id]; }).sort(function (a, b) { return a.ngay &lt; b.ngay ? -1 : 1; });
-    var months = {}, ktvCount = {}, bsCount = {}, tong = { so_buoi: 0, tien: 0, setup: 0, theo_nhom: {} };
+    var months = {}, ktvCount = {}, bsCount = {}, tong = { so_buoi: 0, tien: 0, theo_nhom: {} };
     fx.forEach(function (x) {
       var p = P[x.bn_id], k = techOf(x), grp = grpOf(k), m = x.ngay.slice(0, 7);
       var M = months[m] = months[m] || { thang: m, nhom: {} };
@@ -3955,7 +3995,7 @@ var RT = (function () {
       if (!T.rows[key]) {
         var a = age(p);
         T.rows[key] = { id: p.id, ho_ten: p.ho_ten, nam: a.nam, nu: a.nu || a.khac, ma_his: p.ma_his, chan_doan: p.chan_doan, icd: p.icd, bs: shortName(users, p.bs_email),
-          ks: p.ks_email ? &#x27;x&#x27; : &#x27;&#x27;, kt: /VMAT/i.test(k) ? &#x27;VM&#x27; : /IMRT/i.test(k) ? &#x27;dMLC&#x27; : &#x27;&#x27;, o: {}, so_buoi: 0, setup: 0, thanh_tien: 0 };
+          o: {}, so_buoi: 0, thanh_tien: 0 };
         T.order.push(key);
       }
       var r = T.rows[key];
@@ -3963,7 +4003,6 @@ var RT = (function () {
       var day = String(+x.ngay.slice(8));
       r.o[day] = (r.o[day] ? r.o[day] + &#x27;/&#x27; : &#x27;&#x27;) + ktvs.map(function (e) { return initials(users, e); }).join(&#x27;/&#x27;);
       r.so_buoi++;
-      if (x.buoi_so === &#x27;1&#x27;) r.setup = 1;
       ktvs.forEach(function (e) { ktvCount[e] = (ktvCount[e] || 0) + 1; });
       bsCount[p.bs_email] = (bsCount[p.bs_email] || 0) + 1;
       tong.so_buoi++; tong.theo_nhom[grp] = (tong.theo_nhom[grp] || 0) + 1;
@@ -3972,17 +4011,17 @@ var RT = (function () {
       var M = months[m];
       var first = m + &#x27;-01&#x27; &lt; tu ? tu : m + &#x27;-01&#x27;, lastDay = addDays(addDays(m + &#x27;-01&#x27;, 32).slice(0, 7) + &#x27;-01&#x27;, -1), last = lastDay &gt; den ? den : lastDay;
       var days = []; for (var d = first; d &lt;= last; d = addDays(d, 1)) days.push(String(+d.slice(8)));
-      return { thang: m, ngay: days, nhom: [&#x27;3D&#x27;, &#x27;IMRT/VMAT&#x27;].filter(function (g) { return M.nhom[g]; }).map(function (g) {
-        var T = M.nhom[g], rows = T.order.map(function (k) { var r = T.rows[k]; r.thanh_tien = r.so_buoi * gia + r.setup * giaSetup; tong.tien += r.thanh_tien; tong.setup += r.setup; return r; });
-        return { ten: g, rows: rows, so_buoi: rows.reduce(function (s, r) { return s + r.so_buoi; }, 0), setup: rows.reduce(function (s, r) { return s + r.setup; }, 0), thanh_tien: rows.reduce(function (s, r) { return s + r.thanh_tien; }, 0) };
+      return { thang: m, ngay: days, nhom: [&#x27;3D&#x27;, &#x27;IMRT&#x27;].filter(function (g) { return M.nhom[g]; }).map(function (g) {
+        var T = M.nhom[g], rows = T.order.map(function (k) { var r = T.rows[k]; r.thanh_tien = r.so_buoi * gia; tong.tien += r.thanh_tien; return r; });
+        return { ten: g, rows: rows, so_buoi: rows.reduce(function (s, r) { return s + r.so_buoi; }, 0), thanh_tien: rows.reduce(function (s, r) { return s + r.thanh_tien; }, 0) };
       }) };
     });
     var bnXa = {}; fx.forEach(function (x) { bnXa[x.bn_id] = 1; });
     return {
-      tu: tu, den: den, khoa: khoa, don_gia: gia, gia_setup: giaSetup, ky_ten: (dm.KY_TEN || DEFAULT_DM.KY_TEN).slice(),
+      tu: tu, den: den, khoa: khoa, don_gia: gia, ky_ten: (dm.KY_TEN || DEFAULT_DM.KY_TEN).slice(),
       mo_phong: mp, thang: thang,
       tong: { mo_phong: mp.length, mat_na: mp.filter(function (x) { return x.mat_na; }).length, tiem: mp.filter(function (x) { return x.tiem; }).length,
-        bn_xa: Object.keys(bnXa).length, so_buoi: tong.so_buoi, theo_nhom: tong.theo_nhom, setup: tong.setup, thanh_tien: tong.tien,
+        bn_xa: Object.keys(bnXa).length, so_buoi: tong.so_buoi, theo_nhom: tong.theo_nhom, thanh_tien: tong.tien,
         theo_ktv: Object.keys(ktvCount).map(function (e) { return { ten: shortName(users, e), ky_hieu: initials(users, e), so_buoi: ktvCount[e] }; }).sort(function (a, b) { return b.so_buoi - a.so_buoi; }),
         theo_bs: Object.keys(bsCount).map(function (e) { return { ten: shortName(users, e), so_buoi: bsCount[e] }; }).sort(function (a, b) { return b.so_buoi - a.so_buoi; }),
         mp_theo_bs: (function () { var o = {}; mp.forEach(function (x) { o[x.bs] = (o[x.bs] || 0) + 1; }); return Object.keys(o).map(function (k) { return { ten: k, so: o[k] }; }).sort(function (a, b) { return b.so - a.so; }); })() }
@@ -4165,10 +4204,16 @@ var RT = (function () {
       if (f.khoa &amp;&amp; p.khoa !== f.khoa) return false;
       if (f.muc_dich &amp;&amp; p.muc_dich !== f.muc_dich) return false;
       if (f.trang_thai &amp;&amp; p.trang_thai !== f.trang_thai) return false;
+      var mn = p.mat_na &amp;&amp; p.mat_na !== &#x27;Không&#x27; ? p.mat_na : &#x27;&#x27;;
+      if (f.mat_na === &#x27;co&#x27; &amp;&amp; !mn) return false;
+      if (f.mat_na === &#x27;khong&#x27; &amp;&amp; mn) return false;
+      if (f.mat_na &amp;&amp; f.mat_na !== &#x27;co&#x27; &amp;&amp; f.mat_na !== &#x27;khong&#x27; &amp;&amp; mn !== f.mat_na) return false;
+      if (f.tiem_thuoc &amp;&amp; (p.tiem_thuoc || &#x27;Không&#x27;) !== f.tiem_thuoc) return false;
+      if (f.dung_cu &amp;&amp; !String(p.dung_cu || &#x27;&#x27;).split(/,\s*/).some(function (x) { return f.dung_cu === &#x27;Khác&#x27; ? /^Khác/.test(x) : x === f.dung_cu; })) return false;
       return true;
     }).map(function (p) {
       return { id: p.id, ma_his: p.ma_his, ho_ten: p.ho_ten, nam_sinh: p.nam_sinh, gioi: p.gioi, icd: p.icd, chan_doan: p.chan_doan, vi_tri: p.vi_tri,
-        ky_thuat: p.ky_thuat, tong_lieu: p.tong_lieu, so_buoi: p.so_buoi, muc_dich: p.muc_dich, bs_email: p.bs_email, bs: name[p.bs_email] || p.bs_email, khoa: p.khoa,
+        ky_thuat: p.ky_thuat, tong_lieu: p.tong_lieu, so_buoi: p.so_buoi, muc_dich: p.muc_dich, bs_email: p.bs_email, bs: name[p.bs_email] || p.bs_email, khoa: p.khoa, mat_na: p.mat_na || &#x27;&#x27;, tiem_thuoc: p.tiem_thuoc || &#x27;&#x27;, dung_cu: p.dung_cu || &#x27;&#x27;,
         trang_thai: p.trang_thai, ngay_tao: p.ngay_tao, ngay_bat_dau: p.ngay_bat_dau, ngay_ket_thuc: p.ngay_ket_thuc, luot_trong_ky: cnt[p.id] || 0, luu_tru: p._luu ? &#x27;Có&#x27; : &#x27;&#x27; };
     }).sort(function (a, b) { return (a.ngay_bat_dau || a.ngay_tao || &#x27;9&#x27;) &lt; (b.ngay_bat_dau || b.ngay_tao || &#x27;9&#x27;) ? -1 : 1; });
     var luot = rows.reduce(function (s, r) { return s + r.luot_trong_ky; }, 0);
@@ -4844,7 +4889,8 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
 
   // ---------- Trang chủ BS / ĐD ----------
   var HOME_GROUPS = [
-    { id: &#x27;contour&#x27;, label: &#x27;Đang contour&#x27;, st: [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;], color: &#x27;var(--bs)&#x27;, items: true },
+    { id: &#x27;sim&#x27;, label: &#x27;Chờ mô phỏng&#x27;, st: [&#x27;MO_PHONG&#x27;], color: &#x27;var(--warn)&#x27;, items: true },
+    { id: &#x27;contour&#x27;, label: &#x27;Đang contour&#x27;, st: [&#x27;CONTOUR&#x27;], color: &#x27;var(--bs)&#x27;, items: true },
     { id: &#x27;ks&#x27;, label: &#x27;Kỹ sư đang lập KH&#x27;, st: [&#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;], color: &#x27;var(--ks)&#x27;, items: true },
     { id: &#x27;qa&#x27;, label: &#x27;Chờ QA&#x27;, st: [&#x27;CHO_QA&#x27;], color: &#x27;var(--warn)&#x27;, items: true },
     { id: &#x27;wait&#x27;, label: &#x27;Chờ vào xạ&#x27;, st: [&#x27;CHO_XA&#x27;], color: &#x27;var(--accent)&#x27; },
@@ -4910,6 +4956,9 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
         (can(&#x27;simDone&#x27;) ? btn(&#x27;simDone&#x27;, p.id, &#x27;Đã mô phỏng xong&#x27;) : &#x27;&#x27;);
       return (boostFlag(p) ? boostFlag(p) + &#x27; &#x27; : &#x27;&#x27;) + (can(&#x27;contourDone&#x27;) &amp;&amp; (RT.myDoctors(me()).indexOf(p.bs_email) &gt;= 0 || role() === &#x27;ADMIN&#x27;) ? btn(&#x27;contourDone&#x27;, p.id, &#x27;Contour xong&#x27;, &#x27;primary&#x27;) : &#x27;&#x27;);
     } };
+    html += group(&#x27;sim&#x27;, &#x27;Chờ mô phỏng&#x27;, g.sim, [C.pt, C.dx, C.rx, C.pr,
+      { h: &#x27;Nhập lúc&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { return &#x27;&lt;span class=&quot;num&quot;&gt;&#x27; + fd(p.ngay_tao) + &#x27;&lt;/span&gt;&lt;span class=&quot;sub&quot;&gt;&#x27; + daysSince(p.ngay_tao) + &#x27; ngày&#x27; + (p.nguoi_nhap &amp;&amp; p.nguoi_nhap !== p.bs_email ? &#x27; · &#x27; + esc(nameOf(p.nguoi_nhap)) : &#x27;&#x27;) + &#x27;&lt;/span&gt;&#x27;; } },
+      scope === &#x27;all&#x27; ? C.bs : null, contourActs].filter(Boolean), null, &#x27;Không có bệnh nhân chờ mô phỏng.&#x27;);
     html += group(&#x27;contour&#x27;, &#x27;Đang contour&#x27;, g.contour, [C.pt, C.dx, C.rx, C.pr,
       { h: &#x27;Từ ngày&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { return &#x27;&lt;span class=&quot;num&quot;&gt;&#x27; + fd(p.ngay_tao) + &#x27;&lt;/span&gt;&lt;span class=&quot;sub&quot;&gt;&#x27; + daysSince(p.ngay_tao) + &#x27; ngày&lt;/span&gt;&#x27;; } },
       scope === &#x27;all&#x27; ? C.bs : null, contourActs].filter(Boolean), null, &#x27;Không có bệnh nhân đang chờ contour.&#x27;);
@@ -5171,12 +5220,13 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     if (noDate &amp;&amp; !mine) html += &#x27;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;empty&quot;&gt;Có &lt;b&gt;&#x27; + noDate + &#x27;&lt;/b&gt; bệnh nhân chờ vào xạ chưa được xếp lịch. &lt;button class=&quot;btn sm&quot; data-txsub=&quot;sched&quot;&gt;Mở “Chờ xếp lịch”&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;&#x27;;
     var mineExtra = &#x27;&#x27;;
     if (mine) {
-      var sim = items().filter(function (p) { return p.trang_thai === &#x27;MO_PHONG&#x27; &amp;&amp; p.ngay_mo_phong &amp;&amp; p.ngay_mo_phong &lt;= t; }).sort(function (a, b) { return a.ngay_mo_phong &lt; b.ngay_mo_phong ? -1 : 1; });
+      var simKey = function (p) { return !p.ngay_mo_phong ? &#x27;5&#x27; : p.ngay_mo_phong &lt;= t ? &#x27;0&#x27; + p.ngay_mo_phong : &#x27;9&#x27; + p.ngay_mo_phong; };
+      var sim = items().filter(function (p) { return p.trang_thai === &#x27;MO_PHONG&#x27;; }).sort(function (a, b) { return simKey(a) &lt; simKey(b) ? -1 : 1; });
       var noSched = pts().filter(function (p) { return p.trang_thai === &#x27;CHO_XA&#x27; &amp;&amp; !p.ngay_du_kien; });
-      mineExtra += group(&#x27;simt&#x27;, &#x27;Mô phỏng hôm nay&#x27;, sim, [C.pt,
-        { h: &#x27;Hẹn&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { return &#x27;&lt;span class=&quot;num&quot;&gt;&#x27; + fdw(p.ngay_mo_phong) + &#x27;&lt;/span&gt;&#x27; + (p.ngay_mo_phong &lt; t ? &#x27;&lt;span class=&quot;sub&quot; style=&quot;color:var(--warn)&quot;&gt;quá hẹn &#x27; + RT.diffDays(p.ngay_mo_phong, t) + &#x27; ngày&lt;/span&gt;&#x27; : &#x27;&#x27;); } },
+      mineExtra += group(&#x27;simt&#x27;, &#x27;Chờ mô phỏng&#x27;, sim, [C.pt,
+        { h: &#x27;Hẹn&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { if (!p.ngay_mo_phong) return &#x27;&lt;span class=&quot;muted&quot;&gt;Chưa hẹn&lt;/span&gt;&#x27;; return &#x27;&lt;span class=&quot;num&quot;&gt;&#x27; + fdw(p.ngay_mo_phong) + &#x27;&lt;/span&gt;&#x27; + (p.ngay_mo_phong &lt; t ? &#x27;&lt;span class=&quot;sub&quot; style=&quot;color:var(--warn)&quot;&gt;quá hẹn &#x27; + RT.diffDays(p.ngay_mo_phong, t) + &#x27; ngày&lt;/span&gt;&#x27; : &#x27;&#x27;); } },
         C.dx, C.bs, { h: &#x27;&#x27;, cls: &#x27;act&#x27;, v: function (p) { return can(&#x27;simDone&#x27;) ? btn(&#x27;simDone&#x27;, p.id, &#x27;Đã mô phỏng xong&#x27;, &#x27;primary&#x27;) : &#x27;&#x27;; } }],
-        &#x27;&lt;button class=&quot;btn sm&quot; data-gotab=&quot;sim&quot;&gt;Xem tất cả lịch mô phỏng&lt;/button&gt;&#x27;, &#x27;Không có BN hẹn mô phỏng hôm nay.&#x27;);
+        &#x27;&lt;button class=&quot;btn sm&quot; data-gotab=&quot;sim&quot;&gt;Xem tất cả lịch mô phỏng&lt;/button&gt;&#x27;, &#x27;Không có BN chờ mô phỏng.&#x27;);
       mineExtra += group(&#x27;wait&#x27;, &#x27;Chờ vào xạ, chưa xếp lịch&#x27;, noSched, [C.pt, C.rx, C.bs,
         { h: &#x27;QA&#x27;, v: function (p) { return p.qa_ket_qua === &#x27;Đạt&#x27; ? &#x27;&lt;span class=&quot;flag ok&quot;&gt;Đạt&lt;/span&gt;&#x27; : &#x27;&lt;span class=&quot;muted&quot;&gt;&#x27; + esc(p.qa_ket_qua || &#x27;—&#x27;) + &#x27;&lt;/span&gt;&#x27;; } },
         { h: &#x27;&#x27;, cls: &#x27;act&#x27;, v: function (p) { return can(&#x27;schedule&#x27;) ? btn(&#x27;schedule&#x27;, p.id, &#x27;Xếp lịch&#x27;, &#x27;primary&#x27;) : &#x27;&#x27;; } }], null, &#x27;Không có BN chờ xếp lịch.&#x27;);
@@ -5612,27 +5662,37 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
       Object.keys(t.theo_nhom).map(function (k) { return tile(t.theo_nhom[k], &#x27;Buổi &#x27; + k); }).join(&#x27;&#x27;) + tile(money(t.thanh_tien), &#x27;Thành tiền (đ)&#x27;) + &#x27;&lt;/div&gt;&#x27;;
     html += &#x27;&lt;div class=&quot;seg&quot; role=&quot;group&quot; aria-label=&quot;Phần báo cáo&quot; style=&quot;margin:12px 0&quot;&gt;&#x27; + [[&#x27;xa&#x27;, &#x27;Bảng xạ trị&#x27;], [&#x27;mo_phong&#x27;, &#x27;Sổ mô phỏng&#x27;], [&#x27;tong&#x27;, &#x27;Tổng hợp&#x27;]].map(function (x) { return &#x27;&lt;button data-kxem=&quot;&#x27; + x[0] + &#x27;&quot; aria-pressed=&quot;&#x27; + (K.xem === x[0]) + &#x27;&quot;&gt;&#x27; + x[1] + &#x27;&lt;/button&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;/div&gt;&#x27;;
     if (K.xem === &#x27;mo_phong&#x27;) {
-      return html + &#x27;&lt;section class=&quot;group&quot;&gt;&lt;div class=&quot;group-head&quot;&gt;&lt;h2&gt;Sổ mô phỏng CT&lt;/h2&gt;&lt;span class=&quot;count&quot;&gt;&#x27; + r.mo_phong.length + &#x27;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;tbl-wrap&quot;&gt;&lt;table class=&quot;rpt&quot;&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Ngày&lt;/th&gt;&lt;th&gt;Họ tên BN&lt;/th&gt;&lt;th&gt;Nam&lt;/th&gt;&lt;th&gt;Nữ&lt;/th&gt;&lt;th&gt;Số BA&lt;/th&gt;&lt;th&gt;Ngày xạ ĐT&lt;/th&gt;&lt;th&gt;Chẩn đoán&lt;/th&gt;&lt;th&gt;Mặt nạ&lt;/th&gt;&lt;th&gt;Tiêm thuốc&lt;/th&gt;&lt;th&gt;Không tiêm&lt;/th&gt;&lt;th&gt;Bác sỹ&lt;/th&gt;&lt;th&gt;Máy&lt;/th&gt;&lt;th&gt;Kỹ thuật&lt;/th&gt;&lt;th&gt;Người mô phỏng&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&#x27; +
-        (r.mo_phong.length ? r.mo_phong.map(function (x) { return &#x27;&lt;tr class=&quot;click&quot; data-openp=&quot;&#x27; + esc(x.id) + &#x27;&quot;&gt;&lt;td class=&quot;nowrap&quot;&gt;&#x27; + fd(x.ngay) + &#x27;&lt;/td&gt;&lt;td&gt;&lt;b&gt;&#x27; + esc(x.ho_ten) + &#x27;&lt;/b&gt;&lt;/td&gt;&lt;td&gt;&#x27; + esc(x.nam) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + esc(x.nu) + &#x27;&lt;/td&gt;&lt;td class=&quot;mono&quot;&gt;&#x27; + esc(x.ma_his) + &#x27;&lt;/td&gt;&lt;td class=&quot;nowrap&quot;&gt;&#x27; + fd(x.ngay_xa) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + esc(x.chan_doan) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + (x.mat_na ? &#x27;x&#x27; : &#x27;&#x27;) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + (x.tiem ? &#x27;x&#x27; : &#x27;&#x27;) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + (x.tiem ? &#x27;&#x27; : &#x27;x&#x27;) + &#x27;&lt;/td&gt;&lt;td class=&quot;nowrap&quot;&gt;&#x27; + esc(x.bs) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + esc(x.may) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + esc(x.ky_thuat) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + esc(x.nguoi) + &#x27;&lt;/td&gt;&lt;/tr&gt;&#x27;; }).join(&#x27;&#x27;)
-          : &#x27;&lt;tr&gt;&lt;td colspan=&quot;14&quot; class=&quot;muted&quot;&gt;Không có BN mô phỏng trong kỳ.&lt;/td&gt;&lt;/tr&gt;&#x27;) + &#x27;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;&lt;/div&gt;&lt;/section&gt;&#x27;;
+      return html + &#x27;&lt;section class=&quot;group&quot;&gt;&lt;div class=&quot;group-head&quot;&gt;&lt;h2&gt;Sổ mô phỏng CT&lt;/h2&gt;&lt;span class=&quot;count&quot;&gt;&#x27; + r.mo_phong.length + &#x27;&lt;/span&gt;&lt;span class=&quot;hint&quot;&gt;Theo mẫu sổ của khoa. Thống kê theo mặt nạ, tiêm thuốc, dụng cụ… ở mục “Tổng hợp”.&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;tbl-wrap&quot;&gt;&lt;table class=&quot;rpt&quot;&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Ngày&lt;/th&gt;&lt;th&gt;Họ tên BN&lt;/th&gt;&lt;th&gt;Nam&lt;/th&gt;&lt;th&gt;Nữ&lt;/th&gt;&lt;th&gt;Số BA&lt;/th&gt;&lt;th&gt;Chẩn đoán&lt;/th&gt;&lt;th&gt;Bác sỹ&lt;/th&gt;&lt;th&gt;Mặt nạ&lt;/th&gt;&lt;th&gt;Ngày xạ ĐT&lt;/th&gt;&lt;th&gt;Kỹ thuật xạ&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&#x27; +
+        (r.mo_phong.length ? r.mo_phong.map(function (x) { return &#x27;&lt;tr class=&quot;click&quot; data-openp=&quot;&#x27; + esc(x.id) + &#x27;&quot;&gt;&lt;td class=&quot;nowrap&quot;&gt;&#x27; + fd(x.ngay) + &#x27;&lt;/td&gt;&lt;td&gt;&lt;b&gt;&#x27; + esc(x.ho_ten) + &#x27;&lt;/b&gt;&lt;/td&gt;&lt;td&gt;&#x27; + esc(x.nam) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + esc(x.nu) + &#x27;&lt;/td&gt;&lt;td class=&quot;mono&quot;&gt;&#x27; + esc(x.ma_his) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + esc(x.chan_doan) + &#x27;&lt;/td&gt;&lt;td class=&quot;nowrap&quot;&gt;&#x27; + esc(x.bs) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + (x.mat_na ? &#x27;x&#x27; : &#x27;&#x27;) + &#x27;&lt;/td&gt;&lt;td class=&quot;nowrap&quot;&gt;&#x27; + fd(x.ngay_xa) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + esc(x.ky_thuat) + &#x27;&lt;/td&gt;&lt;/tr&gt;&#x27;; }).join(&#x27;&#x27;)
+          : &#x27;&lt;tr&gt;&lt;td colspan=&quot;10&quot; class=&quot;muted&quot;&gt;Không có BN mô phỏng trong kỳ.&lt;/td&gt;&lt;/tr&gt;&#x27;) + &#x27;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;&lt;/div&gt;&lt;/section&gt;&#x27;;
     }
     if (K.xem === &#x27;tong&#x27;) {
       var lt = function (title, list, a, b) { return &#x27;&lt;section class=&quot;group&quot;&gt;&lt;div class=&quot;group-head&quot;&gt;&lt;h2&gt;&#x27; + title + &#x27;&lt;/h2&gt;&lt;/div&gt;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;tbl-wrap&quot;&gt;&lt;table&gt;&lt;tbody&gt;&#x27; + (list.length ? list.map(function (x) { return &#x27;&lt;tr&gt;&lt;td&gt;&#x27; + esc(x[a]) + &#x27;&lt;/td&gt;&lt;td class=&quot;num&quot;&gt;&#x27; + x[b] + &#x27;&lt;/td&gt;&lt;/tr&gt;&#x27;; }).join(&#x27;&#x27;) : &#x27;&lt;tr&gt;&lt;td class=&quot;muted&quot;&gt;Không có.&lt;/td&gt;&lt;/tr&gt;&#x27;) + &#x27;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;&lt;/div&gt;&lt;/section&gt;&#x27;; };
-      return html + &#x27;&lt;div class=&quot;admin-grid&quot;&gt;&#x27; + lt(&#x27;Theo KTV (số buổi tham gia xạ)&#x27;, t.theo_ktv.map(function (x) { return { a: x.ten + &#x27; (&#x27; + x.ky_hieu + &#x27;)&#x27;, b: x.so_buoi }; }), &#x27;a&#x27;, &#x27;b&#x27;) +
-        lt(&#x27;Theo bác sĩ (số buổi xạ)&#x27;, t.theo_bs, &#x27;ten&#x27;, &#x27;so_buoi&#x27;) + lt(&#x27;Mô phỏng theo bác sĩ&#x27;, t.mp_theo_bs, &#x27;ten&#x27;, &#x27;so&#x27;) + &#x27;&lt;/div&gt;&#x27; +
-        &#x27;&lt;p class=&quot;muted&quot;&gt;Đơn giá: &#x27; + money(r.don_gia) + &#x27; đ/buổi · setup &#x27; + money(r.gia_setup) + &#x27; đ (một lần ở buổi xạ đầu của đợt) · &#x27; + t.setup + &#x27; setup.&lt;/p&gt;&#x27;;
+      var mpBox = function (title, key) {
+        var o = {}; r.mo_phong.forEach(function (x, i) { [].concat(key(x)).forEach(function (k) { if (k) (o[k] = o[k] || []).push(i); }); });
+        var ks = Object.keys(o).sort(function (a, b) { return o[b].length - o[a].length; });
+        return &#x27;&lt;section class=&quot;group&quot;&gt;&lt;div class=&quot;group-head&quot;&gt;&lt;h2&gt;&#x27; + title + &#x27;&lt;/h2&gt;&lt;/div&gt;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;tbl-wrap&quot;&gt;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;&lt;/th&gt;&lt;th class=&quot;num&quot;&gt;Số BN&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&#x27; +
+          (ks.length ? ks.map(function (k) { return &#x27;&lt;tr class=&quot;click&quot; data-mpl=&quot;&#x27; + esc(o[k].join(&#x27;,&#x27;)) + &#x27;&quot; data-mpt=&quot;&#x27; + esc(title + &#x27;: &#x27; + k) + &#x27;&quot;&gt;&lt;td&gt;&#x27; + esc(k) + &#x27;&lt;/td&gt;&lt;td class=&quot;num&quot;&gt;&#x27; + o[k].length + &#x27;&lt;/td&gt;&lt;/tr&gt;&#x27;; }).join(&#x27;&#x27;) : &#x27;&lt;tr&gt;&lt;td class=&quot;muted&quot; colspan=&quot;2&quot;&gt;Không có.&lt;/td&gt;&lt;/tr&gt;&#x27;) + &#x27;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;&lt;/div&gt;&lt;/section&gt;&#x27;;
+      };
+      return html + &#x27;&lt;h2 class=&quot;h1-sub&quot; style=&quot;margin:8px 0&quot;&gt;Mô phỏng: &#x27; + r.mo_phong.length + &#x27; BN &lt;span class=&quot;muted&quot; style=&quot;font-size:14px;font-weight:500&quot;&gt;· bấm một dòng để xem danh sách&lt;/span&gt;&lt;/h2&gt;&lt;div class=&quot;admin-grid&quot;&gt;&#x27; +
+        mpBox(&#x27;Mặt nạ&#x27;, function (x) { return x.mat_na_loai; }) + mpBox(&#x27;Tiêm thuốc&#x27;, function (x) { return x.tiem ? &#x27;Có&#x27; : &#x27;Không&#x27;; }) +
+        mpBox(&#x27;Dụng cụ khác&#x27;, function (x) { return x.dung_cu.length ? x.dung_cu.map(function (d) { return /^Khác/.test(d) ? &#x27;Khác&#x27; : d; }) : &#x27;Không dùng&#x27;; }) +
+        mpBox(&#x27;Kỹ thuật&#x27;, function (x) { return x.ky_thuat || &#x27;(chưa ghi)&#x27;; }) + mpBox(&#x27;Mục đích&#x27;, function (x) { return x.muc_dich || &#x27;(chưa ghi)&#x27;; }) +
+        mpBox(&#x27;Bác sĩ&#x27;, function (x) { return x.bs; }) + mpBox(&#x27;KTV mô phỏng&#x27;, function (x) { return x.nguoi.split(/,\s*/); }) + &#x27;&lt;/div&gt;&#x27; +
+        &#x27;&lt;h2 class=&quot;h1-sub&quot; style=&quot;margin:8px 0&quot;&gt;Xạ trị&lt;/h2&gt;&lt;div class=&quot;admin-grid&quot;&gt;&#x27; + lt(&#x27;Theo KTV (số buổi tham gia xạ)&#x27;, t.theo_ktv.map(function (x) { return { a: x.ten + &#x27; (&#x27; + x.ky_hieu + &#x27;)&#x27;, b: x.so_buoi }; }), &#x27;a&#x27;, &#x27;b&#x27;) +
+        lt(&#x27;Theo bác sĩ (số buổi xạ)&#x27;, t.theo_bs, &#x27;ten&#x27;, &#x27;so_buoi&#x27;) + &#x27;&lt;/div&gt;&#x27; +
+        &#x27;&lt;p class=&quot;muted&quot;&gt;Đơn giá: &#x27; + money(r.don_gia) + &#x27; đ/buổi. Thành tiền = số buổi × đơn giá.&lt;/p&gt;&#x27;;
     }
     if (!r.thang.length) return html + &#x27;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;empty&quot;&gt;Không có buổi xạ trong kỳ.&lt;/div&gt;&lt;/div&gt;&#x27;;
     if (K.m &gt;= r.thang.length) K.m = 0;
     var M = r.thang[K.m];
     if (r.thang.length &gt; 1) html += &#x27;&lt;div class=&quot;seg&quot; role=&quot;group&quot; aria-label=&quot;Tháng&quot; style=&quot;margin-bottom:10px&quot;&gt;&#x27; + r.thang.map(function (x, i) { return &#x27;&lt;button data-km=&quot;&#x27; + i + &#x27;&quot; aria-pressed=&quot;&#x27; + (K.m === i) + &#x27;&quot;&gt;T&#x27; + x.thang.slice(5) + &#x27;/&#x27; + x.thang.slice(0, 4) + &#x27;&lt;/button&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;/div&gt;&#x27;;
     M.nhom.forEach(function (g) {
-      var vm = g.ten === &#x27;IMRT/VMAT&#x27;;
-      html += &#x27;&lt;section class=&quot;group&quot;&gt;&lt;div class=&quot;group-head&quot;&gt;&lt;h2&gt;&#x27; + esc(g.ten) + &#x27; · tháng &#x27; + M.thang.slice(5) + &#x27;/&#x27; + M.thang.slice(0, 4) + &#x27;&lt;/h2&gt;&lt;span class=&quot;count&quot;&gt;&#x27; + g.rows.length + &#x27; BN · &#x27; + g.so_buoi + &#x27; buổi&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;tbl-wrap&quot;&gt;&lt;table class=&quot;rpt grid&quot;&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;STT&lt;/th&gt;&lt;th&gt;Họ và tên BN&lt;/th&gt;&lt;th&gt;Nam&lt;/th&gt;&lt;th&gt;Nữ&lt;/th&gt;&lt;th&gt;Bệnh án&lt;/th&gt;&lt;th&gt;Chẩn đoán&lt;/th&gt;&lt;th&gt;BS&lt;/th&gt;&lt;th&gt;KS&lt;/th&gt;&#x27; + (vm ? &#x27;&lt;th&gt;VM&lt;/th&gt;&lt;th&gt;dMLC&lt;/th&gt;&#x27; : &#x27;&#x27;) +
-        M.ngay.map(function (d) { return &#x27;&lt;th class=&quot;d&quot;&gt;&#x27; + d + &#x27;&lt;/th&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;th class=&quot;num&quot;&gt;Số buổi&lt;/th&gt;&lt;th class=&quot;num&quot;&gt;Setup&lt;/th&gt;&lt;th class=&quot;num&quot;&gt;Thành tiền&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&#x27; +
-        g.rows.map(function (x, i) { return &#x27;&lt;tr class=&quot;click&quot; data-openp=&quot;&#x27; + esc(x.id) + &#x27;&quot;&gt;&lt;td&gt;&#x27; + (i + 1) + &#x27;&lt;/td&gt;&lt;td class=&quot;nowrap&quot;&gt;&lt;b&gt;&#x27; + esc(x.ho_ten) + &#x27;&lt;/b&gt;&lt;/td&gt;&lt;td&gt;&#x27; + esc(x.nam) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + esc(x.nu) + &#x27;&lt;/td&gt;&lt;td class=&quot;mono&quot;&gt;&#x27; + esc(x.ma_his) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + esc(x.chan_doan) + &#x27;&lt;/td&gt;&lt;td class=&quot;nowrap&quot;&gt;&#x27; + esc(x.bs) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + x.ks + &#x27;&lt;/td&gt;&#x27; + (vm ? &#x27;&lt;td&gt;&#x27; + (x.kt === &#x27;VM&#x27; ? &#x27;x&#x27; : &#x27;&#x27;) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + (x.kt === &#x27;dMLC&#x27; ? &#x27;x&#x27; : &#x27;&#x27;) + &#x27;&lt;/td&gt;&#x27; : &#x27;&#x27;) +
-          M.ngay.map(function (d) { return &#x27;&lt;td class=&quot;d&quot;&gt;&#x27; + esc(x.o[d] || &#x27;&#x27;) + &#x27;&lt;/td&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;td class=&quot;num&quot;&gt;&#x27; + x.so_buoi + &#x27;&lt;/td&gt;&lt;td class=&quot;num&quot;&gt;&#x27; + (x.setup ? money(r.gia_setup) : &#x27;&#x27;) + &#x27;&lt;/td&gt;&lt;td class=&quot;num&quot;&gt;&#x27; + money(x.thanh_tien) + &#x27;&lt;/td&gt;&lt;/tr&gt;&#x27;; }).join(&#x27;&#x27;) +
-        &#x27;&lt;tr class=&quot;total&quot;&gt;&lt;td colspan=&quot;&#x27; + (8 + (vm ? 2 : 0) + M.ngay.length) + &#x27;&quot;&gt;&lt;b&gt;Tổng cộng&lt;/b&gt;&lt;/td&gt;&lt;td class=&quot;num&quot;&gt;&lt;b&gt;&#x27; + g.so_buoi + &#x27;&lt;/b&gt;&lt;/td&gt;&lt;td class=&quot;num&quot;&gt;&lt;b&gt;&#x27; + money(g.setup * r.gia_setup) + &#x27;&lt;/b&gt;&lt;/td&gt;&lt;td class=&quot;num&quot;&gt;&lt;b&gt;&#x27; + money(g.thanh_tien) + &#x27;&lt;/b&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;&lt;/div&gt;&lt;/section&gt;&#x27;;
+      html += &#x27;&lt;section class=&quot;group&quot;&gt;&lt;div class=&quot;group-head&quot;&gt;&lt;h2&gt;&#x27; + esc(g.ten) + &#x27; · tháng &#x27; + M.thang.slice(5) + &#x27;/&#x27; + M.thang.slice(0, 4) + &#x27;&lt;/h2&gt;&lt;span class=&quot;count&quot;&gt;&#x27; + g.rows.length + &#x27; BN · &#x27; + g.so_buoi + &#x27; buổi&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;tbl-wrap&quot;&gt;&lt;table class=&quot;rpt grid&quot;&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;STT&lt;/th&gt;&lt;th&gt;Họ và tên BN&lt;/th&gt;&lt;th&gt;Nam&lt;/th&gt;&lt;th&gt;Nữ&lt;/th&gt;&lt;th&gt;Bệnh án&lt;/th&gt;&lt;th&gt;Chẩn đoán&lt;/th&gt;&lt;th&gt;BS&lt;/th&gt;&lt;th&gt;KS&lt;/th&gt;&#x27; +
+        M.ngay.map(function (d) { return &#x27;&lt;th class=&quot;d&quot;&gt;&#x27; + d + &#x27;&lt;/th&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;th class=&quot;num&quot;&gt;Thành tiền&lt;/th&gt;&lt;th class=&quot;num&quot;&gt;Đơn giá&lt;/th&gt;&lt;th class=&quot;num&quot;&gt;Số buổi&lt;/th&gt;&lt;th class=&quot;num&quot;&gt;Setup&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&#x27; +
+        g.rows.map(function (x, i) { return &#x27;&lt;tr class=&quot;click&quot; data-openp=&quot;&#x27; + esc(x.id) + &#x27;&quot;&gt;&lt;td&gt;&#x27; + (i + 1) + &#x27;&lt;/td&gt;&lt;td class=&quot;nowrap&quot;&gt;&lt;b&gt;&#x27; + esc(x.ho_ten) + &#x27;&lt;/b&gt;&lt;/td&gt;&lt;td&gt;&#x27; + esc(x.nam) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + esc(x.nu) + &#x27;&lt;/td&gt;&lt;td class=&quot;mono&quot;&gt;&#x27; + esc(x.ma_his) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + esc(x.chan_doan) + &#x27;&lt;/td&gt;&lt;td class=&quot;nowrap&quot;&gt;&#x27; + esc(x.bs) + &#x27;&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&#x27; +
+          M.ngay.map(function (d) { return &#x27;&lt;td class=&quot;d&quot;&gt;&#x27; + esc(x.o[d] || &#x27;&#x27;) + &#x27;&lt;/td&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;td class=&quot;num&quot;&gt;&#x27; + money(x.thanh_tien) + &#x27;&lt;/td&gt;&lt;td class=&quot;num&quot;&gt;&#x27; + money(r.don_gia) + &#x27;&lt;/td&gt;&lt;td class=&quot;num&quot;&gt;&#x27; + x.so_buoi + &#x27;&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;/tr&gt;&#x27;; }).join(&#x27;&#x27;) +
+        &#x27;&lt;tr class=&quot;total&quot;&gt;&lt;td colspan=&quot;&#x27; + (8 + M.ngay.length) + &#x27;&quot;&gt;&lt;b&gt;Tổng cộng&lt;/b&gt;&lt;/td&gt;&lt;td class=&quot;num&quot;&gt;&lt;b&gt;&#x27; + money(g.thanh_tien) + &#x27;&lt;/b&gt;&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td class=&quot;num&quot;&gt;&lt;b&gt;&#x27; + g.so_buoi + &#x27;&lt;/b&gt;&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;&lt;/div&gt;&lt;/section&gt;&#x27;;
     });
     return html;
   }
@@ -5642,6 +5702,15 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     $$(&#x27;#main [data-kky]&#x27;).forEach(function (b) { b.onclick = function () { K.ky = b.dataset.kky; S.krSheet = null; renderMain(); }; });
     $$(&#x27;#main [data-kxem]&#x27;).forEach(function (b) { b.onclick = function () { K.xem = b.dataset.kxem; renderMain(); }; });
     $$(&#x27;#main [data-km]&#x27;).forEach(function (b) { b.onclick = function () { K.m = +b.dataset.km; renderMain(); }; });
+    $$(&#x27;#main [data-mpl]&#x27;).forEach(function (tr) {
+      tr.onclick = function () {
+        var list = tr.dataset.mpl.split(&#x27;,&#x27;).map(function (i) { return S.krRes.mo_phong[+i]; });
+        modal({ title: tr.dataset.mpt + &#x27; (&#x27; + list.length + &#x27; BN)&#x27;, ok: &#x27;Đóng&#x27;, noCancel: true, wide: true, noFocus: true,
+          body: &#x27;&lt;div class=&quot;tbl-wrap&quot;&gt;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Ngày MP&lt;/th&gt;&lt;th&gt;Bệnh nhân&lt;/th&gt;&lt;th&gt;Chẩn đoán&lt;/th&gt;&lt;th&gt;Mặt nạ&lt;/th&gt;&lt;th&gt;Tiêm&lt;/th&gt;&lt;th&gt;Dụng cụ&lt;/th&gt;&lt;th&gt;Kỹ thuật&lt;/th&gt;&lt;th&gt;BS&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&#x27; +
+            list.map(function (x) { return &#x27;&lt;tr class=&quot;click&quot; data-openp=&quot;&#x27; + esc(x.id) + &#x27;&quot;&gt;&lt;td class=&quot;nowrap&quot;&gt;&#x27; + fd(x.ngay) + &#x27;&lt;/td&gt;&lt;td&gt;&lt;b&gt;&#x27; + esc(x.ho_ten) + &#x27;&lt;/b&gt;&lt;span class=&quot;sub mono&quot;&gt;&#x27; + esc(x.ma_his) + &#x27;&lt;/span&gt;&lt;/td&gt;&lt;td&gt;&#x27; + esc(x.chan_doan) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + esc(x.mat_na_loai) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + (x.tiem ? &#x27;Có&#x27; : &#x27;Không&#x27;) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + esc(x.dung_cu.join(&#x27;, &#x27;)) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + esc(x.ky_thuat) + &#x27;&lt;/td&gt;&lt;td class=&quot;nowrap&quot;&gt;&#x27; + esc(x.bs) + &#x27;&lt;/td&gt;&lt;/tr&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;&#x27;,
+          onMount: function (f) { $$(&#x27;[data-openp]&#x27;, f).forEach(function (b) { b.onclick = function () { closeModal(); openDetail(b.dataset.openp); }; }); }, onOk: function () {} });
+      };
+    });
     var moc = $(&#x27;#k-moc&#x27;), kh = $(&#x27;#k-khoa&#x27;);
     if (moc) moc.onchange = function () { if (moc.value) { K.moc = moc.value; S.krSheet = null; renderMain(); } };
     if (kh) kh.onchange = function () { K.khoa = kh.value; S.krSheet = null; };
@@ -5686,7 +5755,10 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
       (sc.byDoctor ? field(&#x27;Bác sĩ điều trị&#x27;, &#x27;&lt;select id=&quot;ff-bs&quot;&gt;&#x27; + opts(doctors().filter(function (u) { return sc.all || u.khoa === sc.khoa; }).map(function (u) { return { v: u.email, l: u.ho_ten }; }), f.bs_email, &#x27;Tất cả&#x27;) + &#x27;&lt;/select&gt;&#x27;) : &#x27;&#x27;) +
       (sc.all ? field(&#x27;Khoa&#x27;, &#x27;&lt;select id=&quot;ff-khoa&quot;&gt;&#x27; + opts(d.KHOA, f.khoa, &#x27;Tất cả&#x27;) + &#x27;&lt;/select&gt;&#x27;) : &#x27;&#x27;) +
       field(&#x27;Mục đích&#x27;, &#x27;&lt;select id=&quot;ff-md&quot;&gt;&#x27; + opts(d.MUC_DICH || RT.DEFAULT_DM.MUC_DICH, f.muc_dich, &#x27;Tất cả&#x27;) + &#x27;&lt;/select&gt;&#x27;) +
-      field(&#x27;Trạng thái hiện tại&#x27;, &#x27;&lt;select id=&quot;ff-tt&quot;&gt;&#x27; + opts(st, f.trang_thai, &#x27;Tất cả&#x27;) + &#x27;&lt;/select&gt;&#x27;) + &#x27;&lt;/div&gt;&#x27; +
+      field(&#x27;Trạng thái hiện tại&#x27;, &#x27;&lt;select id=&quot;ff-tt&quot;&gt;&#x27; + opts(st, f.trang_thai, &#x27;Tất cả&#x27;) + &#x27;&lt;/select&gt;&#x27;) +
+      field(&#x27;Mặt nạ&#x27;, &#x27;&lt;select id=&quot;ff-mn&quot;&gt;&#x27; + opts([{ v: &#x27;co&#x27;, l: &#x27;Có làm mặt nạ&#x27; }, { v: &#x27;khong&#x27;, l: &#x27;Không làm mặt nạ&#x27; }].concat((d.MAT_NA || RT.DEFAULT_DM.MAT_NA).map(function (x) { return { v: x, l: &#x27;Mặt nạ &#x27; + x }; })), f.mat_na, &#x27;Tất cả&#x27;) + &#x27;&lt;/select&gt;&#x27;) +
+      field(&#x27;Tiêm thuốc&#x27;, &#x27;&lt;select id=&quot;ff-tiem&quot;&gt;&#x27; + opts([&#x27;Có&#x27;, &#x27;Không&#x27;], f.tiem_thuoc, &#x27;Tất cả&#x27;) + &#x27;&lt;/select&gt;&#x27;) +
+      field(&#x27;Dụng cụ khác&#x27;, &#x27;&lt;select id=&quot;ff-dc&quot;&gt;&#x27; + opts((d.DUNG_CU || RT.DEFAULT_DM.DUNG_CU).concat([&#x27;Khác&#x27;]), f.dung_cu, &#x27;Tất cả&#x27;) + &#x27;&lt;/select&gt;&#x27;) + &#x27;&lt;/div&gt;&#x27; +
       &#x27;&lt;div style=&quot;margin-top:12px&quot;&gt;&lt;button class=&quot;btn primary&quot; data-stload=&quot;1&quot;&gt;Tìm bệnh nhân&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;&#x27;;
     var r = S.found;
     if (!r) return html + &#x27;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;empty&quot;&gt;Chọn điều kiện rồi bấm “Tìm”.&lt;/div&gt;&lt;/div&gt;&#x27;;
@@ -5706,7 +5778,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
   function readFind() {
     var f = S.ff, g = function (id) { var el = $(&#x27;#&#x27; + id); return el ? el.value.trim() : &#x27;&#x27;; };
     if (!$(&#x27;#ff-moc&#x27;)) return f;
-    f.moc = g(&#x27;ff-moc&#x27;); f.vi_tri = g(&#x27;ff-vt&#x27;); f.ky_thuat = g(&#x27;ff-kt&#x27;); f.bs_email = g(&#x27;ff-bs&#x27;); f.khoa = g(&#x27;ff-khoa&#x27;); f.muc_dich = g(&#x27;ff-md&#x27;); f.trang_thai = g(&#x27;ff-tt&#x27;);
+    f.moc = g(&#x27;ff-moc&#x27;); f.vi_tri = g(&#x27;ff-vt&#x27;); f.ky_thuat = g(&#x27;ff-kt&#x27;); f.bs_email = g(&#x27;ff-bs&#x27;); f.khoa = g(&#x27;ff-khoa&#x27;); f.muc_dich = g(&#x27;ff-md&#x27;); f.trang_thai = g(&#x27;ff-tt&#x27;); f.mat_na = g(&#x27;ff-mn&#x27;); f.tiem_thuoc = g(&#x27;ff-tiem&#x27;); f.dung_cu = g(&#x27;ff-dc&#x27;);
     var extra = RT.normIcd(g(&#x27;ff-icd&#x27;)); if (extra &amp;&amp; f.icd.indexOf(extra) &lt; 0) f.icd.push(extra);
     return f;
   }
@@ -5718,7 +5790,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
   }
   function findGo(action) {
     var f = readFind(), rg = statsRange(S.stKey);
-    var payload = asParam({ tu: rg[0], den: rg[1], pv: S.stPv || &#x27;&#x27;, moc: f.moc, icd: f.icd, vi_tri: f.vi_tri, ky_thuat: f.ky_thuat, bs_email: f.bs_email, khoa: f.khoa, muc_dich: f.muc_dich, trang_thai: f.trang_thai });
+    var payload = asParam({ tu: rg[0], den: rg[1], pv: S.stPv || &#x27;&#x27;, moc: f.moc, icd: f.icd, vi_tri: f.vi_tri, ky_thuat: f.ky_thuat, bs_email: f.bs_email, khoa: f.khoa, muc_dich: f.muc_dich, trang_thai: f.trang_thai, mat_na: f.mat_na, tiem_thuoc: f.tiem_thuoc, dung_cu: f.dung_cu });
     setBusy(1);
     call(action, payload).then(function (r) {
       S.found = r.found; if (r.sheet) { S.stSheet = r.sheet; toast(&#x27;Đã tạo trang danh sách trong Google Sheet.&#x27;); }
@@ -5868,7 +5940,9 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
       dmBox(&#x27;CHI_TIEU&#x27;, &#x27;Chỉ tiêu số BN đang xạ của khoa&#x27;, &#x27;Dạng “Tên khoa: tối thiểu-tối đa”. Thêm dòng mới cho một khoa sẽ thay dòng cũ của khoa đó. Khi khoa đủ mức tối đa, người xếp lịch được cảnh báo; đồng ý thì vẫn xếp. BN cấp cứu luôn được xếp.&#x27;, &#x27;VD: Xạ trị: 90-100&#x27;) +
       dmBox(&#x27;LIEU_HAY_DUNG&#x27;, &#x27;Tổng liều hay dùng (Gy)&#x27;, &#x27;Hiện thành nút chọn nhanh dưới ô Tổng liều. Số lẻ dùng dấu chấm.&#x27;, &#x27;VD: 45&#x27;) +
       dmBox(&#x27;SO_BUOI_HAY_DUNG&#x27;, &#x27;Số buổi hay dùng&#x27;, &#x27;Hiện thành nút chọn nhanh dưới ô Số buổi.&#x27;, &#x27;VD: 25&#x27;) +
-      dmBox(&#x27;DON_GIA&#x27;, &#x27;Đơn giá cho báo cáo khoa&#x27;, &#x27;Hai dòng: “Buổi xạ: 21000” và “Setup: 37500” (setup tính một lần ở buổi xạ đầu tiên của đợt). Thêm dòng mới sẽ thay dòng cũ cùng tên.&#x27;, &#x27;VD: Buổi xạ: 21000&#x27;) +
+      dmBox(&#x27;DON_GIA&#x27;, &#x27;Đơn giá cho báo cáo khoa&#x27;, &#x27;Dạng “Buổi xạ: 21000”. Thành tiền = số buổi × đơn giá. Thêm dòng mới sẽ thay dòng cũ.&#x27;, &#x27;VD: Buổi xạ: 21000&#x27;) +
+      dmBox(&#x27;MAT_NA&#x27;, &#x27;Loại mặt nạ&#x27;, &#x27;Hiện trong form “Đã mô phỏng xong”.&#x27;, &#x27;VD: 5 điểm&#x27;) +
+      dmBox(&#x27;DUNG_CU&#x27;, &#x27;Dụng cụ khác khi mô phỏng&#x27;, &#x27;VD: miếng bù da, nêm lưỡi. Người dùng vẫn tự ghi được loại khác.&#x27;, &#x27;VD: Nêm lưỡi&#x27;) +
       dmBox(&#x27;KY_TEN&#x27;, &#x27;Khung ký tên cuối báo cáo&#x27;, &#x27;Mỗi dòng một chức danh, có thể ghi kèm họ tên: “Trưởng khoa: Nguyễn Văn A”.&#x27;, &#x27;VD: Trưởng khoa: Nguyễn Văn A&#x27;) + &#x27;&lt;/div&gt;&lt;/section&gt;&#x27;;
     html += logSection();
     return html;
@@ -6169,10 +6243,13 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     if (!sel.length) sel = S.lastSim || (role() === &#x27;KTV&#x27; ? [me().email] : []);
     modal({ title: p._g ? &#x27;Đã mô phỏng lại xong (boost)&#x27; : &#x27;Đã mô phỏng xong&#x27;, ok: &#x27;Xác nhận&#x27;,
       body: whoBox(p) + &#x27;&lt;p class=&quot;muted&quot;&gt;Ghi nhận BN đã chụp CT mô phỏng hôm nay. BN chuyển sang bước bác sĩ contour.&lt;/p&gt;&#x27; +
-        &#x27;&lt;div class=&quot;field&quot;&gt;&lt;span class=&quot;lb&quot;&gt;Người mô phỏng (1 hoặc 2 người) &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&lt;/span&gt;&#x27; + staffChips(&#x27;nguoi_mo_phong&#x27;, list, sel) + &#x27;&lt;/div&gt;&#x27; +
-        &#x27;&lt;div class=&quot;checks&quot;&gt;&lt;label&gt;&lt;input type=&quot;checkbox&quot; name=&quot;mat_na&quot;&#x27; + (p.mat_na === &#x27;Có&#x27; ? &#x27; checked&#x27; : &#x27;&#x27;) + &#x27;&gt;&lt;span&gt;Có làm mặt nạ&lt;/span&gt;&lt;/label&gt;&lt;label&gt;&lt;input type=&quot;checkbox&quot; name=&quot;tiem_thuoc&quot;&gt;&lt;span&gt;Có tiêm thuốc cản quang&lt;/span&gt;&lt;/label&gt;&lt;/div&gt;&#x27;,
-      validate: function (v) { var n = (v.nguoi_mo_phong || []).length; return !n ? &#x27;Chọn người mô phỏng.&#x27; : n &gt; 2 ? &#x27;Chọn tối đa 2 người.&#x27; : &#x27;&#x27;; },
-      onOk: function (v) { S.lastSim = v.nguoi_mo_phong; run(&#x27;simDone&#x27;, { id: id, nguoi_mo_phong: v.nguoi_mo_phong, mat_na: !!v.mat_na, tiem_thuoc: !!v.tiem_thuoc }); } });
+        &#x27;&lt;div class=&quot;field&quot;&gt;&lt;span class=&quot;lb&quot;&gt;KTV mô phỏng (1 hoặc 2 người) &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&lt;/span&gt;&#x27; + staffChips(&#x27;nguoi_mo_phong&#x27;, list, sel) + &#x27;&lt;/div&gt;&#x27; +
+        &#x27;&lt;div class=&quot;form&quot;&gt;&#x27; + field(&#x27;Mặt nạ &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&#x27;, &#x27;&lt;select name=&quot;mat_na&quot;&gt;&#x27; + opts([{ v: &#x27;Không&#x27;, l: &#x27;Không làm mặt nạ&#x27; }].concat((S.data.dm.MAT_NA || RT.DEFAULT_DM.MAT_NA).map(function (x) { return { v: x, l: &#x27;Mặt nạ &#x27; + x }; })), &#x27;&#x27;, &#x27;Chọn…&#x27;) + &#x27;&lt;/select&gt;&#x27;) +
+        &#x27;&lt;div class=&quot;field&quot;&gt;&lt;span class=&quot;lb&quot;&gt;Tiêm thuốc cản quang &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&lt;/span&gt;&lt;div class=&quot;radios inline&quot;&gt;&lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;tiem_thuoc&quot; value=&quot;Có&quot;&gt;&lt;span&gt;&lt;b&gt;Có&lt;/b&gt;&lt;/span&gt;&lt;/label&gt;&lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;tiem_thuoc&quot; value=&quot;Không&quot;&gt;&lt;span&gt;&lt;b&gt;Không&lt;/b&gt;&lt;/span&gt;&lt;/label&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&#x27; +
+        &#x27;&lt;div class=&quot;field&quot;&gt;&lt;span class=&quot;lb&quot;&gt;Dụng cụ khác (nếu có)&lt;/span&gt;&lt;div class=&quot;checks&quot;&gt;&#x27; + (S.data.dm.DUNG_CU || RT.DEFAULT_DM.DUNG_CU).map(function (x) { return &#x27;&lt;label&gt;&lt;input type=&quot;checkbox&quot; name=&quot;dung_cu&quot; data-multi=&quot;1&quot; value=&quot;&#x27; + esc(x) + &#x27;&quot;&gt;&lt;span&gt;&#x27; + esc(x) + &#x27;&lt;/span&gt;&lt;/label&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;/div&gt;&#x27; +
+        &#x27;&lt;input type=&quot;text&quot; name=&quot;dung_cu_khac&quot; placeholder=&quot;Khác, tự ghi&quot; style=&quot;margin-top:6px&quot;&gt;&lt;/div&gt;&#x27;,
+      validate: function (v) { var n = (v.nguoi_mo_phong || []).length; if (!n) return &#x27;Chọn KTV mô phỏng.&#x27;; if (n &gt; 2) return &#x27;Chọn tối đa 2 người.&#x27;; if (!v.mat_na) return &#x27;Chọn có làm mặt nạ không.&#x27;; if (!v.tiem_thuoc) return &#x27;Chọn có tiêm thuốc không.&#x27;; return &#x27;&#x27;; },
+      onOk: function (v) { S.lastSim = v.nguoi_mo_phong; run(&#x27;simDone&#x27;, { id: id, nguoi_mo_phong: v.nguoi_mo_phong, mat_na: v.mat_na, tiem_thuoc: v.tiem_thuoc, dung_cu: v.dung_cu || [], dung_cu_khac: v.dung_cu_khac }); } });
   }
   /** KTV xạ ca này: theo bảng phân công máy của BN hôm nay (ca sáng / chiều), nếu không có thì lấy lần ghi trước */
   function defaultKtv(p) {

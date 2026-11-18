@@ -500,7 +500,8 @@
 
   // ---------- Trang chủ BS / ĐD ----------
   var HOME_GROUPS = [
-    { id: 'contour', label: 'Đang contour', st: ['MO_PHONG', 'CONTOUR'], color: 'var(--bs)', items: true },
+    { id: 'sim', label: 'Chờ mô phỏng', st: ['MO_PHONG'], color: 'var(--warn)', items: true },
+    { id: 'contour', label: 'Đang contour', st: ['CONTOUR'], color: 'var(--bs)', items: true },
     { id: 'ks', label: 'Kỹ sư đang lập KH', st: ['CHO_KH', 'DANG_KH'], color: 'var(--ks)', items: true },
     { id: 'qa', label: 'Chờ QA', st: ['CHO_QA'], color: 'var(--warn)', items: true },
     { id: 'wait', label: 'Chờ vào xạ', st: ['CHO_XA'], color: 'var(--accent)' },
@@ -566,6 +567,9 @@
         (can('simDone') ? btn('simDone', p.id, 'Đã mô phỏng xong') : '');
       return (boostFlag(p) ? boostFlag(p) + ' ' : '') + (can('contourDone') && (RT.myDoctors(me()).indexOf(p.bs_email) >= 0 || role() === 'ADMIN') ? btn('contourDone', p.id, 'Contour xong', 'primary') : '');
     } };
+    html += group('sim', 'Chờ mô phỏng', g.sim, [C.pt, C.dx, C.rx, C.pr,
+      { h: 'Nhập lúc', cls: 'nowrap', v: function (p) { return '<span class="num">' + fd(p.ngay_tao) + '</span><span class="sub">' + daysSince(p.ngay_tao) + ' ngày' + (p.nguoi_nhap && p.nguoi_nhap !== p.bs_email ? ' · ' + esc(nameOf(p.nguoi_nhap)) : '') + '</span>'; } },
+      scope === 'all' ? C.bs : null, contourActs].filter(Boolean), null, 'Không có bệnh nhân chờ mô phỏng.');
     html += group('contour', 'Đang contour', g.contour, [C.pt, C.dx, C.rx, C.pr,
       { h: 'Từ ngày', cls: 'nowrap', v: function (p) { return '<span class="num">' + fd(p.ngay_tao) + '</span><span class="sub">' + daysSince(p.ngay_tao) + ' ngày</span>'; } },
       scope === 'all' ? C.bs : null, contourActs].filter(Boolean), null, 'Không có bệnh nhân đang chờ contour.');
@@ -827,12 +831,13 @@
     if (noDate && !mine) html += '<div class="card"><div class="empty">Có <b>' + noDate + '</b> bệnh nhân chờ vào xạ chưa được xếp lịch. <button class="btn sm" data-txsub="sched">Mở “Chờ xếp lịch”</button></div></div>';
     var mineExtra = '';
     if (mine) {
-      var sim = items().filter(function (p) { return p.trang_thai === 'MO_PHONG' && p.ngay_mo_phong && p.ngay_mo_phong <= t; }).sort(function (a, b) { return a.ngay_mo_phong < b.ngay_mo_phong ? -1 : 1; });
+      var simKey = function (p) { return !p.ngay_mo_phong ? '5' : p.ngay_mo_phong <= t ? '0' + p.ngay_mo_phong : '9' + p.ngay_mo_phong; };
+      var sim = items().filter(function (p) { return p.trang_thai === 'MO_PHONG'; }).sort(function (a, b) { return simKey(a) < simKey(b) ? -1 : 1; });
       var noSched = pts().filter(function (p) { return p.trang_thai === 'CHO_XA' && !p.ngay_du_kien; });
-      mineExtra += group('simt', 'Mô phỏng hôm nay', sim, [C.pt,
-        { h: 'Hẹn', cls: 'nowrap', v: function (p) { return '<span class="num">' + fdw(p.ngay_mo_phong) + '</span>' + (p.ngay_mo_phong < t ? '<span class="sub" style="color:var(--warn)">quá hẹn ' + RT.diffDays(p.ngay_mo_phong, t) + ' ngày</span>' : ''); } },
+      mineExtra += group('simt', 'Chờ mô phỏng', sim, [C.pt,
+        { h: 'Hẹn', cls: 'nowrap', v: function (p) { if (!p.ngay_mo_phong) return '<span class="muted">Chưa hẹn</span>'; return '<span class="num">' + fdw(p.ngay_mo_phong) + '</span>' + (p.ngay_mo_phong < t ? '<span class="sub" style="color:var(--warn)">quá hẹn ' + RT.diffDays(p.ngay_mo_phong, t) + ' ngày</span>' : ''); } },
         C.dx, C.bs, { h: '', cls: 'act', v: function (p) { return can('simDone') ? btn('simDone', p.id, 'Đã mô phỏng xong', 'primary') : ''; } }],
-        '<button class="btn sm" data-gotab="sim">Xem tất cả lịch mô phỏng</button>', 'Không có BN hẹn mô phỏng hôm nay.');
+        '<button class="btn sm" data-gotab="sim">Xem tất cả lịch mô phỏng</button>', 'Không có BN chờ mô phỏng.');
       mineExtra += group('wait', 'Chờ vào xạ, chưa xếp lịch', noSched, [C.pt, C.rx, C.bs,
         { h: 'QA', v: function (p) { return p.qa_ket_qua === 'Đạt' ? '<span class="flag ok">Đạt</span>' : '<span class="muted">' + esc(p.qa_ket_qua || '—') + '</span>'; } },
         { h: '', cls: 'act', v: function (p) { return can('schedule') ? btn('schedule', p.id, 'Xếp lịch', 'primary') : ''; } }], null, 'Không có BN chờ xếp lịch.');
@@ -1268,27 +1273,37 @@
       Object.keys(t.theo_nhom).map(function (k) { return tile(t.theo_nhom[k], 'Buổi ' + k); }).join('') + tile(money(t.thanh_tien), 'Thành tiền (đ)') + '</div>';
     html += '<div class="seg" role="group" aria-label="Phần báo cáo" style="margin:12px 0">' + [['xa', 'Bảng xạ trị'], ['mo_phong', 'Sổ mô phỏng'], ['tong', 'Tổng hợp']].map(function (x) { return '<button data-kxem="' + x[0] + '" aria-pressed="' + (K.xem === x[0]) + '">' + x[1] + '</button>'; }).join('') + '</div>';
     if (K.xem === 'mo_phong') {
-      return html + '<section class="group"><div class="group-head"><h2>Sổ mô phỏng CT</h2><span class="count">' + r.mo_phong.length + '</span></div><div class="card"><div class="tbl-wrap"><table class="rpt"><thead><tr><th>Ngày</th><th>Họ tên BN</th><th>Nam</th><th>Nữ</th><th>Số BA</th><th>Ngày xạ ĐT</th><th>Chẩn đoán</th><th>Mặt nạ</th><th>Tiêm thuốc</th><th>Không tiêm</th><th>Bác sỹ</th><th>Máy</th><th>Kỹ thuật</th><th>Người mô phỏng</th></tr></thead><tbody>' +
-        (r.mo_phong.length ? r.mo_phong.map(function (x) { return '<tr class="click" data-openp="' + esc(x.id) + '"><td class="nowrap">' + fd(x.ngay) + '</td><td><b>' + esc(x.ho_ten) + '</b></td><td>' + esc(x.nam) + '</td><td>' + esc(x.nu) + '</td><td class="mono">' + esc(x.ma_his) + '</td><td class="nowrap">' + fd(x.ngay_xa) + '</td><td>' + esc(x.chan_doan) + '</td><td>' + (x.mat_na ? 'x' : '') + '</td><td>' + (x.tiem ? 'x' : '') + '</td><td>' + (x.tiem ? '' : 'x') + '</td><td class="nowrap">' + esc(x.bs) + '</td><td>' + esc(x.may) + '</td><td>' + esc(x.ky_thuat) + '</td><td>' + esc(x.nguoi) + '</td></tr>'; }).join('')
-          : '<tr><td colspan="14" class="muted">Không có BN mô phỏng trong kỳ.</td></tr>') + '</tbody></table></div></div></section>';
+      return html + '<section class="group"><div class="group-head"><h2>Sổ mô phỏng CT</h2><span class="count">' + r.mo_phong.length + '</span><span class="hint">Theo mẫu sổ của khoa. Thống kê theo mặt nạ, tiêm thuốc, dụng cụ… ở mục “Tổng hợp”.</span></div><div class="card"><div class="tbl-wrap"><table class="rpt"><thead><tr><th>Ngày</th><th>Họ tên BN</th><th>Nam</th><th>Nữ</th><th>Số BA</th><th>Chẩn đoán</th><th>Bác sỹ</th><th>Mặt nạ</th><th>Ngày xạ ĐT</th><th>Kỹ thuật xạ</th></tr></thead><tbody>' +
+        (r.mo_phong.length ? r.mo_phong.map(function (x) { return '<tr class="click" data-openp="' + esc(x.id) + '"><td class="nowrap">' + fd(x.ngay) + '</td><td><b>' + esc(x.ho_ten) + '</b></td><td>' + esc(x.nam) + '</td><td>' + esc(x.nu) + '</td><td class="mono">' + esc(x.ma_his) + '</td><td>' + esc(x.chan_doan) + '</td><td class="nowrap">' + esc(x.bs) + '</td><td>' + (x.mat_na ? 'x' : '') + '</td><td class="nowrap">' + fd(x.ngay_xa) + '</td><td>' + esc(x.ky_thuat) + '</td></tr>'; }).join('')
+          : '<tr><td colspan="10" class="muted">Không có BN mô phỏng trong kỳ.</td></tr>') + '</tbody></table></div></div></section>';
     }
     if (K.xem === 'tong') {
       var lt = function (title, list, a, b) { return '<section class="group"><div class="group-head"><h2>' + title + '</h2></div><div class="card"><div class="tbl-wrap"><table><tbody>' + (list.length ? list.map(function (x) { return '<tr><td>' + esc(x[a]) + '</td><td class="num">' + x[b] + '</td></tr>'; }).join('') : '<tr><td class="muted">Không có.</td></tr>') + '</tbody></table></div></div></section>'; };
-      return html + '<div class="admin-grid">' + lt('Theo KTV (số buổi tham gia xạ)', t.theo_ktv.map(function (x) { return { a: x.ten + ' (' + x.ky_hieu + ')', b: x.so_buoi }; }), 'a', 'b') +
-        lt('Theo bác sĩ (số buổi xạ)', t.theo_bs, 'ten', 'so_buoi') + lt('Mô phỏng theo bác sĩ', t.mp_theo_bs, 'ten', 'so') + '</div>' +
-        '<p class="muted">Đơn giá: ' + money(r.don_gia) + ' đ/buổi · setup ' + money(r.gia_setup) + ' đ (một lần ở buổi xạ đầu của đợt) · ' + t.setup + ' setup.</p>';
+      var mpBox = function (title, key) {
+        var o = {}; r.mo_phong.forEach(function (x, i) { [].concat(key(x)).forEach(function (k) { if (k) (o[k] = o[k] || []).push(i); }); });
+        var ks = Object.keys(o).sort(function (a, b) { return o[b].length - o[a].length; });
+        return '<section class="group"><div class="group-head"><h2>' + title + '</h2></div><div class="card"><div class="tbl-wrap"><table><thead><tr><th></th><th class="num">Số BN</th></tr></thead><tbody>' +
+          (ks.length ? ks.map(function (k) { return '<tr class="click" data-mpl="' + esc(o[k].join(',')) + '" data-mpt="' + esc(title + ': ' + k) + '"><td>' + esc(k) + '</td><td class="num">' + o[k].length + '</td></tr>'; }).join('') : '<tr><td class="muted" colspan="2">Không có.</td></tr>') + '</tbody></table></div></div></section>';
+      };
+      return html + '<h2 class="h1-sub" style="margin:8px 0">Mô phỏng: ' + r.mo_phong.length + ' BN <span class="muted" style="font-size:14px;font-weight:500">· bấm một dòng để xem danh sách</span></h2><div class="admin-grid">' +
+        mpBox('Mặt nạ', function (x) { return x.mat_na_loai; }) + mpBox('Tiêm thuốc', function (x) { return x.tiem ? 'Có' : 'Không'; }) +
+        mpBox('Dụng cụ khác', function (x) { return x.dung_cu.length ? x.dung_cu.map(function (d) { return /^Khác/.test(d) ? 'Khác' : d; }) : 'Không dùng'; }) +
+        mpBox('Kỹ thuật', function (x) { return x.ky_thuat || '(chưa ghi)'; }) + mpBox('Mục đích', function (x) { return x.muc_dich || '(chưa ghi)'; }) +
+        mpBox('Bác sĩ', function (x) { return x.bs; }) + mpBox('KTV mô phỏng', function (x) { return x.nguoi.split(/,\s*/); }) + '</div>' +
+        '<h2 class="h1-sub" style="margin:8px 0">Xạ trị</h2><div class="admin-grid">' + lt('Theo KTV (số buổi tham gia xạ)', t.theo_ktv.map(function (x) { return { a: x.ten + ' (' + x.ky_hieu + ')', b: x.so_buoi }; }), 'a', 'b') +
+        lt('Theo bác sĩ (số buổi xạ)', t.theo_bs, 'ten', 'so_buoi') + '</div>' +
+        '<p class="muted">Đơn giá: ' + money(r.don_gia) + ' đ/buổi. Thành tiền = số buổi × đơn giá.</p>';
     }
     if (!r.thang.length) return html + '<div class="card"><div class="empty">Không có buổi xạ trong kỳ.</div></div>';
     if (K.m >= r.thang.length) K.m = 0;
     var M = r.thang[K.m];
     if (r.thang.length > 1) html += '<div class="seg" role="group" aria-label="Tháng" style="margin-bottom:10px">' + r.thang.map(function (x, i) { return '<button data-km="' + i + '" aria-pressed="' + (K.m === i) + '">T' + x.thang.slice(5) + '/' + x.thang.slice(0, 4) + '</button>'; }).join('') + '</div>';
     M.nhom.forEach(function (g) {
-      var vm = g.ten === 'IMRT/VMAT';
-      html += '<section class="group"><div class="group-head"><h2>' + esc(g.ten) + ' · tháng ' + M.thang.slice(5) + '/' + M.thang.slice(0, 4) + '</h2><span class="count">' + g.rows.length + ' BN · ' + g.so_buoi + ' buổi</span></div><div class="card"><div class="tbl-wrap"><table class="rpt grid"><thead><tr><th>STT</th><th>Họ và tên BN</th><th>Nam</th><th>Nữ</th><th>Bệnh án</th><th>Chẩn đoán</th><th>BS</th><th>KS</th>' + (vm ? '<th>VM</th><th>dMLC</th>' : '') +
-        M.ngay.map(function (d) { return '<th class="d">' + d + '</th>'; }).join('') + '<th class="num">Số buổi</th><th class="num">Setup</th><th class="num">Thành tiền</th></tr></thead><tbody>' +
-        g.rows.map(function (x, i) { return '<tr class="click" data-openp="' + esc(x.id) + '"><td>' + (i + 1) + '</td><td class="nowrap"><b>' + esc(x.ho_ten) + '</b></td><td>' + esc(x.nam) + '</td><td>' + esc(x.nu) + '</td><td class="mono">' + esc(x.ma_his) + '</td><td>' + esc(x.chan_doan) + '</td><td class="nowrap">' + esc(x.bs) + '</td><td>' + x.ks + '</td>' + (vm ? '<td>' + (x.kt === 'VM' ? 'x' : '') + '</td><td>' + (x.kt === 'dMLC' ? 'x' : '') + '</td>' : '') +
-          M.ngay.map(function (d) { return '<td class="d">' + esc(x.o[d] || '') + '</td>'; }).join('') + '<td class="num">' + x.so_buoi + '</td><td class="num">' + (x.setup ? money(r.gia_setup) : '') + '</td><td class="num">' + money(x.thanh_tien) + '</td></tr>'; }).join('') +
-        '<tr class="total"><td colspan="' + (8 + (vm ? 2 : 0) + M.ngay.length) + '"><b>Tổng cộng</b></td><td class="num"><b>' + g.so_buoi + '</b></td><td class="num"><b>' + money(g.setup * r.gia_setup) + '</b></td><td class="num"><b>' + money(g.thanh_tien) + '</b></td></tr></tbody></table></div></div></section>';
+      html += '<section class="group"><div class="group-head"><h2>' + esc(g.ten) + ' · tháng ' + M.thang.slice(5) + '/' + M.thang.slice(0, 4) + '</h2><span class="count">' + g.rows.length + ' BN · ' + g.so_buoi + ' buổi</span></div><div class="card"><div class="tbl-wrap"><table class="rpt grid"><thead><tr><th>STT</th><th>Họ và tên BN</th><th>Nam</th><th>Nữ</th><th>Bệnh án</th><th>Chẩn đoán</th><th>BS</th><th>KS</th>' +
+        M.ngay.map(function (d) { return '<th class="d">' + d + '</th>'; }).join('') + '<th class="num">Thành tiền</th><th class="num">Đơn giá</th><th class="num">Số buổi</th><th class="num">Setup</th></tr></thead><tbody>' +
+        g.rows.map(function (x, i) { return '<tr class="click" data-openp="' + esc(x.id) + '"><td>' + (i + 1) + '</td><td class="nowrap"><b>' + esc(x.ho_ten) + '</b></td><td>' + esc(x.nam) + '</td><td>' + esc(x.nu) + '</td><td class="mono">' + esc(x.ma_his) + '</td><td>' + esc(x.chan_doan) + '</td><td class="nowrap">' + esc(x.bs) + '</td><td></td>' +
+          M.ngay.map(function (d) { return '<td class="d">' + esc(x.o[d] || '') + '</td>'; }).join('') + '<td class="num">' + money(x.thanh_tien) + '</td><td class="num">' + money(r.don_gia) + '</td><td class="num">' + x.so_buoi + '</td><td></td></tr>'; }).join('') +
+        '<tr class="total"><td colspan="' + (8 + M.ngay.length) + '"><b>Tổng cộng</b></td><td class="num"><b>' + money(g.thanh_tien) + '</b></td><td></td><td class="num"><b>' + g.so_buoi + '</b></td><td></td></tr></tbody></table></div></div></section>';
     });
     return html;
   }
@@ -1298,6 +1313,15 @@
     $$('#main [data-kky]').forEach(function (b) { b.onclick = function () { K.ky = b.dataset.kky; S.krSheet = null; renderMain(); }; });
     $$('#main [data-kxem]').forEach(function (b) { b.onclick = function () { K.xem = b.dataset.kxem; renderMain(); }; });
     $$('#main [data-km]').forEach(function (b) { b.onclick = function () { K.m = +b.dataset.km; renderMain(); }; });
+    $$('#main [data-mpl]').forEach(function (tr) {
+      tr.onclick = function () {
+        var list = tr.dataset.mpl.split(',').map(function (i) { return S.krRes.mo_phong[+i]; });
+        modal({ title: tr.dataset.mpt + ' (' + list.length + ' BN)', ok: 'Đóng', noCancel: true, wide: true, noFocus: true,
+          body: '<div class="tbl-wrap"><table><thead><tr><th>Ngày MP</th><th>Bệnh nhân</th><th>Chẩn đoán</th><th>Mặt nạ</th><th>Tiêm</th><th>Dụng cụ</th><th>Kỹ thuật</th><th>BS</th></tr></thead><tbody>' +
+            list.map(function (x) { return '<tr class="click" data-openp="' + esc(x.id) + '"><td class="nowrap">' + fd(x.ngay) + '</td><td><b>' + esc(x.ho_ten) + '</b><span class="sub mono">' + esc(x.ma_his) + '</span></td><td>' + esc(x.chan_doan) + '</td><td>' + esc(x.mat_na_loai) + '</td><td>' + (x.tiem ? 'Có' : 'Không') + '</td><td>' + esc(x.dung_cu.join(', ')) + '</td><td>' + esc(x.ky_thuat) + '</td><td class="nowrap">' + esc(x.bs) + '</td></tr>'; }).join('') + '</tbody></table></div>',
+          onMount: function (f) { $$('[data-openp]', f).forEach(function (b) { b.onclick = function () { closeModal(); openDetail(b.dataset.openp); }; }); }, onOk: function () {} });
+      };
+    });
     var moc = $('#k-moc'), kh = $('#k-khoa');
     if (moc) moc.onchange = function () { if (moc.value) { K.moc = moc.value; S.krSheet = null; renderMain(); } };
     if (kh) kh.onchange = function () { K.khoa = kh.value; S.krSheet = null; };
@@ -1342,7 +1366,10 @@
       (sc.byDoctor ? field('Bác sĩ điều trị', '<select id="ff-bs">' + opts(doctors().filter(function (u) { return sc.all || u.khoa === sc.khoa; }).map(function (u) { return { v: u.email, l: u.ho_ten }; }), f.bs_email, 'Tất cả') + '</select>') : '') +
       (sc.all ? field('Khoa', '<select id="ff-khoa">' + opts(d.KHOA, f.khoa, 'Tất cả') + '</select>') : '') +
       field('Mục đích', '<select id="ff-md">' + opts(d.MUC_DICH || RT.DEFAULT_DM.MUC_DICH, f.muc_dich, 'Tất cả') + '</select>') +
-      field('Trạng thái hiện tại', '<select id="ff-tt">' + opts(st, f.trang_thai, 'Tất cả') + '</select>') + '</div>' +
+      field('Trạng thái hiện tại', '<select id="ff-tt">' + opts(st, f.trang_thai, 'Tất cả') + '</select>') +
+      field('Mặt nạ', '<select id="ff-mn">' + opts([{ v: 'co', l: 'Có làm mặt nạ' }, { v: 'khong', l: 'Không làm mặt nạ' }].concat((d.MAT_NA || RT.DEFAULT_DM.MAT_NA).map(function (x) { return { v: x, l: 'Mặt nạ ' + x }; })), f.mat_na, 'Tất cả') + '</select>') +
+      field('Tiêm thuốc', '<select id="ff-tiem">' + opts(['Có', 'Không'], f.tiem_thuoc, 'Tất cả') + '</select>') +
+      field('Dụng cụ khác', '<select id="ff-dc">' + opts((d.DUNG_CU || RT.DEFAULT_DM.DUNG_CU).concat(['Khác']), f.dung_cu, 'Tất cả') + '</select>') + '</div>' +
       '<div style="margin-top:12px"><button class="btn primary" data-stload="1">Tìm bệnh nhân</button></div></div>';
     var r = S.found;
     if (!r) return html + '<div class="card"><div class="empty">Chọn điều kiện rồi bấm “Tìm”.</div></div>';
@@ -1362,7 +1389,7 @@
   function readFind() {
     var f = S.ff, g = function (id) { var el = $('#' + id); return el ? el.value.trim() : ''; };
     if (!$('#ff-moc')) return f;
-    f.moc = g('ff-moc'); f.vi_tri = g('ff-vt'); f.ky_thuat = g('ff-kt'); f.bs_email = g('ff-bs'); f.khoa = g('ff-khoa'); f.muc_dich = g('ff-md'); f.trang_thai = g('ff-tt');
+    f.moc = g('ff-moc'); f.vi_tri = g('ff-vt'); f.ky_thuat = g('ff-kt'); f.bs_email = g('ff-bs'); f.khoa = g('ff-khoa'); f.muc_dich = g('ff-md'); f.trang_thai = g('ff-tt'); f.mat_na = g('ff-mn'); f.tiem_thuoc = g('ff-tiem'); f.dung_cu = g('ff-dc');
     var extra = RT.normIcd(g('ff-icd')); if (extra && f.icd.indexOf(extra) < 0) f.icd.push(extra);
     return f;
   }
@@ -1374,7 +1401,7 @@
   }
   function findGo(action) {
     var f = readFind(), rg = statsRange(S.stKey);
-    var payload = asParam({ tu: rg[0], den: rg[1], pv: S.stPv || '', moc: f.moc, icd: f.icd, vi_tri: f.vi_tri, ky_thuat: f.ky_thuat, bs_email: f.bs_email, khoa: f.khoa, muc_dich: f.muc_dich, trang_thai: f.trang_thai });
+    var payload = asParam({ tu: rg[0], den: rg[1], pv: S.stPv || '', moc: f.moc, icd: f.icd, vi_tri: f.vi_tri, ky_thuat: f.ky_thuat, bs_email: f.bs_email, khoa: f.khoa, muc_dich: f.muc_dich, trang_thai: f.trang_thai, mat_na: f.mat_na, tiem_thuoc: f.tiem_thuoc, dung_cu: f.dung_cu });
     setBusy(1);
     call(action, payload).then(function (r) {
       S.found = r.found; if (r.sheet) { S.stSheet = r.sheet; toast('Đã tạo trang danh sách trong Google Sheet.'); }
@@ -1524,7 +1551,9 @@
       dmBox('CHI_TIEU', 'Chỉ tiêu số BN đang xạ của khoa', 'Dạng “Tên khoa: tối thiểu-tối đa”. Thêm dòng mới cho một khoa sẽ thay dòng cũ của khoa đó. Khi khoa đủ mức tối đa, người xếp lịch được cảnh báo; đồng ý thì vẫn xếp. BN cấp cứu luôn được xếp.', 'VD: Xạ trị: 90-100') +
       dmBox('LIEU_HAY_DUNG', 'Tổng liều hay dùng (Gy)', 'Hiện thành nút chọn nhanh dưới ô Tổng liều. Số lẻ dùng dấu chấm.', 'VD: 45') +
       dmBox('SO_BUOI_HAY_DUNG', 'Số buổi hay dùng', 'Hiện thành nút chọn nhanh dưới ô Số buổi.', 'VD: 25') +
-      dmBox('DON_GIA', 'Đơn giá cho báo cáo khoa', 'Hai dòng: “Buổi xạ: 21000” và “Setup: 37500” (setup tính một lần ở buổi xạ đầu tiên của đợt). Thêm dòng mới sẽ thay dòng cũ cùng tên.', 'VD: Buổi xạ: 21000') +
+      dmBox('DON_GIA', 'Đơn giá cho báo cáo khoa', 'Dạng “Buổi xạ: 21000”. Thành tiền = số buổi × đơn giá. Thêm dòng mới sẽ thay dòng cũ.', 'VD: Buổi xạ: 21000') +
+      dmBox('MAT_NA', 'Loại mặt nạ', 'Hiện trong form “Đã mô phỏng xong”.', 'VD: 5 điểm') +
+      dmBox('DUNG_CU', 'Dụng cụ khác khi mô phỏng', 'VD: miếng bù da, nêm lưỡi. Người dùng vẫn tự ghi được loại khác.', 'VD: Nêm lưỡi') +
       dmBox('KY_TEN', 'Khung ký tên cuối báo cáo', 'Mỗi dòng một chức danh, có thể ghi kèm họ tên: “Trưởng khoa: Nguyễn Văn A”.', 'VD: Trưởng khoa: Nguyễn Văn A') + '</div></section>';
     html += logSection();
     return html;
@@ -1825,10 +1854,13 @@
     if (!sel.length) sel = S.lastSim || (role() === 'KTV' ? [me().email] : []);
     modal({ title: p._g ? 'Đã mô phỏng lại xong (boost)' : 'Đã mô phỏng xong', ok: 'Xác nhận',
       body: whoBox(p) + '<p class="muted">Ghi nhận BN đã chụp CT mô phỏng hôm nay. BN chuyển sang bước bác sĩ contour.</p>' +
-        '<div class="field"><span class="lb">Người mô phỏng (1 hoặc 2 người) <span class="req">*</span></span>' + staffChips('nguoi_mo_phong', list, sel) + '</div>' +
-        '<div class="checks"><label><input type="checkbox" name="mat_na"' + (p.mat_na === 'Có' ? ' checked' : '') + '><span>Có làm mặt nạ</span></label><label><input type="checkbox" name="tiem_thuoc"><span>Có tiêm thuốc cản quang</span></label></div>',
-      validate: function (v) { var n = (v.nguoi_mo_phong || []).length; return !n ? 'Chọn người mô phỏng.' : n > 2 ? 'Chọn tối đa 2 người.' : ''; },
-      onOk: function (v) { S.lastSim = v.nguoi_mo_phong; run('simDone', { id: id, nguoi_mo_phong: v.nguoi_mo_phong, mat_na: !!v.mat_na, tiem_thuoc: !!v.tiem_thuoc }); } });
+        '<div class="field"><span class="lb">KTV mô phỏng (1 hoặc 2 người) <span class="req">*</span></span>' + staffChips('nguoi_mo_phong', list, sel) + '</div>' +
+        '<div class="form">' + field('Mặt nạ <span class="req">*</span>', '<select name="mat_na">' + opts([{ v: 'Không', l: 'Không làm mặt nạ' }].concat((S.data.dm.MAT_NA || RT.DEFAULT_DM.MAT_NA).map(function (x) { return { v: x, l: 'Mặt nạ ' + x }; })), '', 'Chọn…') + '</select>') +
+        '<div class="field"><span class="lb">Tiêm thuốc cản quang <span class="req">*</span></span><div class="radios inline"><label><input type="radio" name="tiem_thuoc" value="Có"><span><b>Có</b></span></label><label><input type="radio" name="tiem_thuoc" value="Không"><span><b>Không</b></span></label></div></div></div>' +
+        '<div class="field"><span class="lb">Dụng cụ khác (nếu có)</span><div class="checks">' + (S.data.dm.DUNG_CU || RT.DEFAULT_DM.DUNG_CU).map(function (x) { return '<label><input type="checkbox" name="dung_cu" data-multi="1" value="' + esc(x) + '"><span>' + esc(x) + '</span></label>'; }).join('') + '</div>' +
+        '<input type="text" name="dung_cu_khac" placeholder="Khác, tự ghi" style="margin-top:6px"></div>',
+      validate: function (v) { var n = (v.nguoi_mo_phong || []).length; if (!n) return 'Chọn KTV mô phỏng.'; if (n > 2) return 'Chọn tối đa 2 người.'; if (!v.mat_na) return 'Chọn có làm mặt nạ không.'; if (!v.tiem_thuoc) return 'Chọn có tiêm thuốc không.'; return ''; },
+      onOk: function (v) { S.lastSim = v.nguoi_mo_phong; run('simDone', { id: id, nguoi_mo_phong: v.nguoi_mo_phong, mat_na: v.mat_na, tiem_thuoc: v.tiem_thuoc, dung_cu: v.dung_cu || [], dung_cu_khac: v.dung_cu_khac }); } });
   }
   /** KTV xạ ca này: theo bảng phân công máy của BN hôm nay (ca sáng / chiều), nếu không có thì lấy lần ghi trước */
   function defaultKtv(p) {

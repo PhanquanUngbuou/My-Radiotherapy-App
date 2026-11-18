@@ -224,7 +224,8 @@ window.DEMO = (function () {
     var ref = p.ngay_bat_dau || p.ngay_contour_xong || p.ngay_tao || today;
     p.ngay_mo_phong = p.ngay_mo_phong && p.ngay_mo_phong <= today ? p.ngay_mo_phong : RT.addDays(ref, -(3 + i % 4));
     p.nguoi_mo_phong = i % 2 ? 'ktv.son@demo, ktv.ha@demo' : 'ktv.ha@demo';
-    p.mat_na = /vòm|họng|amidan|thanh quản|não|lưỡi/i.test(p.chan_doan) ? 'Có' : 'Không'; p.tiem_thuoc = i % 3 ? 'Có' : 'Không';
+    p.mat_na = /vòm|họng|amidan|thanh quản|lưỡi/i.test(p.chan_doan) ? '5 điểm' : /não/i.test(p.chan_doan) ? '3 điểm' : 'Không'; p.tiem_thuoc = i % 3 ? 'Có' : 'Không';
+    p.dung_cu = /lưỡi|amidan|vòm/i.test(p.chan_doan) ? 'Nêm lưỡi' : /vú|thành ngực/i.test(p.chan_doan) ? 'Miếng bù da' : '';
   });
   function archIdx() { return archive.patients.map(function (p) { return RT.indexRow(p, archive.fractions, archive.phases, true); }); }
   function ctx() {

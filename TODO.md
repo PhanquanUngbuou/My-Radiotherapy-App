@@ -6,21 +6,8 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
 
 **Từ sau v2.7: yêu cầu mới ghi vào đây, chỉ làm phiên bản mới khi anh bảo.**
 
-## Việc chờ (gộp vào v2.8, anh chưa cài v2.8; chờ anh duyệt kế hoạch ngày 18/11)
+## Việc chờ
 
-1. **Sổ mô phỏng theo mẫu trang "tháng 10"**: Ngày · Họ tên BN · Tuổi (Nam / Nữ) · Số BA · Chẩn đoán · Bác sỹ · Mặt nạ (đánh "x" như sổ) · Ngày xạ ĐT · Kỹ thuật xạ. Bỏ tiêm thuốc, máy A/B khỏi báo cáo (vẫn lưu tiêm thuốc để sau cần thì thêm).
-2. **Bảng xạ trị**: bỏ tính setup (file thực tế cột setup để trống; thành tiền = số buổi × đơn giá), giữ cột Setup trống; đổi tên bảng "IMRT/VMAT" thành "IMRT" và bỏ cột VM / dMLC; cột KS để trống cho ĐD trưởng tích; không đưa mã ICD vào báo cáo.
-3. **Form "Đã mô phỏng xong"**: người làm, chỉ chọn KTV (gợi ý theo bảng phân công vị trí mô phỏng); Mặt nạ: Không / 3 điểm / 4 điểm / 5 điểm / 6 điểm; Tiêm thuốc: Có / Không; Dụng cụ khác: miếng bù da, nêm lưỡi, ô "khác" tự ghi. Danh mục mặt nạ và dụng cụ sửa trong Quản trị. Dụng cụ khác chưa hiện trong sổ, chỉ lưu để thống kê.
-4. **BS không thấy BN chờ mô phỏng**: "Bệnh nhân của tôi" đang gộp chờ mô phỏng vào "Đang contour". Tách ô và mục riêng "Chờ mô phỏng" (ngày hẹn, nút Đã mô phỏng xong).
-7. **Thống kê theo các đầu thông tin mô phỏng** (Báo cáo khoa › Tổng hợp, và Tìm danh sách BN): số BN mô phỏng theo loại mặt nạ (3/4/5/6 điểm, không), tiêm thuốc có / không, dụng cụ khác (bù da, nêm lưỡi, khác), kỹ thuật, mục đích, BS, KTV mô phỏng; bấm một dòng ra danh sách BN. Tìm danh sách BN thêm lọc theo mặt nạ, tiêm thuốc, dụng cụ.
-6. **Mục đích xạ trị thêm "Củng cố" và "Tân bổ trợ"** (danh mục MUC_DICH; `setup` tự thêm vào Sheet đang dùng nếu chưa có).
-5. ICD → chẩn đoán tự điền theo danh mục, người nhập sửa được (đã có, kiểm tra lại).
-
-## Chờ chị Lệ trả lời (đang làm theo giả định, sửa nhanh được)
-- Setup 37.500 tính một lần ở buổi xạ đầu? Thành tiền = số buổi × 21.000 + setup? Hai khoa cùng đơn giá?
-- Máy A / B trong sổ mô phỏng là máy gia tốc (đang dùng) hay máy CT?
-- VM / dMLC = VMAT / IMRT? Cột KS "x" khi có kỹ sư lập KH?
-- Tài khoản khoa làm việc KTV có cần thấy BN cả hai khoa?
-- Buổi 2 KTV ghi "T/Đ" trong một ô? SRS/SBRT xếp vào bảng 3D? Khung ký tên có cần họ tên?
+(Hiện chưa có. v2.8 đã gồm cả các việc ngày 18/11: sổ mô phỏng theo mẫu tháng 10, bỏ setup, bảng IMRT, mặt nạ / tiêm thuốc / dụng cụ, mục Chờ mô phỏng cho BS, ĐD, KTV, mục đích Củng cố / Tân bổ trợ, thống kê theo thông tin mô phỏng.)
 
 (Đã làm trong v2.7: phân quyền thống kê, ĐD theo khoa, khoa theo BS, lý do ưu tiên / cấp cứu, màu và thứ tự lập KH / xếp lịch, chỉ tiêu khoa, đề xuất / duyệt lịch, nhắc vắng và tạm ngừng.)

@@ -3,18 +3,21 @@
 ## v2.8
 - **Thêm BN chỉ hiện khi máy chủ đã lưu xong** (không còn hiện trước rồi biến mất). Lỗi mạng thì tự gửi lại 3 lần; vẫn lỗi thì mở lại form giữ nguyên thông tin đã nhập, bấm "Gửi lại". Mọi thao tác lưu đều tự gửi lại khi lỗi mạng và có mã riêng để máy chủ không làm trùng (không tạo trùng BN).
 - **Báo cáo khoa** (Thống kê › Báo cáo khoa) theo mẫu khoa đang dùng; kỳ ngày / tuần / tháng / quý / 6 tháng / năm; Quản trị, KTV trưởng chọn khoa, Trưởng khoa / ĐD trưởng / tài khoản khoa xem khoa mình.
-  - Sổ mô phỏng CT: ngày, BN (tuổi nam / nữ), số BA, ngày xạ, chẩn đoán, mặt nạ, tiêm thuốc / không tiêm, BS, máy, kỹ thuật, người mô phỏng.
-  - Bảng theo dõi xạ trị mỗi tháng, tách 3D và IMRT/VMAT: cột ngày ghi ký hiệu KTV xạ buổi đó, BS, KS, VM / dMLC, số buổi, setup, thành tiền, dòng tổng.
-  - Tổng hợp: số BN mô phỏng, mặt nạ, tiêm thuốc, BN xạ, buổi theo kỹ thuật, theo KTV, theo BS, thành tiền.
+  - Sổ mô phỏng CT theo mẫu sổ tháng 10: Ngày · Họ tên BN · Tuổi (Nam / Nữ) · Số BA · Chẩn đoán · Bác sỹ · Mặt nạ (x) · Ngày xạ ĐT · Kỹ thuật xạ.
+  - Bảng theo dõi xạ trị mỗi tháng, tách 3D và IMRT: cột ngày ghi ký hiệu KTV xạ buổi đó, BS, KS (để trống cho ĐD trưởng tích), Thành tiền = số buổi × đơn giá, Đơn giá, Số buổi, Setup (để trống), dòng tổng.
+  - Tổng hợp: mô phỏng theo mặt nạ (loại), tiêm thuốc, dụng cụ khác, kỹ thuật, mục đích, bác sĩ, KTV mô phỏng (bấm một dòng ra danh sách BN); xạ trị theo KTV, theo bác sĩ, thành tiền.
   - "Tạo trang Excel": mỗi tháng / nhóm kỹ thuật một trang, có khung ký tên.
-- **Đã mô phỏng xong**: chọn 1–2 người mô phỏng (gợi ý theo bảng phân công vị trí mô phỏng), đánh dấu mặt nạ, tiêm thuốc cản quang.
+- **Đã mô phỏng xong**: chọn 1–2 KTV mô phỏng (gợi ý theo bảng phân công vị trí mô phỏng); mặt nạ: không / 3 / 4 / 5 / 6 điểm; tiêm thuốc cản quang: có / không; dụng cụ khác: miếng bù da, nêm lưỡi, ô "khác" tự ghi.
+- **Chờ mô phỏng có mục riêng**: BS (Bệnh nhân của tôi), điều dưỡng (màn hình khoa), KTV (Xạ trị › Hôm nay: cả BN chưa có ngày hẹn).
+- **Tìm danh sách BN** lọc thêm theo mặt nạ, tiêm thuốc, dụng cụ khác.
+- **Mục đích xạ trị** thêm "Tân bổ trợ", "Củng cố" (`setup` tự thêm vào danh mục đang dùng).
 - **Ghi buổi xạ**: chọn KTV xạ ca đó (thường 2 người), chọn sẵn theo bảng phân công máy / ca hôm nay hoặc lần ghi trước.
 - **Ký hiệu nhân viên** (VD: T, Đ, IT) trong Quản trị, in trên bảng xạ trị.
 - **Chọn nhanh tổng liều** (70, 66, 60, 50,4, 50, 30 Gy) và **số buổi** (10, 28, 30, 33, 35) dưới ô nhập; vẫn tự gõ được; danh sách sửa trong Quản trị.
 - **Tài khoản khoa** làm được việc của điều dưỡng và KTV thường (ghi buổi xạ, ghi vắng, mô phỏng xong, đề xuất lịch, thêm BN).
 - **Mã ICD-10 chỉ 3 ký tự** (C15, không C15.1); `setup` tự rút mã cũ về 3 ký tự; danh mục ICD gọn hơn.
-- Quản trị: danh mục mới "Tổng liều hay dùng", "Số buổi hay dùng", "Đơn giá" (buổi xạ 21.000, setup 37.500), "Khung ký tên".
-- Cột mới (cần chạy `setup`): BenhNhan / GiaiDoan `nguoi_mo_phong`, `mat_na`, `tiem_thuoc`; BuoiXa `ktv_xa`; NguoiDung `ky_hieu`.
+- Quản trị: danh mục mới "Tổng liều hay dùng", "Số buổi hay dùng", "Đơn giá" (buổi xạ 21.000), "Khung ký tên", "Loại mặt nạ", "Dụng cụ khác khi mô phỏng".
+- Cột mới (cần chạy `setup`): BenhNhan / GiaiDoan `nguoi_mo_phong`, `mat_na`, `tiem_thuoc`, `dung_cu`; BuoiXa `ktv_xa`; NguoiDung `ky_hieu`.
 
 ## v2.7
 - **Thống kê theo từng bác sĩ chỉ dành cho Trưởng khoa, Điều dưỡng trưởng và Quản trị.** Bảng "Theo bác sĩ" là một mục trong "Lượt xạ trị": số BN được xạ, lượt xạ, BN bắt đầu, BN kết thúc, lượt vắng, dòng cộng; bấm một bác sĩ để xem danh sách BN. Có trong trang Excel.
