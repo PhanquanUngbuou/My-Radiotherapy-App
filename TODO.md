@@ -21,6 +21,10 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
    - Dữ liệu cũ đã chọn tay (v2.8–v2.9) vẫn giữ; báo cáo ưu tiên lịch phân công.
    - Chờ anh chốt: tên vị trí phân công đang dùng; sửa lịch phân công về sau thì báo cáo đổi theo (đề xuất: đổi theo).
 
+3. **Xạ trị › Hôm nay: tách "Xạ buổi đầu"** (BN vào xạ buổi 1 hôm nay, cần setup, thủ tục khác) khỏi danh sách xạ thường; đề xuất tính cả buổi đầu của GĐ boost (KH mới).
+   - Các mục trên trang Hôm nay thành **menu nhỏ hàng ngang** có số đếm, bấm mục nào hiện danh sách mục đó: Xạ buổi đầu · Cần xạ hôm nay · Đã xạ · Vắng hôm nay · Nghỉ hôm nay (không có lịch) · Tạm ngừng · Chờ mô phỏng · Chờ vào xạ chưa xếp lịch. Điện thoại: các mục thành ô bấm xếp nhiều hàng như menu chính.
+   - Chờ anh chốt: buổi đầu GĐ boost có tính là "xạ buổi đầu" không.
+
 (Đã làm trong v2.8: xem CHANGELOG.)
 
 (Đã làm trong v2.7: phân quyền thống kê, ĐD theo khoa, khoa theo BS, lý do ưu tiên / cấp cứu, màu và thứ tự lập KH / xếp lịch, chỉ tiêu khoa, đề xuất / duyệt lịch, nhắc vắng và tạm ngừng.)
