@@ -53,6 +53,7 @@
 - v2.9: Thống kê từng mục riêng (Sổ mô phỏng, Bảng thanh toán 3D, VMAT: tải Excel ngay; Tổng hợp mô phỏng, Theo KTV / BS, Lượt xạ, Vắng, Tìm BN: xem + tải). Mẫu Excel giữ y file khoa (chỉ đổi dMLC → IMRT, bỏ VARIAN).
 - v2.10: Bảng 3D = 3D-CRT, bảng VMAT = mọi kỹ thuật khác (không cột KT). KTV xạ / người mô phỏng trong báo cáo lấy theo lịch phân công (`PhanCong`: vị trí bắt đầu bằng tên máy + ca sáng/chiều; vị trí có chữ "Mô phỏng"), không chọn tay. Xạ trị › Hôm nay có menu nhỏ (Xạ buổi đầu, Cần xạ, Đã xạ, Vắng, Nghỉ, Tạm ngừng).
 - v2.11: trạng thái `CHO_PL` (Chờ phân loại) cho BN số hoá từ hồ sơ giấy: `importPatients` (Quản trị, KTV trưởng; dán bảng) và `classifyPatient` (KTV) chuyển sang CHO_XA / DANG_XA / TAM_NGUNG / HOAN_THANH / HUY, ghi bù buổi đã xạ. Dữ liệu đọc từ ảnh để ở Google Sheet trong Drive của anh, không đưa vào GitHub.
+- v2.12: hàm `nhapBN()` (chạy tay trong Apps Script) đọc trang `NhapBN` → `importPatients`, ghi kết quả ở cột cuối.
 - Lịch: 3D-CRT xạ T2–T6. IMRT/VMAT nghỉ 1 ngày trong tuần, bù Thứ Bảy. Boost: tuần tự (lên kế hoạch cùng lúc / contour trên CT cũ / mô phỏng lại).
 
 ## Trạng thái

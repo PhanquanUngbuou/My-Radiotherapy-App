@@ -1014,8 +1014,7 @@
   }
 
   // ---------- Chờ phân loại: BN nhập từ hồ sơ giấy ----------
-  var IMPORT_COLS = [['ma_his', 'Mã HIS'], ['ho_ten', 'Họ tên'], ['nam_sinh', 'Năm sinh'], ['gioi', 'Giới'], ['chan_doan', 'Chẩn đoán'], ['icd', 'ICD'], ['muc_dich', 'Mục đích'],
-    ['ky_thuat', 'Kỹ thuật'], ['tong_lieu', 'Tổng liều (Gy)'], ['so_buoi', 'Số buổi'], ['muc_lieu', 'Các mức liều'], ['ghi_chu', 'Ghi chú']];
+  var IMPORT_COLS = RT.IMPORT_COLS;
   function renderPL() {
     var list = pts().filter(function (p) { return p.trang_thai === 'CHO_PL'; }).sort(function (a, b) { return a.ho_ten.localeCompare(b.ho_ten, 'vi'); });
     return '<div class="page-head"><div><h1>Chờ phân loại</h1><p>BN số hoá từ hồ sơ giấy (đã có kế hoạch xạ). KTV bấm “Phân loại” để chuyển sang chờ vào xạ, đang xạ, tạm ngừng hoặc đã xạ xong, và điền thông tin còn thiếu.</p></div>' +

@@ -300,6 +300,9 @@ var RT = (function () {
       return planOrder(a, b);
     });
   }
+  /** Cột của bảng nhập BN từ hồ sơ giấy (dán trong app, hoặc trang "NhapBN" chạy hàm nhapBN) */
+  var IMPORT_COLS = [['ma_his', 'Mã HIS'], ['ho_ten', 'Họ tên'], ['nam_sinh', 'Năm sinh'], ['gioi', 'Giới'], ['chan_doan', 'Chẩn đoán'], ['icd', 'ICD'], ['muc_dich', 'Mục đích'],
+    ['ky_thuat', 'Kỹ thuật'], ['tong_lieu', 'Tổng liều (Gy)'], ['so_buoi', 'Số buổi'], ['muc_lieu', 'Các mức liều'], ['ghi_chu', 'Ghi chú']];
   /** Mức ưu tiên và lý do: "Cấp cứu" và "Ưu tiên" bắt buộc ghi lý do; "Thường" thì xoá lý do. */
   function checkPrio(x, reason, strict) {
     if (x.uu_tien && PRIORITY_RANK[x.uu_tien] == null) fail('Mức ưu tiên không hợp lệ.');
@@ -783,11 +786,11 @@ var RT = (function () {
       var rows = Array.isArray(a.rows) ? a.rows : [];
       if (!rows.length) fail('Chưa có dòng nào để nhập.');
       if (rows.length > 300) fail('Mỗi lần nhập tối đa 300 BN.');
-      var added = [], skip = [];
+      var added = [], skip = [], res = ctx.importResult = [];
       rows.forEach(function (x, i) {
         var ho = String(x.ho_ten || '').trim(), his = String(x.ma_his || '').trim();
-        if (!ho || !his) { skip.push('dòng ' + (i + 1) + ': thiếu họ tên hoặc mã HIS'); return; }
-        if (ctx.patients.some(function (p) { return p.ma_his === his && ['HUY', 'HOAN_THANH'].indexOf(p.trang_thai) < 0; })) { skip.push(ho + ' (' + his + '): đã có đợt xạ đang hoạt động'); return; }
+        if (!ho || !his) { skip.push('dòng ' + (i + 1) + ': thiếu họ tên hoặc mã HIS'); res[i] = 'Bỏ qua: thiếu họ tên hoặc mã HIS'; return; }
+        if (ctx.patients.some(function (p) { return p.ma_his === his && ['HUY', 'HOAN_THANH'].indexOf(p.trang_thai) < 0; })) { skip.push(ho + ' (' + his + '): đã có đợt xạ đang hoạt động'); res[i] = 'Bỏ qua: mã HIS đã có đợt xạ đang hoạt động'; return; }
         var p = blank(COLS.BenhNhan);
         ['ma_his', 'ho_ten', 'nam_sinh', 'gioi', 'chan_doan', 'muc_dich', 'ky_thuat', 'tong_lieu', 'so_buoi', 'muc_lieu', 'vi_tri', 'ghi_chu'].forEach(function (k) { if (x[k] != null) p[k] = String(x[k]).trim(); });
         p.ma_his = his; p.ho_ten = ho;
@@ -798,7 +801,7 @@ var RT = (function () {
         p.id = nextId(ctx); p.trang_thai = 'CHO_PL'; p.ngay_tao = ctx.today; p.nguoi_nhap = ctx.user.email; p.uu_tien = 'Thường'; p.igrt = 'Không'; p.sgrt = 'Không';
         ctx.patients.push(p);
         save(ctx, p, 'Nhập từ hồ sơ giấy', p.ho_ten);
-        added.push(p.ho_ten);
+        added.push(p.ho_ten); res[i] = 'Đã nhập ' + ctx.today + ' (' + p.id + ')';
       });
       return 'Đã nhập ' + added.length + ' BN vào "Chờ phân loại".' + (skip.length ? ' Bỏ qua ' + skip.length + ': ' + skip.join('; ') + '.' : '');
     },
@@ -1686,7 +1689,7 @@ var RT = (function () {
 
   return {
     VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, nurseKhoa: nurseKhoa, canByDoctor: canByDoctor, doctorKhoa: doctorKhoa, report: report, staffKhoa: staffKhoa, myDoctors: myDoctors,
-    khoaReport: khoaReport, khoaReportScope: khoaReportScope, initials: initials, quotas: quotas, parseQuota: parseQuota, occupancy: occupancy, quotaOver: quotaOver, isKtvLead: isKtvLead, pauseAsk: pauseAsk, normIcd: normIcd, isIcd: isIcd, icdName: icdName, summary: summary, findPatients: findPatients, scopePatients: scopePatients, fold: fold, indexRow: indexRow, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, planOrder: planOrder, submitTime: submitTime, DOW: DOW,
+    IMPORT_COLS: IMPORT_COLS, khoaReport: khoaReport, khoaReportScope: khoaReportScope, initials: initials, quotas: quotas, parseQuota: parseQuota, occupancy: occupancy, quotaOver: quotaOver, isKtvLead: isKtvLead, pauseAsk: pauseAsk, normIcd: normIcd, isIcd: isIcd, icdName: icdName, summary: summary, findPatients: findPatients, scopePatients: scopePatients, fold: fold, indexRow: indexRow, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, planOrder: planOrder, submitTime: submitTime, DOW: DOW,
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,

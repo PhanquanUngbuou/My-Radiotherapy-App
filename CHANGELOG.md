@@ -1,5 +1,8 @@
 # Lịch sử phiên bản
 
+## v2.12
+- **Hàm `nhapBN` trong Apps Script**: dán danh sách BN (từ hồ sơ giấy) vào trang tính **"NhapBN"** (`setup` tạo sẵn, có dòng tiêu đề), chạy `nhapBN` trong trình soạn thảo là BN vào mục "Chờ phân loại". Cột cuối ghi "Đã nhập" hoặc lý do bỏ qua từng dòng; chạy lại không nhập trùng.
+
 ## v2.11
 - **Số hoá BN từ hồ sơ giấy, không nhập từng BN**: Xạ trị › **Chờ phân loại** (trạng thái mới). Quản trị / KTV trưởng bấm "Nhập danh sách BN", dán bảng copy từ Google Sheet / Excel (Mã HIS · Họ tên · Năm sinh · Giới · Chẩn đoán · ICD · Mục đích · Kỹ thuật · Tổng liều · Số buổi · Các mức liều · Ghi chú; cột thiếu để trống; bỏ qua dòng thiếu mã HIS / họ tên hoặc trùng đợt đang hoạt động).
 - **KTV phân loại** từng ca sang Chờ vào xạ · Đang xạ · Tạm ngừng · Đã xạ xong · Huỷ, điền đủ BS điều trị (→ khoa), ICD, chẩn đoán, kỹ thuật, liều, số buổi; Đang xạ / Tạm ngừng / Đã xong ghi ngày bắt đầu, số buổi đã xạ (app tự ghi bù các buổi theo lịch tuần).

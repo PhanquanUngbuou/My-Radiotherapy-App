@@ -41,21 +41,21 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
 </style>
 <div class="wrap">
   <div class="intro">
-    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v2.11</h1>
+    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v2.12</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v2.11 · bản lưu b46b76f · 19/11/2026 04:38. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v2.11”.</span>
+    <span class="rev">Phiên bản v2.12 · bản lưu 7f4073c · 19/11/2026 04:43. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v2.12”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Code">Code.gs <span class="ver">· v2.11</span></h2>
+        <h2 id="h-Code">Code.gs <span class="ver">· v2.12</span></h2>
         <p>File có sẵn tên Code.gs: xoá hết nội dung cũ, dán vào.</p>
-        <span class="size">481 dòng · 25 KB</span>
+        <span class="size">525 dòng · 27 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v2.11)</button>
+      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v2.12)</button>
     </div>
-    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v2.11
+    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v2.12
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
@@ -119,6 +119,9 @@ function setup() {
     if (changed) rng.setNumberFormat(&#x27;@&#x27;).setValues(vals);
   });
 
+  // Trang &quot;NhapBN&quot;: dán BN từ hồ sơ giấy rồi chạy hàm nhapBN
+  if (!ss.getSheetByName(NHAP_SHEET)) nhapSheet_(ss);
+
   var dm = ss.getSheetByName(SHEET_NAMES.DM);
   // Bổ sung các danh mục còn thiếu (lần đầu, hoặc danh mục mới khi nâng cấp)
   var have = {};
@@ -152,6 +155,47 @@ function setup() {
   var def = ss.getSheetByName(&#x27;Sheet1&#x27;) || ss.getSheetByName(&#x27;Trang tính1&#x27;);
   if (def &amp;&amp; def.getLastRow() === 0 &amp;&amp; ss.getSheets().length &gt; 1) ss.deleteSheet(def);
   return &#x27;Đã cài đặt xong.&#x27;;
+}
+
+var NHAP_SHEET = &#x27;NhapBN&#x27;;
+function nhapSheet_(ss) {
+  var sh = ss.insertSheet(NHAP_SHEET);
+  var head = RT.IMPORT_COLS.map(function (c) { return c[1]; }).concat([&#x27;Kết quả (app tự ghi)&#x27;]);
+  sh.getRange(1, 1, 1, head.length).setValues([head]).setFontWeight(&#x27;bold&#x27;).setBackground(&#x27;#e3f4ee&#x27;);
+  sh.setFrozenRows(1);
+  sh.getRange(1, 1, sh.getMaxRows(), head.length).setNumberFormat(&#x27;@&#x27;);
+  return sh;
+}
+/**
+ * Chạy tay trong trình soạn thảo Apps Script: nhập BN ở trang &quot;NhapBN&quot; vào mục &quot;Chờ phân loại&quot;.
+ * Mỗi dòng một BN (cột như dòng tiêu đề). Dòng đã có kết quả ở cột cuối sẽ bỏ qua, nên chạy lại không bị trùng.
+ */
+function nhapBN() {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    var ss = ss_(), sh = ss.getSheetByName(NHAP_SHEET);
+    if (!sh) { nhapSheet_(ss); return &#x27;Đã tạo trang &quot;&#x27; + NHAP_SHEET + &#x27;&quot;. Dán danh sách BN vào trang này rồi chạy lại nhapBN.&#x27;; }
+    var vals = sh.getDataRange().getValues(), nc = RT.IMPORT_COLS.length, rows = [], at = [];
+    for (var r = 1; r &lt; vals.length; r++) {
+      var v = vals[r];
+      if (String(v[nc] || &#x27;&#x27;).trim()) continue;
+      var o = {}, any = false;
+      RT.IMPORT_COLS.forEach(function (c, i) { var x = normalize_(v[i]); if (x !== &#x27;&#x27;) { o[c[0]] = x; any = true; } });
+      if (!any) continue;
+      rows.push(o); at.push(r + 1);
+    }
+    if (!rows.length) return &#x27;Không có dòng mới để nhập.&#x27;;
+    var ctx = buildCtx_();
+    var msg = RT.handle(ctx, &#x27;importPatients&#x27;, { rows: rows });
+    at.forEach(function (row, i) { sh.getRange(row, nc + 1).setValue((ctx.importResult || [])[i] || &#x27;&#x27;); });
+    SpreadsheetApp.flush();
+    PropertiesService.getScriptProperties().setProperty(&#x27;REV&#x27;, String(Date.now()));
+    Logger.log(msg);
+    return msg;
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 /** Điểm vào duy nhất cho giao diện: google.script.run.api(action, payload) */
@@ -540,13 +584,13 @@ function statsData_(ctx, tu, den) {
   <section class="card" aria-labelledby="h-Core">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Core">Core.gs <span class="ver">· v2.11</span></h2>
+        <h2 id="h-Core">Core.gs <span class="ver">· v2.12</span></h2>
         <p>Bấm + → Script (Tập lệnh), đặt tên Core.</p>
-        <span class="size">1,703 dòng · 121 KB</span>
+        <span class="size">1,706 dòng · 122 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v2.11)</button>
+      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v2.12)</button>
     </div>
-    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v2.11
+    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v2.12
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -557,7 +601,7 @@ function statsData_(ctx, tu, den) {
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;2.11&#x27;;
+  var VERSION = &#x27;2.12&#x27;;
 
   var STATUS_ORDER = [&#x27;CHO_PL&#x27;, &#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;];
   var STATUS = {
@@ -849,6 +893,9 @@ var RT = (function () {
       return planOrder(a, b);
     });
   }
+  /** Cột của bảng nhập BN từ hồ sơ giấy (dán trong app, hoặc trang &quot;NhapBN&quot; chạy hàm nhapBN) */
+  var IMPORT_COLS = [[&#x27;ma_his&#x27;, &#x27;Mã HIS&#x27;], [&#x27;ho_ten&#x27;, &#x27;Họ tên&#x27;], [&#x27;nam_sinh&#x27;, &#x27;Năm sinh&#x27;], [&#x27;gioi&#x27;, &#x27;Giới&#x27;], [&#x27;chan_doan&#x27;, &#x27;Chẩn đoán&#x27;], [&#x27;icd&#x27;, &#x27;ICD&#x27;], [&#x27;muc_dich&#x27;, &#x27;Mục đích&#x27;],
+    [&#x27;ky_thuat&#x27;, &#x27;Kỹ thuật&#x27;], [&#x27;tong_lieu&#x27;, &#x27;Tổng liều (Gy)&#x27;], [&#x27;so_buoi&#x27;, &#x27;Số buổi&#x27;], [&#x27;muc_lieu&#x27;, &#x27;Các mức liều&#x27;], [&#x27;ghi_chu&#x27;, &#x27;Ghi chú&#x27;]];
   /** Mức ưu tiên và lý do: &quot;Cấp cứu&quot; và &quot;Ưu tiên&quot; bắt buộc ghi lý do; &quot;Thường&quot; thì xoá lý do. */
   function checkPrio(x, reason, strict) {
     if (x.uu_tien &amp;&amp; PRIORITY_RANK[x.uu_tien] == null) fail(&#x27;Mức ưu tiên không hợp lệ.&#x27;);
@@ -1332,11 +1379,11 @@ var RT = (function () {
       var rows = Array.isArray(a.rows) ? a.rows : [];
       if (!rows.length) fail(&#x27;Chưa có dòng nào để nhập.&#x27;);
       if (rows.length &gt; 300) fail(&#x27;Mỗi lần nhập tối đa 300 BN.&#x27;);
-      var added = [], skip = [];
+      var added = [], skip = [], res = ctx.importResult = [];
       rows.forEach(function (x, i) {
         var ho = String(x.ho_ten || &#x27;&#x27;).trim(), his = String(x.ma_his || &#x27;&#x27;).trim();
-        if (!ho || !his) { skip.push(&#x27;dòng &#x27; + (i + 1) + &#x27;: thiếu họ tên hoặc mã HIS&#x27;); return; }
-        if (ctx.patients.some(function (p) { return p.ma_his === his &amp;&amp; [&#x27;HUY&#x27;, &#x27;HOAN_THANH&#x27;].indexOf(p.trang_thai) &lt; 0; })) { skip.push(ho + &#x27; (&#x27; + his + &#x27;): đã có đợt xạ đang hoạt động&#x27;); return; }
+        if (!ho || !his) { skip.push(&#x27;dòng &#x27; + (i + 1) + &#x27;: thiếu họ tên hoặc mã HIS&#x27;); res[i] = &#x27;Bỏ qua: thiếu họ tên hoặc mã HIS&#x27;; return; }
+        if (ctx.patients.some(function (p) { return p.ma_his === his &amp;&amp; [&#x27;HUY&#x27;, &#x27;HOAN_THANH&#x27;].indexOf(p.trang_thai) &lt; 0; })) { skip.push(ho + &#x27; (&#x27; + his + &#x27;): đã có đợt xạ đang hoạt động&#x27;); res[i] = &#x27;Bỏ qua: mã HIS đã có đợt xạ đang hoạt động&#x27;; return; }
         var p = blank(COLS.BenhNhan);
         [&#x27;ma_his&#x27;, &#x27;ho_ten&#x27;, &#x27;nam_sinh&#x27;, &#x27;gioi&#x27;, &#x27;chan_doan&#x27;, &#x27;muc_dich&#x27;, &#x27;ky_thuat&#x27;, &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;, &#x27;muc_lieu&#x27;, &#x27;vi_tri&#x27;, &#x27;ghi_chu&#x27;].forEach(function (k) { if (x[k] != null) p[k] = String(x[k]).trim(); });
         p.ma_his = his; p.ho_ten = ho;
@@ -1347,7 +1394,7 @@ var RT = (function () {
         p.id = nextId(ctx); p.trang_thai = &#x27;CHO_PL&#x27;; p.ngay_tao = ctx.today; p.nguoi_nhap = ctx.user.email; p.uu_tien = &#x27;Thường&#x27;; p.igrt = &#x27;Không&#x27;; p.sgrt = &#x27;Không&#x27;;
         ctx.patients.push(p);
         save(ctx, p, &#x27;Nhập từ hồ sơ giấy&#x27;, p.ho_ten);
-        added.push(p.ho_ten);
+        added.push(p.ho_ten); res[i] = &#x27;Đã nhập &#x27; + ctx.today + &#x27; (&#x27; + p.id + &#x27;)&#x27;;
       });
       return &#x27;Đã nhập &#x27; + added.length + &#x27; BN vào &quot;Chờ phân loại&quot;.&#x27; + (skip.length ? &#x27; Bỏ qua &#x27; + skip.length + &#x27;: &#x27; + skip.join(&#x27;; &#x27;) + &#x27;.&#x27; : &#x27;&#x27;);
     },
@@ -2235,7 +2282,7 @@ var RT = (function () {
 
   return {
     VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, nurseKhoa: nurseKhoa, canByDoctor: canByDoctor, doctorKhoa: doctorKhoa, report: report, staffKhoa: staffKhoa, myDoctors: myDoctors,
-    khoaReport: khoaReport, khoaReportScope: khoaReportScope, initials: initials, quotas: quotas, parseQuota: parseQuota, occupancy: occupancy, quotaOver: quotaOver, isKtvLead: isKtvLead, pauseAsk: pauseAsk, normIcd: normIcd, isIcd: isIcd, icdName: icdName, summary: summary, findPatients: findPatients, scopePatients: scopePatients, fold: fold, indexRow: indexRow, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, planOrder: planOrder, submitTime: submitTime, DOW: DOW,
+    IMPORT_COLS: IMPORT_COLS, khoaReport: khoaReport, khoaReportScope: khoaReportScope, initials: initials, quotas: quotas, parseQuota: parseQuota, occupancy: occupancy, quotaOver: quotaOver, isKtvLead: isKtvLead, pauseAsk: pauseAsk, normIcd: normIcd, isIcd: isIcd, icdName: icdName, summary: summary, findPatients: findPatients, scopePatients: scopePatients, fold: fold, indexRow: indexRow, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, planOrder: planOrder, submitTime: submitTime, DOW: DOW,
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
@@ -2253,14 +2300,14 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
   <section class="card" aria-labelledby="h-Index">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Index">Index.html <span class="ver">· v2.11</span></h2>
+        <h2 id="h-Index">Index.html <span class="ver">· v2.12</span></h2>
         <p>Bấm + → HTML, đặt tên Index (chữ I hoa).</p>
-        <span class="size">4,901 dòng · 405 KB</span>
+        <span class="size">4,903 dòng · 406 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v2.11)</button>
+      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v2.12)</button>
     </div>
     <textarea id="t-Index" readonly spellcheck="false" aria-label="Nội dung Index.html">&lt;!DOCTYPE html&gt;
-&lt;!-- Điều phối Xạ trị · phiên bản v2.11 --&gt;
+&lt;!-- Điều phối Xạ trị · phiên bản v2.12 --&gt;
 &lt;html lang=&quot;vi&quot;&gt;
 &lt;head&gt;
 &lt;base target=&quot;_top&quot;&gt;
@@ -2777,7 +2824,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;2.11&#x27;;
+  var VERSION = &#x27;2.12&#x27;;
 
   var STATUS_ORDER = [&#x27;CHO_PL&#x27;, &#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;];
   var STATUS = {
@@ -3069,6 +3116,9 @@ var RT = (function () {
       return planOrder(a, b);
     });
   }
+  /** Cột của bảng nhập BN từ hồ sơ giấy (dán trong app, hoặc trang &quot;NhapBN&quot; chạy hàm nhapBN) */
+  var IMPORT_COLS = [[&#x27;ma_his&#x27;, &#x27;Mã HIS&#x27;], [&#x27;ho_ten&#x27;, &#x27;Họ tên&#x27;], [&#x27;nam_sinh&#x27;, &#x27;Năm sinh&#x27;], [&#x27;gioi&#x27;, &#x27;Giới&#x27;], [&#x27;chan_doan&#x27;, &#x27;Chẩn đoán&#x27;], [&#x27;icd&#x27;, &#x27;ICD&#x27;], [&#x27;muc_dich&#x27;, &#x27;Mục đích&#x27;],
+    [&#x27;ky_thuat&#x27;, &#x27;Kỹ thuật&#x27;], [&#x27;tong_lieu&#x27;, &#x27;Tổng liều (Gy)&#x27;], [&#x27;so_buoi&#x27;, &#x27;Số buổi&#x27;], [&#x27;muc_lieu&#x27;, &#x27;Các mức liều&#x27;], [&#x27;ghi_chu&#x27;, &#x27;Ghi chú&#x27;]];
   /** Mức ưu tiên và lý do: &quot;Cấp cứu&quot; và &quot;Ưu tiên&quot; bắt buộc ghi lý do; &quot;Thường&quot; thì xoá lý do. */
   function checkPrio(x, reason, strict) {
     if (x.uu_tien &amp;&amp; PRIORITY_RANK[x.uu_tien] == null) fail(&#x27;Mức ưu tiên không hợp lệ.&#x27;);
@@ -3552,11 +3602,11 @@ var RT = (function () {
       var rows = Array.isArray(a.rows) ? a.rows : [];
       if (!rows.length) fail(&#x27;Chưa có dòng nào để nhập.&#x27;);
       if (rows.length &gt; 300) fail(&#x27;Mỗi lần nhập tối đa 300 BN.&#x27;);
-      var added = [], skip = [];
+      var added = [], skip = [], res = ctx.importResult = [];
       rows.forEach(function (x, i) {
         var ho = String(x.ho_ten || &#x27;&#x27;).trim(), his = String(x.ma_his || &#x27;&#x27;).trim();
-        if (!ho || !his) { skip.push(&#x27;dòng &#x27; + (i + 1) + &#x27;: thiếu họ tên hoặc mã HIS&#x27;); return; }
-        if (ctx.patients.some(function (p) { return p.ma_his === his &amp;&amp; [&#x27;HUY&#x27;, &#x27;HOAN_THANH&#x27;].indexOf(p.trang_thai) &lt; 0; })) { skip.push(ho + &#x27; (&#x27; + his + &#x27;): đã có đợt xạ đang hoạt động&#x27;); return; }
+        if (!ho || !his) { skip.push(&#x27;dòng &#x27; + (i + 1) + &#x27;: thiếu họ tên hoặc mã HIS&#x27;); res[i] = &#x27;Bỏ qua: thiếu họ tên hoặc mã HIS&#x27;; return; }
+        if (ctx.patients.some(function (p) { return p.ma_his === his &amp;&amp; [&#x27;HUY&#x27;, &#x27;HOAN_THANH&#x27;].indexOf(p.trang_thai) &lt; 0; })) { skip.push(ho + &#x27; (&#x27; + his + &#x27;): đã có đợt xạ đang hoạt động&#x27;); res[i] = &#x27;Bỏ qua: mã HIS đã có đợt xạ đang hoạt động&#x27;; return; }
         var p = blank(COLS.BenhNhan);
         [&#x27;ma_his&#x27;, &#x27;ho_ten&#x27;, &#x27;nam_sinh&#x27;, &#x27;gioi&#x27;, &#x27;chan_doan&#x27;, &#x27;muc_dich&#x27;, &#x27;ky_thuat&#x27;, &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;, &#x27;muc_lieu&#x27;, &#x27;vi_tri&#x27;, &#x27;ghi_chu&#x27;].forEach(function (k) { if (x[k] != null) p[k] = String(x[k]).trim(); });
         p.ma_his = his; p.ho_ten = ho;
@@ -3567,7 +3617,7 @@ var RT = (function () {
         p.id = nextId(ctx); p.trang_thai = &#x27;CHO_PL&#x27;; p.ngay_tao = ctx.today; p.nguoi_nhap = ctx.user.email; p.uu_tien = &#x27;Thường&#x27;; p.igrt = &#x27;Không&#x27;; p.sgrt = &#x27;Không&#x27;;
         ctx.patients.push(p);
         save(ctx, p, &#x27;Nhập từ hồ sơ giấy&#x27;, p.ho_ten);
-        added.push(p.ho_ten);
+        added.push(p.ho_ten); res[i] = &#x27;Đã nhập &#x27; + ctx.today + &#x27; (&#x27; + p.id + &#x27;)&#x27;;
       });
       return &#x27;Đã nhập &#x27; + added.length + &#x27; BN vào &quot;Chờ phân loại&quot;.&#x27; + (skip.length ? &#x27; Bỏ qua &#x27; + skip.length + &#x27;: &#x27; + skip.join(&#x27;; &#x27;) + &#x27;.&#x27; : &#x27;&#x27;);
     },
@@ -4455,7 +4505,7 @@ var RT = (function () {
 
   return {
     VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, nurseKhoa: nurseKhoa, canByDoctor: canByDoctor, doctorKhoa: doctorKhoa, report: report, staffKhoa: staffKhoa, myDoctors: myDoctors,
-    khoaReport: khoaReport, khoaReportScope: khoaReportScope, initials: initials, quotas: quotas, parseQuota: parseQuota, occupancy: occupancy, quotaOver: quotaOver, isKtvLead: isKtvLead, pauseAsk: pauseAsk, normIcd: normIcd, isIcd: isIcd, icdName: icdName, summary: summary, findPatients: findPatients, scopePatients: scopePatients, fold: fold, indexRow: indexRow, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, planOrder: planOrder, submitTime: submitTime, DOW: DOW,
+    IMPORT_COLS: IMPORT_COLS, khoaReport: khoaReport, khoaReportScope: khoaReportScope, initials: initials, quotas: quotas, parseQuota: parseQuota, occupancy: occupancy, quotaOver: quotaOver, isKtvLead: isKtvLead, pauseAsk: pauseAsk, normIcd: normIcd, isIcd: isIcd, icdName: icdName, summary: summary, findPatients: findPatients, scopePatients: scopePatients, fold: fold, indexRow: indexRow, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, planOrder: planOrder, submitTime: submitTime, DOW: DOW,
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
@@ -5651,8 +5701,7 @@ var XL = (function () {
   }
 
   // ---------- Chờ phân loại: BN nhập từ hồ sơ giấy ----------
-  var IMPORT_COLS = [[&#x27;ma_his&#x27;, &#x27;Mã HIS&#x27;], [&#x27;ho_ten&#x27;, &#x27;Họ tên&#x27;], [&#x27;nam_sinh&#x27;, &#x27;Năm sinh&#x27;], [&#x27;gioi&#x27;, &#x27;Giới&#x27;], [&#x27;chan_doan&#x27;, &#x27;Chẩn đoán&#x27;], [&#x27;icd&#x27;, &#x27;ICD&#x27;], [&#x27;muc_dich&#x27;, &#x27;Mục đích&#x27;],
-    [&#x27;ky_thuat&#x27;, &#x27;Kỹ thuật&#x27;], [&#x27;tong_lieu&#x27;, &#x27;Tổng liều (Gy)&#x27;], [&#x27;so_buoi&#x27;, &#x27;Số buổi&#x27;], [&#x27;muc_lieu&#x27;, &#x27;Các mức liều&#x27;], [&#x27;ghi_chu&#x27;, &#x27;Ghi chú&#x27;]];
+  var IMPORT_COLS = RT.IMPORT_COLS;
   function renderPL() {
     var list = pts().filter(function (p) { return p.trang_thai === &#x27;CHO_PL&#x27;; }).sort(function (a, b) { return a.ho_ten.localeCompare(b.ho_ten, &#x27;vi&#x27;); });
     return &#x27;&lt;div class=&quot;page-head&quot;&gt;&lt;div&gt;&lt;h1&gt;Chờ phân loại&lt;/h1&gt;&lt;p&gt;BN số hoá từ hồ sơ giấy (đã có kế hoạch xạ). KTV bấm “Phân loại” để chuyển sang chờ vào xạ, đang xạ, tạm ngừng hoặc đã xạ xong, và điền thông tin còn thiếu.&lt;/p&gt;&lt;/div&gt;&#x27; +

@@ -61,6 +61,9 @@ function setup() {
     if (changed) rng.setNumberFormat('@').setValues(vals);
   });
 
+  // Trang "NhapBN": dán BN từ hồ sơ giấy rồi chạy hàm nhapBN
+  if (!ss.getSheetByName(NHAP_SHEET)) nhapSheet_(ss);
+
   var dm = ss.getSheetByName(SHEET_NAMES.DM);
   // Bổ sung các danh mục còn thiếu (lần đầu, hoặc danh mục mới khi nâng cấp)
   var have = {};
@@ -94,6 +97,47 @@ function setup() {
   var def = ss.getSheetByName('Sheet1') || ss.getSheetByName('Trang tính1');
   if (def && def.getLastRow() === 0 && ss.getSheets().length > 1) ss.deleteSheet(def);
   return 'Đã cài đặt xong.';
+}
+
+var NHAP_SHEET = 'NhapBN';
+function nhapSheet_(ss) {
+  var sh = ss.insertSheet(NHAP_SHEET);
+  var head = RT.IMPORT_COLS.map(function (c) { return c[1]; }).concat(['Kết quả (app tự ghi)']);
+  sh.getRange(1, 1, 1, head.length).setValues([head]).setFontWeight('bold').setBackground('#e3f4ee');
+  sh.setFrozenRows(1);
+  sh.getRange(1, 1, sh.getMaxRows(), head.length).setNumberFormat('@');
+  return sh;
+}
+/**
+ * Chạy tay trong trình soạn thảo Apps Script: nhập BN ở trang "NhapBN" vào mục "Chờ phân loại".
+ * Mỗi dòng một BN (cột như dòng tiêu đề). Dòng đã có kết quả ở cột cuối sẽ bỏ qua, nên chạy lại không bị trùng.
+ */
+function nhapBN() {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    var ss = ss_(), sh = ss.getSheetByName(NHAP_SHEET);
+    if (!sh) { nhapSheet_(ss); return 'Đã tạo trang "' + NHAP_SHEET + '". Dán danh sách BN vào trang này rồi chạy lại nhapBN.'; }
+    var vals = sh.getDataRange().getValues(), nc = RT.IMPORT_COLS.length, rows = [], at = [];
+    for (var r = 1; r < vals.length; r++) {
+      var v = vals[r];
+      if (String(v[nc] || '').trim()) continue;
+      var o = {}, any = false;
+      RT.IMPORT_COLS.forEach(function (c, i) { var x = normalize_(v[i]); if (x !== '') { o[c[0]] = x; any = true; } });
+      if (!any) continue;
+      rows.push(o); at.push(r + 1);
+    }
+    if (!rows.length) return 'Không có dòng mới để nhập.';
+    var ctx = buildCtx_();
+    var msg = RT.handle(ctx, 'importPatients', { rows: rows });
+    at.forEach(function (row, i) { sh.getRange(row, nc + 1).setValue((ctx.importResult || [])[i] || ''); });
+    SpreadsheetApp.flush();
+    PropertiesService.getScriptProperties().setProperty('REV', String(Date.now()));
+    Logger.log(msg);
+    return msg;
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 /** Điểm vào duy nhất cho giao diện: google.script.run.api(action, payload) */

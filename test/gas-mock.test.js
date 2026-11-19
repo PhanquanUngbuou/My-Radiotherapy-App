@@ -647,4 +647,22 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   assert.strictEqual(r.data.patients.find(x => x.ma_his === 'GI3').trang_thai, 'CHO_XA');
   assert(!api('ktv@x.vn', 'classifyPatient', { id: g('GI3').id, buoc: 'HUY', ly_do: 'x' }).ok, 'chỉ phân loại BN đang chờ phân loại');
 }
+// ---- v2.12: hàm nhapBN đọc trang NhapBN ----
+{
+  ctx.Logger = { log() {} };
+  const N = sheets.NhapBN;
+  assert(N && N.data[0][0] === 'Mã HIS' && N.data[0][12] === 'Kết quả (app tự ghi)', 'setup tạo trang NhapBN');
+  N.getRange(2, 1, 3, 12).setValues([
+    ['NB01', 'Nhập Bảng Một', 1953, 'Nam', 'K hạ họng', 'C13', 'Triệt căn', 'VMAT', 69.96, 33, '', 'BS trên phiếu: P ANH'],
+    ['NB02', 'Nhập Bảng Hai', 1960, 'Nữ', '', '', '', '3D-CRT', 30, 10, '', ''],
+    ['', '', '', '', '', '', '', '', '', '', '', '']]);
+  const before = ok('admin@x.vn', 'bootstrap').data.patients.length;
+  const m1 = vm.runInContext('nhapBN()', ctx);
+  assert(/Đã nhập 2 BN/.test(m1), m1);
+  assert(/^Đã nhập/.test(N.data[1][12]) && /^Đã nhập/.test(N.data[2][12]), 'ghi kết quả từng dòng');
+  const r2 = ok('admin@x.vn', 'bootstrap').data;
+  assert.strictEqual(r2.patients.length, before + 2);
+  assert.strictEqual(r2.patients.find(x => x.ma_his === 'NB01').tong_lieu, '69.96');
+  assert(/Không có dòng mới/.test(vm.runInContext('nhapBN()', ctx)), 'chạy lại không nhập trùng');
+}
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');
