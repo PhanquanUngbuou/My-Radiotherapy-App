@@ -665,4 +665,81 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   assert.strictEqual(r2.patients.find(x => x.ma_his === 'NB01').tong_lieu, '69.96');
   assert(/Không có dòng mới/.test(vm.runInContext('nhapBN()', ctx)), 'chạy lại không nhập trùng');
 }
+// ---- v3.0: không xạ, lập lại KH, KH đồng thời ----
+{
+  const D = k => ctx.RT.addDays(today, -k);
+  const mk = (his, st, kt, tl, sb) => ok('tk@x.vn', 'createPatient', { ma_his: his, ho_ten: 'V3 ' + his, nam_sinh: '1960', gioi: 'Nam', icd: 'C15', chan_doan: 'K', ky_thuat: kt, tong_lieu: tl, so_buoi: sb, trang_thai: st }).data.patients.find(x => x.ma_his === his);
+  const fx = (p, k, extra) => ok('ktv@x.vn', 'logFraction', Object.assign({ bn_id: p.id, ngay: D(k), ly_do_bu: 'test' }, extra || {}));
+  const env = d => ctx.RT.makeEnv(today, [], d.exceptions, d.phases, 'Máy gia tốc 1');
+  const crs = (d, p) => ctx.RT.course(d.patients.find(x => x.id === p.id), d.fractions, env(d));
+  // 1. Không xạ: vẫn có trong sổ mô phỏng, không có trong bảng xạ, mô phỏng lại được (đợt mới cùng mã HIS)
+  let nt = mk('NT1', 'MO_PHONG', '', '', '');
+  ok('ktv@x.vn', 'simDone', { id: nt.id, mat_na: '5 điểm', tiem_thuoc: 'Không' });
+  assert(!api('ktv@x.vn', 'noTreat', { id: nt.id, ly_do: 'x' }).ok, 'KTV không ghi không xạ');
+  assert(!api('bs@x.vn', 'noTreat', { id: nt.id }).ok, 'cần lý do');
+  r = ok('bs@x.vn', 'noTreat', { id: nt.id, ly_do: 'BN từ chối điều trị' });
+  nt = r.data.patients.find(x => x.id === nt.id);
+  assert(nt.trang_thai === 'KHONG_XA' && /^Không xạ: /.test(nt.ly_do_ket_thuc), 'trạng thái Không xạ');
+  let kr = ok('tk@x.vn', 'khoaReport', { tu: today, den: today }).kreport;
+  assert(kr.mo_phong.some(x => x.ma_his === 'NT1'), 'đợt không xạ vẫn vào sổ mô phỏng');
+  r = ok('bs@x.vn', 'createPatient', { ma_his: 'NT1', ho_ten: 'V3 NT1', nam_sinh: '1960', trang_thai: 'MO_PHONG' });
+  assert(!r.warn || !/đang hoạt động/.test(r.warn), 'mô phỏng lại: không báo trùng đợt đang hoạt động');
+  assert.strictEqual(r.data.patients.filter(x => x.ma_his === 'NT1').length, 2, 'đợt mới');
+  const nx = mk('NT2', 'CHO_XA', '3D-CRT', '6', '3'); fx(nx, 1);
+  assert(!api('bs@x.vn', 'noTreat', { id: nx.id, ly_do: 'x' }).ok, 'đã xạ thì không dùng Không xạ');
+
+  // 2. Lập lại KH: vẫn xạ KH cũ trong lúc chờ; KH mới sẵn sàng thì KH cũ dừng ở số buổi đã xạ
+  const rp = mk('RP1', 'CHO_XA', '3D-CRT', '20', '10');
+  [6, 5, 4].forEach(k => fx(rp, k));
+  assert(!api('ktv@x.vn', 'replan', { id: rp.id, buoc: 'CHO_KH', ky_thuat: 'VMAT', tong_lieu: '14', so_buoi: '7' }).ok, 'KTV không lập lại KH');
+  r = ok('bs@x.vn', 'replan', { id: rp.id, buoc: 'CHO_KH', ky_thuat: 'VMAT', tong_lieu: '14', so_buoi: '7' });
+  const gr = r.data.phases.find(x => x.bn_id === rp.id && x.loai === 'KH_LAI');
+  assert(gr && gr.thay_gd === '1' && gr.cat_tai === '' && gr.trang_thai === 'CHO_KH', 'tạo KH lại');
+  assert(!api('bs@x.vn', 'replan', { id: rp.id, buoc: 'CHO_KH', ky_thuat: 'VMAT', tong_lieu: '14', so_buoi: '7' }).ok, 'một KH lại một lúc');
+  assert.strictEqual(crs(r.data, rp).total, 10, 'KH lại chưa xong: tổng buổi theo KH cũ');
+  r = fx(rp, 3);
+  ok('ks@x.vn', 'claimPlan', { id: gr.id, ks_email: 'ks@x.vn' });
+  r = ok('ks@x.vn', 'planDone', { id: gr.id, can_qa: false });
+  assert.strictEqual(r.data.phases.find(x => x.id === gr.id).cat_tai, '4', 'KH cũ dừng ở 4 buổi');
+  let c = crs(r.data, rp);
+  assert(c.total === 11 && Math.abs(c.doseTotal - 22) < 0.01, 'tổng 4 + 7 buổi, 8 + 14 Gy: ' + c.total + ' ' + c.doseTotal);
+  r = fx(rp, 2);
+  assert.strictEqual(r.data.fractions.find(f => f.bn_id === rp.id && f.ngay === D(2)).gd, gr.stt, 'buổi sau xạ theo KH mới');
+  // BS chọn tạm dừng chờ KH mới
+  const rp2 = mk('RP2', 'CHO_XA', '3D-CRT', '20', '10'); fx(rp2, 6);
+  r = ok('bs@x.vn', 'replan', { id: rp2.id, buoc: 'CONTOUR', ky_thuat: '3D-CRT', tong_lieu: '18', so_buoi: '9', dung_xa: true });
+  assert.strictEqual(r.data.patients.find(x => x.id === rp2.id).trang_thai, 'TAM_NGUNG', 'tạm dừng chờ KH');
+  const g2 = r.data.phases.find(x => x.bn_id === rp2.id && x.loai === 'KH_LAI');
+  ok('bs@x.vn', 'contourDone', { id: g2.id });
+  ok('ks@x.vn', 'claimPlan', { id: g2.id, ks_email: 'ks@x.vn' });
+  r = ok('ks@x.vn', 'planDone', { id: g2.id, can_qa: true });
+  assert.strictEqual(r.data.patients.find(x => x.id === rp2.id).trang_thai, 'TAM_NGUNG', 'chờ QA vẫn dừng');
+  r = ok('ks@x.vn', 'qaResult', { id: g2.id, dat: true });
+  assert.strictEqual(r.data.patients.find(x => x.id === rp2.id).trang_thai, 'DANG_XA', 'QA đạt thì xạ tiếp');
+  assert.strictEqual(crs(r.data, rp2).total, 10, '1 buổi cũ + 9 buổi mới');
+
+  // 3. Hai KH đồng thời: 3D 3 buổi + VMAT 5 buổi; mỗi ngày tính 1 thủ thuật (có VMAT thì tính VMAT)
+  const ss = mk('SS1', 'CHO_XA', '3D-CRT', '6', '3');
+  r = ok('bs@x.vn', 'addPhase', { bn_id: ss.id, loai: 'SONG_SONG', ky_thuat: 'VMAT', tong_lieu: '10', so_buoi: '5', buoc: 'SAN_SANG' });
+  const gs = r.data.phases.find(x => x.bn_id === ss.id);
+  assert.strictEqual(gs.loai, 'SONG_SONG');
+  c = crs(r.data, ss);
+  assert(c.total === 5 && c.par.length === 1 && c.par[0].total === 5, 'tổng 5 ngày xạ (3 ngày cả hai + 2 ngày VMAT)');
+  [6, 5].forEach(k => fx(ss, k));
+  r = fx(ss, 4, { song_song: [] });
+  assert.strictEqual(r.data.fractions.filter(f => f.bn_id === ss.id && f.gd === 'S' + gs.stt && f.da_huy !== 'Có').length, 2, 'bỏ chọn KH đồng thời thì không ghi');
+  const fid4 = r.data.fractions.find(f => f.bn_id === ss.id && f.ngay === D(5) && f.gd === '1').id;
+  r = ok('admin@x.vn', 'undoFraction', { id: fid4, ly_do: 'nhầm' });
+  assert(!r.data.fractions.some(f => f.bn_id === ss.id && f.ngay === D(5) && f.da_huy !== 'Có'), 'huỷ buổi chính huỷ cả KH đồng thời cùng ngày');
+  [5, 3, 2].forEach(k => { r = fx(ss, k); });
+  c = crs(r.data, ss);
+  const ssp = r.data.patients.find(x => x.id === ss.id);
+  assert(c.done === 5 && ssp.trang_thai === 'HOAN_THANH', 'xạ đủ: ' + c.done + '/' + c.total);
+  kr = ok('tk@x.vn', 'khoaReport', { tu: D(6), den: today }).kreport;
+  const rowsOf = (n) => kr.thang.flatMap(t => (t.nhom.find(g => g.ten === n) || { rows: [] }).rows).filter(x => x.ma_his === 'SS1');
+  const cnt = rows => rows.reduce((a, x) => a + Object.keys(x.o).filter(k => x.o[k]).length, 0);
+  assert.strictEqual(cnt(rowsOf('3D')), 1, 'ngày chỉ xạ 3D (bỏ chọn KH đồng thời) tính 3D');
+  assert.strictEqual(cnt(rowsOf('VMAT')), 4, 'ngày có VMAT tính VMAT, mỗi ngày 1 thủ thuật');
+  assert(!kr.mo_phong.some(x => x.ma_his === 'RP1' && /boost/.test(x.chan_doan)), 'KH lại không ghi là boost');
+}
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');

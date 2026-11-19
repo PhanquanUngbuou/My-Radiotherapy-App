@@ -1,4 +1,4 @@
-// Điều phối Xạ trị · phiên bản v2.12
+// Điều phối Xạ trị · phiên bản v3.0
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
@@ -399,7 +399,7 @@ function archiveOld() {
     var move = {};
     tBN.rows.forEach(function (p) {
       var end = p.ngay_ket_thuc || String(p.cap_nhat_luc).slice(0, 10);
-      if ((p.trang_thai === 'HOAN_THANH' || p.trang_thai === 'HUY') && end && end < cutoff) move[p.id] = 1;
+      if ((p.trang_thai === 'HOAN_THANH' || p.trang_thai === 'HUY' || p.trang_thai === 'KHONG_XA') && end && end < cutoff) move[p.id] = 1;
     });
     var n = Object.keys(move).length;
     if (!n) { moveRows_(ss, SHEET_NAMES.LICH, ARCHIVE.LichNgoaiLe, function (r) { return (r.loai === 'THONG_BAO' && r.ngay < today) || r.da_xoa === 'Có'; }); return 'Không có gì cần lưu trữ.'; }
