@@ -1,5 +1,9 @@
 # Lịch sử phiên bản
 
+## v2.11
+- **Số hoá BN từ hồ sơ giấy, không nhập từng BN**: Xạ trị › **Chờ phân loại** (trạng thái mới). Quản trị / KTV trưởng bấm "Nhập danh sách BN", dán bảng copy từ Google Sheet / Excel (Mã HIS · Họ tên · Năm sinh · Giới · Chẩn đoán · ICD · Mục đích · Kỹ thuật · Tổng liều · Số buổi · Các mức liều · Ghi chú; cột thiếu để trống; bỏ qua dòng thiếu mã HIS / họ tên hoặc trùng đợt đang hoạt động).
+- **KTV phân loại** từng ca sang Chờ vào xạ · Đang xạ · Tạm ngừng · Đã xạ xong · Huỷ, điền đủ BS điều trị (→ khoa), ICD, chẩn đoán, kỹ thuật, liều, số buổi; Đang xạ / Tạm ngừng / Đã xong ghi ngày bắt đầu, số buổi đã xạ (app tự ghi bù các buổi theo lịch tuần).
+
 ## v2.10
 - **Hai bảng thanh toán đủ toàn bộ lượt xạ của khoa**: bảng 3D = 3D-CRT; bảng VMAT = mọi kỹ thuật còn lại (VMAT, IMRT, SRS/SBRT, Khác…), tính chung, bỏ cột KT (VM / IMRT). Khi tải có dòng đối chiếu "3D … + VMAT … = tổng … buổi của khoa".
 - **Không chọn KTV khi mô phỏng xong và khi ghi buổi xạ nữa.** Báo cáo lấy người theo **lịch phân công tuần**: KTV xạ = người phân công máy của BN đúng ca (trước 12 giờ là ca sáng; buổi ghi bù lấy cả hai ca); người mô phỏng = người phân công vị trí "Mô phỏng". Ngày chưa có lịch phân công máy: tạm ghi người bấm xác nhận và báo danh sách ngày đó khi tải.

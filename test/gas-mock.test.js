@@ -626,4 +626,25 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   k2 = ok('tk@x.vn', 'khoaReport', { tu: today, den: today }).kreport;
   assert(k2.mo_phong.find(x => x.ma_his === 'MP10').nguoi === 'trưởng', 'người mô phỏng theo lịch phân công');
 }
+// ---- v2.11: nhập BN từ hồ sơ giấy, phân loại ----
+{
+  assert(!api('ktv@x.vn', 'importPatients', { rows: [{ ma_his: 'GI1', ho_ten: 'A' }] }).ok, 'KTV thường không nhập hàng loạt');
+  r = ok('ktvt@x.vn', 'importPatients', { rows: [
+    { ma_his: 'GI1', ho_ten: 'Giấy Một', nam_sinh: '22/02/1953', gioi: 'nam', chan_doan: 'K hạ họng', ky_thuat: 'VMAT', tong_lieu: '69.96', so_buoi: '33', ghi_chu: 'BS trên phiếu: P ANH' },
+    { ma_his: 'GI2', ho_ten: 'Giấy Hai', nam_sinh: '1960', ky_thuat: '3D-CRT', tong_lieu: '30', so_buoi: '10' },
+    { ma_his: 'GI3', ho_ten: 'Giấy Ba', nam_sinh: '1970', ky_thuat: '3D-CRT', tong_lieu: '20', so_buoi: '5' },
+    { ma_his: '', ho_ten: 'Thiếu mã' }, { ma_his: 'R1', ho_ten: 'Trùng' }] });
+  assert(/Đã nhập 3 BN/.test(r.msg) && /Bỏ qua 2/.test(r.msg), r.msg);
+  const g = h => r.data.patients.find(x => x.ma_his === h);
+  assert(g('GI1').trang_thai === 'CHO_PL' && g('GI1').nam_sinh === '1953' && g('GI1').gioi === 'Nam', 'chờ phân loại, chuẩn hoá năm sinh, giới');
+  assert(!api('ktv@x.vn', 'classifyPatient', { id: g('GI1').id, buoc: 'DANG_XA', bs_email: 'tk@x.vn', da_xa: '3', ngay_bat_dau: ctx.RT.addDays(today, -7) }).ok, 'thiếu ICD thì chưa chuyển được');
+  r = ok('ktv@x.vn', 'classifyPatient', { id: g('GI1').id, buoc: 'DANG_XA', bs_email: 'tk@x.vn', icd: 'C13', da_xa: '3', ngay_bat_dau: ctx.RT.addDays(today, -7) });
+  let p1 = r.data.patients.find(x => x.ma_his === 'GI1');
+  assert(p1.trang_thai === 'DANG_XA' && p1.khoa === 'Xạ trị' && r.data.fractions.filter(f => f.bn_id === p1.id).length === 3, 'đang xạ, ghi bù 3 buổi, khoa theo BS');
+  r = ok('ktv@x.vn', 'classifyPatient', { id: g('GI2').id, buoc: 'TAM_NGUNG', bs_email: 'tk@x.vn', icd: 'C34', chan_doan: 'K phổi', da_xa: '2', ngay_bat_dau: ctx.RT.addDays(today, -6), ly_do: 'Tác dụng phụ' });
+  assert.strictEqual(r.data.patients.find(x => x.ma_his === 'GI2').trang_thai, 'TAM_NGUNG');
+  r = ok('ktv@x.vn', 'classifyPatient', { id: g('GI3').id, buoc: 'CHO_XA', bs_email: 'tk@x.vn', icd: 'C50', chan_doan: 'K vú' });
+  assert.strictEqual(r.data.patients.find(x => x.ma_his === 'GI3').trang_thai, 'CHO_XA');
+  assert(!api('ktv@x.vn', 'classifyPatient', { id: g('GI3').id, buoc: 'HUY', ly_do: 'x' }).ok, 'chỉ phân loại BN đang chờ phân loại');
+}
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');

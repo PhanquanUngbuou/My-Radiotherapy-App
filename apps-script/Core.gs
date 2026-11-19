@@ -1,4 +1,4 @@
-// Điều phối Xạ trị · phiên bản v2.10
+// Điều phối Xạ trị · phiên bản v2.11
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -9,10 +9,11 @@
  */
 var RT = (function () {
   'use strict';
-  var VERSION = '2.10';
+  var VERSION = '2.11';
 
-  var STATUS_ORDER = ['MO_PHONG', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA', 'DANG_XA', 'TAM_NGUNG', 'HOAN_THANH'];
+  var STATUS_ORDER = ['CHO_PL', 'MO_PHONG', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA', 'DANG_XA', 'TAM_NGUNG', 'HOAN_THANH'];
   var STATUS = {
+    CHO_PL: 'Chờ phân loại',
     MO_PHONG: 'Chờ mô phỏng',
     CONTOUR: 'Đang contour',
     CHO_KH: 'Chờ lập KH',
@@ -103,6 +104,8 @@ var RT = (function () {
     returnToDoctor: ['KS', 'ADMIN'],
     schedule: ['KTV', 'DD', 'ADMIN'],
     approveSchedule: ['KTV', 'ADMIN'],
+    importPatients: ['ADMIN'],
+    classifyPatient: ['KTV', 'ADMIN'],
     rejectSchedule: ['KTV', 'ADMIN'],
     confirmPause: ['BS', 'ADMIN'],
     setDay: ['KTV', 'ADMIN'],
@@ -128,7 +131,7 @@ var RT = (function () {
   PERM.copyRoster = ['ADMIN'];
   // Quyền thêm theo chức vụ (ngoài quyền của vai trò)
   var LEAD_PERM = {
-    setRoster: ['KTV trưởng'], copyRoster: ['KTV trưởng'], machineDown: ['KTV trưởng'], machineUp: ['KTV trưởng'],
+    setRoster: ['KTV trưởng'], copyRoster: ['KTV trưởng'], importPatients: ['KTV trưởng'], machineDown: ['KTV trưởng'], machineUp: ['KTV trưởng'],
     setNotice: CHUC_VU, clearNotice: CHUC_VU
   };
   /** Các bác sĩ mà người này phụ trách bệnh nhân: chính mình + bác sĩ chính nếu là trợ lý */
@@ -775,6 +778,83 @@ var RT = (function () {
       p.de_xuat_lich = ''; p.de_xuat_boi = ''; p.de_xuat_luc = '';
       save(ctx, p, 'Trả lại đề xuất lịch', a.ly_do + ' · đề xuất bởi ' + userName(ctx, who));
       return 'Đã trả lại đề xuất lịch của ' + p.ho_ten + '.';
+    },
+    /** Nhập hàng loạt BN từ hồ sơ giấy: vào "Chờ phân loại", trường thiếu để trống */
+    importPatients: function (ctx, a) {
+      var rows = Array.isArray(a.rows) ? a.rows : [];
+      if (!rows.length) fail('Chưa có dòng nào để nhập.');
+      if (rows.length > 300) fail('Mỗi lần nhập tối đa 300 BN.');
+      var added = [], skip = [];
+      rows.forEach(function (x, i) {
+        var ho = String(x.ho_ten || '').trim(), his = String(x.ma_his || '').trim();
+        if (!ho || !his) { skip.push('dòng ' + (i + 1) + ': thiếu họ tên hoặc mã HIS'); return; }
+        if (ctx.patients.some(function (p) { return p.ma_his === his && ['HUY', 'HOAN_THANH'].indexOf(p.trang_thai) < 0; })) { skip.push(ho + ' (' + his + '): đã có đợt xạ đang hoạt động'); return; }
+        var p = blank(COLS.BenhNhan);
+        ['ma_his', 'ho_ten', 'nam_sinh', 'gioi', 'chan_doan', 'muc_dich', 'ky_thuat', 'tong_lieu', 'so_buoi', 'muc_lieu', 'vi_tri', 'ghi_chu'].forEach(function (k) { if (x[k] != null) p[k] = String(x[k]).trim(); });
+        p.ma_his = his; p.ho_ten = ho;
+        if (x.icd) p.icd = normIcd(x.icd);
+        ['tong_lieu', 'so_buoi'].forEach(function (k) { if (p[k]) p[k] = String(num(p[k])); });
+        var ns = String(p.nam_sinh).match(/(19|20)\d\d/); p.nam_sinh = ns ? ns[0] : '';
+        if (p.gioi && !/^(Nam|Nữ)$/.test(p.gioi)) p.gioi = /n[uữ]/i.test(fold(p.gioi)) ? 'Nữ' : /nam/i.test(fold(p.gioi)) ? 'Nam' : '';
+        p.id = nextId(ctx); p.trang_thai = 'CHO_PL'; p.ngay_tao = ctx.today; p.nguoi_nhap = ctx.user.email; p.uu_tien = 'Thường'; p.igrt = 'Không'; p.sgrt = 'Không';
+        ctx.patients.push(p);
+        save(ctx, p, 'Nhập từ hồ sơ giấy', p.ho_ten);
+        added.push(p.ho_ten);
+      });
+      return 'Đã nhập ' + added.length + ' BN vào "Chờ phân loại".' + (skip.length ? ' Bỏ qua ' + skip.length + ': ' + skip.join('; ') + '.' : '');
+    },
+    /** KTV phân loại BN nhập từ hồ sơ giấy: điền đủ thông tin còn thiếu rồi chuyển luồng */
+    classifyPatient: function (ctx, a) {
+      var p = findP(ctx, a.id);
+      need(p, ['CHO_PL']);
+      var buoc = String(a.buoc || '');
+      if (buoc === 'HUY') {
+        if (!a.ly_do) fail('Cần ghi lý do huỷ.');
+        p.trang_thai = 'HUY'; note(p, ctx.today, 'Huỷ khi phân loại: ' + a.ly_do);
+        save(ctx, p, 'Huỷ (phân loại)', a.ly_do);
+        return 'Đã huỷ ' + p.ho_ten + '.';
+      }
+      if (['CHO_XA', 'DANG_XA', 'TAM_NGUNG', 'HOAN_THANH'].indexOf(buoc) < 0) fail('Chọn mục cần chuyển tới.');
+      var o = clean(a, EDIT_FIELDS);
+      Object.keys(o).forEach(function (k) { if (o[k] !== '') p[k] = o[k]; });
+      if (p.icd) p.icd = normIcd(p.icd);
+      if (!p.bs_email) fail('Chọn bác sĩ điều trị.');
+      var bsU = ctx.users.filter(function (u) { return u.email === p.bs_email && u.kich_hoat !== 'Không'; })[0];
+      if (!bsU || (bsU.vai_tro !== 'BS' && bsU.vai_tro !== 'ADMIN')) fail('Bác sĩ điều trị không có trong danh sách bác sĩ.');
+      setKhoa(ctx, p);
+      validate(p, ctx.today, true);
+      var nn = String(a.ngay_nghi_tuan || '');
+      if (nn && !/^[1-5]$/.test(nn)) fail('Ngày nghỉ trong tuần không hợp lệ.');
+      p.ngay_nghi_tuan = nn;
+      p.ngay_contour_xong = p.ngay_contour_xong || ctx.today; p.ngay_kh_xong = p.ngay_kh_xong || ctx.today; p.qa_ket_qua = p.qa_ket_qua || 'Nhập từ hồ sơ giấy';
+      var done = buoc === 'HOAN_THANH' ? Math.round(num(p.so_buoi)) : buoc === 'CHO_XA' ? 0 : num(a.da_xa);
+      if (buoc !== 'CHO_XA') {
+        if (!(done >= 0 && Math.round(done) === done)) fail('Số buổi đã xạ phải là số nguyên.');
+        if (buoc === 'DANG_XA' && done < 1) fail('BN đang xạ cần số buổi đã xạ từ 1.');
+        if (buoc !== 'HOAN_THANH' && done >= num(p.so_buoi)) fail('Số buổi đã xạ phải nhỏ hơn tổng số buổi.');
+      }
+      var days = [];
+      if (done > 0) {
+        var start = a.ngay_bat_dau, env = envOf(ctx);
+        if (!isDate(start) || start > ctx.today) fail('Cần ngày bắt đầu xạ (không sau hôm nay).');
+        for (var s = start, i = 0; days.length < done && s <= ctx.today && i < 500; s = addDays(s, 1), i++) if (isTreatDay(p, s, env)) days.push(s);
+        if (days.length < done) fail('Từ ' + start + ' tới hôm nay chỉ có ' + days.length + ' ngày xạ theo lịch tuần đã chọn, ít hơn số buổi đã xạ.');
+        days.forEach(function (d, k) {
+          var f = blank(COLS.BuoiXa);
+          f.id = uid('B') + k; f.bn_id = p.id; f.ngay = d; f.buoi_so = String(k + 1); f.gd = '1'; f.ktv_email = ctx.user.email;
+          f.thoi_gian = ctx.now; f.ghi_chu = 'Nhập từ hồ sơ giấy';
+          ctx.fractions.push(f); ctx.addFraction(f);
+        });
+        p.ngay_bat_dau = days[0]; p.ngay_du_kien = days[0];
+      }
+      if (buoc === 'CHO_XA') { p.trang_thai = 'CHO_XA'; if (a.ngay_du_kien && isDate(a.ngay_du_kien)) p.ngay_du_kien = a.ngay_du_kien; }
+      else if (buoc === 'DANG_XA') p.trang_thai = 'DANG_XA';
+      else if (buoc === 'TAM_NGUNG') {
+        if (!a.ly_do) fail('Cần chọn lý do tạm ngừng.');
+        p.trang_thai = 'TAM_NGUNG'; p.tam_ngung_tu = isDate(a.tam_ngung_tu) ? a.tam_ngung_tu : ctx.today; p.ly_do_tam_ngung = a.ly_do; p.xn_tam_ngung = '';
+      } else { p.trang_thai = 'HOAN_THANH'; p.ngay_ket_thuc = days[days.length - 1]; }
+      save(ctx, p, 'Phân loại', STATUS[p.trang_thai] + (done ? ' · đã xạ ' + done + ' buổi' : ''));
+      return 'Đã chuyển ' + p.ho_ten + ' sang "' + STATUS[p.trang_thai] + '".';
     },
     confirmPause: function (ctx, a) {
       var p = findP(ctx, a.id);
