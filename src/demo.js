@@ -117,6 +117,16 @@ window.DEMO = (function () {
     // Đang xạ
     p = mk({ ho_ten: 'Nguyễn Văn Hùng', nam_sinh: '1968', gioi: 'Nam', chan_doan: 'K vòm họng T3N2M0', ky_thuat: 'VMAT', tong_lieu: '70', so_buoi: '35', igrt: 'CBCT 3 buổi đầu, sau đó hằng tuần', sgrt: 'Có', ngay_nghi_tuan: '3', trang_thai: 'DANG_XA', uu_tien: 'Ưu tiên' });
     var st = back(p, 20); treat(p, st, today, [back(p, 6)]);
+    // v3.0: BN không xạ (đã mô phỏng), BN lập lại KH giữa đợt, BN có 2 KH đồng thời
+    mk({ ho_ten: 'Hoàng Văn Thịnh', nam_sinh: '1962', gioi: 'Nam', chan_doan: 'K thực quản 1/3 giữa', ky_thuat: 'VMAT', tong_lieu: '50.4', so_buoi: '28', trang_thai: 'KHONG_XA', bs_email: 'bs.thu@demo',
+      ngay_tao: wdAgo(9), ngay_mo_phong: wdAgo(7), mat_na: 'Không', tiem_thuoc: 'Có', nguoi_mo_phong: 'ktv.ha@demo', ngay_ket_thuc: wdAgo(2), ly_do_ket_thuc: 'Không xạ: BN chuyển hoá trị trước' });
+    p = mk({ ho_ten: 'Ngô Thị Hạnh', nam_sinh: '1966', gioi: 'Nữ', chan_doan: 'K hạ họng T3N2M0', ky_thuat: 'VMAT', tong_lieu: '70', so_buoi: '35', igrt: 'CBCT hằng tuần', ngay_nghi_tuan: '4', trang_thai: 'DANG_XA', bs_email: 'bs.thu@demo' });
+    treat(p, back(p, 20), RT.addDays(today, -1));
+    ph(p, { loai: 'KH_LAI', thay_gd: '1', cat_tai: '', ky_thuat: 'VMAT', tong_lieu: '30', so_buoi: '15', trang_thai: 'DANG_KH', ks_email: 'ks.nam@demo', ngay_mo_phong: wdAgo(3), mat_na: '5 điểm', nguoi_mo_phong: 'ktv.son@demo', ngay_contour_xong: wdAgo(1), ngay_nhan_kh: today, ghi_chu: 'U co nhỏ, sút cân: mô phỏng lại' });
+    p = mk({ ho_ten: 'Bùi Văn Long', nam_sinh: '1958', gioi: 'Nam', chan_doan: 'K thực quản 1/3 trên + hạch cổ', ky_thuat: '3D-CRT', tong_lieu: '50.4', so_buoi: '28', igrt: 'kV-kV hằng tuần', trang_thai: 'DANG_XA', bs_email: 'bs.thu@demo' });
+    treat(p, back(p, 10), RT.addDays(today, -1));
+    ph(p, { loai: 'SONG_SONG', bo_qua: '0', ky_thuat: 'VMAT', tong_lieu: '70', so_buoi: '35', muc_lieu: '70/60/54', trang_thai: 'SAN_SANG', ks_email: 'ks.nam@demo', ngay_tao: wdAgo(20), ngay_contour_xong: wdAgo(18), ngay_nhan_kh: wdAgo(17), ngay_kh_xong: wdAgo(14), can_qa: 'Có', qa_ket_qua: 'Đạt', ngay_qa: wdAgo(13), ghi_chu: 'Đầu cổ, xạ cùng ngày với thực quản' });
+    fractions.filter(function (f) { return f.bn_id === p.id; }).forEach(function (f) { var s = JSON.parse(JSON.stringify(f)); s.id = f.id + 'S'; s.gd = 'S2'; s.ghi_chu = 'KH đồng thời'; fractions.push(s); });
     p = mk({ ho_ten: 'Trần Thị Lan', nam_sinh: '1979', gioi: 'Nữ', chan_doan: 'K cổ tử cung IIB', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25', igrt: 'CBCT hằng tuần', ngay_nghi_tuan: '5', trang_thai: 'DANG_XA', bs_email: 'bs.thu@demo', khoa: 'Xạ trị' });
     treat(p, back(p, 11), RT.addDays(today, -1));
     p = mk({ ho_ten: 'Phạm Minh Khôi', nam_sinh: '1960', gioi: 'Nam', chan_doan: 'K phổi không tế bào nhỏ IIIA', ky_thuat: 'VMAT', tong_lieu: '60', so_buoi: '30', igrt: 'CBCT hằng ngày', ngay_nghi_tuan: '2', trang_thai: 'DANG_XA' });

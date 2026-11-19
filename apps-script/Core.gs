@@ -41,7 +41,7 @@ var RT = (function () {
       'de_xuat_lich', 'de_xuat_boi', 'de_xuat_luc', 'xn_tam_ngung', 'nguoi_mo_phong', 'mat_na', 'tiem_thuoc', 'dung_cu'],
     GiaiDoan: ['id', 'bn_id', 'stt', 'ky_thuat', 'tong_lieu', 'so_buoi', 'muc_lieu', 'trang_thai', 'di_cung',
       'uu_tien', 'ngay_tao', 'ngay_mo_phong', 'ngay_contour_xong', 'ks_email', 'ngay_nhan_kh', 'ngay_kh_xong',
-      'can_qa', 'qa_ket_qua', 'ngay_qa', 'ghi_chu', 'cap_nhat_luc', 'cap_nhat_boi', 'ly_do_uu_tien', 'tg_nop_kh', 'nguoi_mo_phong', 'mat_na', 'tiem_thuoc', 'dung_cu', 'loai', 'thay_gd', 'cat_tai'],
+      'can_qa', 'qa_ket_qua', 'ngay_qa', 'ghi_chu', 'cap_nhat_luc', 'cap_nhat_boi', 'ly_do_uu_tien', 'tg_nop_kh', 'nguoi_mo_phong', 'mat_na', 'tiem_thuoc', 'dung_cu', 'loai', 'thay_gd', 'cat_tai', 'bo_qua'],
     BuoiXa: ['id', 'bn_id', 'ngay', 'buoi_so', 'ktv_email', 'thoi_gian', 'hinh_anh', 'ghi_chu',
       'da_huy', 'huy_boi', 'ly_do_huy', 'gd', 'ghi_bu', 'ly_do_bu', 'ktv_xa'],
     LichNgoaiLe: ['id', 'bn_id', 'may', 'ngay', 'loai', 'ghi_chu', 'nguoi', 'thoi_gian', 'da_xoa'],
@@ -233,7 +233,7 @@ var RT = (function () {
       segs.splice(i + 1, 0, mk(g, 'KH lại'));
     });
     var mainN = segs.reduce(function (a, s) { return a + s.so_buoi; }, 0), tail = null;
-    all.forEach(function (g) { if (g.loai === 'SONG_SONG' && Math.round(num(g.so_buoi)) - mainN > (tail ? tail.so_buoi : 0)) tail = mk(g, 'KH đồng thời', Math.round(num(g.so_buoi)) - mainN); });
+    all.forEach(function (g) { var k = Math.round(num(g.so_buoi)) - mainN + Math.round(num(g.bo_qua)); if (g.loai === 'SONG_SONG' && k > (tail ? tail.so_buoi : 0)) tail = mk(g, 'KH đồng thời', k); });
     if (tail) { tail.tail = true; segs.push(tail); }
     var from = 0;
     segs.forEach(function (s) { s.from = from; from += s.so_buoi; s.to = from; });
@@ -249,11 +249,11 @@ var RT = (function () {
     var fx = fxOf(p, fractions);
     var segs = segments(p, env);
     var total = segs[segs.length - 1].to;
-    var doseTotal = round2(segs.reduce(function (a, s) { return a + s.tong_lieu; }, 0));
+    var doseTotal = round2(segs.reduce(function (a, s) { return a + (s.tail ? 0 : s.tong_lieu); }, 0));
     var readyTo = 0;
     for (var r = 0; r < segs.length && segs[r].ready; r++) readyTo = segs[r].to;
     var doneDates = {}, doseDone = 0;
-    fx.forEach(function (f, i) { doneDates[f.ngay] = (doneDates[f.ngay] || 0) + 1; doseDone += segAt(segs, i).d; });
+    fx.forEach(function (f, i) { doneDates[f.ngay] = (doneDates[f.ngay] || 0) + 1; var sg = segAt(segs, i); if (!sg.tail) doseDone += sg.d; });
     var par = phasesOf(p, env).filter(function (g) { return g.loai === 'SONG_SONG'; }).map(function (g) {
       var key = 'S' + num(g.stt), tl = segs.filter(function (s) { return s.tail && s.g === g; })[0];
       var n = fractions.filter(function (f) { return f.bn_id === p.id && f.da_huy !== 'Có' && f.gd === key; }).length + (tl ? Math.max(0, Math.min(tl.so_buoi, fx.length - tl.from)) : 0);
@@ -711,7 +711,7 @@ var RT = (function () {
       need(p, ['MO_PHONG', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA', 'DANG_XA', 'TAM_NGUNG']);
       if (ctx.user.vai_tro === 'BS' && p.bs_email && p.bs_email !== ctx.user.email && !a.force) { /* BS khác vẫn được thêm, chỉ ghi nhật ký */ }
       var g = newPhase(ctx, p, a), ss = a.loai === 'SONG_SONG';
-      if (ss) { g.loai = 'SONG_SONG'; ctx.savePhase(g); }
+      if (ss) { g.loai = 'SONG_SONG'; g.bo_qua = String(fxOf(p, ctx.fractions).length); ctx.savePhase(g); }
       saveT(ctx, { g: g, p: p, x: g }, ss ? 'Thêm KH đồng thời' : 'Thêm boost', g.ky_thuat + ' ' + g.tong_lieu + ' Gy/' + g.so_buoi + ' buổi · ' + STATUS[g.trang_thai]);
       return 'Đã thêm ' + (ss ? 'KH đồng thời' : 'boost') + ' GĐ' + g.stt + ' cho ' + p.ho_ten + ' (' + STATUS[g.trang_thai] + ').';
     },
@@ -1013,7 +1013,8 @@ var RT = (function () {
       ctx.fractions.push(f);
       ctx.addFraction(f);
       if (!seg.tail) course(p, ctx.fractions.filter(function (x) { return x !== f; }), env).par.forEach(function (q) {
-        if (!q.open || (Array.isArray(a.song_song) && a.song_song.map(String).indexOf(String(q.stt)) < 0)) return;
+        if (q.done >= q.total) return;
+        if (!q.open || (Array.isArray(a.song_song) && a.song_song.map(String).indexOf(String(q.stt)) < 0)) { q.g.bo_qua = String(num(q.g.bo_qua) + 1); ctx.savePhase(q.g); return; }
         var s2 = blank(COLS.BuoiXa);
         s2.id = uid('B'); s2.bn_id = p.id; s2.ngay = ngay; s2.buoi_so = String(q.done + 1); s2.gd = q.key; s2.ktv_email = f.ktv_email; s2.ktv_xa = f.ktv_xa;
         s2.thoi_gian = ctx.now; s2.hinh_anh = img; s2.ghi_chu = 'KH đồng thời'; if (late) { s2.ghi_bu = 'Có'; s2.ly_do_bu = lyDoBu; }
@@ -1058,7 +1059,13 @@ var RT = (function () {
       if (!a.ly_do) fail('Cần ghi lý do huỷ.');
       f.da_huy = 'Có'; f.huy_boi = ctx.user.email; f.ly_do_huy = a.ly_do;
       ctx.updateFraction(f);
-      if (!isParFx(f)) ctx.fractions.forEach(function (x) { if (x.bn_id === f.bn_id && x.ngay === f.ngay && x.da_huy !== 'Có' && isParFx(x)) { x.da_huy = 'Có'; x.huy_boi = ctx.user.email; x.ly_do_huy = a.ly_do; ctx.updateFraction(x); } });
+      if (!isParFx(f)) {
+        ctx.phases.forEach(function (g) {
+          if (g.bn_id !== f.bn_id || g.loai !== 'SONG_SONG' || g.trang_thai === 'HUY' || f.gd === String(g.stt) || !num(g.bo_qua)) return;
+          if (!ctx.fractions.some(function (x) { return x.bn_id === f.bn_id && x.ngay === f.ngay && x.da_huy !== 'Có' && x.gd === 'S' + g.stt; })) { g.bo_qua = String(num(g.bo_qua) - 1); ctx.savePhase(g); }
+        });
+        ctx.fractions.forEach(function (x) { if (x.bn_id === f.bn_id && x.ngay === f.ngay && x.da_huy !== 'Có' && isParFx(x)) { x.da_huy = 'Có'; x.huy_boi = ctx.user.email; x.ly_do_huy = a.ly_do; ctx.updateFraction(x); } });
+      }
       var p = findP(ctx, f.bn_id), fx = fxOf(p, ctx.fractions);
       if (!fx.length) { p.ngay_bat_dau = ''; if (p.trang_thai !== 'TAM_NGUNG') p.trang_thai = 'CHO_XA'; }
       else {

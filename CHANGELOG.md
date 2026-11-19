@@ -1,5 +1,12 @@
 # Lịch sử phiên bản
 
+## v3.0
+Gộp cả v2.11 và v2.12 (số hoá BN từ hồ sơ giấy: mục "Chờ phân loại", nhập danh sách, trang NhapBN, hàm `nhapBN`), vì anh mới cài tới v2.10.
+- **Không xạ**: BS bấm "Không xạ" (bắt buộc lý do) khi BN chưa xạ buổi nào → đợt đóng lại (trạng thái "Không xạ"). Không vào bảng xạ 3D / VMAT, vẫn có trong sổ mô phỏng nếu đã mô phỏng. Khi BN quay lại: mở hồ sơ, bấm **"Mô phỏng lại (đợt mới)"**: chép sẵn hành chính, chẩn đoán, ICD, BS, bắt đầu ở bước Chờ mô phỏng, không báo trùng đợt.
+- **Lập lại KH giữa đợt**: BS bấm "Lập lại KH" trên BN đang xạ, chọn làm lại từ: mô phỏng lại / contour lại trên CT cũ / chỉ lập lại KH; trong lúc chờ: **vẫn xạ KH cũ** hoặc **tạm dừng xạ** (BS chọn). KH lại đi qua Mô phỏng → Contour → Lập KH → QA như boost. Khi KH lại sẵn sàng: KH cũ dừng ở số buổi đã xạ, các buổi sau xạ theo KH mới; BN đang tạm dừng chờ KH thì tự chuyển Đang xạ. Sổ mô phỏng ghi "(KH lại)".
+- **Hai KH đồng thời** (VD thực quản 3D + đầu cổ VMAT): "+ Thêm boost / KH đồng thời" → chọn "KH đồng thời". Mỗi lần ghi buổi xạ, KTV tích luôn KH đồng thời (mặc định có tích; bỏ tích nếu hôm đó chỉ xạ KH chính, buổi thiếu tự xạ bù ở cuối). Hồ sơ hiện tiến độ riêng từng KH. KH dài hơn thì sau khi xong KH chính BN xạ tiếp phần còn lại.
+- **Bảng thanh toán: mỗi ngày 1 thủ thuật** cho BN có KH đồng thời: hai KH đều 3D → 1 lượt 3D; có ít nhất 1 KH không phải 3D → 1 lượt VMAT.
+
 ## v2.12
 - **Hàm `nhapBN` trong Apps Script**: dán danh sách BN (từ hồ sơ giấy) vào trang tính **"NhapBN"** (`setup` tạo sẵn, có dòng tiêu đề), chạy `nhapBN` trong trình soạn thảo là BN vào mục "Chờ phân loại". Cột cuối ghi "Đã nhập" hoặc lý do bỏ qua từng dòng; chạy lại không nhập trùng.
 

@@ -731,15 +731,15 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   const fid4 = r.data.fractions.find(f => f.bn_id === ss.id && f.ngay === D(5) && f.gd === '1').id;
   r = ok('admin@x.vn', 'undoFraction', { id: fid4, ly_do: 'nhầm' });
   assert(!r.data.fractions.some(f => f.bn_id === ss.id && f.ngay === D(5) && f.da_huy !== 'Có'), 'huỷ buổi chính huỷ cả KH đồng thời cùng ngày');
-  [5, 3, 2].forEach(k => { r = fx(ss, k); });
+  [5, 3, 2, 1].forEach(k => { r = fx(ss, k); });
   c = crs(r.data, ss);
   const ssp = r.data.patients.find(x => x.id === ss.id);
-  assert(c.done === 5 && ssp.trang_thai === 'HOAN_THANH', 'xạ đủ: ' + c.done + '/' + c.total);
+  assert(c.done === 6 && ssp.trang_thai === 'HOAN_THANH' && c.par[0].done === 5, 'ngày bỏ KH đồng thời được xạ bù ở cuối; xạ đủ: ' + c.done + '/' + c.total);
   kr = ok('tk@x.vn', 'khoaReport', { tu: D(6), den: today }).kreport;
   const rowsOf = (n) => kr.thang.flatMap(t => (t.nhom.find(g => g.ten === n) || { rows: [] }).rows).filter(x => x.ma_his === 'SS1');
   const cnt = rows => rows.reduce((a, x) => a + Object.keys(x.o).filter(k => x.o[k]).length, 0);
   assert.strictEqual(cnt(rowsOf('3D')), 1, 'ngày chỉ xạ 3D (bỏ chọn KH đồng thời) tính 3D');
-  assert.strictEqual(cnt(rowsOf('VMAT')), 4, 'ngày có VMAT tính VMAT, mỗi ngày 1 thủ thuật');
+  assert.strictEqual(cnt(rowsOf('VMAT')), 5, 'ngày có VMAT tính VMAT, mỗi ngày 1 thủ thuật');
   assert(!kr.mo_phong.some(x => x.ma_his === 'RP1' && /boost/.test(x.chan_doan)), 'KH lại không ghi là boost');
 }
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');
