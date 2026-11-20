@@ -477,3 +477,12 @@ table.rpt.grid th.d,table.rpt.grid td.d{padding:4px 3px;min-width:26px;text-alig
 .tag.first{background:var(--accent-soft);color:var(--accent)}
 .note{font-size:13.5px;color:var(--muted);margin:-4px 0 12px}
 @media (max-width:760px){.subnav{display:grid;grid-template-columns:1fr 1fr;background:none;border:0;padding:0}.subnav button{border:1px solid var(--line);background:var(--surface);justify-content:space-between;min-height:44px}}
+
+/* v3.0 */
+.linkbtn{background:none;border:0;color:var(--accent-ink);padding:2px 0;font:inherit;font-size:13px;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.icd-more{margin-top:-6px}
+.icd-x-row{display:flex;gap:10px;align-items:center;margin-bottom:6px}
+.icd-x-row .icd-x{max-width:160px}
+.icd-x-nm{font-size:13px}
+.kv .kv-full{grid-column:1/-1}
+.kv .kv-full b div{font-weight:600}

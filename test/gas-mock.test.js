@@ -741,5 +741,49 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   assert.strictEqual(cnt(rowsOf('3D')), 1, 'ngày chỉ xạ 3D (bỏ chọn KH đồng thời) tính 3D');
   assert.strictEqual(cnt(rowsOf('VMAT')), 5, 'ngày có VMAT tính VMAT, mỗi ngày 1 thủ thuật');
   assert(!kr.mo_phong.some(x => x.ma_his === 'RP1' && /boost/.test(x.chan_doan)), 'KH lại không ghi là boost');
+
+  // 4. Chuyển KH một phần: KH 6 buổi, KS chuyển 3; hết 3 buổi thì chờ BS
+  const pc = mk('PC1', 'CHO_KH', '3D-CRT', '12', '6');
+  ok('ks@x.vn', 'claimPlan', { id: pc.id, ks_email: 'ks@x.vn' });
+  assert(!api('ks@x.vn', 'planDone', { id: pc.id, can_qa: false, chuyen_buoi: '6' }).ok, 'số buổi chuyển phải nhỏ hơn KH');
+  ok('ks@x.vn', 'planDone', { id: pc.id, can_qa: false, chuyen_buoi: '3' });
+  [6, 5].forEach(k => fx(pc, k)); r = fx(pc, 4);
+  c = crs(r.data, pc);
+  assert(c.review === 3 && c.reviewWait && c.total === 6, 'tới mốc đánh giá lại');
+  r = api('ktv@x.vn', 'logFraction', { bn_id: pc.id, ngay: D(3), ly_do_bu: 'test' });
+  assert(!r.ok && /đánh giá lại/.test(r.error), 'KTV không ghi được buổi 4: ' + r.error);
+  assert(!api('ktv@x.vn', 'setReview', { id: pc.id, chuyen_buoi: '' }).ok, 'KTV không mở xạ tiếp');
+  assert(!api('bs@x.vn', 'setReview', { id: pc.id, chuyen_buoi: '2' }).ok, 'số buổi phải lớn hơn đã xạ');
+  ok('bs@x.vn', 'setReview', { id: pc.id, chuyen_buoi: '5' });
+  r = fx(pc, 3); r = fx(pc, 2);
+  assert(crs(r.data, pc).reviewWait, 'mốc mới buổi 5');
+  r = ok('bs@x.vn', 'setReview', { id: pc.id, chuyen_buoi: '' });
+  r = fx(pc, 1);
+  assert.strictEqual(r.data.patients.find(x => x.id === pc.id).trang_thai, 'HOAN_THANH', 'xạ tiếp hết KH');
+  // tới mốc, BS lập lại KH: KH cũ dừng ở số buổi đã chuyển
+  const pd = mk('PD1', 'CHO_KH', '3D-CRT', '12', '6');
+  ok('ks@x.vn', 'claimPlan', { id: pd.id, ks_email: 'ks@x.vn' });
+  ok('ks@x.vn', 'planDone', { id: pd.id, can_qa: false, chuyen_buoi: '2' });
+  [6, 5].forEach(k => fx(pd, k));
+  r = ok('bs@x.vn', 'replan', { id: pd.id, buoc: 'CHO_KH', ky_thuat: 'VMAT', tong_lieu: '6', so_buoi: '3' });
+  const gd = r.data.phases.find(x => x.bn_id === pd.id && x.loai === 'KH_LAI');
+  ok('ks@x.vn', 'claimPlan', { id: gd.id, ks_email: 'ks@x.vn' });
+  r = ok('ks@x.vn', 'planDone', { id: gd.id, can_qa: false });
+  c = crs(r.data, pd);
+  assert(c.total === 5 && !c.reviewWait, 'sau KH lại: 2 + 3 buổi, hết chờ');
+  r = fx(pd, 4);
+  assert.strictEqual(r.data.fractions.find(f => f.bn_id === pd.id && f.ngay === D(4)).gd, gd.stt, 'xạ KH mới');
+
+  // 5. Nhiều mã ICD: đếm ở cả hai mã, tìm theo mã thêm
+  r = ok('tk@x.vn', 'createPatient', { ma_his: 'IC2', ho_ten: 'Hai Mã', nam_sinh: '1960', icd: 'C15', icd_phu: 'c13.9, C15, C13', chan_doan: 'K thực quản + K hạ họng', ky_thuat: '3D-CRT', tong_lieu: '4', so_buoi: '2', trang_thai: 'CHO_XA' });
+  const ic = r.data.patients.find(x => x.ma_his === 'IC2');
+  assert.strictEqual(ic.icd_phu, 'C13', 'chuẩn hoá mã thêm, bỏ trùng mã chính');
+  assert(!api('tk@x.vn', 'updatePatient', { id: ic.id, icd_phu: 'XYZ' }).ok, 'mã thêm sai dạng');
+  fx(ic, 1);
+  const rpI = ok('admin@x.vn', 'report', { tu: D(1), den: today }).report;
+  const c13 = rpI.theo_icd.find(x => x.ma === 'C13'), c15 = rpI.theo_icd.find(x => x.ma === 'C15');
+  assert(c13 && c15 && c13.bn_xa >= 1 && c15.bn_xa >= 1, 'BN 2 mã đếm ở cả hai mã');
+  const fnd = ok('admin@x.vn', 'findPatients', { tu: D(1), den: today, moc: 'xa', icd: ['C13'] });
+  assert((fnd.found.rows || fnd.found).some(x => x.ma_his === 'IC2'), 'tìm theo mã thêm');
 }
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');
