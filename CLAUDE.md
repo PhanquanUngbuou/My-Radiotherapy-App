@@ -28,7 +28,7 @@
 3. Kiểm thử máy chủ: `node test/gas-mock.test.js` (phải in "Tất cả kiểm tra máy chủ đều đạt"). Thêm kiểm thử cho tính năng mới.
 4. Thử giao diện bằng Playwright trên `demo/index.html`, cả khung điện thoại (bọc thêm thẻ meta viewport).
 5. Commit với tên `PhanquanUngbuou` <PhanquanUngbuou@users.noreply.github.com>, đẩy: `git -c push.negotiate=true push origin main`.
-6. Đăng lại trang demo (Artifact, `file_path` = `demo/index.html`, url `https://claude.ai/artifact/LjYCXtMgMPkLWorjdPjRdE`) và trang lấy mã (`copy-code/index.html`, `https://claude.ai/artifact/JMbm5Umxd5WQSyMEq1jeY5`).
+6. Đăng lại trang demo (Artifact, `file_path` = `demo/index.html`, url `https://claude.ai/artifact/9UsBKryeCaauhv4wnHYiZb`) và trang lấy mã (`copy-code/index.html`, `https://claude.ai/artifact/FvwXv1nxrHzZr5jXMJkxdg`).
 7. Báo anh cách cài: dán đè 3 tệp → chạy `setup` một lần (khi có cột / trang mới) → Triển khai → Quản lý các bản triển khai → sửa → Phiên bản mới.
 
 ## Quy tắc nghiệp vụ đã chốt (tóm tắt)
