@@ -372,7 +372,7 @@
     plan: { label: function () { return stepLb(3, 'Lập kế hoạch', stepCount('plan')); }, render: renderPlanning },
     qa: { label: function () { return stepLb(4, 'QA', stepCount('qa')); }, render: renderQa },
     tx: { label: function () { return stepLb(5, 'Xạ trị', stepCount('tx')); }, render: renderTx },
-    all: { label: function () { return 'Tất cả BN'; }, render: renderAll },
+    all: { label: function () { return stepLb(0, 'Tất cả BN', pts().filter(function (p) { return ['HOAN_THANH', 'KHONG_XA', 'HUY'].indexOf(p.trang_thai) < 0; }).length); }, render: renderAll },
     roster: { label: function () { return 'Phân công'; }, render: renderRoster },
     stats: { label: function () { return 'Thống kê'; }, render: renderStats },
     log: { label: function () { return 'Nhật ký'; }, render: function () { return '<div class="page-head"><div><h1>Nhật ký thao tác</h1><p>Ai làm gì, lúc nào. Chỉ trưởng khoa/phòng và quản trị xem được.</p></div></div>' + logSection(); } },
@@ -388,10 +388,12 @@
     if (k === 'contour') return byState(['CONTOUR']).length;
     if (k === 'plan') return byState(['CHO_KH', 'DANG_KH']).length;
     if (k === 'qa') return byState(['CHO_QA']).length;
-    if (k === 'tx') return todayDue().length + (RT.isKtvLead(me()) && role() === 'KTV' ? pendingSched().length : 0);
+    if (k === 'tx') return todayDue().length + (ktvLead() && role() !== 'ADMIN' ? pendingSched().length : 0);
     return 0;
   }
   /** BN cần xạ hôm nay mà chưa xạ */
+  /** Xếp BN theo ABC: họ → tên đệm → tên (so cả họ tên từ trái sang, không phân biệt hoa thường) */
+  function byName(a, b) { return String(a.ho_ten || '').localeCompare(String(b.ho_ten || ''), 'vi', { sensitivity: 'base' }) || String(a.ho_ten || '').localeCompare(String(b.ho_ten || ''), 'vi') || String(a.ma_his || '').localeCompare(String(b.ma_his || '')); }
   function todayDue() {
     var t = today(), machines = S.data.dm.MAY || [];
     return pts().filter(function (p) {
@@ -714,7 +716,7 @@
   }
   function renderSim() {
     var t = today(), f = bsFilter(byState(['MO_PHONG']));
-    var list = f.list.sort(function (a, b) { return (a.ngay_mo_phong || '9') < (b.ngay_mo_phong || '9') ? -1 : (a.ngay_mo_phong || '9') > (b.ngay_mo_phong || '9') ? 1 : prRank(a) - prRank(b); });
+    var list = f.list.sort(function (a, b) { return (a.ngay_mo_phong || '9') < (b.ngay_mo_phong || '9') ? -1 : (a.ngay_mo_phong || '9') > (b.ngay_mo_phong || '9') ? 1 : byName(a, b); });
     var due = list.filter(function (p) { return p.ngay_mo_phong && p.ngay_mo_phong <= t; }), later = list.filter(function (p) { return p.ngay_mo_phong > t; }), none = list.filter(function (p) { return !p.ngay_mo_phong; });
     var cols = [C.pt, C.pr,
       { h: 'Hẹn mô phỏng', cls: 'nowrap', v: function (p) { return p.ngay_mo_phong ? '<span class="num">' + fdw(p.ngay_mo_phong) + '</span>' + (p.ngay_mo_phong < t ? '<span class="sub" style="color:var(--warn)">quá hẹn ' + RT.diffDays(p.ngay_mo_phong, t) + ' ngày</span>' : '') : '<span class="muted">Chưa hẹn</span>'; } },
@@ -729,7 +731,7 @@
   function renderContourTab() {
     var f = bsFilter(byState(['CONTOUR']));
     var since = function (p) { return p.ngay_mo_phong && p.ngay_mo_phong <= today() ? p.ngay_mo_phong : p.ngay_tao; };
-    var list = f.list.sort(function (a, b) { return prRank(a) - prRank(b) || (since(a) < since(b) ? -1 : 1); });
+    var list = f.list.sort(byName);
     var own = function (p) { return RT.myDoctors(me()).indexOf(p.bs_email) >= 0 || role() === 'ADMIN'; };
     var late = list.filter(function (p) { return daysSince(since(p)) >= 5; }).length;
     return stepHead('Contour', 'BN đã mô phỏng, chờ bác sĩ contour. Contour xong bấm “Contour xong”, BN vào hàng đợi lập kế hoạch của kỹ sư.', f.ui) +
@@ -755,7 +757,7 @@
     var noDate = pts().filter(function (p) { return p.trang_thai === 'CHO_XA' && !p.ngay_du_kien; }).length;
     var pend = pendingSched().length;
     var segs = [['today', 'Hôm nay', todayDue().length], ['week', 'Lịch tuần', 0], ['sched', 'Chờ xếp lịch', noDate]];
-    if (ktvLead() || pend) segs.push(['approve', ktvLead() ? 'Duyệt lịch' : 'Chờ duyệt lịch', pend]);
+    if (ktvLead() && pend) segs.push(['approve', 'Đề xuất cũ', pend]);
     var npl = pts().filter(function (p) { return p.trang_thai === 'CHO_PL'; }).length;
     if (npl || can('importPatients')) segs.push(['pl', 'Chờ phân loại', npl]);
     var seg = '<div class="seg tx-seg" role="group" aria-label="Xạ trị">' + segs.map(function (x) {
@@ -846,16 +848,16 @@
     var machines = S.data.dm.MAY || [];
     var onM = function (p) { return !S.fMay || (p.may || machines[0]) === S.fMay; };
     var active = pts().filter(function (p) { return onM(p) && (p.trang_thai === 'DANG_XA' || (p.trang_thai === 'CHO_XA' && p.ngay_du_kien && p.ngay_du_kien <= t)); });
-    var absT = active.filter(function (p) { var c = course(p); return !c.doneToday && c.absent[t] !== undefined; });
+    var absT = active.filter(function (p) { var c = course(p); return !c.doneToday && c.absent[t] !== undefined; }).sort(byName);
     var dueAll = active.filter(function (p) { var c = course(p); return c.treatToday && !c.doneToday && c.absent[t] === undefined; })
-      .sort(function (a, b) { return a.ho_ten.localeCompare(b.ho_ten, 'vi'); });
+      .sort(byName);
     var firstDue = dueAll.filter(function (p) { var c = course(p); return !c.blocked && isSetupIdx(c, c.done); });
     var due = dueAll.filter(function (p) { return firstDue.indexOf(p) < 0; });
-    var done = pts().filter(function (p) { return onM(p) && course(p).doneToday; });
+    var done = pts().filter(function (p) { return onM(p) && course(p).doneToday; }).sort(byName);
     var todayIdx = function (p) { var c = course(p); for (var k = 0; k < c.fx.length; k++) if (c.fx[k].ngay === t) return k; return -1; };
     var firstDone = done.filter(function (p) { return isSetupIdx(course(p), todayIdx(p)); });
-    var off = active.filter(function (p) { var c = course(p); return !c.treatToday && !c.doneToday; });
-    var paused = pts().filter(function (p) { return onM(p) && p.trang_thai === 'TAM_NGUNG'; });
+    var off = active.filter(function (p) { var c = course(p); return !c.treatToday && !c.doneToday; }).sort(byName);
+    var paused = pts().filter(function (p) { return onM(p) && p.trang_thai === 'TAM_NGUNG'; }).sort(byName);
     var holiday = S.data.holidays.indexOf(t) >= 0;
     var nFirst = firstDue.length + firstDone.length;
     var sub = S.todaySub || (firstDue.length ? 'first' : 'due');
@@ -915,7 +917,7 @@
       if ((p.may || machines[0]) !== may) return false;
       if (p.trang_thai === 'DANG_XA' || p.trang_thai === 'TAM_NGUNG') return true;
       return p.trang_thai === 'CHO_XA' && p.ngay_du_kien && p.ngay_du_kien <= days[5];
-    }).sort(function (a, b) { return a.ho_ten.localeCompare(b.ho_ten, 'vi'); });
+    }).sort(byName);
     var counts = days.map(function () { return 0; });
     var downs = (S.data.exceptions || []).filter(function (x) { return x.loai === 'MAY_NGHI' && x.may === may && x.ngay >= t; }).sort(function (a, b) { return a.ngay < b.ngay ? -1 : 1; });
     var rows = list.map(function (p) {
@@ -989,13 +991,13 @@
     var noDate = pts().filter(function (p) { return p.trang_thai === 'CHO_XA' && !p.ngay_du_kien; }).sort(schedOrder);
     var dated = pts().filter(function (p) { return p.trang_thai === 'CHO_XA' && p.ngay_du_kien; }).sort(function (a, b) { return a.ngay_du_kien < b.ngay_du_kien ? -1 : 1; });
     var upcoming = items().filter(function (p) { return ['CHO_KH', 'DANG_KH', 'CHO_QA'].indexOf(p.trang_thai) >= 0; }).sort(schedOrder);
-    var tx = pts().filter(function (p) { return p.trang_thai === 'DANG_XA'; }).sort(function (a, b) { return (RT.needsOffDay(b) ? 1 : 0) - (RT.needsOffDay(a) ? 1 : 0) || a.ho_ten.localeCompare(b.ho_ten, 'vi'); });
+    var tx = pts().filter(function (p) { return p.trang_thai === 'DANG_XA'; }).sort(function (a, b) { return (RT.needsOffDay(b) ? 1 : 0) - (RT.needsOffDay(a) ? 1 : 0) || byName(a, b); });
     var schedAct = { h: '', cls: 'act', v: function (p) {
       if (p._g) return '';
       var started = ['DANG_XA', 'TAM_NGUNG'].indexOf(p.trang_thai) >= 0, dx = proposal(p);
-      if (dx && !started) return '<span class="flag">Chờ duyệt lịch: ' + fdw(dx.ngay_du_kien) + '</span>' + (ktvLead() ? btn('approveSched', p.id, 'Duyệt', 'primary') : '');
-      if (!can('schedule') || (started && role() === 'DD')) return '';
-      return btn('schedule', p.id, started ? 'Đổi lịch' : ktvLead() ? 'Xếp lịch' : 'Đề xuất lịch', p.ngay_du_kien || started ? '' : 'primary');
+      if (dx && !started && ktvLead()) return '<span class="flag">Đề xuất cũ: ' + fdw(dx.ngay_du_kien) + '</span>' + btn('approveSched', p.id, 'Xếp theo đề xuất', 'primary') + btn('schedule', p.id, 'Xếp lịch khác');
+      if (!can('schedule')) return '';
+      return btn('schedule', p.id, started ? 'Đổi lịch' : 'Xếp lịch', p.ngay_du_kien || started ? '' : 'primary');
     } };
 
     // tải máy 6 ngày làm việc tới
@@ -1046,7 +1048,7 @@
   // ---------- Chờ phân loại: BN nhập từ hồ sơ giấy ----------
   var IMPORT_COLS = RT.IMPORT_COLS;
   function renderPL() {
-    var list = pts().filter(function (p) { return p.trang_thai === 'CHO_PL'; }).sort(function (a, b) { return a.ho_ten.localeCompare(b.ho_ten, 'vi'); });
+    var list = pts().filter(function (p) { return p.trang_thai === 'CHO_PL'; }).sort(byName);
     return '<div class="page-head"><div><h1>Chờ phân loại</h1><p>BN số hoá từ hồ sơ giấy (đã có kế hoạch xạ). KTV bấm “Phân loại” để chuyển sang chờ vào xạ, đang xạ, tạm ngừng hoặc đã xạ xong, và điền thông tin còn thiếu.</p></div>' +
       (can('importPatients') ? '<div class="filters"><button class="btn primary" data-plimport="1">Nhập danh sách BN</button></div>' : '') + '</div>' +
       group('pl', 'Chờ phân loại', list, [C.pt, C.dx,
@@ -1130,12 +1132,18 @@
       if (bsOn && S.fBs && p.bs_email !== S.fBs) return false;
       if (S.fKhoa && p.khoa !== S.fKhoa) return false;
       return true;
-    }).sort(function (a, b) { return RT.STATUS_ORDER.indexOf(a.trang_thai) - RT.STATUS_ORDER.indexOf(b.trang_thai) || a.ho_ten.localeCompare(b.ho_ten, 'vi'); });
+    }).sort(byName);
     var bsList = doctors().map(function (u) { return { v: u.email, l: u.ho_ten }; });
+    var stCount = {};
+    pts().forEach(function (p) { if (S.fKhoa && p.khoa !== S.fKhoa) return; stCount[p.trang_thai] = (stCount[p.trang_thai] || 0) + 1; });
+    var stChips = '<div class="chips st-chips">' + RT.STATUS_ORDER.filter(function (s) { return stCount[s]; }).map(function (s) {
+      return '<button type="button" class="chip' + (S.fStatus === s ? ' on' : '') + '" data-stfilter="' + s + '" aria-pressed="' + (S.fStatus === s) + '">' + esc(RT.STATUS[s]) + ' <b class="num">' + stCount[s] + '</b></button>';
+    }).join('') + '</div>';
     var html = '<div class="page-head"><div><h1>Tất cả bệnh nhân</h1><p>' + list.length + ' kết quả' + (S.q ? ' cho “' + esc(S.q) + '”' : '') + '. Gồm BN đang trong quy trình và BN kết thúc xạ trong 60 ngày qua.</p></div>' +
       '<div class="filters">' + (can('importHisBook') ? '<button class="btn" data-hisimport="1" title="Đọc sổ chuyên khoa xuất từ HIS (tệp Excel), thêm các BN có mô phỏng">Nhập từ sổ HIS</button>' : '') + '<select data-filter="fStatus" aria-label="Lọc trạng thái">' + opts(RT.STATUS_ORDER.map(function (s) { return { v: s, l: RT.STATUS[s] }; }), S.fStatus, 'Mọi trạng thái') + '</select>' +
       (bsOn ? '<select data-filter="fBs" aria-label="Lọc bác sĩ">' + opts(bsList, S.fBs, 'Mọi bác sĩ') + '</select>' : '') +
       (khoaFilterOn() ? '<select data-filter="fKhoa" aria-label="Lọc khoa">' + opts(S.data.dm.KHOA, S.fKhoa, 'Mọi khoa') + '</select>' : '') + '</div></div>';
+    html += stChips;
     html += table(list, [C.pt, C.dx, C.rx, C.bs, C.st,
       { h: 'Tiến độ / ngày dự kiến', cls: 'nowrap', v: function (p) {
         if (['DANG_XA', 'TAM_NGUNG', 'HOAN_THANH'].indexOf(p.trang_thai) >= 0) return progCell(p) + (p.ly_do_ket_thuc ? '<span class="ended">Kết thúc sớm</span>' : '');
@@ -1252,6 +1260,7 @@
   }
   function bindAll() {
     $$('#main [data-hisimport]').forEach(function (b) { b.onclick = hisImportPick; });
+    $$('#main [data-stfilter]').forEach(function (b) { b.onclick = function () { S.fStatus = S.fStatus === b.dataset.stfilter ? '' : b.dataset.stfilter; render(); }; });
     $$('#main [data-archsearch]').forEach(function (b) {
       b.onclick = function () {
         var key = S.q.trim();
@@ -2336,7 +2345,7 @@
     if (approve) { p = {}; Object.keys(p0).forEach(function (k) { p[k] = p0[k]; }); p.ngay_du_kien = dx.ngay_du_kien || p.ngay_du_kien; p.ngay_nghi_tuan = dx.ngay_nghi_tuan || ''; if (dx.may) p.may = dx.may; }
     var off = RT.offDay(p);
     var imrt = /IMRT|VMAT/i.test(p.ky_thuat);
-    var propose = !started && !ktvLead() && !approve;
+    var propose = false;
     var q = RT.quotas(S.data.dm)[p.khoa];
     var dxBy = approve ? S.data.users.filter(function (x) { return x.email === p0.de_xuat_boi; })[0] : null;
     modal({ title: approve ? 'Duyệt lịch xạ' : propose ? 'Đề xuất lịch xạ' : 'Xếp lịch xạ', ok: approve ? 'Duyệt lịch' : propose ? 'Gửi đề xuất' : 'Lưu lịch',

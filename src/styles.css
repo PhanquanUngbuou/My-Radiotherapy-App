@@ -504,3 +504,9 @@ table.rpt.grid th.d,table.rpt.grid td.d{padding:4px 3px;min-width:26px;text-alig
 .tag.imp-new{background:var(--ok-soft,#e3f4ee);color:var(--ok,#0a7a55)}
 .tag.imp-chk{background:var(--warn-soft);color:var(--warn)}
 @media (max-width:640px){.imp-filter{grid-template-columns:1fr 1fr}.imp-all{grid-column:1 / -1}.imp-list{max-height:none}}
+
+/* Tất cả BN: số theo trạng thái */
+.st-chips{margin:0 0 12px}
+.st-chips .chip{cursor:pointer;font:inherit;font-size:13px}
+.st-chips .chip b{margin-left:4px}
+.st-chips .chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}

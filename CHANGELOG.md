@@ -1,5 +1,12 @@
 # Lịch sử phiên bản
 
+## v3.2
+- **Chỉ người xếp lịch xạ (và quản trị) xếp lịch.** Bỏ đề xuất / duyệt lịch: KTV khác, ĐD, KTV trưởng (nếu không được đánh dấu) không còn nút "Xếp lịch", "Đề xuất lịch", "Đổi lịch", không thêm / bớt ngày xạ trên lịch. Bỏ mục Duyệt lịch. Đề xuất cũ còn treo (nếu có) hiện cho người xếp lịch với nút "Xếp theo đề xuất" / "Xếp lịch khác".
+- **Nhập sổ HIS: khớp tên bác sĩ viết tắt tên đệm** ("Nguyễn T. Ngọc Hà" = "Nguyễn Thị Ngọc Hà"; chỉ nhận khi khớp đúng một bác sĩ).
+- **Tất cả BN**: số tổng BN đang trong quy trình cạnh tên mục trên menu; trong trang có hàng số theo từng trạng thái, bấm để lọc (bấm lần nữa bỏ lọc).
+- **Xếp BN theo ABC họ → tên đệm → tên**: Tất cả BN, Xạ trị › Hôm nay (mọi nhóm), Lịch tuần, Contour, Chờ mô phỏng (theo ngày mô phỏng, cùng ngày thì theo ABC). Lập KH, QA, Chờ xếp lịch vẫn theo thứ tự ưu tiên.
+- Không có cột / trang mới: không cần chạy `setup`.
+
 ## v3.1
 - **Nhập BN từ sổ chuyên khoa HIS (tệp Excel)**: nút "Nhập từ sổ HIS" ở mục Tất cả BN (quản trị, trưởng khoa, ĐD trưởng, tài khoản khoa, KTV trưởng). Chọn tệp Excel sổ "mô phỏng và mặt nạ" xuất từ HIS (.xls / .xlsx). Ứng dụng đọc ngay trên máy, không dùng AI, tệp không gửi đi đâu:
   - Chỉ lấy BN có dịch vụ "Mô phỏng…", bỏ BN chỉ làm mặt nạ. Gộp các dòng cùng mã BN.

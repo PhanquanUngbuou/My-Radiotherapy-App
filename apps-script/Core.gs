@@ -1,4 +1,4 @@
-// Điều phối Xạ trị · phiên bản v3.1
+// Điều phối Xạ trị · phiên bản v3.2
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -9,7 +9,7 @@
  */
 var RT = (function () {
   'use strict';
-  var VERSION = '3.1';
+  var VERSION = '3.2';
 
   var STATUS_ORDER = ['CHO_PL', 'MO_PHONG', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA', 'DANG_XA', 'TAM_NGUNG', 'HOAN_THANH', 'KHONG_XA'];
   var STATUS = {
@@ -141,14 +141,14 @@ var RT = (function () {
     importHisBook: ['Trưởng khoa', 'Điều dưỡng trưởng', 'Tài khoản khoa', 'KTV trưởng']
   };
   /** Người xếp lịch xạ: khi quản trị đã đánh dấu (cột xep_lich), chỉ những người đó (và quản trị) xếp / duyệt lịch, đổi ngày xạ.
-   *  Người khác (KTV) chỉ gửi đề xuất. Chưa đánh dấu ai thì như cũ: KTV trưởng xếp và duyệt. */
-  var SCHED_ACTIONS = ['setDay'];
+   *  Không còn đề xuất lịch (v3.2): người khác không xếp, không đề xuất. Chưa đánh dấu ai thì KTV trưởng xếp. */
+  var SCHED_ACTIONS = ['schedule', 'setDay', 'approveSchedule', 'rejectSchedule'];
   function schedulers(users) { return (users || []).filter(function (u) { return u.xep_lich === 'Có' && u.kich_hoat !== 'Không'; }); }
   /** Các bác sĩ mà người này phụ trách bệnh nhân: chính mình + bác sĩ chính nếu là trợ lý */
   function myDoctors(u) { return u ? [u.email].concat(u.tro_ly_cho && u.vai_tro === 'BS' ? [u.tro_ly_cho] : []) : []; }
   function isLead(u) { return !!(u && u.chuc_vu && CHUC_VU.indexOf(u.chuc_vu) >= 0); }
   function can(role, action, user, users) {
-    if (SCHED_ACTIONS.indexOf(action) >= 0 && schedulers(users).length) return role === 'ADMIN' || !!(user && user.xep_lich === 'Có');
+    if (SCHED_ACTIONS.indexOf(action) >= 0) return !!(user && user.kich_hoat !== 'Không') && isKtvLead(user, users);
     if ((PERM[action] || []).indexOf(role) >= 0) return true;
     if (user && user.chuc_vu === 'Tài khoản khoa' && ((PERM[action] || []).indexOf('DD') >= 0 || (PERM[action] || []).indexOf('KTV') >= 0)) return true;
     return !!(user && user.chuc_vu && (LEAD_PERM[action] || []).indexOf(user.chuc_vu) >= 0);
@@ -805,20 +805,7 @@ var RT = (function () {
       if (nk && p.khoa !== nk) fail('Bệnh nhân này thuộc khoa khác.');
       var started = ['DANG_XA', 'TAM_NGUNG'].indexOf(p.trang_thai) >= 0 || fxOf(p, ctx.fractions).length > 0;
       if (a.ngay_du_kien) quotaGuard(ctx, p, a.ngay_du_kien, a.vuot_chi_tieu, a.ngay_nghi_tuan);
-      if (!isKtvLead(ctx.user, ctx.users)) {
-        if (started) {
-          if (ctx.user.vai_tro !== 'KTV') fail('Chỉ KTV đổi lịch tuần cho BN đang xạ.');
-        } else {
-          // Đề xuất lịch: chờ KTV trưởng duyệt
-          if (!isDate(a.ngay_du_kien)) fail('Chọn ngày bắt đầu dự kiến.');
-          var nn = String(a.ngay_nghi_tuan || '');
-          if (nn && !/^[1-5]$/.test(nn)) fail('Ngày nghỉ trong tuần không hợp lệ.');
-          p.de_xuat_lich = JSON.stringify({ ngay_du_kien: a.ngay_du_kien, ngay_nghi_tuan: nn, may: String(a.may || ''), vuot: a.vuot_chi_tieu ? 1 : 0 });
-          p.de_xuat_boi = ctx.user.email; p.de_xuat_luc = ctx.now || ctx.today;
-          save(ctx, p, 'Đề xuất lịch', 'bắt đầu ' + a.ngay_du_kien + (a.vuot_chi_tieu ? ' (vượt chỉ tiêu)' : ''));
-          return 'Đã gửi đề xuất lịch cho ' + p.ho_ten + ', chờ người xếp lịch duyệt.';
-        }
-      }
+      if (!isKtvLead(ctx.user, ctx.users)) fail('Chỉ người xếp lịch xạ được xếp, đổi lịch.');
       if (a.ngay_du_kien !== undefined) { p.de_xuat_lich = ''; p.de_xuat_boi = ''; p.de_xuat_luc = ''; }
       return applySchedule(ctx, p, a, 'Xếp lịch' + (a.vuot_chi_tieu ? ' (vượt chỉ tiêu)' : ''));
     },
@@ -1888,6 +1875,21 @@ var RT = (function () {
     var eq = docs.filter(function (u) { return bareName(u.ho_ten) === t; });
     if (eq.length === 1) return eq[0];
     if (eq.length) return null;
+    // Viết tắt tên đệm: "Nguyễn T. Ngọc Hà" = "Nguyễn Thị Ngọc Hà" (chữ cái đầu khớp, họ và tên phải đủ)
+    var tw = t.split(' ');
+    var abbr = function (b) {
+      var bw = b.split(' ');
+      if (bw.length !== tw.length || bw.length < 2) return false;
+      return bw.every(function (w, i) {
+        var x = tw[i];
+        if (w === x) return true;
+        if (i === 0 || i === bw.length - 1) return false;
+        return (w.length === 1 && x.charAt(0) === w) || (x.length === 1 && w.charAt(0) === x);
+      });
+    };
+    var ab = docs.filter(function (u) { return abbr(bareName(u.ho_ten)); });
+    if (ab.length === 1) return ab[0];
+    if (ab.length) return null;
     var tail = docs.filter(function (u) { var b = bareName(u.ho_ten); return b && b.split(' ').length >= 2 && (t.slice(-b.length - 1) === ' ' + b || b.slice(-t.length - 1) === ' ' + t); });
     return tail.length === 1 ? tail[0] : null;
   }
