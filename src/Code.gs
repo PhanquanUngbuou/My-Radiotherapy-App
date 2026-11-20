@@ -116,10 +116,6 @@ function nhapSheet_(ss) {
   return sh;
 }
 /**
- * Chạy tay trong trình soạn thảo Apps Script: nhập BN ở trang "NhapBN" vào mục "Chờ phân loại".
- * Mỗi dòng một BN (cột như dòng tiêu đề). Dòng đã có kết quả ở cột cuối sẽ bỏ qua, nên chạy lại không bị trùng.
- */
-/**
  * Xoá toàn bộ dữ liệu bệnh nhân để nhập lại từ đầu (chạy tay trong trình soạn thảo Apps Script).
  * Trước khi xoá: sao lưu cả file Google Sheet vào Drive. Giữ người dùng, danh mục, phân công, nhật ký, ngày máy nghỉ.
  */
@@ -131,7 +127,7 @@ function resetBenhNhan() {
     var stamp = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm');
     var copyName = ss.getName() + ' (sao lưu trước khi xoá BN ' + stamp + ')';
     DriveApp.getFileById(ss.getId()).makeCopy(copyName);
-    var names = [SHEET_NAMES.BN, SHEET_NAMES.GD, SHEET_NAMES.BUOI, SHEET_NAMES.IDX, NHAP_SHEET];
+    var names = [SHEET_NAMES.BN, SHEET_NAMES.GD, SHEET_NAMES.BUOI, SHEET_NAMES.IDX, NHAP_SHEET, FULL_SHEET];
     Object.keys(ARCHIVE).forEach(function (k) { if (k !== 'LichNgoaiLe') names.push(ARCHIVE[k]); });
     ss.getSheets().forEach(function (sh) { if (/^LuuTru_BuoiXa_\d{4}$/.test(sh.getName())) names.push(sh.getName()); });
     var n = 0;
@@ -159,6 +155,10 @@ function resetBenhNhan() {
   }
 }
 
+/**
+ * Chạy tay trong trình soạn thảo Apps Script: nhập BN ở trang "NhapBN" vào mục "Chờ phân loại".
+ * Mỗi dòng một BN (cột như dòng tiêu đề). Dòng đã có kết quả ở cột cuối sẽ bỏ qua, nên chạy lại không bị trùng.
+ */
 function nhapBN() {
   var lock = LockService.getScriptLock();
   lock.waitLock(30000);
@@ -177,6 +177,47 @@ function nhapBN() {
     if (!rows.length) return 'Không có dòng mới để nhập.';
     var ctx = buildCtx_();
     var msg = RT.handle(ctx, 'importPatients', { rows: rows });
+    at.forEach(function (row, i) { sh.getRange(row, nc + 1).setValue((ctx.importResult || [])[i] || ''); });
+    SpreadsheetApp.flush();
+    PropertiesService.getScriptProperties().setProperty('REV', String(Date.now()));
+    Logger.log(msg);
+    return msg;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+var FULL_SHEET = 'NhapDayDu';
+/**
+ * Chạy tay trong trình soạn thảo Apps Script: nhập đầy đủ từ HIS ở trang "NhapDayDu"
+ * (BN + mặt nạ, tiêm thuốc + các ngày đã xạ). Lần đầu chạy tạo trang có dòng tiêu đề.
+ * Dòng đã có kết quả ở cột cuối sẽ bỏ qua, nên chạy lại không bị trùng.
+ */
+function nhapDayDu() {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    var ss = ss_(), sh = ss.getSheetByName(FULL_SHEET), nc = RT.FULL_COLS.length;
+    if (!sh) {
+      sh = ss.insertSheet(FULL_SHEET);
+      var head = RT.FULL_COLS.map(function (c) { return c[1]; }).concat(['Kết quả (app tự ghi)']);
+      sh.getRange(1, 1, 1, head.length).setValues([head]).setFontWeight('bold').setBackground('#e3f4ee');
+      sh.setFrozenRows(1);
+      sh.getRange(1, 1, sh.getMaxRows(), head.length).setNumberFormat('@');
+      return 'Đã tạo trang "' + FULL_SHEET + '". Dán bảng nhập vào trang này rồi chạy lại nhapDayDu.';
+    }
+    var vals = sh.getDataRange().getValues(), rows = [], at = [];
+    for (var r = 1; r < vals.length; r++) {
+      var v = vals[r];
+      if (String(v[nc] || '').trim()) continue;
+      var o = {}, any = false;
+      RT.FULL_COLS.forEach(function (c, i) { var x = normalize_(v[i]); if (x !== '') { o[c[0]] = x; any = true; } });
+      if (!any) continue;
+      rows.push(o); at.push(r + 1);
+    }
+    if (!rows.length) return 'Không có dòng mới để nhập.';
+    var ctx = buildCtx_();
+    var msg = RT.handle(ctx, 'importFull', { rows: rows });
     at.forEach(function (row, i) { sh.getRange(row, nc + 1).setValue((ctx.importResult || [])[i] || ''); });
     SpreadsheetApp.flush();
     PropertiesService.getScriptProperties().setProperty('REV', String(Date.now()));

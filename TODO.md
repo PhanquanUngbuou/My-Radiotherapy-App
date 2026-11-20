@@ -8,18 +8,10 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
 
 ## Việc chờ
 
-### v3.4 (đề xuất 20/11/2026, chờ anh duyệt): nhập đầy đủ từ Excel HIS (mô phỏng + mặt nạ + thủ thuật xạ)
-- Anh gửi Excel (tối T7): sổ mô phỏng từ 01/09, thủ thuật làm mặt nạ, thủ thuật xạ ("xạ trị bằng máy gia tốc" = 3D, "... có điều biến liều" = VMAT), **cần có ngày thực hiện từng thủ thuật**.
-- Em xử lý ngoài app (không đưa lên GitHub), tạo 1 bảng nhập; app có hàm / nút nhập bảng này (trang "NhapDayDu"):
-  - Mặt nạ (loại theo dịch vụ), tiêm thuốc có / không (theo tên dịch vụ mô phỏng), ngày mô phỏng, ICD suy từ chẩn đoán (đánh dấu để BS kiểm tra).
-  - Có thủ thuật xạ: kỹ thuật, ngày bắt đầu, **các buổi xạ đúng ngày thực hiện** (không suy theo lịch tuần), lịch tuần suy từ ngày xạ (VMAT nghỉ ngày nào, bù T7).
-  - Thiếu tổng liều / tổng số buổi → vào Chờ phân loại đã điền sẵn mọi thứ, BS / KTV chỉ nhập tổng liều + số buổi rồi bấm "Đang xạ" (hoặc "Đã xạ xong" nếu đủ).
-  - Không có thủ thuật xạ → Chờ phân loại (đang contour / lập KH / QA / chờ xạ / không xạ: BS chọn).
-  - Buổi xạ cuối cách hôm nay > 5 ngày làm việc → gợi ý "Đã xạ xong / tạm ngừng".
-- Phân loại: thêm lựa chọn nhanh "Đang xạ" chỉ hỏi tổng liều + số buổi khi các thông tin khác đã có.
-- Sửa nhỏ: dấu * ICD / kỹ thuật không hiện khi chọn "Đã xạ xong".
+### Việc chờ dữ liệu (không phải sửa code)
+- Tối T7 (tuần này hoặc tuần sau) anh gửi Excel HIS: sổ mô phỏng từ 01/09 + thủ thuật mặt nạ + thủ thuật xạ ("máy gia tốc" = 3D, "có điều biến liều" = VMAT), **có ngày thực hiện**. Em lập bảng NhapDayDu (BS = BS chỉ định mô phỏng; liệt kê BN mà phần lớn buổi xạ dưới tên BS khác, BN có cả 3D và VMAT, BN mô phỏng 2 lần, ICD suy từ chẩn đoán cần BS kiểm tra).
 
-(Hiện chưa có việc khác. v3.3 đã làm: nhập sổ HIS vào Chờ phân loại, phân loại về mọi giai đoạn, hàm resetBenhNhan.)
+(Hiện chưa có việc sửa code. v3.4 đã làm: nhập đầy đủ từ HIS (NhapDayDu), phân loại BN đã có buổi xạ, chuyển BS điều trị. v3.3 đã làm: nhập sổ HIS vào Chờ phân loại, phân loại về mọi giai đoạn, hàm resetBenhNhan.)
 
 (v3.2 đã làm: chỉ KTV trưởng xếp lịch, phân công Ca 1–4 + Mô phỏng T2–T7, khớp tên BS viết tắt, số tổng Tất cả BN, xếp BN theo ABC.)
 

@@ -1,5 +1,15 @@
 # Lịch sử phiên bản
 
+## v3.4
+- **Nhập đầy đủ từ HIS** (chuẩn bị cho đợt nhập BN từ 01/09): trang tính **NhapDayDu** + hàm **`nhapDayDu`** chạy trong Apps Script (lần đầu chạy tạo trang có dòng tiêu đề; chạy lại không nhập trùng, cột cuối ghi kết quả từng dòng).
+  - Mỗi dòng một BN: mã HIS, họ tên, năm sinh, giới, chẩn đoán, ICD, BS điều trị (email hoặc tên), ngày mô phỏng, tiêm thuốc, mặt nạ, kỹ thuật, **các ngày đã xạ**, tổng liều, tổng số buổi, ghi chú.
+  - Các buổi xạ được ghi **đúng ngày thực hiện** (không suy theo lịch tuần); lịch tuần VMAT (nghỉ thứ mấy, bù Thứ Bảy) suy từ các ngày đã xạ.
+  - Đủ BS, ICD, chẩn đoán, kỹ thuật, tổng liều, tổng số buổi → vào thẳng **Đang xạ** (hoặc **Đã xạ xong** nếu đủ buổi). Thiếu → **Chờ phân loại**, kết quả ghi rõ thiếu gì.
+- **Phân loại BN đã có buổi xạ**: chỉ còn chọn Đang xạ / Tạm ngừng / Đã xạ xong / Huỷ, chỉ cần điền tổng liều + tổng số buổi (không ghi bù lại các buổi đã có). Mục Chờ phân loại có cột "Đã xạ" (số buổi, từ ngày → ngày), cảnh báo BN lâu chưa xạ (có thể đã xong / tạm ngừng).
+- **Chuyển BS điều trị**: nút "Chuyển BS điều trị" trong hồ sơ BN và "Chuyển BN giữa các BS" trong Bệnh nhân của tôi (chọn nhiều BN). BS đang điều trị, BS nhận (tự nhận BN về mình), trưởng khoa, quản trị làm được. Có cảnh báo và ô xác nhận; khoa của BN đổi theo BS mới; ghi nhật ký và ghi chú; BS nhận được báo trên chuông.
+- Sửa: khi phân loại "Đã xạ xong" / "Đang contour", các ô không bắt buộc không còn dấu *.
+- Không có cột mới: không cần chạy `setup` (trang NhapDayDu tự tạo khi chạy `nhapDayDu` lần đầu).
+
 ## v3.3
 - **Xoá toàn bộ BN để nhập lại từ đầu**: hàm `resetBenhNhan` chạy trong trình soạn thảo Apps Script.
   - Trước khi xoá, tự sao lưu cả file Google Sheet vào Drive (tên file có chữ "sao lưu trước khi xoá BN").

@@ -895,4 +895,52 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   r = ok('admin@x.vn', 'importHisBook', { rows: [Object.assign({}, base, { ma_his: '930091', ho_ten: 'PL 91', trang_thai: 'CHO_PL' })] });
   assert(/Đã thêm 1 BN/.test(r.msg), 'nhập lại sau khi xoá: ' + r.msg);
 }
+// v3.4: nhập đầy đủ từ HIS (trang NhapDayDu), phân loại BN đã có buổi xạ, chuyển BS điều trị
+{
+  const RT = ctx.RT;
+  assert.strictEqual(RT.isoDate('05/10/2026'), '2026-10-05');
+  currentEmail = 'admin@x.vn';
+  assert(/Đã tạo trang/.test(vm.runInContext('nhapDayDu()', ctx)), 'lần đầu tạo trang NhapDayDu');
+  const mon = RT.addDays(RT.monday(today), -14);
+  const dmy = d => d.slice(8) + '/' + d.slice(5, 7) + '/' + d.slice(0, 4);
+  // VMAT: T2, T3, T5, T6, T7 (nghỉ T4) trong 2 tuần = 10 buổi
+  const vm10 = [0, 1, 3, 4, 5, 7, 8, 10, 11, 12].map(k => RT.addDays(mon, k));
+  assert.strictEqual(RT.guessOffDay(vm10), '3', 'suy ra nghỉ Thứ Tư');
+  const t3 = [0, 1, 2].map(k => RT.addDays(mon, k));
+  const row = o => RT.FULL_COLS.map(c => o[c[0]] || '');
+  const rowsF = [
+    row({ ma_his: '950001', ho_ten: 'Đầy Đủ Một', nam_sinh: '1960', gioi: 'Nam', chan_doan: 'K vòm', icd: 'C11', bs: 'BS A', ngay_mo_phong: dmy(RT.addDays(mon, -7)), tiem_thuoc: 'Có', mat_na: 'Mặt nạ 5 điểm', ky_thuat: 'VMAT', ngay_xa: vm10.map(dmy).join(', '), tong_lieu: '70', so_buoi: '35' }),
+    row({ ma_his: '950002', ho_ten: 'Thiếu Liều', nam_sinh: '1970', gioi: 'Nữ', chan_doan: 'K vú', icd: 'C50', bs: 'bs@x.vn', ngay_mo_phong: dmy(RT.addDays(mon, -7)), tiem_thuoc: 'Không', ky_thuat: '3D-CRT', ngay_xa: t3.map(dmy).join(', ') }),
+    row({ ma_his: '950003', ho_ten: 'Xong Rồi', nam_sinh: '1955', gioi: 'Nam', chan_doan: 'Di căn xương', icd: 'C79', bs: 'BS A', ky_thuat: '3D-CRT', ngay_xa: t3.map(dmy).join(', '), tong_lieu: '8', so_buoi: '1' }),
+    row({ ma_his: '950004', ho_ten: 'Chưa Xạ', nam_sinh: '1965', gioi: 'Nữ', chan_doan: 'K CTC', bs: 'BS Lạ' })
+  ];
+  sheets.NhapDayDu.getRange(2, 1, rowsF.length, rowsF[0].length).setValues(rowsF);
+  const m1 = vm.runInContext('nhapDayDu()', ctx);
+  assert(/Đã nhập 4 BN: 1 đang xạ, 1 đã xạ xong, 2 chờ phân loại; 16 buổi xạ/.test(m1), m1);
+  assert(/Không có dòng mới/.test(vm.runInContext('nhapDayDu()', ctx)), 'chạy lại không nhập trùng');
+  assert(String(sheets.NhapDayDu.data[4][RT.FULL_COLS.length]).includes('chưa khớp BS'), 'ghi kết quả từng dòng');
+  let d = ok('admin@x.vn', 'bootstrap').data;
+  const Q = n => d.patients.find(x => x.ma_his === '95000' + n);
+  const fxOfQ = n => d.fractions.filter(f => f.bn_id === Q(n).id).map(f => f.ngay).sort();
+  assert(Q(1).trang_thai === 'DANG_XA' && Q(1).ngay_nghi_tuan === '3' && Q(1).tiem_thuoc === 'Có' && Q(1).mat_na === 'Mặt nạ 5 điểm', 'đủ thông tin → đang xạ, lịch tuần, mặt nạ');
+  assert.deepStrictEqual(fxOfQ(1), vm10, 'buổi xạ đúng ngày thực hiện');
+  const c1 = RT.course(Q(1), d.fractions, RT.makeEnv(today, d.holidays, d.exceptions, d.phases, 'Máy gia tốc 1'));
+  assert.strictEqual(c1.done, 10, 'tiến độ 10/35');
+  assert(Q(2).trang_thai === 'CHO_PL' && fxOfQ(2).length === 3 && Q(3).trang_thai === 'HOAN_THANH' && Q(4).trang_thai === 'CHO_PL' && !Q(4).bs_email, 'thiếu thì chờ phân loại');
+  // phân loại BN đã có buổi xạ: chỉ cần tổng liều, số buổi; không ghi bù lại
+  assert(!api('bs@x.vn', 'classifyPatient', { id: Q(2).id, buoc: 'CHO_XA', tong_lieu: '50', so_buoi: '25' }).ok, 'đã có buổi xạ thì không về chờ xạ');
+  assert(!api('bs@x.vn', 'classifyPatient', { id: Q(2).id, buoc: 'DANG_XA', tong_lieu: '6', so_buoi: '3' }).ok, 'số buổi phải lớn hơn số đã xạ');
+  r = ok('bs@x.vn', 'classifyPatient', { id: Q(2).id, buoc: 'DANG_XA', tong_lieu: '50', so_buoi: '25' });
+  const q2 = r.data.patients.find(x => x.ma_his === '950002');
+  assert(q2.trang_thai === 'DANG_XA' && q2.ngay_bat_dau === t3[0] && r.data.fractions.filter(f => f.bn_id === q2.id).length === 3, 'giữ đúng 3 buổi đã có');
+  // chuyển BS điều trị
+  ok('admin@x.vn', 'saveUser', { email: 'bs3@x.vn', ho_ten: 'BS Ba', vai_tro: 'BS', khoa: 'Xạ trị' });
+  assert(!api('ktv@x.vn', 'transferDoctor', { ids: [q2.id], bs_email: 'bs3@x.vn' }).ok, 'KTV không chuyển BS');
+  assert(!api('bs2@x.vn', 'transferDoctor', { ids: [q2.id], bs_email: 'tk@x.vn' }).ok, 'BS ngoài cuộc không chuyển');
+  r = ok('bs3@x.vn', 'transferDoctor', { ids: [q2.id, Q(1).id], bs_email: 'bs3@x.vn', ly_do: 'BS Ba điều trị' });
+  assert(/Đã chuyển 2 BN sang BS Ba/.test(r.msg), r.msg);
+  assert(r.data.patients.find(x => x.id === q2.id).bs_email === 'bs3@x.vn' && sheets.NhatKy.data.some(row => row.includes('Chuyển BS điều trị')), 'BS nhận tự chuyển BN sang mình, có nhật ký');
+  r = ok('bs3@x.vn', 'transferDoctor', { ids: [q2.id], bs_email: 'bs@x.vn' });
+  assert.strictEqual(r.data.patients.find(x => x.id === q2.id).bs_email, 'bs@x.vn', 'BS đang điều trị chuyển đi');
+}
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');
