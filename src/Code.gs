@@ -78,6 +78,13 @@ function setup() {
   var hasV = function (l, v) { return cur.some(function (r) { return String(r[0]).toUpperCase() === l && String(r[1]) === v; }); };
   [['MUC_DICH', 'Tân bổ trợ'], ['MUC_DICH', 'Củng cố']].forEach(function (x) { if (have[x[0]] && !hasV(x[0], x[1])) rows.push(x); });
   cur.forEach(function (r, i) { if (String(r[0]).toUpperCase() === 'DON_GIA' && /^setup/i.test(String(r[1]))) dm.getRange(i + 2, 1, 1, 2).setValues([['', '']]); });
+  // v3.2: phân công chỉ Ca 1–4 và Mô phỏng (đổi một lần, sau đó quản trị sửa được trong Quản trị)
+  var sp = PropertiesService.getScriptProperties();
+  if (have.VI_TRI_PC && !sp.getProperty('PC_V32')) {
+    cur.forEach(function (r, i) { if (String(r[0]).toUpperCase() === 'VI_TRI_PC') dm.getRange(i + 2, 1, 1, 2).setValues([['', '']]); });
+    RT.DEFAULT_DM.VI_TRI_PC.forEach(function (v) { rows.push(['VI_TRI_PC', v]); });
+  }
+  sp.setProperty('PC_V32', '1');
   if (rows.length) dm.getRange(Math.max(dm.getLastRow(), 1) + 1, 1, rows.length, 2).setNumberFormat('@').setValues(rows);
 
   var users = ss.getSheetByName(SHEET_NAMES.USER);

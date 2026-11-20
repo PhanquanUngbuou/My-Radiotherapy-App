@@ -13,17 +13,18 @@ window.DEMO = (function () {
     { email: 'bs.chi@demo', ho_ten: 'BS. Vũ Chi', vai_tro: 'BS', khoa: 'Xạ trị', tro_ly_cho: 'bs.thu@demo' },
     { email: 'ks.nam@demo', ho_ten: 'KS. Đỗ Nam', vai_tro: 'KS' },
     { email: 'ks.ha@demo', ho_ten: 'KS. Vũ Hà', vai_tro: 'KS' },
-    { email: 'ktv.linh@demo', ho_ten: 'KTV. Hoàng Linh', vai_tro: 'KTV', chuc_vu: 'KTV trưởng', ky_hieu: 'HL', xep_lich: 'Có' },
+    { email: 'ktv.linh@demo', ho_ten: 'KTV. Hoàng Linh', vai_tro: 'KTV', chuc_vu: 'KTV trưởng', ky_hieu: 'HL' },
     { email: 'ktv.son@demo', ho_ten: 'KTV. Trần Sơn', vai_tro: 'KTV' },
     { email: 'ktv.ha@demo', ho_ten: 'KTV. Lê Hà', vai_tro: 'KTV' },
     { email: 'dd.mai@demo', ho_ten: 'ĐD. Mai Anh', vai_tro: 'DD', chuc_vu: 'Điều dưỡng trưởng', khoa: 'Xạ trị theo yêu cầu' },
     { email: 'dd.lan@demo', ho_ten: 'ĐD. Phạm Lan', vai_tro: 'DD', khoa: 'Xạ trị' },
     { email: 'quantri@demo', ho_ten: 'Quản trị khoa', vai_tro: 'ADMIN' }
   ];
-  users.forEach(function (u) { u.kich_hoat = 'Có'; u.chuc_vu = u.chuc_vu || ''; u.khoa = u.khoa || ''; u.tro_ly_cho = u.tro_ly_cho || ''; u.xep_lich = u.xep_lich || ''; });
+  users.forEach(function (u) { u.kich_hoat = 'Có'; u.chuc_vu = u.chuc_vu || ''; u.khoa = u.khoa || ''; u.tro_ly_cho = u.tro_ly_cho || ''; });
   var roster = [], rev = 1;
   var logs = [];
   var dm = JSON.parse(JSON.stringify(RT.DEFAULT_DM));
+  dm.GIO_CA = ['Ca 1: 07:00-09:30', 'Ca 2: 09:30-12:00', 'Ca 3: 13:00-15:30', 'Ca 4: 15:30-18:00'];
   dm.CHI_TIEU = ['Xạ trị: 4-5', 'Xạ trị theo yêu cầu: 12-14']; // bản demo ít BN nên đặt chỉ tiêu nhỏ để thấy cảnh báo
   var holidays = [];
   var patients = [], fractions = [], phases = [], exceptions = [];
@@ -193,11 +194,11 @@ window.DEMO = (function () {
   // Bảng phân công mẫu tuần này
   (function () {
     var mon = RT.monday(today), plan = {
-      'Máy gia tốc 1 – ca sáng': ['ktv.linh@demo, ktv.son@demo', 'ktv.son@demo, ktv.ha@demo', 'ktv.linh@demo, ktv.ha@demo', 'ktv.linh@demo, ktv.son@demo', 'ktv.son@demo, ktv.ha@demo', 'ktv.ha@demo'],
-      'Máy gia tốc 1 – ca chiều': ['ktv.ha@demo', 'ktv.linh@demo', 'ktv.son@demo', 'ktv.ha@demo', 'ktv.linh@demo', ''],
-      'Mô phỏng CT': ['ktv.ha@demo', 'ktv.linh@demo', 'ktv.son@demo', 'ktv.ha@demo', 'ktv.linh@demo', ''],
-      'Làm mặt nạ / cố định': ['ktv.son@demo', 'ktv.ha@demo', 'ktv.linh@demo', 'ktv.son@demo', 'ktv.ha@demo', ''],
-      'Trực': ['ktv.linh@demo', 'ktv.son@demo', 'ktv.ha@demo', 'ktv.linh@demo', 'ktv.son@demo', 'ktv.ha@demo']
+      'Ca 1': ['ktv.linh@demo, ktv.son@demo', 'ktv.son@demo, ktv.ha@demo', 'ktv.linh@demo, ktv.ha@demo', 'ktv.linh@demo, ktv.son@demo', 'ktv.son@demo, ktv.ha@demo', 'ktv.ha@demo'],
+      'Ca 2': ['ktv.ha@demo', 'ktv.linh@demo', 'ktv.son@demo', 'ktv.ha@demo', 'ktv.linh@demo', ''],
+      'Ca 3': ['ktv.ha@demo', 'ktv.linh@demo', 'ktv.son@demo', 'ktv.ha@demo', 'ktv.linh@demo', ''],
+      'Ca 4': ['ktv.son@demo', 'ktv.ha@demo', 'ktv.linh@demo', 'ktv.son@demo', 'ktv.ha@demo', ''],
+      'Mô phỏng': ['ktv.linh@demo', 'ktv.son@demo', 'ktv.ha@demo', 'ktv.linh@demo', 'ktv.son@demo', 'ktv.ha@demo']
     };
     Object.keys(plan).forEach(function (vt) {
       plan[vt].forEach(function (nv, i) { if (nv) roster.push({ id: 'P' + vt.length + i, ngay: RT.addDays(mon, i), vi_tri: vt, nhan_vien: nv, ghi_chu: '', nguoi: 'ktv.linh@demo', thoi_gian: today + 'T07:00:00' }); });

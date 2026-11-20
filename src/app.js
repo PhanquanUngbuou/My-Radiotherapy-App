@@ -1739,17 +1739,17 @@
   function renderRoster() {
     var t = today();
     if (!S.rweek) S.rweek = RT.monday(t);
-    var days = [0, 1, 2, 3, 4, 5, 6].map(function (i) { return RT.addDays(S.rweek, i); });
+    var days = [0, 1, 2, 3, 4, 5].map(function (i) { return RT.addDays(S.rweek, i); });  // Thứ Hai → Thứ Bảy
     var pos = S.data.dm.VI_TRI_PC || [];
     var edit = can('setRoster');
     var winA = RT.addDays(RT.monday(t), -7), winB = RT.addDays(RT.monday(t), 34);
-    var outside = days[0] < winA || days[6] > winB;
+    var outside = days[0] < winA || days[5] > winB;
     if (outside && S.rosterWeekLoaded !== S.rweek) {
       S.rosterWeekLoaded = S.rweek;
       setBusy(1);
-      call('getRoster', { tu: days[0], den: days[6] }).then(function (r) { S.rosterExtra = (S.rosterExtra || []).concat(r.roster || []); renderMain(); }, function () {}).finally(function () { setBusy(-1); });
+      call('getRoster', { tu: days[0], den: days[5] }).then(function (r) { S.rosterExtra = (S.rosterExtra || []).concat(r.roster || []); renderMain(); }, function () {}).finally(function () { setBusy(-1); });
     }
-    var html = '<div class="page-head"><div><h1>Phân công</h1><p>Tuần ' + fd(days[0]) + ' – ' + fd(days[6]) + '/' + days[6].slice(0, 4) +
+    var html = '<div class="page-head"><div><h1>Phân công</h1><p>Tuần ' + fd(days[0]) + ' – ' + fd(days[5]) + '/' + days[5].slice(0, 4) +
       (edit ? '. Bấm vào ô để chọn người.' : '. Chỉ KTV trưởng và quản trị sửa được.') + '</p></div>' +
       '<div class="filters">' + (edit ? '<button class="btn" data-rcopy="1">Sao chép từ tuần trước</button>' : '') +
       '<div class="seg"><button data-rnav="-7" aria-label="Tuần trước">‹</button><button data-rnav="0">Tuần này</button><button data-rnav="7" aria-label="Tuần sau">›</button></div></div></div>';
@@ -1805,7 +1805,7 @@
       '<span class="hint">Người dùng cần có tài khoản Google. Với Gmail cá nhân, nhớ chia sẻ Google Sheet cho họ.</span></div><div class="card"><div class="tbl-wrap"><table><thead><tr><th>Họ tên</th><th>Email</th><th>Vai trò</th><th>Chức vụ</th><th>Khoa</th><th>Trạng thái</th><th></th></tr></thead><tbody>' +
       users.map(function (u) {
         return '<tr class="' + (u.kich_hoat === 'Không' ? 'off-user' : '') + '"><td><b>' + esc(u.ho_ten) + '</b></td><td class="mono">' + esc(u.email) + '</td><td><span class="role role-' + esc(u.vai_tro) + '">' + esc(RT.ROLES[u.vai_tro] || u.vai_tro) + '</span></td>' +
-          '<td>' + esc(u.chuc_vu || '') + (u.xep_lich === 'Có' ? ' <span class="tag">Xếp lịch xạ</span>' : '') + (u.tro_ly_cho ? '<span class="sub">Trợ lý cho ' + esc(nameOf(u.tro_ly_cho)) + '</span>' : '') + '</td><td>' + esc(u.khoa || '') + (u.ky_hieu ? '<span class="sub">Ký hiệu: ' + esc(u.ky_hieu) + '</span>' : '') + '</td><td>' + (u.kich_hoat === 'Không' ? 'Đã khoá' : 'Hoạt động') + '</td><td class="act"><button class="btn" data-admin="editUser" data-email="' + esc(u.email) + '">Sửa</button></td></tr>';
+          '<td>' + esc(u.chuc_vu || '') + (u.tro_ly_cho ? '<span class="sub">Trợ lý cho ' + esc(nameOf(u.tro_ly_cho)) + '</span>' : '') + '</td><td>' + esc(u.khoa || '') + (u.ky_hieu ? '<span class="sub">Ký hiệu: ' + esc(u.ky_hieu) + '</span>' : '') + '</td><td>' + (u.kich_hoat === 'Không' ? 'Đã khoá' : 'Hoạt động') + '</td><td class="act"><button class="btn" data-admin="editUser" data-email="' + esc(u.email) + '">Sửa</button></td></tr>';
       }).join('') + '</tbody></table></div></div></section>';
     var dmBox = function (loai, title, help, ph, type) {
       var list = d.dm[loai] || [];
@@ -1819,7 +1819,8 @@
       dmBox('NGAY_LE', 'Ngày nghỉ lễ', 'Không tính vào lịch xạ.', '', 'date') +
       dmBox('KY_THUAT', 'Kỹ thuật xạ', '', 'VD: Brachytherapy') +
       dmBox('MUC_DICH', 'Mục đích xạ', '', 'VD: Dự phòng') +
-      dmBox('VI_TRI_PC', 'Vị trí phân công KTV', 'Các dòng của bảng phân công.', 'VD: Máy gia tốc 2 – ca sáng') +
+      dmBox('VI_TRI_PC', 'Vị trí phân công KTV', 'Các dòng của bảng phân công (Thứ Hai – Thứ Bảy).', 'VD: Ca 5') +
+      dmBox('GIO_CA', 'Giờ các ca xạ', 'Để biết KTV nào xạ buổi nào (bảng thanh toán, form ghi buổi xạ). Chưa ghi giờ thì lấy mọi ca trong ngày.', 'VD: Ca 1: 07:00-09:30') +
       dmBox('VI_TRI', 'Vị trí xạ (gợi ý khi nhập)', 'Bác sĩ vẫn gõ được vị trí khác.', 'VD: Hố yên') +
       dmBox('HINH_ANH', 'Hình ảnh / định vị mỗi buổi', 'KTV tích khi ghi buổi xạ.', 'VD: ExacTrac') +
       dmBox('IGRT', 'Phác đồ IGRT dự kiến', '', 'VD: CBCT 5 buổi đầu') +
@@ -1860,7 +1861,7 @@
         field('Khoa', '<select name="khoa">' + opts(RT.staffKhoa(S.data.dm), u.khoa || '', '—') + '</select>', '', 'Bắt buộc với bác sĩ, điều dưỡng, trưởng khoa, tài khoản khoa. BN mới nhận khoa theo bác sĩ điều trị; điều dưỡng chỉ thấy BN khoa mình.') +
         field('Ký hiệu (in trên bảng xạ trị)', '<input type="text" name="ky_hieu" maxlength="4" value="' + esc(u.ky_hieu || '') + '" placeholder="VD: T, Đ, IT">', '', 'Dùng cho KTV. Để trống thì lấy chữ cái đầu của tên.') +
         field('Trợ lý cho bác sĩ', '<select name="tro_ly_cho" id="tl-sel">' + opts(S.data.users.filter(function (x) { return x.kich_hoat !== 'Không' && x.email !== u.email && !x.tro_ly_cho && (x.vai_tro === 'BS' || isDoctor(x)); }).map(function (x) { return { v: x.email, l: x.ho_ten }; }), u.tro_ly_cho || '', 'Không (bác sĩ bình thường)') + '</select>', 'full', 'Chỉ cho bác sĩ trợ lý: thấy và làm việc trên BN của bác sĩ chính, xem được thống kê của bác sĩ chính. BN vẫn đứng tên bác sĩ chính.') +
-        '<label class="confirm full"><input type="checkbox" name="xep_lich"' + (u.xep_lich === 'Có' ? ' checked' : '') + '><span>Người xếp lịch xạ. Khi đã có người được đánh dấu, chỉ những người này (và quản trị) được xếp lịch, đổi ngày xạ.</span></label></div>',
+'</div>',
       onMount: function (form) {
         var vt = $('select[name=vai_tro]', form), tl = $('#tl-sel', form), box = tl && tl.closest('.field');
         var upd = function () { if (!box) return; box.hidden = vt.value !== 'BS'; if (vt.value !== 'BS') tl.value = ''; };
@@ -2164,10 +2165,10 @@
   }
   /** KTV xạ ca này: theo bảng phân công máy của BN hôm nay (ca sáng / chiều), nếu không có thì lấy lần ghi trước */
   function defaultKtv(p) {
-    var list = ktvList(), may = p.may || (S.data.dm.MAY || [])[0] || '', ca = new Date().getHours() < 12 ? 'sáng' : 'chiều';
+    var list = ktvList(), may = p.may || (S.data.dm.MAY || [])[0] || '', d = new Date(), hm = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
     var isK = function (e) { return list.some(function (u) { return u.email === e; }); };
-    var sel = rosterToday(function (v) { return may && v.indexOf(may) === 0 && v.indexOf(ca) >= 0; }).filter(isK);
-    if (!sel.length) sel = rosterToday(function (v) { return may && v.indexOf(may) === 0; }).filter(isK);
+    var sel = [];
+    RT.rosterFor(rosterRows().filter(function (r) { return r.ngay === today(); }), may, hm, S.data.dm).forEach(function (r) { RT.splitList(r.nhan_vien).forEach(function (e) { if (sel.indexOf(e) < 0 && isK(e)) sel.push(e); }); });
     if (!sel.length) sel = (S.lastKtvXa || []).filter(isK);
     if (!sel.length && role() === 'KTV') sel = [me().email];
     return sel;

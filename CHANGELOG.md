@@ -1,11 +1,13 @@
 # Lịch sử phiên bản
 
 ## v3.2
-- **Chỉ người xếp lịch xạ (và quản trị) xếp lịch.** Bỏ đề xuất / duyệt lịch: KTV khác, ĐD, KTV trưởng (nếu không được đánh dấu) không còn nút "Xếp lịch", "Đề xuất lịch", "Đổi lịch", không thêm / bớt ngày xạ trên lịch. Bỏ mục Duyệt lịch. Đề xuất cũ còn treo (nếu có) hiện cho người xếp lịch với nút "Xếp theo đề xuất" / "Xếp lịch khác".
+- **Xếp lịch xạ giao cho KTV trưởng** (theo chức vụ, hiện là anh Thắng) và quản trị. Bỏ ô "Người xếp lịch xạ" của v3.1 (cột `xep_lich` không dùng nữa). Bỏ đề xuất / duyệt lịch: KTV khác, ĐD không còn nút "Xếp lịch", "Đề xuất lịch", "Đổi lịch", không thêm / bớt ngày xạ trên lịch. Bỏ mục Duyệt lịch. Đề xuất cũ còn treo (nếu có) hiện cho KTV trưởng với nút "Xếp theo đề xuất" / "Xếp lịch khác".
+- **Phân công chỉ Ca 1, Ca 2, Ca 3, Ca 4 và Mô phỏng, từ Thứ Hai đến Thứ Bảy.** Chạy `setup` một lần để đổi danh mục vị trí cũ sang 5 vị trí này (sau đó vẫn sửa được trong Quản trị › Vị trí phân công).
+  - Mới: Quản trị › **Giờ các ca xạ** (VD "Ca 1: 07:00-09:30"). Có giờ ca thì form ghi buổi xạ chọn sẵn đúng KTV của ca, bảng thanh toán ghi đúng KTV từng buổi. Chưa ghi giờ thì lấy mọi KTV các ca trong ngày.
 - **Nhập sổ HIS: khớp tên bác sĩ viết tắt tên đệm** ("Nguyễn T. Ngọc Hà" = "Nguyễn Thị Ngọc Hà"; chỉ nhận khi khớp đúng một bác sĩ).
 - **Tất cả BN**: số tổng BN đang trong quy trình cạnh tên mục trên menu; trong trang có hàng số theo từng trạng thái, bấm để lọc (bấm lần nữa bỏ lọc).
 - **Xếp BN theo ABC họ → tên đệm → tên**: Tất cả BN, Xạ trị › Hôm nay (mọi nhóm), Lịch tuần, Contour, Chờ mô phỏng (theo ngày mô phỏng, cùng ngày thì theo ABC). Lập KH, QA, Chờ xếp lịch vẫn theo thứ tự ưu tiên.
-- Không có cột / trang mới: không cần chạy `setup`.
+- Cài bản này cần chạy `setup` một lần (đổi vị trí phân công).
 
 ## v3.1
 - **Nhập BN từ sổ chuyên khoa HIS (tệp Excel)**: nút "Nhập từ sổ HIS" ở mục Tất cả BN (quản trị, trưởng khoa, ĐD trưởng, tài khoản khoa, KTV trưởng). Chọn tệp Excel sổ "mô phỏng và mặt nạ" xuất từ HIS (.xls / .xlsx). Ứng dụng đọc ngay trên máy, không dùng AI, tệp không gửi đi đâu:

@@ -48,7 +48,8 @@
   - BN vắng từ 2 buổi liên tiếp thì báo BS điều trị.
   - Ghi bù buổi quên tích (trong 7 ngày) bắt buộc lý do, lưu `ghi_bu` / `ly_do_bu`, ngày đó hiện màu vàng trên lịch.
 - Chỉ tiêu khoa (`CHI_TIEU`, "Khoa: min-max"), kiểm tra 2 tuần đầu của BN mới (`quotaOver`): BN chiếm chỗ từ ngày bắt đầu tới hết đợt (kể cả boost, vắng, tạm ngừng). Đủ chỉ tiêu thì chỉ cảnh báo, đồng ý thì xếp; cấp cứu luôn được xếp; không tô màu bảng chỉ tiêu.
-- Xếp lịch (v3.2): **chỉ người xếp lịch** (cột `xep_lich` = Có trong NguoiDung, thực tế là anh Thắng; chưa đánh dấu ai thì KTV trưởng) và quản trị: `schedule`, `setDay`, `approveSchedule`, `rejectSchedule` (gác trong `can()` bằng `isKtvLead(user, users)`). **Không còn đề xuất lịch**; KTV khác, ĐD không có nút lịch.
+- Xếp lịch (v3.2): **chỉ KTV trưởng (theo chức vụ, không chỉ định tên người)** và quản trị: `schedule`, `setDay`, `approveSchedule`, `rejectSchedule` (gác trong `can()` bằng `isKtvLead(user)`). **Không còn đề xuất lịch**; KTV khác, ĐD không có nút lịch. Cột `xep_lich` (v3.1) đã bỏ.
+- Phân công (v3.2): vị trí Ca 1–4 + Mô phỏng, Thứ Hai – Thứ Bảy. KTV xạ theo ca: `RT.rosterFor(rows, may, 'HH:MM', dm)` dùng danh mục `GIO_CA` ("Ca 1: 07:00-09:30"); không rõ giờ thì mọi ca trong ngày.
 - Danh sách BN xếp ABC họ → đệm → tên (`byName` trong app.js); Lập KH, QA, Chờ xếp lịch giữ thứ tự ưu tiên.
 - Nhập BN từ sổ chuyên khoa HIS: **chỉ tệp Excel** (`RT.parseHisSheet`, `RT.planImport`, thao tác `importHisBook`, SheetJS tải từ cdnjs khi bấm). Chỉ lấy BN có mô phỏng, vào bước Chờ mô phỏng. (Khác `importPatients`: nhập từ hồ sơ giấy vào Chờ phân loại.)
 - Nhánh làm việc: luôn kiểm tra nhánh `claude/*` mới nhất trên GitHub trước khi sửa (có lúc phiên khác làm tiếp mà chưa gộp vào `main`). Vắng ≥ 3 buổi liên tiếp: gợi ý tạm ngừng. Tạm ngừng ≥ 7 ngày: hỏi BS mỗi 7 ngày (`xn_tam_ngung`), không nhả chỗ.

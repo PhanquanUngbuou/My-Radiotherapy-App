@@ -288,17 +288,17 @@ assert(!api('ktv@x.vn', 'undoFraction', { id: oldFx.id, ly_do: 'nhầm' }).ok, '
 ok('ktvt@x.vn', 'undoFraction', { id: oldFx.id, ly_do: 'nhầm' });
 // ---- v1.9: bảng phân công ----
 const mon = ctx.RT.monday(today);
-assert(!api('ktv@x.vn', 'setRoster', { ngay: mon, vi_tri: 'Mô phỏng CT', nhan_vien: ['ktv@x.vn'] }).ok, 'KTV thường không phân công');
-r = ok('ktvt@x.vn', 'setRoster', { ngay: mon, vi_tri: 'Mô phỏng CT', nhan_vien: ['KTV@x.vn', 'ktvt@x.vn'], ghi_chu: 'sáng' });
-let pc = r.data.roster.find(x => x.ngay === mon && x.vi_tri === 'Mô phỏng CT');
+assert(!api('ktv@x.vn', 'setRoster', { ngay: mon, vi_tri: 'Mô phỏng', nhan_vien: ['ktv@x.vn'] }).ok, 'KTV thường không phân công');
+r = ok('ktvt@x.vn', 'setRoster', { ngay: mon, vi_tri: 'Mô phỏng', nhan_vien: ['KTV@x.vn', 'ktvt@x.vn'], ghi_chu: 'sáng' });
+let pc = r.data.roster.find(x => x.ngay === mon && x.vi_tri === 'Mô phỏng');
 assert.strictEqual(pc.nhan_vien, 'ktv@x.vn, ktvt@x.vn');
-r = ok('ktvt@x.vn', 'setRoster', { ngay: mon, vi_tri: 'Mô phỏng CT', nhan_vien: ['ktv@x.vn'] });
-assert.strictEqual(r.data.roster.filter(x => x.ngay === mon && x.vi_tri === 'Mô phỏng CT').length, 1, 'sửa ô thì ghi đè, không nhân đôi');
+r = ok('ktvt@x.vn', 'setRoster', { ngay: mon, vi_tri: 'Mô phỏng', nhan_vien: ['ktv@x.vn'] });
+assert.strictEqual(r.data.roster.filter(x => x.ngay === mon && x.vi_tri === 'Mô phỏng').length, 1, 'sửa ô thì ghi đè, không nhân đôi');
 assert(!api('ktvt@x.vn', 'setRoster', { ngay: mon, vi_tri: 'Vị trí lạ', nhan_vien: [] }).ok);
-assert(!api('ktvt@x.vn', 'setRoster', { ngay: mon, vi_tri: 'Trực', nhan_vien: ['nguoila@x.vn'] }).ok);
-ok('ktvt@x.vn', 'setRoster', { ngay: ctx.RT.addDays(mon, 2), vi_tri: 'Trực', nhan_vien: ['ktvt@x.vn'] });
+assert(!api('ktvt@x.vn', 'setRoster', { ngay: mon, vi_tri: 'Ca 4', nhan_vien: ['nguoila@x.vn'] }).ok);
+ok('ktvt@x.vn', 'setRoster', { ngay: ctx.RT.addDays(mon, 2), vi_tri: 'Ca 4', nhan_vien: ['ktvt@x.vn'] });
 r = ok('ktvt@x.vn', 'copyRoster', { tu: mon, den: ctx.RT.addDays(mon, 7) });
-assert(r.data.roster.some(x => x.ngay === ctx.RT.addDays(mon, 9) && x.vi_tri === 'Trực' && x.nhan_vien === 'ktvt@x.vn'), 'sao chép tuần');
+assert(r.data.roster.some(x => x.ngay === ctx.RT.addDays(mon, 9) && x.vi_tri === 'Ca 4' && x.nhan_vien === 'ktvt@x.vn'), 'sao chép tuần');
 r = ok('admin@x.vn', 'bootstrap');
 assert(r.data.roster.length >= 4, 'đọc lại phân công từ sheet');
 currentEmail = 'dd@x.vn';
@@ -306,7 +306,7 @@ let gr = JSON.parse(ctx.api('getRoster', { tu: mon, den: ctx.RT.addDays(mon, 6) 
 assert(gr.ok && gr.roster.length === 2, 'tải phân công theo tuần');
 // rev: thay đổi sau mỗi lần ghi
 const rev1 = JSON.parse(ctx.api('rev')).rev;
-ok('ktvt@x.vn', 'setRoster', { ngay: mon, vi_tri: 'Trực', nhan_vien: ['ktv@x.vn'] });
+ok('ktvt@x.vn', 'setRoster', { ngay: mon, vi_tri: 'Ca 4', nhan_vien: ['ktv@x.vn'] });
 const rev2 = JSON.parse(ctx.api('rev')).rev;
 assert(rev2 !== '0', 'rev được đặt');
 
@@ -601,9 +601,9 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   const s1 = mkT('SR1', 'SRS/SBRT'), s2 = mkT('KH1', 'Khác'), s3 = mkT('3D1', '3D-CRT');
   const y = ctx.RT.addDays(today, -1);
   [s1, s2, s3].forEach(p => ok('ktv@x.vn', 'logFraction', { bn_id: p.id, ngay: y, ly_do_bu: 'test' }));
-  ok('ktvt@x.vn', 'setRoster', { ngay: y, vi_tri: 'Máy gia tốc 1 – ca sáng', nhan_vien: ['ktvt@x.vn'] });
-  ok('ktvt@x.vn', 'setRoster', { ngay: y, vi_tri: 'Máy gia tốc 1 – ca chiều', nhan_vien: ['ktv@x.vn'] });
-  ok('ktvt@x.vn', 'setRoster', { ngay: y, vi_tri: 'Mô phỏng CT', nhan_vien: ['ktv@x.vn', 'ktvt@x.vn'] });
+  ok('ktvt@x.vn', 'setRoster', { ngay: y, vi_tri: 'Ca 1', nhan_vien: ['ktvt@x.vn'] });
+  ok('ktvt@x.vn', 'setRoster', { ngay: y, vi_tri: 'Ca 3', nhan_vien: ['ktv@x.vn'] });
+  ok('ktvt@x.vn', 'setRoster', { ngay: y, vi_tri: 'Mô phỏng', nhan_vien: ['ktv@x.vn', 'ktvt@x.vn'] });
   let k2 = ok('tk@x.vn', 'khoaReport', { tu: y, den: y }).kreport;
   const nh = n => (k2.thang[0].nhom.find(g => g.ten === n) || { rows: [] }).rows.map(r => r.ma_his);
   assert(nh('VMAT').includes('SR1') && nh('VMAT').includes('KH1') && nh('3D').includes('3D1') && !nh('3D').includes('SR1'), 'SRS/SBRT, Khác vào bảng VMAT; 3D-CRT vào bảng 3D');
@@ -614,7 +614,7 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   // mô phỏng: không chọn người, lấy theo lịch phân công vị trí mô phỏng
   r = ok('tk@x.vn', 'createPatient', { ma_his: 'MP10', ho_ten: 'Mô phỏng mới', nam_sinh: '1970', trang_thai: 'MO_PHONG' });
   const mp10 = r.data.patients.find(x => x.ma_his === 'MP10');
-  ok('ktvt@x.vn', 'setRoster', { ngay: today, vi_tri: 'Mô phỏng CT', nhan_vien: ['ktvt@x.vn'] });
+  ok('ktvt@x.vn', 'setRoster', { ngay: today, vi_tri: 'Mô phỏng', nhan_vien: ['ktvt@x.vn'] });
   ok('ktv@x.vn', 'simDone', { id: mp10.id, mat_na: 'Không', tiem_thuoc: 'Có' });
   k2 = ok('tk@x.vn', 'khoaReport', { tu: today, den: today }).kreport;
   assert(k2.mo_phong.find(x => x.ma_his === 'MP10').nguoi === 'trưởng', 'người mô phỏng theo lịch phân công');
@@ -812,27 +812,38 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   r = ok('admin@x.vn', 'lookupHisMany', { ma: ['90000001'] });
   assert(Array.isArray(r.his['90000001']), 'tra nhiều mã HIS một lần');
 }
-// Chỉ người được đánh dấu xếp lịch mới xếp lịch xạ
+// Xếp lịch: chỉ KTV trưởng (theo chức vụ) và quản trị
 {
   let boot = ok('admin@x.vn', 'bootstrap');
   const w = boot.data.patients.find(x => x.ma_his === '90000002');
   const far = ctx.RT.addDays(today, 200), far2 = ctx.RT.addDays(today, 201);
   assert(!api('dd@x.vn', 'schedule', { id: w.id, ngay_du_kien: far, vuot_chi_tieu: true }).ok, 'ĐD không xếp lịch');
-  ok('admin@x.vn', 'saveUser', { email: 'ktv@x.vn', ho_ten: 'KTV C', vai_tro: 'KTV', kich_hoat: 'Có', xep_lich: true });
-  boot = ok('admin@x.vn', 'bootstrap');
-  assert.strictEqual(boot.data.users.find(u => u.email === 'ktv@x.vn').xep_lich, 'Có');
-  r = ok('ktv@x.vn', 'schedule', { id: w.id, ngay_du_kien: far, vuot_chi_tieu: true });
-  assert.strictEqual(r.data.patients.find(x => x.id === w.id).ngay_du_kien, far, 'người xếp lịch xếp thẳng');
-  assert(!api('ktvt@x.vn', 'schedule', { id: w.id, ngay_du_kien: far2, vuot_chi_tieu: true }).ok, 'KTV trưởng không được đánh dấu thì không xếp lịch');
-  assert(!api('ktvt@x.vn', 'setDay', { bn_id: w.id, ngay: far2, xa: false }).ok, 'không đổi ngày xạ');
-  assert.strictEqual(ok('admin@x.vn', 'bootstrap').data.patients.find(x => x.id === w.id).ngay_du_kien, far);
+  assert(!api('ktv@x.vn', 'schedule', { id: w.id, ngay_du_kien: far, vuot_chi_tieu: true }).ok, 'KTV thường không xếp lịch');
+  r = ok('ktvt@x.vn', 'schedule', { id: w.id, ngay_du_kien: far, vuot_chi_tieu: true });
+  assert.strictEqual(r.data.patients.find(x => x.id === w.id).ngay_du_kien, far, 'KTV trưởng xếp thẳng');
+  assert(!api('ktv@x.vn', 'setDay', { bn_id: w.id, ngay: far2, xa: false }).ok, 'KTV thường không đổi ngày xạ');
+  ok('admin@x.vn', 'schedule', { id: w.id, ngay_du_kien: far2, vuot_chi_tieu: true });
   // khớp tên bác sĩ viết tắt tên đệm
   const us = [{ email: 'h1@x', ho_ten: 'ThS. Nguyễn Thị Ngọc Hà', vai_tro: 'BS' }, { email: 'h2@x', ho_ten: 'Nguyễn Thị Hà', vai_tro: 'BS' }];
   assert.strictEqual((ctx.RT.matchDoctor(us, 'Ths.Bs. Nguyễn T. Ngọc Hà') || {}).email, 'h1@x', 'T. khớp Thị');
   assert.strictEqual((ctx.RT.matchDoctor(us, 'BS Nguyễn T. Hà') || {}).email, 'h2@x', 'không nhầm sang Ngọc Hà');
   assert.strictEqual(ctx.RT.matchDoctor(us, 'BS Nguyễn T. Lan'), null, 'khác tên thì không khớp');
-  ok('admin@x.vn', 'saveUser', { email: 'ktv@x.vn', ho_ten: 'KTV C', vai_tro: 'KTV', kich_hoat: 'Có', xep_lich: false });
-  r = ok('ktvt@x.vn', 'schedule', { id: w.id, ngay_du_kien: far, vuot_chi_tieu: true });
-  assert.strictEqual(r.data.patients.find(x => x.id === w.id).ngay_du_kien, far, 'bỏ đánh dấu thì KTV trưởng xếp như cũ');
+}
+// Phân công Ca 1–4 + Mô phỏng, giờ ca
+{
+  const boot = ok('admin@x.vn', 'bootstrap');
+  assert.deepStrictEqual(boot.data.dm.VI_TRI_PC, ['Ca 1', 'Ca 2', 'Ca 3', 'Ca 4', 'Mô phỏng'], 'vị trí phân công mặc định');
+  assert(!api('admin@x.vn', 'dmAdd', { loai: 'GIO_CA', gia_tri: 'Ca 1 sáng' }).ok, 'giờ ca sai dạng');
+  ok('admin@x.vn', 'dmAdd', { loai: 'GIO_CA', gia_tri: 'Ca 1: 7h00-9h30' });
+  r = ok('admin@x.vn', 'dmAdd', { loai: 'GIO_CA', gia_tri: 'Ca 1: 07:00-10:00' });
+  assert.deepStrictEqual(r.data.dm.GIO_CA, ['Ca 1: 07:00-10:00'], 'sửa giờ ca thì thay dòng cũ');
+  ok('admin@x.vn', 'dmAdd', { loai: 'GIO_CA', gia_tri: 'Ca 2: 10:00-12:00' });
+  const rows = [{ vi_tri: 'Ca 1', nhan_vien: 'a' }, { vi_tri: 'Ca 2', nhan_vien: 'b' }, { vi_tri: 'Mô phỏng', nhan_vien: 'c' }];
+  const dm2 = { GIO_CA: ['Ca 1: 07:00-10:00', 'Ca 2: 10:00-12:00'] };
+  const pick = (hm, dmx) => ctx.RT.rosterFor(rows, 'Máy gia tốc 1', hm, dmx).map(x => x.nhan_vien).join();
+  assert.strictEqual(pick('08:15', dm2), 'a', 'xạ 8:15 → Ca 1');
+  assert.strictEqual(pick('10:00', dm2), 'b', 'xạ 10:00 → Ca 2');
+  assert.strictEqual(pick('', dm2), 'a,b', 'không rõ giờ (ghi bù) → mọi ca, bỏ mô phỏng');
+  assert.strictEqual(pick('08:15', {}), 'a,b', 'chưa có giờ ca → mọi ca');
 }
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');

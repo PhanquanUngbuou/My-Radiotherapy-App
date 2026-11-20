@@ -8,7 +8,7 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
 
 ## Việc chờ
 
-(Hiện chưa có. v3.2 đã làm: chỉ người xếp lịch xếp lịch, khớp tên BS viết tắt, số tổng Tất cả BN, xếp BN theo ABC.)
+(Hiện chưa có. v3.2 đã làm: chỉ KTV trưởng xếp lịch, phân công Ca 1–4 + Mô phỏng T2–T7, khớp tên BS viết tắt, số tổng Tất cả BN, xếp BN theo ABC.)
 
 (v3.0 đã làm: Không xạ, Lập lại KH, KH đồng thời, Chuyển KH một phần, nhiều mã ICD; gộp v2.11–v2.12.)
 
