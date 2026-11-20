@@ -110,7 +110,7 @@ var RT = (function () {
     setReview: ['BS', 'KS', 'ADMIN'],
     noTreat: ['BS', 'ADMIN'],
     replan: ['BS', 'ADMIN'],
-    classifyPatient: ['KTV', 'ADMIN'],
+    classifyPatient: ['KTV', 'BS', 'KS', 'ADMIN'],
     rejectSchedule: ['KTV', 'ADMIN'],
     confirmPause: ['BS', 'ADMIN'],
     setDay: ['KTV', 'ADMIN'],
@@ -858,14 +858,22 @@ var RT = (function () {
     classifyPatient: function (ctx, a) {
       var p = findP(ctx, a.id);
       need(p, ['CHO_PL']);
+      if (ctx.user.vai_tro === 'BS' && p.bs_email && myDoctors(ctx.user).indexOf(p.bs_email) < 0) fail('Bác sĩ chỉ phân loại BN của mình.');
       var buoc = String(a.buoc || '');
+      if (buoc === 'KHONG_XA') {
+        if (!a.ly_do) fail('Cần ghi lý do không xạ.');
+        p.trang_thai = 'KHONG_XA'; p.ngay_ket_thuc = p.ngay_mo_phong || ctx.today; p.ly_do_ket_thuc = 'Không xạ: ' + a.ly_do;
+        save(ctx, p, 'Không xạ (phân loại)', a.ly_do);
+        return 'Đã ghi ' + p.ho_ten + ' không xạ.';
+      }
       if (buoc === 'HUY') {
         if (!a.ly_do) fail('Cần ghi lý do huỷ.');
         p.trang_thai = 'HUY'; note(p, ctx.today, 'Huỷ khi phân loại: ' + a.ly_do);
         save(ctx, p, 'Huỷ (phân loại)', a.ly_do);
         return 'Đã huỷ ' + p.ho_ten + '.';
       }
-      if (['CHO_XA', 'DANG_XA', 'TAM_NGUNG', 'HOAN_THANH'].indexOf(buoc) < 0) fail('Chọn mục cần chuyển tới.');
+      var PRE = ['CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA'];
+      if (PRE.concat(['CHO_XA', 'DANG_XA', 'TAM_NGUNG', 'HOAN_THANH']).indexOf(buoc) < 0) fail('Chọn mục cần chuyển tới.');
       var o = clean(a, EDIT_FIELDS);
       Object.keys(o).forEach(function (k) { if (o[k] !== '') p[k] = o[k]; });
       if (p.icd) p.icd = normIcd(p.icd);
@@ -873,7 +881,32 @@ var RT = (function () {
       var bsU = ctx.users.filter(function (u) { return u.email === p.bs_email && u.kich_hoat !== 'Không'; })[0];
       if (!bsU || (bsU.vai_tro !== 'BS' && bsU.vai_tro !== 'ADMIN')) fail('Bác sĩ điều trị không có trong danh sách bác sĩ.');
       setKhoa(ctx, p);
-      validate(p, ctx.today, true);
+      if (buoc === 'CONTOUR') {
+        validateBasic(p, ctx.today);
+        p.trang_thai = 'CONTOUR';
+        save(ctx, p, 'Phân loại', STATUS.CONTOUR);
+        return 'Đã chuyển ' + p.ho_ten + ' sang "' + STATUS.CONTOUR + '".';
+      }
+      // Đã xạ xong: chi tiết không bắt buộc (đủ kỹ thuật, liều, số buổi, ngày bắt đầu thì ghi bù các buổi để thống kê)
+      if (buoc === 'HOAN_THANH' && !(p.ky_thuat && num(p.tong_lieu) > 0 && num(p.so_buoi) >= 1 && isDate(a.ngay_bat_dau))) {
+        validateBasic(p, ctx.today);
+        p.trang_thai = 'HOAN_THANH';
+        p.ngay_ket_thuc = isDate(a.ngay_ket_thuc) && a.ngay_ket_thuc <= ctx.today ? a.ngay_ket_thuc : (p.ngay_mo_phong || ctx.today);
+        if (isDate(a.ngay_bat_dau)) p.ngay_bat_dau = a.ngay_bat_dau;
+        note(p, ctx.today, 'Phân loại: đã xạ xong (không nhập chi tiết buổi xạ)');
+        save(ctx, p, 'Phân loại', STATUS.HOAN_THANH + ' · không nhập chi tiết');
+        return 'Đã chuyển ' + p.ho_ten + ' sang "' + STATUS.HOAN_THANH + '".';
+      }
+      validate(p, ctx.today, buoc !== 'HOAN_THANH');
+      if (PRE.indexOf(buoc) >= 0) {
+        p.ngay_contour_xong = p.ngay_contour_xong || ctx.today;
+        if (!p.tg_nop_kh) p.tg_nop_kh = ctx.now || ctx.today;
+        if (buoc === 'DANG_KH' || (buoc === 'CHO_QA' && a.ks_email)) { p.ks_email = pickKs(ctx, a.ks_email); p.ngay_nhan_kh = p.ngay_nhan_kh || ctx.today; }
+        if (buoc === 'CHO_QA') { p.ngay_kh_xong = ctx.today; p.can_qa = 'Có'; p.qa_ket_qua = 'Chờ QA'; }
+        p.trang_thai = buoc;
+        save(ctx, p, 'Phân loại', STATUS[buoc] + (p.ks_email ? ' · KS ' + userName(ctx, p.ks_email) : ''));
+        return 'Đã chuyển ' + p.ho_ten + ' sang "' + STATUS[buoc] + '".';
+      }
       var nn = String(a.ngay_nghi_tuan || '');
       if (nn && !/^[1-5]$/.test(nn)) fail('Ngày nghỉ trong tuần không hợp lệ.');
       p.ngay_nghi_tuan = nn;
@@ -903,7 +936,7 @@ var RT = (function () {
       else if (buoc === 'TAM_NGUNG') {
         if (!a.ly_do) fail('Cần chọn lý do tạm ngừng.');
         p.trang_thai = 'TAM_NGUNG'; p.tam_ngung_tu = isDate(a.tam_ngung_tu) ? a.tam_ngung_tu : ctx.today; p.ly_do_tam_ngung = a.ly_do; p.xn_tam_ngung = '';
-      } else { p.trang_thai = 'HOAN_THANH'; p.ngay_ket_thuc = days[days.length - 1]; }
+      } else { p.trang_thai = 'HOAN_THANH'; p.ngay_ket_thuc = isDate(a.ngay_ket_thuc) && a.ngay_ket_thuc <= ctx.today && a.ngay_ket_thuc >= days[days.length - 1] ? a.ngay_ket_thuc : days[days.length - 1]; }
       save(ctx, p, 'Phân loại', STATUS[p.trang_thai] + (done ? ' · đã xạ ' + done + ' buổi' : ''));
       return 'Đã chuyển ' + p.ho_ten + ' sang "' + STATUS[p.trang_thai] + '".';
     },
@@ -1195,13 +1228,21 @@ var RT = (function () {
       var rows = Array.isArray(a.rows) ? a.rows : [];
       if (!rows.length) fail('Chưa chọn bệnh nhân nào.');
       if (rows.length > 150) fail('Mỗi lần nhập tối đa 150 bệnh nhân. Hãy lọc theo ngày rồi nhập từng đợt.');
-      var ok = 0, bad = [];
+      var ok = 0, nPl = 0, bad = [];
       rows.forEach(function (r) {
         var o = {};
         ['ma_his', 'ho_ten', 'nam_sinh', 'gioi', 'chan_doan', 'khoa', 'bs_email', 'ngay_mo_phong', 'ghi_chu'].forEach(function (k) { o[k] = r[k] == null ? '' : String(r[k]).trim(); });
         o.trang_thai = 'MO_PHONG'; o.force_name = !!r.force_name;
+        var toPl = r.trang_thai === 'CHO_PL';
         if ((ctx.dm.KHOA || []).indexOf(o.khoa) < 0) o.khoa = (ctx.dm.KHOA || [''])[0];
-        try { H.createPatient(ctx, o); ok++; } catch (e) {
+        try {
+          H.createPatient(ctx, o); ok++;
+          if (toPl) {
+            var np = ctx.patients[ctx.patients.length - 1];
+            np.trang_thai = 'CHO_PL'; nPl++;
+            save(ctx, np, 'Chờ phân loại', 'Nhập từ sổ HIS, mô phỏng ' + o.ngay_mo_phong);
+          }
+        } catch (e) {
           var m = String(e && e.message || e);
           if (m.indexOf('DUP_HIS:') === 0) m = 'đang có đợt xạ ' + m.slice(8);
           if (m.indexOf('HIS_NAME:') === 0) m = 'mã HIS đã dùng cho ' + m.slice(9);
@@ -1210,7 +1251,7 @@ var RT = (function () {
       });
       ctx.log('Nhập từ sổ HIS', '', 'Thêm ' + ok + ' BN' + (bad.length ? '; bỏ qua ' + bad.length + ': ' + bad.join(' | ') : ''));
       if (!ok) fail('Không thêm được bệnh nhân nào. ' + bad.slice(0, 3).join('; '));
-      return 'Đã thêm ' + ok + ' BN từ sổ HIS (bước Mô phỏng).' + (bad.length ? ' Bỏ qua ' + bad.length + ': ' + bad.slice(0, 3).join('; ') + (bad.length > 3 ? '…' : '') : '');
+      return 'Đã thêm ' + ok + ' BN từ sổ HIS' + (nPl ? ' (' + nPl + ' vào Chờ phân loại, ' + (ok - nPl) + ' vào Chờ mô phỏng).' : ' (Chờ mô phỏng).') + (bad.length ? ' Bỏ qua ' + bad.length + ': ' + bad.slice(0, 3).join('; ') + (bad.length > 3 ? '…' : '') : '');
     },
     dmAdd: function (ctx, a) {
       var loai = String(a.loai || ''), v = String(a.gia_tri || '').trim();

@@ -25,20 +25,22 @@ function makeSheet(name) {
 }
 const sheets = {};
 const ss = {
-  getId: () => 'SS1', setSpreadsheetTimeZone() {}, getUrl: () => 'https://sheet',
+  getId: () => 'SS1', getName: () => 'DieuPhoiXaTri', setSpreadsheetTimeZone() {}, getUrl: () => 'https://sheet',
   getSheetByName: n => sheets[n] || null,
   insertSheet: n => (sheets[n] = makeSheet(n)),
   getSheets: () => Object.values(sheets), deleteSheet() {}
 };
 let currentEmail = 'admin@x.vn';
 const props = {};
+const copies = [];
 const ctx = {
   SpreadsheetApp: { getActiveSpreadsheet: () => ss, openById: () => ss, flush() {} },
   PropertiesService: { getScriptProperties: () => ({ getProperty: k => props[k], setProperty: (k, v) => { props[k] = v; } }) },
   Session: { getActiveUser: () => ({ getEmail: () => currentEmail }), getEffectiveUser: () => ({ getEmail: () => 'admin@x.vn' }) },
   LockService: { getScriptLock: () => ({ waitLock() {}, releaseLock() {} }) },
   Utilities: { formatDate: (d, tz, f) => { const s = new Date(d.getTime() + 7 * 3600e3).toISOString(); return f === 'yyyy-MM-dd' ? s.slice(0, 10) : s.slice(0, 19); } },
-  HtmlService: {}, console
+  HtmlService: {}, console, Logger: { log() {} },
+  DriveApp: { getFileById: () => ({ makeCopy: n => { copies.push(n); } }) }
 };
 vm.createContext(ctx);
 vm.runInContext(fs.readFileSync(path.join(dir, 'Core.gs'), 'utf8'), ctx);
@@ -845,5 +847,52 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   assert.strictEqual(pick('10:00', dm2), 'b', 'xạ 10:00 → Ca 2');
   assert.strictEqual(pick('', dm2), 'a,b', 'không rõ giờ (ghi bù) → mọi ca, bỏ mô phỏng');
   assert.strictEqual(pick('08:15', {}), 'a,b', 'chưa có giờ ca → mọi ca');
+}
+// v3.3: nhập sổ HIS vào Chờ phân loại, phân loại về mọi giai đoạn, xoá toàn bộ BN
+{
+  const base = { nam_sinh: '1960', gioi: 'Nam', chan_doan: 'K phổi', khoa: 'Xạ trị', bs_email: 'bs@x.vn', ngay_mo_phong: '2026-10-05', ghi_chu: 'Nhập từ sổ HIS: test' };
+  const rows = ['91', '92', '93', '94', '95', '96', '97', '98'].map(n => Object.assign({}, base, { ma_his: '9300' + n, ho_ten: 'PL ' + n, trang_thai: 'CHO_PL' }));
+  rows.push(Object.assign({}, base, { ma_his: '930099', ho_ten: 'PL 99', ngay_mo_phong: today, trang_thai: 'MO_PHONG' }));
+  r = ok('admin@x.vn', 'importHisBook', { rows });
+  assert(/8 vào Chờ phân loại, 1 vào Chờ mô phỏng/.test(r.msg), r.msg);
+  const P = n => r.data.patients.find(x => x.ma_his === '9300' + n);
+  assert(P('91').trang_thai === 'CHO_PL' && P('99').trang_thai === 'MO_PHONG', 'bước đích theo ngày mô phỏng');
+  // BS khác không phân loại BN không phải của mình
+  ok('admin@x.vn', 'saveUser', { email: 'bs2@x.vn', ho_ten: 'BS Hai', vai_tro: 'BS', khoa: 'Xạ trị' });
+  assert(!api('bs2@x.vn', 'classifyPatient', { id: P('91').id, buoc: 'CONTOUR' }).ok, 'BS chỉ phân loại BN của mình');
+  const rx = { icd: 'C34', chan_doan: 'K phổi', ky_thuat: 'IMRT', tong_lieu: '60', so_buoi: '30' };
+  ok('bs@x.vn', 'classifyPatient', { id: P('91').id, buoc: 'CONTOUR' });
+  assert(!api('bs@x.vn', 'classifyPatient', { id: P('92').id, buoc: 'CHO_KH' }).ok, 'chờ lập KH cần đủ chuyên môn');
+  ok('bs@x.vn', 'classifyPatient', Object.assign({ id: P('92').id, buoc: 'CHO_KH' }, rx));
+  assert(!api('ktv@x.vn', 'classifyPatient', Object.assign({ id: P('93').id, buoc: 'DANG_KH' }, rx)).ok, 'đang lập KH cần chọn KS');
+  ok('ks@x.vn', 'classifyPatient', Object.assign({ id: P('93').id, buoc: 'DANG_KH', ks_email: 'ks@x.vn' }, rx));
+  ok('ktv@x.vn', 'classifyPatient', Object.assign({ id: P('94').id, buoc: 'CHO_QA' }, rx));
+  ok('ktv@x.vn', 'classifyPatient', { id: P('95').id, buoc: 'HOAN_THANH', ngay_ket_thuc: '2026-11-10' });
+  const st = ctx.RT.addDays(today, -20);
+  ok('ktv@x.vn', 'classifyPatient', Object.assign({ id: P('96').id, buoc: 'HOAN_THANH', ngay_bat_dau: st, ky_thuat: '3D-CRT', tong_lieu: '30', so_buoi: '10', icd: '' }, { chan_doan: 'K' }));
+  ok('bs@x.vn', 'classifyPatient', { id: P('97').id, buoc: 'KHONG_XA', ly_do: 'BN từ chối' });
+  r = ok('ktv@x.vn', 'classifyPatient', Object.assign({ id: P('98').id, buoc: 'DANG_XA', ngay_bat_dau: st, da_xa: '5' }, rx));
+  const st2 = x => r.data.patients.find(y => y.ma_his === '9300' + x);
+  assert.deepStrictEqual(['91', '92', '93', '94', '95', '96', '97', '98'].map(x => st2(x).trang_thai),
+    ['CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'HOAN_THANH', 'HOAN_THANH', 'KHONG_XA', 'DANG_XA'], 'phân loại về đúng giai đoạn');
+  assert(st2('93').ks_email === 'ks@x.vn' && st2('94').qa_ket_qua === 'Chờ QA', 'KS phụ trách, chờ QA');
+  assert(st2('95').ngay_ket_thuc === '2026-11-10' && !r.data.fractions.some(f => f.bn_id === st2('95').id), 'đã xạ xong không cần chi tiết');
+  assert.strictEqual(r.data.fractions.filter(f => f.bn_id === st2('96').id).length, 10, 'đủ chi tiết thì ghi bù đủ buổi');
+  assert.strictEqual(r.data.fractions.filter(f => f.bn_id === st2('98').id).length, 5, 'đang xạ ghi bù 5 buổi');
+  // KS nhận ca chờ lập KH sau phân loại như bình thường
+  ok('ks@x.vn', 'claimPlan', { id: st2('92').id, ks_email: 'ks@x.vn' });
+  // Xoá toàn bộ BN (sao lưu trước), giữ người dùng, danh mục, phân công, ngày máy nghỉ
+  ok('ktvt@x.vn', 'machineDown', { may: 'Máy gia tốc 1', ngay: ctx.RT.addDays(today, 40), ghi_chu: 'bảo trì' });
+  const before = ok('admin@x.vn', 'bootstrap').data;
+  const nUsers = before.users.length, nRoster = sheets.PhanCong.getLastRow();
+  const msg = vm.runInContext('resetBenhNhan()', ctx);
+  assert(/^Đã xoá \d+ BN/.test(msg) && copies.length === 1, 'sao lưu rồi xoá: ' + msg);
+  const after = ok('admin@x.vn', 'bootstrap').data;
+  assert(after.patients.length === 0 && after.fractions.length === 0 && (after.phases || []).length === 0, 'hết BN, buổi xạ, giai đoạn');
+  assert(after.users.length === nUsers && sheets.PhanCong.getLastRow() === nRoster, 'giữ người dùng, phân công');
+  assert(after.exceptions.some(e => e.loai === 'MAY_NGHI') && !after.exceptions.some(e => e.bn_id), 'giữ ngày máy nghỉ, xoá ngày của BN');
+  assert(sheets.ChiMuc.getLastRow() <= 1, 'xoá chỉ mục');
+  r = ok('admin@x.vn', 'importHisBook', { rows: [Object.assign({}, base, { ma_his: '930091', ho_ten: 'PL 91', trang_thai: 'CHO_PL' })] });
+  assert(/Đã thêm 1 BN/.test(r.msg), 'nhập lại sau khi xoá: ' + r.msg);
 }
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');

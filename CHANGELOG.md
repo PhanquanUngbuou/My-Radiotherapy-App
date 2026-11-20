@@ -1,5 +1,19 @@
 # Lịch sử phiên bản
 
+## v3.3
+- **Xoá toàn bộ BN để nhập lại từ đầu**: hàm `resetBenhNhan` chạy trong trình soạn thảo Apps Script.
+  - Trước khi xoá, tự sao lưu cả file Google Sheet vào Drive (tên file có chữ "sao lưu trước khi xoá BN").
+  - Xoá mọi BN, giai đoạn, buổi xạ, ngày vắng / nghỉ của BN, chỉ mục, lưu trữ, trang NhapBN.
+  - Giữ người dùng, danh mục, phân công, nhật ký, ngày máy nghỉ.
+- **Nhập sổ HIS chia bước theo ngày mô phỏng**: ô "BN mô phỏng trước ngày này vào Chờ phân loại" (mặc định hôm qua). BN mô phỏng từ hôm kia trở về trước vào **Chờ phân loại**, BN mô phỏng hôm qua / hôm nay vào Chờ mô phỏng. Mỗi dòng xem trước ghi rõ BN sẽ vào đâu.
+- **Phân loại về mọi giai đoạn**: Đang contour · Chờ lập KH · Đang lập KH (chọn KS) · Chờ QA · Chờ vào xạ · Đang xạ · Tạm ngừng · Đã xạ xong · Không xạ · Huỷ.
+  - Đang contour: chỉ cần BS điều trị.
+  - Chờ lập KH trở đi: cần ICD, chẩn đoán, kỹ thuật, liều, số buổi (như "Contour xong").
+  - Đang xạ / Tạm ngừng: thêm ngày bắt đầu và số buổi đã xạ; app tự ghi bù các buổi theo lịch tuần.
+  - **Đã xạ xong: chi tiết không bắt buộc.** Có đủ kỹ thuật, liều, số buổi, ngày bắt đầu thì app ghi bù đủ các buổi (thống kê, bảng thanh toán đủ); không thì chỉ ghi đã xong, có thể nhập ngày kết thúc.
+- **Ai phân loại**: KTV, KS, quản trị, và BS (BN của mình). BS có mục "BN cần phân loại về đúng giai đoạn" trong Bệnh nhân của tôi. Mục Xạ trị › Chờ phân loại có thêm cột BS điều trị, ngày mô phỏng.
+- Không có cột / trang mới: không cần chạy `setup`.
+
 ## v3.2
 - **Xếp lịch xạ giao cho KTV trưởng** (theo chức vụ, hiện là anh Thắng) và quản trị. Bỏ ô "Người xếp lịch xạ" của v3.1 (cột `xep_lich` không dùng nữa). Bỏ đề xuất / duyệt lịch: KTV khác, ĐD không còn nút "Xếp lịch", "Đề xuất lịch", "Đổi lịch", không thêm / bớt ngày xạ trên lịch. Bỏ mục Duyệt lịch. Đề xuất cũ còn treo (nếu có) hiện cho KTV trưởng với nút "Xếp theo đề xuất" / "Xếp lịch khác".
 - **Phân công chỉ Ca 1, Ca 2, Ca 3, Ca 4 và Mô phỏng, từ Thứ Hai đến Thứ Bảy.** Chạy `setup` một lần để đổi danh mục vị trí cũ sang 5 vị trí này (sau đó vẫn sửa được trong Quản trị › Vị trí phân công).

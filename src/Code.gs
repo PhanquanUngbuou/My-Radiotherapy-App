@@ -119,6 +119,46 @@ function nhapSheet_(ss) {
  * Chạy tay trong trình soạn thảo Apps Script: nhập BN ở trang "NhapBN" vào mục "Chờ phân loại".
  * Mỗi dòng một BN (cột như dòng tiêu đề). Dòng đã có kết quả ở cột cuối sẽ bỏ qua, nên chạy lại không bị trùng.
  */
+/**
+ * Xoá toàn bộ dữ liệu bệnh nhân để nhập lại từ đầu (chạy tay trong trình soạn thảo Apps Script).
+ * Trước khi xoá: sao lưu cả file Google Sheet vào Drive. Giữ người dùng, danh mục, phân công, nhật ký, ngày máy nghỉ.
+ */
+function resetBenhNhan() {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    var ss = ss_();
+    var stamp = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm');
+    var copyName = ss.getName() + ' (sao lưu trước khi xoá BN ' + stamp + ')';
+    DriveApp.getFileById(ss.getId()).makeCopy(copyName);
+    var names = [SHEET_NAMES.BN, SHEET_NAMES.GD, SHEET_NAMES.BUOI, SHEET_NAMES.IDX, NHAP_SHEET];
+    Object.keys(ARCHIVE).forEach(function (k) { if (k !== 'LichNgoaiLe') names.push(ARCHIVE[k]); });
+    ss.getSheets().forEach(function (sh) { if (/^LuuTru_BuoiXa_\d{4}$/.test(sh.getName())) names.push(sh.getName()); });
+    var n = 0;
+    names.forEach(function (nm) {
+      var sh = ss.getSheetByName(nm);
+      if (!sh || sh.getLastRow() <= 1) return;
+      if (nm === SHEET_NAMES.BN) n = sh.getLastRow() - 1;
+      sh.getRange(2, 1, sh.getLastRow() - 1, Math.max(sh.getLastColumn(), 1)).clearContent();
+    });
+    // Lịch ngoại lệ: chỉ xoá dòng của BN, giữ ngày máy nghỉ
+    [SHEET_NAMES.LICH, ARCHIVE.LichNgoaiLe].forEach(function (nm) {
+      var sh = ss.getSheetByName(nm);
+      if (!sh || sh.getLastRow() <= 1) return;
+      var vals = sh.getDataRange().getValues(), head = vals[0].map(String), ib = head.indexOf('bn_id');
+      var keep = vals.slice(1).filter(function (r) { return r.some(function (v) { return v !== ''; }) && !String(r[ib] || ''); });
+      sh.getRange(2, 1, vals.length - 1, head.length).clearContent();
+      if (keep.length) sh.getRange(2, 1, keep.length, head.length).setNumberFormat('@').setValues(keep);
+    });
+    PropertiesService.getScriptProperties().setProperty('REV', String(Date.now()));
+    var msg = 'Đã xoá ' + n + ' BN (cùng giai đoạn, buổi xạ, ngày vắng / nghỉ, chỉ mục, lưu trữ). Bản sao lưu trong Drive: "' + copyName + '".';
+    Logger.log(msg);
+    return msg;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
 function nhapBN() {
   var lock = LockService.getScriptLock();
   lock.waitLock(30000);
