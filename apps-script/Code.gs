@@ -1,4 +1,4 @@
-// Điều phối Xạ trị · phiên bản v3.0
+// Điều phối Xạ trị · phiên bản v3.1
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
@@ -148,7 +148,7 @@ function api(action, payload) {
     // Kiểm tra nhanh có thay đổi không (không đọc Google Sheet) để giao diện biết khi nào cần tải lại
     if (action === 'rev') return JSON.stringify({ ok: true, rev: PropertiesService.getScriptProperties().getProperty('REV') || '0' });
     if (action === 'searchArchive') return JSON.stringify(searchArchive_(payload || {}));
-    var READ_ONLY = { bootstrap: 1, getLog: 1, getRoster: 1, report: 1, lookupHis: 1, archiveCourse: 1, findPatients: 1, khoaReport: 1 };
+    var READ_ONLY = { lookupHisMany: 1, bootstrap: 1, getLog: 1, getRoster: 1, report: 1, lookupHis: 1, archiveCourse: 1, findPatients: 1, khoaReport: 1 };
     if (!READ_ONLY[action]) {
       lock = LockService.getScriptLock();
       lock.waitLock(30000);
@@ -160,6 +160,9 @@ function api(action, payload) {
       extra.log = readLog_(300);
     } else if (action === 'lookupHis') {
       extra.his = ctx.hisLookup(String((payload || {}).ma_his || '').trim()).map(stripRow_);
+    } else if (action === 'lookupHisMany') {
+      extra.his = {};
+      ((payload || {}).ma || []).slice(0, 500).forEach(function (m) { m = String(m).trim(); if (m) extra.his[m] = ctx.hisLookup(m).map(stripRow_); });
     } else if (action === 'archiveCourse') {
       extra.course = archiveCourse_(String((payload || {}).id || ''));
       var nk0 = RT.nurseKhoa(ctx.user, ctx.dm);

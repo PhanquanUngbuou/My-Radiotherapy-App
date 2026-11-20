@@ -486,3 +486,21 @@ table.rpt.grid th.d,table.rpt.grid td.d{padding:4px 3px;min-width:26px;text-alig
 .icd-x-nm{font-size:13px}
 .kv .kv-full{grid-column:1/-1}
 .kv .kv-full b div{font-weight:600}
+
+/* Nhập BN từ sổ HIS */
+.imp-sum{margin:0 0 10px;line-height:1.5}
+.imp-filter{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:end;margin-bottom:10px}
+.imp-all{padding:9px 12px}
+.imp-list{display:flex;flex-direction:column;gap:6px;max-height:55vh;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:6px}
+.imp-row{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:8px;background:var(--surface-2)}
+.imp-row[hidden]{display:none}
+.imp-row > input{width:20px;height:20px;flex:none;margin-top:2px}
+.imp-main{flex:1;min-width:0}
+.imp-dx{font-size:13px;margin:2px 0}
+.imp-meta{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;color:var(--muted);align-items:center}
+.imp-meta select{max-width:240px}
+.imp-note{color:var(--warn);font-weight:600}
+.sub-in{color:var(--muted);font-size:12.5px}
+.tag.imp-new{background:var(--ok-soft,#e3f4ee);color:var(--ok,#0a7a55)}
+.tag.imp-chk{background:var(--warn-soft);color:var(--warn)}
+@media (max-width:640px){.imp-filter{grid-template-columns:1fr 1fr}.imp-all{grid-column:1 / -1}.imp-list{max-height:none}}

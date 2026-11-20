@@ -501,19 +501,21 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   const c1 = mk('CT1'), c2 = mk('CT2'), c3 = mk('CT3'), cc = mk('CT4', 'Cấp cứu');
   ok('ktvt@x.vn', 'schedule', { id: c1.id, ngay_du_kien: d1 });
   ok('ktvt@x.vn', 'schedule', { id: c2.id, ngay_du_kien: d1 });
-  // ĐD đề xuất: khoa đã đủ 2/2 → cảnh báo, đồng ý thì gửi đề xuất
-  r = api('dd2@x.vn', 'schedule', { id: c3.id, ngay_du_kien: d1 });
+  // ĐD không xếp / đề xuất lịch nữa (v3.1)
+  assert(!api('dd2@x.vn', 'schedule', { id: c3.id, ngay_du_kien: d1, vuot_chi_tieu: true }).ok, 'ĐD không xếp lịch');
+  // KTV thường đề xuất: khoa đã đủ 2/2 → cảnh báo, đồng ý thì gửi đề xuất
+  r = api('ktv@x.vn', 'schedule', { id: c3.id, ngay_du_kien: d1 });
   assert(!r.ok && /^QUOTA:/.test(r.error), 'cảnh báo vượt chỉ tiêu: ' + r.error);
-  r = ok('dd2@x.vn', 'schedule', { id: c3.id, ngay_du_kien: d1, ngay_nghi_tuan: '', vuot_chi_tieu: true });
+  r = ok('ktv@x.vn', 'schedule', { id: c3.id, ngay_du_kien: d1, ngay_nghi_tuan: '', vuot_chi_tieu: true });
   let p3 = r.data.patients.find(x => x.id === c3.id);
-  assert(!p3.ngay_du_kien && p3.de_xuat_lich && p3.de_xuat_boi === 'dd2@x.vn', 'ĐD chỉ đề xuất, chưa có lịch');
+  assert(!p3.ngay_du_kien && p3.de_xuat_lich && p3.de_xuat_boi === 'ktv@x.vn', 'KTV thường chỉ đề xuất, chưa có lịch');
   assert(!api('ktv@x.vn', 'approveSchedule', { id: c3.id, vuot_chi_tieu: true }).ok, 'KTV thường không duyệt');
   assert(!api('ktvt@x.vn', 'approveSchedule', { id: c3.id }).ok, 'người duyệt cũng phải đồng ý vượt chỉ tiêu');
   const d2 = ctx.RT.addDays(d1, 1);
   r = ok('ktvt@x.vn', 'approveSchedule', { id: c3.id, ngay_du_kien: d2, vuot_chi_tieu: true });
   p3 = r.data.patients.find(x => x.id === c3.id);
   assert(p3.ngay_du_kien === d2 && !p3.de_xuat_lich, 'KTV trưởng sửa ngày và duyệt');
-  assert(sheets.NhatKy.data.some(row => row.includes('Duyệt lịch') && row.join(' ').includes('ĐD Hai')), 'nhật ký ghi người đề xuất');
+  assert(sheets.NhatKy.data.some(row => row.includes('Duyệt lịch') && row.join(' ').includes('KTV C')), 'nhật ký ghi người đề xuất');
   // KTV thường cũng chỉ đề xuất; trả lại đề xuất
   const c5 = mk('CT5');
   r = ok('ktv@x.vn', 'schedule', { id: c5.id, ngay_du_kien: ctx.RT.addDays(today, 60) });
@@ -785,5 +787,58 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   assert(c13 && c15 && c13.bn_xa >= 1 && c15.bn_xa >= 1, 'BN 2 mã đếm ở cả hai mã');
   const fnd = ok('admin@x.vn', 'findPatients', { tu: D(1), den: today, moc: 'xa', icd: ['C13'] });
   assert((fnd.found.rows || fnd.found).some(x => x.ma_his === 'IC2'), 'tìm theo mã thêm');
+}
+// Nhập BN từ sổ chuyên khoa HIS (Excel, dữ liệu giả)
+{
+  const RT = ctx.RT;
+  const aoa = [['SỔ CHUYÊN KHOA'], [],
+    ['TT', 'Mã bệnh nhân', 'Họ và tên', 'Tuổi', '', 'Số thẻ BHYT', 'Địa chỉ', 'Nghề nghiệp', 'Dân tộc', 'Chẩn đoán', 'Nơi gửi', 'Bác sĩ chỉ định', 'Tên dịch vụ', 'Số lượng'],
+    ['', '', '', 'Nam', 'Nữ'],
+    ['STT', 'MA_BENH_NHAN', 'NAME', 'TUOI_NAM', 'TUOI_NU'],
+    ['Ngày 01/10/2026'],
+    ['1', '90000001', 'TRẦN VĂN MỘT', '1950', '', 'X', 'HN', '', 'Kinh', 'U ác tính vòm họng', 'P.Nội 1', 'BSCKII. A', 'Làm mặt nạ cố định đầu [5 điểm]', '1'],
+    ['2', '90000001', 'TRẦN VĂN MỘT', '1950', '', 'X', 'HN', '', 'Kinh', 'U ác tính vòm họng', 'P.Nội 1', 'BSCKII. A', 'Mô phỏng và lập kế hoạch cho xạ trị ngoài', '1'],
+    ['3', '90000002', 'LÊ THỊ HAI', '', '1970', 'X', 'HN', '', 'Kinh', 'K vú', 'P.Nội 2', 'ThS.BSNT. Không Có', 'Mô phỏng và lập kế hoạch cho xạ trị ngoài', '1'],
+    ['Ngày 02/10/2026'],
+    ['1', '90000003', 'PHẠM VĂN BA', '1960', '', 'X', 'HN', '', 'Kinh', 'K phổi', 'P.Nội 1', 'BS A', 'Làm mặt nạ cố định đầu', '1'],
+    ['2', '00123456', 'NGUYỄN VĂN A', '1960', '', 'X', 'HN', '', 'Kinh', 'K vòm', 'P.Nội 1', 'BS A', 'Mô phỏng và lập kế hoạch cho xạ trị ngoài', '1']];
+  const rows = RT.parseHisSheet(aoa);
+  assert.strictEqual(rows.length, 5, 'đọc đủ các dòng có mã BN');
+  assert(rows[2].gioi === 'Nữ' && rows[2].nam_sinh === '1970' && rows[3].ngay === '2026-10-02', 'giới, năm sinh, ngày theo nhóm');
+  let boot = ok('admin@x.vn', 'bootstrap');
+  const plan = RT.planImport(rows, { patients: boot.data.patients, users: boot.data.users, dm: boot.data.dm, today }, {});
+  assert.strictEqual(plan.length, 3, 'chỉ lấy BN có mô phỏng (bỏ BN chỉ làm mặt nạ)');
+  const p1 = plan.find(x => x.ma_his === '90000001'), p2 = plan.find(x => x.ma_his === '90000002'), p3 = plan.find(x => x.ma_his === '00123456');
+  assert(p1.trang === 'moi' && p1.bs_email === 'bs@x.vn' && p1.ho_ten === 'Trần Văn Một', 'khớp bác sĩ bỏ học hàm, tên viết thường');
+  assert(p2.trang === 'xem' && !p2.bs_email, 'không khớp bác sĩ thì cần xem');
+  assert(p3.trang === 'co', 'BN đã có trong hệ thống thì bỏ qua');
+  assert(!api('ktv@x.vn', 'importHisBook', { rows: [p1] }).ok, 'KTV không nhập hàng loạt');
+  r = ok('admin@x.vn', 'importHisBook', { rows: [p1, Object.assign({}, p2, { bs_email: 'bs@x.vn' }), Object.assign({}, p3, { bs_email: 'bs@x.vn' })] });
+  assert(/Đã thêm 2 BN/.test(r.msg) && /Bỏ qua 1/.test(r.msg), 'thêm BN mới, bỏ qua BN trùng: ' + r.msg);
+  const n1 = r.data.patients.find(x => x.ma_his === '90000001');
+  assert(n1.trang_thai === 'MO_PHONG' && n1.ngay_mo_phong === '2026-10-01' && n1.bs_email === 'bs@x.vn' && /sổ HIS/.test(n1.ghi_chu), 'BN vào bước mô phỏng');
+  assert(!api('admin@x.vn', 'importHisBook', { rows: [p1] }).ok, 'nhập lại cùng BN thì báo lỗi, không thêm trùng');
+  r = ok('admin@x.vn', 'lookupHisMany', { ma: ['90000001'] });
+  assert(Array.isArray(r.his['90000001']), 'tra nhiều mã HIS một lần');
+}
+// Chỉ người được đánh dấu xếp lịch mới xếp lịch xạ
+{
+  let boot = ok('admin@x.vn', 'bootstrap');
+  const w = boot.data.patients.find(x => x.ma_his === '90000002');
+  const far = ctx.RT.addDays(today, 200), far2 = ctx.RT.addDays(today, 201);
+  assert(!api('dd@x.vn', 'schedule', { id: w.id, ngay_du_kien: far, vuot_chi_tieu: true }).ok, 'ĐD không xếp lịch');
+  ok('admin@x.vn', 'saveUser', { email: 'ktv@x.vn', ho_ten: 'KTV C', vai_tro: 'KTV', kich_hoat: 'Có', xep_lich: true });
+  boot = ok('admin@x.vn', 'bootstrap');
+  assert.strictEqual(boot.data.users.find(u => u.email === 'ktv@x.vn').xep_lich, 'Có');
+  r = ok('ktv@x.vn', 'schedule', { id: w.id, ngay_du_kien: far, vuot_chi_tieu: true });
+  assert.strictEqual(r.data.patients.find(x => x.id === w.id).ngay_du_kien, far, 'người xếp lịch xếp thẳng');
+  r = ok('ktvt@x.vn', 'schedule', { id: w.id, ngay_du_kien: far2, vuot_chi_tieu: true });
+  const w2 = r.data.patients.find(x => x.id === w.id);
+  assert(w2.ngay_du_kien === far && w2.de_xuat_lich, 'KTV trưởng không được đánh dấu thì chỉ đề xuất');
+  assert(!api('ktvt@x.vn', 'approveSchedule', { id: w.id, vuot_chi_tieu: true }).ok, 'chỉ người xếp lịch duyệt');
+  ok('ktv@x.vn', 'approveSchedule', { id: w.id, vuot_chi_tieu: true });
+  ok('admin@x.vn', 'saveUser', { email: 'ktv@x.vn', ho_ten: 'KTV C', vai_tro: 'KTV', kich_hoat: 'Có', xep_lich: false });
+  r = ok('ktvt@x.vn', 'schedule', { id: w.id, ngay_du_kien: far, vuot_chi_tieu: true });
+  assert.strictEqual(r.data.patients.find(x => x.id === w.id).ngay_du_kien, far, 'bỏ đánh dấu thì KTV trưởng xếp như cũ');
 }
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');

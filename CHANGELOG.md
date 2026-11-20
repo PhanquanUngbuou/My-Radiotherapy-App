@@ -1,5 +1,21 @@
 # Lịch sử phiên bản
 
+## v3.1
+- **Nhập BN từ sổ chuyên khoa HIS (tệp Excel)**: nút "Nhập từ sổ HIS" ở mục Tất cả BN (quản trị, trưởng khoa, ĐD trưởng, tài khoản khoa, KTV trưởng). Chọn tệp Excel sổ "mô phỏng và mặt nạ" xuất từ HIS (.xls / .xlsx). Ứng dụng đọc ngay trên máy, không dùng AI, tệp không gửi đi đâu:
+  - Chỉ lấy BN có dịch vụ "Mô phỏng…", bỏ BN chỉ làm mặt nạ. Gộp các dòng cùng mã BN.
+  - Lấy mã HIS, họ tên (đổi về chữ thường), năm sinh, giới (cột Nam/Nữ), chẩn đoán, ngày mô phỏng (theo dòng "Ngày dd/mm/yyyy"). Tự khớp bác sĩ chỉ định với danh sách bác sĩ, bỏ học hàm như "BSCKII.", "ThS.BSNT.". Khoa lấy theo khoa của bác sĩ.
+  - Bảng xem trước:
+    - Mới: chọn sẵn.
+    - Đã có: trùng đợt đang hoạt động hoặc đã nhập trong 30 ngày, tra cả lưu trữ.
+    - Cần xem: chưa khớp bác sĩ (chọn bác sĩ ngay trên dòng), hoặc mã HIS đã dùng cho tên khác.
+  - Lọc theo ngày, mặc định 7 ngày gần nhất.
+  - BN vào bước **Chờ mô phỏng**, ghi chú "Nhập từ sổ HIS", kèm BS chỉ định và nơi gửi. Mỗi lần tối đa 150 BN.
+- **Điều dưỡng không xếp / đề xuất lịch xạ nữa.**
+- **Người xếp lịch xạ**: Quản trị › Sửa người dùng › ô "Người xếp lịch xạ".
+  - Khi đã đánh dấu ít nhất một người, chỉ người đó (và quản trị) xếp lịch thẳng, duyệt / trả lại đề xuất, thêm / bớt ngày xạ. KTV khác chỉ gửi đề xuất.
+  - Chưa đánh dấu ai thì như cũ: KTV trưởng xếp và duyệt.
+- Cột mới: `xep_lich` trong trang NguoiDung (chạy `setup` một lần).
+
 ## v3.0
 Gộp cả v2.11 và v2.12 (số hoá BN từ hồ sơ giấy: mục "Chờ phân loại", nhập danh sách, trang NhapBN, hàm `nhapBN`), vì anh mới cài tới v2.10.
 - **Không xạ**: BS bấm "Không xạ" (bắt buộc lý do) khi BN chưa xạ buổi nào → đợt đóng lại (trạng thái "Không xạ"). Không vào bảng xạ 3D / VMAT, vẫn có trong sổ mô phỏng nếu đã mô phỏng. Khi BN quay lại: mở hồ sơ, bấm **"Mô phỏng lại (đợt mới)"**: chép sẵn hành chính, chẩn đoán, ICD, BS, bắt đầu ở bước Chờ mô phỏng, không báo trùng đợt.
