@@ -41,6 +41,8 @@
   - Ghi vắng bằng loại `VANG` trong `LichNgoaiLe`, lý do lấy từ danh mục `LY_DO_VANG`. Có lịch mà không ghi gì thì tính "vắng chưa rõ lý do".
   - BN vắng từ 2 buổi liên tiếp thì báo BS điều trị.
   - Ghi bù buổi quên tích (trong 7 ngày) bắt buộc lý do, lưu `ghi_bu` / `ly_do_bu`, ngày đó hiện màu vàng trên lịch.
+- Nhập BN từ sổ chuyên khoa HIS: **chỉ tệp Excel** (`RT.parseHisSheet`, `RT.planImport`, thao tác `importPatients`, thư viện SheetJS tải từ cdnjs khi bấm). Chỉ lấy BN có mô phỏng, vào bước Mô phỏng.
+- Xếp lịch xạ (`schedule`, `setDay`): chỉ người có cột `xep_lich` = Có (và quản trị); chưa đánh dấu ai thì KTV xếp như cũ. Điều dưỡng không xếp lịch.
 - Lịch: 3D-CRT xạ T2–T6. IMRT/VMAT nghỉ 1 ngày trong tuần, bù Thứ Bảy. Boost: tuần tự (lên kế hoạch cùng lúc / contour trên CT cũ / mô phỏng lại).
 
 ## Trạng thái

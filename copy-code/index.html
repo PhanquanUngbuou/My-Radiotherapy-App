@@ -41,21 +41,21 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
 </style>
 <div class="wrap">
   <div class="intro">
-    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v2.6</h1>
+    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v2.7</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v2.6 · bản lưu 62205d6 · 17/11/2026 14:28. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v2.6”.</span>
+    <span class="rev">Phiên bản v2.7 · bản lưu 3234acf · 17/11/2026 14:49. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v2.7”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Code">Code.gs <span class="ver">· v2.6</span></h2>
+        <h2 id="h-Code">Code.gs <span class="ver">· v2.7</span></h2>
         <p>File có sẵn tên Code.gs: xoá hết nội dung cũ, dán vào.</p>
-        <span class="size">514 dòng · 28 KB</span>
+        <span class="size">517 dòng · 28 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v2.6)</button>
+      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v2.7)</button>
     </div>
-    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v2.6
+    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v2.7
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
@@ -142,7 +142,7 @@ function api(action, payload) {
     // Kiểm tra nhanh có thay đổi không (không đọc Google Sheet) để giao diện biết khi nào cần tải lại
     if (action === &#x27;rev&#x27;) return JSON.stringify({ ok: true, rev: PropertiesService.getScriptProperties().getProperty(&#x27;REV&#x27;) || &#x27;0&#x27; });
     if (action === &#x27;searchArchive&#x27;) return JSON.stringify(searchArchive_(payload || {}));
-    var READ_ONLY = { bootstrap: 1, getLog: 1, getRoster: 1, report: 1, lookupHis: 1, archiveCourse: 1, findPatients: 1 };
+    var READ_ONLY = { lookupHisMany: 1, bootstrap: 1, getLog: 1, getRoster: 1, report: 1, lookupHis: 1, archiveCourse: 1, findPatients: 1 };
     if (!READ_ONLY[action]) {
       lock = LockService.getScriptLock();
       lock.waitLock(30000);
@@ -154,6 +154,9 @@ function api(action, payload) {
       extra.log = readLog_(300);
     } else if (action === &#x27;lookupHis&#x27;) {
       extra.his = ctx.hisLookup(String((payload || {}).ma_his || &#x27;&#x27;).trim()).map(stripRow_);
+    } else if (action === &#x27;lookupHisMany&#x27;) {
+      extra.his = {};
+      ((payload || {}).ma || []).slice(0, 500).forEach(function (m) { m = String(m).trim(); if (m) extra.his[m] = ctx.hisLookup(m).map(stripRow_); });
     } else if (action === &#x27;archiveCourse&#x27;) {
       extra.course = archiveCourse_(String((payload || {}).id || &#x27;&#x27;));
     } else if (action === &#x27;report&#x27; || action === &#x27;exportReport&#x27; || action === &#x27;findPatients&#x27; || action === &#x27;exportPatients&#x27;) {
@@ -573,13 +576,13 @@ function writePatients_(r, user) {
   <section class="card" aria-labelledby="h-Core">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Core">Core.gs <span class="ver">· v2.6</span></h2>
+        <h2 id="h-Core">Core.gs <span class="ver">· v2.7</span></h2>
         <p>Bấm + → Script (Tập lệnh), đặt tên Core.</p>
-        <span class="size">1,257 dòng · 144 KB</span>
+        <span class="size">1,386 dòng · 153 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v2.6)</button>
+      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v2.7)</button>
     </div>
-    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v2.6
+    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v2.7
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -590,7 +593,7 @@ function writePatients_(r, user) {
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;2.6&#x27;;
+  var VERSION = &#x27;2.7&#x27;;
 
   var STATUS_ORDER = [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;];
   var STATUS = {
@@ -623,7 +626,7 @@ var RT = (function () {
     BuoiXa: [&#x27;id&#x27;, &#x27;bn_id&#x27;, &#x27;ngay&#x27;, &#x27;buoi_so&#x27;, &#x27;ktv_email&#x27;, &#x27;thoi_gian&#x27;, &#x27;hinh_anh&#x27;, &#x27;ghi_chu&#x27;,
       &#x27;da_huy&#x27;, &#x27;huy_boi&#x27;, &#x27;ly_do_huy&#x27;, &#x27;gd&#x27;, &#x27;ghi_bu&#x27;, &#x27;ly_do_bu&#x27;],
     LichNgoaiLe: [&#x27;id&#x27;, &#x27;bn_id&#x27;, &#x27;may&#x27;, &#x27;ngay&#x27;, &#x27;loai&#x27;, &#x27;ghi_chu&#x27;, &#x27;nguoi&#x27;, &#x27;thoi_gian&#x27;, &#x27;da_xoa&#x27;],
-    NguoiDung: [&#x27;email&#x27;, &#x27;ho_ten&#x27;, &#x27;vai_tro&#x27;, &#x27;kich_hoat&#x27;, &#x27;chuc_vu&#x27;, &#x27;khoa&#x27;, &#x27;tro_ly_cho&#x27;],
+    NguoiDung: [&#x27;email&#x27;, &#x27;ho_ten&#x27;, &#x27;vai_tro&#x27;, &#x27;kich_hoat&#x27;, &#x27;chuc_vu&#x27;, &#x27;khoa&#x27;, &#x27;tro_ly_cho&#x27;, &#x27;xep_lich&#x27;],
     PhanCong: [&#x27;id&#x27;, &#x27;ngay&#x27;, &#x27;vi_tri&#x27;, &#x27;nhan_vien&#x27;, &#x27;ghi_chu&#x27;, &#x27;nguoi&#x27;, &#x27;thoi_gian&#x27;],
     ChiMuc: [&#x27;id&#x27;, &#x27;ma_his&#x27;, &#x27;ho_ten&#x27;, &#x27;ten_kd&#x27;, &#x27;nam_sinh&#x27;, &#x27;khoa&#x27;, &#x27;bs_email&#x27;, &#x27;icd&#x27;, &#x27;chan_doan&#x27;, &#x27;vi_tri&#x27;, &#x27;ky_thuat&#x27;, &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;,
       &#x27;da_xa&#x27;, &#x27;ngay_tao&#x27;, &#x27;ngay_bat_dau&#x27;, &#x27;ngay_ket_thuc&#x27;, &#x27;trang_thai&#x27;, &#x27;luu_tru&#x27;, &#x27;cap_nhat&#x27;],
@@ -689,15 +692,21 @@ var RT = (function () {
   PERM.clearNotice = [&#x27;KTV&#x27;, &#x27;KS&#x27;, &#x27;ADMIN&#x27;];
   PERM.setRoster = [&#x27;ADMIN&#x27;];
   PERM.copyRoster = [&#x27;ADMIN&#x27;];
+  PERM.importPatients = [&#x27;ADMIN&#x27;];
   // Quyền thêm theo chức vụ (ngoài quyền của vai trò)
   var LEAD_PERM = {
     setRoster: [&#x27;KTV trưởng&#x27;], copyRoster: [&#x27;KTV trưởng&#x27;], machineDown: [&#x27;KTV trưởng&#x27;], machineUp: [&#x27;KTV trưởng&#x27;],
-    setNotice: CHUC_VU, clearNotice: CHUC_VU
+    setNotice: CHUC_VU, clearNotice: CHUC_VU,
+    importPatients: [&#x27;Trưởng khoa&#x27;, &#x27;Điều dưỡng trưởng&#x27;, &#x27;Tài khoản khoa&#x27;]
   };
+  /** Thao tác xếp lịch xạ: khi quản trị đã đánh dấu người xếp lịch, chỉ những người đó (và quản trị) được làm */
+  var SCHED_ACTIONS = [&#x27;schedule&#x27;, &#x27;setDay&#x27;];
+  function schedulers(users) { return (users || []).filter(function (u) { return u.xep_lich === &#x27;Có&#x27; &amp;&amp; u.kich_hoat !== &#x27;Không&#x27;; }); }
   /** Các bác sĩ mà người này phụ trách bệnh nhân: chính mình + bác sĩ chính nếu là trợ lý */
   function myDoctors(u) { return u ? [u.email].concat(u.tro_ly_cho &amp;&amp; u.vai_tro === &#x27;BS&#x27; ? [u.tro_ly_cho] : []) : []; }
   function isLead(u) { return !!(u &amp;&amp; u.chuc_vu &amp;&amp; CHUC_VU.indexOf(u.chuc_vu) &gt;= 0); }
-  function can(role, action, user) {
+  function can(role, action, user, users) {
+    if (SCHED_ACTIONS.indexOf(action) &gt;= 0 &amp;&amp; schedulers(users).length) return role === &#x27;ADMIN&#x27; || !!(user &amp;&amp; user.xep_lich === &#x27;Có&#x27;);
     if ((PERM[action] || []).indexOf(role) &gt;= 0) return true;
     return !!(user &amp;&amp; user.chuc_vu &amp;&amp; (LEAD_PERM[action] || []).indexOf(user.chuc_vu) &gt;= 0);
   }
@@ -1449,9 +1458,32 @@ var RT = (function () {
       if (KHOA_STATS.indexOf(cv) &gt;= 0 &amp;&amp; !kh2) fail(&#x27;Chức vụ &quot;&#x27; + cv + &#x27;&quot; cần chọn khoa.&#x27;);
       if (cv &amp;&amp; CHUC_VU.indexOf(cv) &lt; 0) fail(&#x27;Chức vụ không hợp lệ.&#x27;);
       u.ho_ten = String(a.ho_ten).trim(); u.vai_tro = vt; u.kich_hoat = kh; u.chuc_vu = cv; u.khoa = kh2; u.tro_ly_cho = tl;
+      u.xep_lich = a.xep_lich === true || a.xep_lich === &#x27;Có&#x27; ? &#x27;Có&#x27; : &#x27;&#x27;;
       ctx.saveUser(u);
       ctx.log(isNew ? &#x27;Thêm người dùng&#x27; : &#x27;Sửa người dùng&#x27;, &#x27;&#x27;, email + &#x27; · &#x27; + vt + (cv ? &#x27; · &#x27; + cv : &#x27;&#x27;) + &#x27; · &#x27; + kh);
       return (isNew ? &#x27;Đã thêm &#x27; : &#x27;Đã cập nhật &#x27;) + u.ho_ten + &#x27;.&#x27;;
+    },
+    /** Nhập hàng loạt BN từ sổ chuyên khoa HIS: mỗi BN vào bước Mô phỏng, BN lỗi thì bỏ qua và báo lại */
+    importPatients: function (ctx, a) {
+      var rows = Array.isArray(a.rows) ? a.rows : [];
+      if (!rows.length) fail(&#x27;Chưa chọn bệnh nhân nào.&#x27;);
+      if (rows.length &gt; 150) fail(&#x27;Mỗi lần nhập tối đa 150 bệnh nhân. Hãy lọc theo ngày rồi nhập từng đợt.&#x27;);
+      var ok = 0, bad = [];
+      rows.forEach(function (r) {
+        var o = {};
+        [&#x27;ma_his&#x27;, &#x27;ho_ten&#x27;, &#x27;nam_sinh&#x27;, &#x27;gioi&#x27;, &#x27;chan_doan&#x27;, &#x27;khoa&#x27;, &#x27;bs_email&#x27;, &#x27;ngay_mo_phong&#x27;, &#x27;ghi_chu&#x27;].forEach(function (k) { o[k] = r[k] == null ? &#x27;&#x27; : String(r[k]).trim(); });
+        o.trang_thai = &#x27;MO_PHONG&#x27;; o.force_name = !!r.force_name;
+        if ((ctx.dm.KHOA || []).indexOf(o.khoa) &lt; 0) o.khoa = (ctx.dm.KHOA || [&#x27;&#x27;])[0];
+        try { H.createPatient(ctx, o); ok++; } catch (e) {
+          var m = String(e &amp;&amp; e.message || e);
+          if (m.indexOf(&#x27;DUP_HIS:&#x27;) === 0) m = &#x27;đang có đợt xạ &#x27; + m.slice(8);
+          if (m.indexOf(&#x27;HIS_NAME:&#x27;) === 0) m = &#x27;mã HIS đã dùng cho &#x27; + m.slice(9);
+          bad.push((o.ho_ten || o.ma_his) + &#x27;: &#x27; + m);
+        }
+      });
+      ctx.log(&#x27;Nhập từ sổ HIS&#x27;, &#x27;&#x27;, &#x27;Thêm &#x27; + ok + &#x27; BN&#x27; + (bad.length ? &#x27;; bỏ qua &#x27; + bad.length + &#x27;: &#x27; + bad.join(&#x27; | &#x27;) : &#x27;&#x27;));
+      if (!ok) fail(&#x27;Không thêm được bệnh nhân nào. &#x27; + bad.slice(0, 3).join(&#x27;; &#x27;));
+      return &#x27;Đã thêm &#x27; + ok + &#x27; BN từ sổ HIS (bước Mô phỏng).&#x27; + (bad.length ? &#x27; Bỏ qua &#x27; + bad.length + &#x27;: &#x27; + bad.slice(0, 3).join(&#x27;; &#x27;) + (bad.length &gt; 3 ? &#x27;…&#x27; : &#x27;&#x27;) : &#x27;&#x27;);
     },
     dmAdd: function (ctx, a) {
       var loai = String(a.loai || &#x27;&#x27;), v = String(a.gia_tri || &#x27;&#x27;).trim();
@@ -1532,7 +1564,7 @@ var RT = (function () {
 
   function handle(ctx, action, a) {
     if (!H[action]) fail(&#x27;Thao tác không tồn tại: &#x27; + action);
-    if (!can(ctx.user.vai_tro, action, ctx.user) || ctx.user.kich_hoat === &#x27;Không&#x27;) fail(&#x27;Tài khoản &#x27; + ROLES[ctx.user.vai_tro] + &#x27; không có quyền thực hiện thao tác này.&#x27;);
+    if (!can(ctx.user.vai_tro, action, ctx.user, ctx.users) || ctx.user.kich_hoat === &#x27;Không&#x27;) fail(&#x27;Tài khoản &#x27; + ROLES[ctx.user.vai_tro] + &#x27; không có quyền thực hiện thao tác này.&#x27;);
     ctx.phases = ctx.phases || [];
     ctx.exceptions = ctx.exceptions || [];
     ctx.roster = ctx.roster || [];
@@ -1551,9 +1583,9 @@ var RT = (function () {
     pts.forEach(function (p) { ids[p.id] = 1; });
     function pick(o, cols) { var r = {}; cols.forEach(function (c) { r[c] = o[c] == null ? &#x27;&#x27; : String(o[c]); }); return r; }
     return {
-      me: { email: ctx.user.email, ho_ten: ctx.user.ho_ten, vai_tro: ctx.user.vai_tro, kich_hoat: ctx.user.kich_hoat || &#x27;Có&#x27;, chuc_vu: ctx.user.chuc_vu || &#x27;&#x27;, khoa: ctx.user.khoa || &#x27;&#x27;, tro_ly_cho: ctx.user.tro_ly_cho || &#x27;&#x27; },
+      me: { email: ctx.user.email, ho_ten: ctx.user.ho_ten, vai_tro: ctx.user.vai_tro, kich_hoat: ctx.user.kich_hoat || &#x27;Có&#x27;, chuc_vu: ctx.user.chuc_vu || &#x27;&#x27;, khoa: ctx.user.khoa || &#x27;&#x27;, tro_ly_cho: ctx.user.tro_ly_cho || &#x27;&#x27;, xep_lich: ctx.user.xep_lich || &#x27;&#x27; },
       today: ctx.today,
-      users: ctx.users.map(function (u) { return { email: u.email, ho_ten: u.ho_ten, vai_tro: u.vai_tro, kich_hoat: u.kich_hoat === &#x27;Không&#x27; ? &#x27;Không&#x27; : &#x27;Có&#x27;, chuc_vu: u.chuc_vu || &#x27;&#x27;, khoa: u.khoa || &#x27;&#x27;, tro_ly_cho: u.tro_ly_cho || &#x27;&#x27; }; }),
+      users: ctx.users.map(function (u) { return { email: u.email, ho_ten: u.ho_ten, vai_tro: u.vai_tro, kich_hoat: u.kich_hoat === &#x27;Không&#x27; ? &#x27;Không&#x27; : &#x27;Có&#x27;, chuc_vu: u.chuc_vu || &#x27;&#x27;, khoa: u.khoa || &#x27;&#x27;, tro_ly_cho: u.tro_ly_cho || &#x27;&#x27;, xep_lich: u.xep_lich || &#x27;&#x27; }; }),
       dm: ctx.dm,
       holidays: ctx.holidays,
       patients: pts.map(function (p) { return pick(p, COLS.BenhNhan); }),
@@ -1807,6 +1839,105 @@ var RT = (function () {
     var a = addDays(monday(today), -7), b = addDays(monday(today), 34);
     return rows.filter(function (r) { return r.ngay &gt;= a &amp;&amp; r.ngay &lt;= b &amp;&amp; (r.nhan_vien || r.ghi_chu); });
   }
+  // ---------- Nhập từ sổ chuyên khoa HIS (tệp Excel) ----------
+  function dmyIso(s) {
+    var m = /(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(String(s || &#x27;&#x27;));
+    return m ? m[3] + &#x27;-&#x27; + (&#x27;0&#x27; + m[2]).slice(-2) + &#x27;-&#x27; + (&#x27;0&#x27; + m[1]).slice(-2) : &#x27;&#x27;;
+  }
+  /**
+   * Đọc sổ Excel. aoa: mảng các dòng (mỗi dòng là mảng ô). Tìm dòng tiêu đề theo tên cột;
+   * ngày lấy từ cột ngày (nếu có) hoặc từ dòng &quot;Ngày dd/mm/yyyy&quot; chia nhóm.
+   */
+  function parseHisSheet(aoa) {
+    var f = function (v) { return fold(v); };
+    var hi = -1, col = {};
+    var want = {
+      ma: /^ma (benh nhan|bn|y te|nguoi benh)|^ma bn$|^ma benh nhan$|^ma nguoi benh/, ten: /^ho (va )?ten/, ns: /^(nam sinh|ngay sinh|tuoi)$/,
+      nam: /^nam$/, nu: /^nu$/, gioi: /^gioi( tinh)?$/, cd: /^chan doan/, noi: /^noi gui|^khoa chi dinh|^noi chi dinh/,
+      bs: /^(bac si|bs) chi dinh|^nguoi chi dinh/, dv: /^ten dich vu|^dich vu/, ngay: /^ngay (thuc hien|chi dinh|y lenh|kham)|^ngay$/
+    };
+    for (var i = 0; i &lt; Math.min((aoa || []).length, 30) &amp;&amp; hi &lt; 0; i++) {
+      var r = (aoa[i] || []).map(f);
+      if (r.some(function (c) { return want.ma.test(c); }) &amp;&amp; r.some(function (c) { return want.ten.test(c); })) hi = i;
+    }
+    if (hi &lt; 0) return [];
+    var scan = function (row, base) {
+      (row || []).forEach(function (c, j) {
+        c = f(c);
+        Object.keys(want).forEach(function (k) { if (col[k] === undefined &amp;&amp; want[k].test(c)) col[k] = j; });
+      });
+    };
+    scan(aoa[hi]);
+    // Dòng tiêu đề phụ (Nam / Nữ dưới &quot;Tuổi&quot;)
+    var sub = (aoa[hi + 1] || []).map(f), start = hi + 1;
+    if (sub.some(function (c) { return c === &#x27;nam&#x27; || c === &#x27;nu&#x27;; })) { scan(aoa[hi + 1]); start = hi + 2; }
+    if (col.nam === undefined &amp;&amp; col.ns !== undefined &amp;&amp; col.gioi === undefined) col.nam = col.ns;
+    var day = &#x27;&#x27;, out = [];
+    var cell = function (row, k) { return col[k] === undefined ? &#x27;&#x27; : String(row[col[k]] == null ? &#x27;&#x27; : row[col[k]]).replace(/\s+/g, &#x27; &#x27;).trim(); };
+    for (var n = start; n &lt; aoa.length; n++) {
+      var row = aoa[n] || [];
+      var ma = cell(row, &#x27;ma&#x27;);
+      if (!/^\d{4,12}$/.test(ma)) {
+        var txt = row.map(function (c) { return String(c == null ? &#x27;&#x27; : c); }).join(&#x27; &#x27;);
+        if (/Ngày\s+\d{1,2}\/\d{1,2}\/\d{4}/.test(txt)) day = dmyIso(txt);
+        continue;
+      }
+      var nam = cell(row, &#x27;nam&#x27;), nu = cell(row, &#x27;nu&#x27;), ns = (nam || nu || cell(row, &#x27;ns&#x27;)).replace(/^.*(\d{4}).*$/, &#x27;$1&#x27;);
+      var g = cell(row, &#x27;gioi&#x27;);
+      var nd = cell(row, &#x27;ngay&#x27;);
+      out.push({ ngay: (nd &amp;&amp; (dmyIso(nd) || (isDate(nd.slice(0, 10)) ? nd.slice(0, 10) : &#x27;&#x27;))) || day, ma_his: ma, ho_ten: cell(row, &#x27;ten&#x27;), nam_sinh: ns,
+        gioi: g ? (/^n(u|ữ)/i.test(fold(g)) ? &#x27;Nữ&#x27; : &#x27;Nam&#x27;) : nam ? &#x27;Nam&#x27; : nu ? &#x27;Nữ&#x27; : &#x27;&#x27;,
+        chan_doan: cell(row, &#x27;cd&#x27;), noi_gui: cell(row, &#x27;noi&#x27;), bs: cell(row, &#x27;bs&#x27;), dich_vu: cell(row, &#x27;dv&#x27;) });
+    }
+    return out;
+  }
+  /** Bỏ học hàm, học vị trước tên bác sĩ: &quot;ThS.BSNT. Nguyễn Văn A&quot; → &quot;nguyen van a&quot; */
+  function bareName(s) { return fold(s).replace(/^((gs|pgs|ts|ths|bs|bsck|bscki|bsckii|bsck1|bsck2|bsnt|bscc|ck|cki|ckii|ks|ktv|dd|cn)\b\.?\s*)+/, &#x27;&#x27;).replace(/[.,]/g, &#x27; &#x27;).replace(/\s+/g, &#x27; &#x27;).trim(); }
+  function matchDoctor(users, name) {
+    var t = bareName(name);
+    if (!t) return null;
+    var docs = (users || []).filter(function (u) { return u.kich_hoat !== &#x27;Không&#x27; &amp;&amp; (u.vai_tro === &#x27;BS&#x27; || u.vai_tro === &#x27;ADMIN&#x27;); });
+    var eq = docs.filter(function (u) { return bareName(u.ho_ten) === t; });
+    if (eq.length === 1) return eq[0];
+    if (eq.length) return null;
+    var tail = docs.filter(function (u) { var b = bareName(u.ho_ten); return b &amp;&amp; b.split(&#x27; &#x27;).length &gt;= 2 &amp;&amp; (t.slice(-b.length - 1) === &#x27; &#x27; + b || b.slice(-t.length - 1) === &#x27; &#x27; + t); });
+    return tail.length === 1 ? tail[0] : null;
+  }
+  function titleCase(s) { return String(s || &#x27;&#x27;).toLowerCase().replace(/\s+/g, &#x27; &#x27;).trim().replace(/(^|\s)(\S)/g, function (m, a, b) { return a + b.toUpperCase(); }); }
+  /**
+   * Từ các dòng sổ, lập danh sách BN có dịch vụ mô phỏng, đối chiếu với dữ liệu sẵn có.
+   * d: { patients, users, dm, today }, his: { ma_his: [dòng chỉ mục] }.
+   * trang: &#x27;moi&#x27; (thêm được) · &#x27;co&#x27; (đã có, bỏ qua) · &#x27;xem&#x27; (cần người nhập xem lại).
+   */
+  function planImport(rows, d, his) {
+    var by = {};
+    (rows || []).forEach(function (r) {
+      if (!/^\d{4,12}$/.test(r.ma_his) || fold(r.dich_vu).indexOf(&#x27;mo phong&#x27;) &lt; 0) return;
+      var o = by[r.ma_his];
+      if (!o || (r.ngay || &#x27;&#x27;) &gt; (o.ngay || &#x27;&#x27;)) by[r.ma_his] = r;
+    });
+    var khoas = (d.dm &amp;&amp; d.dm.KHOA) || [];
+    return Object.keys(by).map(function (ma) {
+      var r = by[ma], seen = {}, courses = [];
+      (d.patients || []).forEach(function (p) { if (p.ma_his === ma &amp;&amp; p.trang_thai !== &#x27;HUY&#x27;) { seen[p.id] = 1; courses.push(p); } });
+      ((his || {})[ma] || []).forEach(function (x) { if (!seen[x.id] &amp;&amp; x.trang_thai !== &#x27;HUY&#x27;) courses.push(x); });
+      var doc = matchDoctor(d.users, r.bs);
+      var it = { ngay: r.ngay, ma_his: ma, ho_ten: titleCase(r.ho_ten), nam_sinh: r.nam_sinh, gioi: r.gioi, chan_doan: r.chan_doan,
+        noi_gui: r.noi_gui, bs_his: r.bs, bs_email: doc ? doc.email : &#x27;&#x27;, khoa: doc &amp;&amp; khoas.indexOf(doc.khoa) &gt;= 0 ? doc.khoa : (khoas[0] || &#x27;&#x27;),
+        ngay_mo_phong: r.ngay, trang: &#x27;moi&#x27;, note: &#x27;&#x27;, force_name: false };
+      it.ghi_chu = &#x27;Nhập từ sổ HIS: mô phỏng &#x27; + (r.ngay ? r.ngay.split(&#x27;-&#x27;).reverse().join(&#x27;/&#x27;) : &#x27;?&#x27;) + (r.bs ? &#x27;, BS chỉ định &#x27; + r.bs : &#x27;&#x27;) + (r.noi_gui ? &#x27;, nơi gửi &#x27; + r.noi_gui : &#x27;&#x27;);
+      var active = courses.filter(function (x) { return [&#x27;HOAN_THANH&#x27;, &#x27;HUY&#x27;].indexOf(x.trang_thai) &lt; 0 &amp;&amp; x.luu_tru !== &#x27;Có&#x27;; })[0];
+      var recent = courses.filter(function (x) { return x.ngay_tao &amp;&amp; r.ngay &amp;&amp; x.ngay_tao &gt;= addDays(r.ngay, -30); })[0];
+      var other = courses.filter(function (x) { return fold(x.ho_ten) !== fold(it.ho_ten); })[0];
+      if (active) { it.trang = &#x27;co&#x27;; it.note = &#x27;Đã có trong hệ thống (&#x27; + (STATUS[active.trang_thai] || active.trang_thai) + &#x27;)&#x27;; }
+      else if (recent) { it.trang = &#x27;co&#x27;; it.note = &#x27;Đã nhập đợt xạ ngày &#x27; + recent.ngay_tao.split(&#x27;-&#x27;).reverse().join(&#x27;/&#x27;); }
+      else if (other) { it.trang = &#x27;xem&#x27;; it.note = &#x27;Mã HIS đã dùng cho &#x27; + other.ho_ten + &#x27;: kiểm tra lại&#x27;; it.force_name = true; }
+      else if (!doc) { it.trang = &#x27;xem&#x27;; it.note = &#x27;Chưa khớp bác sĩ &quot;&#x27; + (r.bs || &#x27;—&#x27;) + &#x27;&quot;: chọn bác sĩ&#x27;; }
+      else if (courses.length) it.note = &#x27;Đợt xạ mới (đã xạ trước đây)&#x27;;
+      return it;
+    }).sort(function (a, b) { return (b.ngay || &#x27;&#x27;).localeCompare(a.ngay || &#x27;&#x27;) || a.ho_ten.localeCompare(b.ho_ten); });
+  }
+
   /** Dựng ctx chạy ngay trên trình duyệt từ dữ liệu view (để màn hình cập nhật tức thì) */
   function localCtx(data, now) {
     var d = JSON.parse(JSON.stringify(data));
@@ -1823,6 +1954,7 @@ var RT = (function () {
   return {
     VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, report: report, staffKhoa: staffKhoa, myDoctors: myDoctors,
     normIcd: normIcd, isIcd: isIcd, icdName: icdName, summary: summary, findPatients: findPatients, scopePatients: scopePatients, fold: fold, indexRow: indexRow, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
+    parseHisSheet: parseHisSheet, planImport: planImport, matchDoctor: matchDoctor, schedulers: schedulers,
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
@@ -1840,14 +1972,14 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
   <section class="card" aria-labelledby="h-Index">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Index">Index.html <span class="ver">· v2.6</span></h2>
+        <h2 id="h-Index">Index.html <span class="ver">· v2.7</span></h2>
         <p>Bấm + → HTML, đặt tên Index (chữ I hoa).</p>
-        <span class="size">3,709 dòng · 356 KB</span>
+        <span class="size">3,957 dòng · 374 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v2.6)</button>
+      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v2.7)</button>
     </div>
     <textarea id="t-Index" readonly spellcheck="false" aria-label="Nội dung Index.html">&lt;!DOCTYPE html&gt;
-&lt;!-- Điều phối Xạ trị · phiên bản v2.6 --&gt;
+&lt;!-- Điều phối Xạ trị · phiên bản v2.7 --&gt;
 &lt;html lang=&quot;vi&quot;&gt;
 &lt;head&gt;
 &lt;base target=&quot;_top&quot;&gt;
@@ -2279,6 +2411,24 @@ html.modal-open,html.modal-open body{overflow:hidden;overscroll-behavior:none}
   .nurse-tbl th .sub{font-size:11px;white-space:normal}
 }
 
+/* Nhập BN từ sổ HIS */
+.imp-sum{margin:0 0 10px;line-height:1.5}
+.imp-filter{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:end;margin-bottom:10px}
+.imp-all{padding:9px 12px}
+.imp-list{display:flex;flex-direction:column;gap:6px;max-height:55vh;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:6px}
+.imp-row{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:8px;background:var(--surface-2)}
+.imp-row[hidden]{display:none}
+.imp-row &gt; input{width:20px;height:20px;flex:none;margin-top:2px}
+.imp-main{flex:1;min-width:0}
+.imp-dx{font-size:13px;margin:2px 0}
+.imp-meta{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;color:var(--muted);align-items:center}
+.imp-meta select{max-width:240px}
+.imp-note{color:var(--warn);font-weight:600}
+.sub-in{color:var(--muted);font-size:12.5px}
+.tag.imp-new{background:var(--ok-soft,#e3f4ee);color:var(--ok,#0a7a55)}
+.tag.imp-chk{background:var(--warn-soft);color:var(--warn)}
+@media (max-width:640px){.imp-filter{grid-template-columns:1fr 1fr}.imp-all{grid-column:1 / -1}.imp-list{max-height:none}}
+
 &lt;/style&gt;
 &lt;/head&gt;
 &lt;body&gt;
@@ -2305,7 +2455,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;2.6&#x27;;
+  var VERSION = &#x27;2.7&#x27;;
 
   var STATUS_ORDER = [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;];
   var STATUS = {
@@ -2338,7 +2488,7 @@ var RT = (function () {
     BuoiXa: [&#x27;id&#x27;, &#x27;bn_id&#x27;, &#x27;ngay&#x27;, &#x27;buoi_so&#x27;, &#x27;ktv_email&#x27;, &#x27;thoi_gian&#x27;, &#x27;hinh_anh&#x27;, &#x27;ghi_chu&#x27;,
       &#x27;da_huy&#x27;, &#x27;huy_boi&#x27;, &#x27;ly_do_huy&#x27;, &#x27;gd&#x27;, &#x27;ghi_bu&#x27;, &#x27;ly_do_bu&#x27;],
     LichNgoaiLe: [&#x27;id&#x27;, &#x27;bn_id&#x27;, &#x27;may&#x27;, &#x27;ngay&#x27;, &#x27;loai&#x27;, &#x27;ghi_chu&#x27;, &#x27;nguoi&#x27;, &#x27;thoi_gian&#x27;, &#x27;da_xoa&#x27;],
-    NguoiDung: [&#x27;email&#x27;, &#x27;ho_ten&#x27;, &#x27;vai_tro&#x27;, &#x27;kich_hoat&#x27;, &#x27;chuc_vu&#x27;, &#x27;khoa&#x27;, &#x27;tro_ly_cho&#x27;],
+    NguoiDung: [&#x27;email&#x27;, &#x27;ho_ten&#x27;, &#x27;vai_tro&#x27;, &#x27;kich_hoat&#x27;, &#x27;chuc_vu&#x27;, &#x27;khoa&#x27;, &#x27;tro_ly_cho&#x27;, &#x27;xep_lich&#x27;],
     PhanCong: [&#x27;id&#x27;, &#x27;ngay&#x27;, &#x27;vi_tri&#x27;, &#x27;nhan_vien&#x27;, &#x27;ghi_chu&#x27;, &#x27;nguoi&#x27;, &#x27;thoi_gian&#x27;],
     ChiMuc: [&#x27;id&#x27;, &#x27;ma_his&#x27;, &#x27;ho_ten&#x27;, &#x27;ten_kd&#x27;, &#x27;nam_sinh&#x27;, &#x27;khoa&#x27;, &#x27;bs_email&#x27;, &#x27;icd&#x27;, &#x27;chan_doan&#x27;, &#x27;vi_tri&#x27;, &#x27;ky_thuat&#x27;, &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;,
       &#x27;da_xa&#x27;, &#x27;ngay_tao&#x27;, &#x27;ngay_bat_dau&#x27;, &#x27;ngay_ket_thuc&#x27;, &#x27;trang_thai&#x27;, &#x27;luu_tru&#x27;, &#x27;cap_nhat&#x27;],
@@ -2404,15 +2554,21 @@ var RT = (function () {
   PERM.clearNotice = [&#x27;KTV&#x27;, &#x27;KS&#x27;, &#x27;ADMIN&#x27;];
   PERM.setRoster = [&#x27;ADMIN&#x27;];
   PERM.copyRoster = [&#x27;ADMIN&#x27;];
+  PERM.importPatients = [&#x27;ADMIN&#x27;];
   // Quyền thêm theo chức vụ (ngoài quyền của vai trò)
   var LEAD_PERM = {
     setRoster: [&#x27;KTV trưởng&#x27;], copyRoster: [&#x27;KTV trưởng&#x27;], machineDown: [&#x27;KTV trưởng&#x27;], machineUp: [&#x27;KTV trưởng&#x27;],
-    setNotice: CHUC_VU, clearNotice: CHUC_VU
+    setNotice: CHUC_VU, clearNotice: CHUC_VU,
+    importPatients: [&#x27;Trưởng khoa&#x27;, &#x27;Điều dưỡng trưởng&#x27;, &#x27;Tài khoản khoa&#x27;]
   };
+  /** Thao tác xếp lịch xạ: khi quản trị đã đánh dấu người xếp lịch, chỉ những người đó (và quản trị) được làm */
+  var SCHED_ACTIONS = [&#x27;schedule&#x27;, &#x27;setDay&#x27;];
+  function schedulers(users) { return (users || []).filter(function (u) { return u.xep_lich === &#x27;Có&#x27; &amp;&amp; u.kich_hoat !== &#x27;Không&#x27;; }); }
   /** Các bác sĩ mà người này phụ trách bệnh nhân: chính mình + bác sĩ chính nếu là trợ lý */
   function myDoctors(u) { return u ? [u.email].concat(u.tro_ly_cho &amp;&amp; u.vai_tro === &#x27;BS&#x27; ? [u.tro_ly_cho] : []) : []; }
   function isLead(u) { return !!(u &amp;&amp; u.chuc_vu &amp;&amp; CHUC_VU.indexOf(u.chuc_vu) &gt;= 0); }
-  function can(role, action, user) {
+  function can(role, action, user, users) {
+    if (SCHED_ACTIONS.indexOf(action) &gt;= 0 &amp;&amp; schedulers(users).length) return role === &#x27;ADMIN&#x27; || !!(user &amp;&amp; user.xep_lich === &#x27;Có&#x27;);
     if ((PERM[action] || []).indexOf(role) &gt;= 0) return true;
     return !!(user &amp;&amp; user.chuc_vu &amp;&amp; (LEAD_PERM[action] || []).indexOf(user.chuc_vu) &gt;= 0);
   }
@@ -3164,9 +3320,32 @@ var RT = (function () {
       if (KHOA_STATS.indexOf(cv) &gt;= 0 &amp;&amp; !kh2) fail(&#x27;Chức vụ &quot;&#x27; + cv + &#x27;&quot; cần chọn khoa.&#x27;);
       if (cv &amp;&amp; CHUC_VU.indexOf(cv) &lt; 0) fail(&#x27;Chức vụ không hợp lệ.&#x27;);
       u.ho_ten = String(a.ho_ten).trim(); u.vai_tro = vt; u.kich_hoat = kh; u.chuc_vu = cv; u.khoa = kh2; u.tro_ly_cho = tl;
+      u.xep_lich = a.xep_lich === true || a.xep_lich === &#x27;Có&#x27; ? &#x27;Có&#x27; : &#x27;&#x27;;
       ctx.saveUser(u);
       ctx.log(isNew ? &#x27;Thêm người dùng&#x27; : &#x27;Sửa người dùng&#x27;, &#x27;&#x27;, email + &#x27; · &#x27; + vt + (cv ? &#x27; · &#x27; + cv : &#x27;&#x27;) + &#x27; · &#x27; + kh);
       return (isNew ? &#x27;Đã thêm &#x27; : &#x27;Đã cập nhật &#x27;) + u.ho_ten + &#x27;.&#x27;;
+    },
+    /** Nhập hàng loạt BN từ sổ chuyên khoa HIS: mỗi BN vào bước Mô phỏng, BN lỗi thì bỏ qua và báo lại */
+    importPatients: function (ctx, a) {
+      var rows = Array.isArray(a.rows) ? a.rows : [];
+      if (!rows.length) fail(&#x27;Chưa chọn bệnh nhân nào.&#x27;);
+      if (rows.length &gt; 150) fail(&#x27;Mỗi lần nhập tối đa 150 bệnh nhân. Hãy lọc theo ngày rồi nhập từng đợt.&#x27;);
+      var ok = 0, bad = [];
+      rows.forEach(function (r) {
+        var o = {};
+        [&#x27;ma_his&#x27;, &#x27;ho_ten&#x27;, &#x27;nam_sinh&#x27;, &#x27;gioi&#x27;, &#x27;chan_doan&#x27;, &#x27;khoa&#x27;, &#x27;bs_email&#x27;, &#x27;ngay_mo_phong&#x27;, &#x27;ghi_chu&#x27;].forEach(function (k) { o[k] = r[k] == null ? &#x27;&#x27; : String(r[k]).trim(); });
+        o.trang_thai = &#x27;MO_PHONG&#x27;; o.force_name = !!r.force_name;
+        if ((ctx.dm.KHOA || []).indexOf(o.khoa) &lt; 0) o.khoa = (ctx.dm.KHOA || [&#x27;&#x27;])[0];
+        try { H.createPatient(ctx, o); ok++; } catch (e) {
+          var m = String(e &amp;&amp; e.message || e);
+          if (m.indexOf(&#x27;DUP_HIS:&#x27;) === 0) m = &#x27;đang có đợt xạ &#x27; + m.slice(8);
+          if (m.indexOf(&#x27;HIS_NAME:&#x27;) === 0) m = &#x27;mã HIS đã dùng cho &#x27; + m.slice(9);
+          bad.push((o.ho_ten || o.ma_his) + &#x27;: &#x27; + m);
+        }
+      });
+      ctx.log(&#x27;Nhập từ sổ HIS&#x27;, &#x27;&#x27;, &#x27;Thêm &#x27; + ok + &#x27; BN&#x27; + (bad.length ? &#x27;; bỏ qua &#x27; + bad.length + &#x27;: &#x27; + bad.join(&#x27; | &#x27;) : &#x27;&#x27;));
+      if (!ok) fail(&#x27;Không thêm được bệnh nhân nào. &#x27; + bad.slice(0, 3).join(&#x27;; &#x27;));
+      return &#x27;Đã thêm &#x27; + ok + &#x27; BN từ sổ HIS (bước Mô phỏng).&#x27; + (bad.length ? &#x27; Bỏ qua &#x27; + bad.length + &#x27;: &#x27; + bad.slice(0, 3).join(&#x27;; &#x27;) + (bad.length &gt; 3 ? &#x27;…&#x27; : &#x27;&#x27;) : &#x27;&#x27;);
     },
     dmAdd: function (ctx, a) {
       var loai = String(a.loai || &#x27;&#x27;), v = String(a.gia_tri || &#x27;&#x27;).trim();
@@ -3247,7 +3426,7 @@ var RT = (function () {
 
   function handle(ctx, action, a) {
     if (!H[action]) fail(&#x27;Thao tác không tồn tại: &#x27; + action);
-    if (!can(ctx.user.vai_tro, action, ctx.user) || ctx.user.kich_hoat === &#x27;Không&#x27;) fail(&#x27;Tài khoản &#x27; + ROLES[ctx.user.vai_tro] + &#x27; không có quyền thực hiện thao tác này.&#x27;);
+    if (!can(ctx.user.vai_tro, action, ctx.user, ctx.users) || ctx.user.kich_hoat === &#x27;Không&#x27;) fail(&#x27;Tài khoản &#x27; + ROLES[ctx.user.vai_tro] + &#x27; không có quyền thực hiện thao tác này.&#x27;);
     ctx.phases = ctx.phases || [];
     ctx.exceptions = ctx.exceptions || [];
     ctx.roster = ctx.roster || [];
@@ -3266,9 +3445,9 @@ var RT = (function () {
     pts.forEach(function (p) { ids[p.id] = 1; });
     function pick(o, cols) { var r = {}; cols.forEach(function (c) { r[c] = o[c] == null ? &#x27;&#x27; : String(o[c]); }); return r; }
     return {
-      me: { email: ctx.user.email, ho_ten: ctx.user.ho_ten, vai_tro: ctx.user.vai_tro, kich_hoat: ctx.user.kich_hoat || &#x27;Có&#x27;, chuc_vu: ctx.user.chuc_vu || &#x27;&#x27;, khoa: ctx.user.khoa || &#x27;&#x27;, tro_ly_cho: ctx.user.tro_ly_cho || &#x27;&#x27; },
+      me: { email: ctx.user.email, ho_ten: ctx.user.ho_ten, vai_tro: ctx.user.vai_tro, kich_hoat: ctx.user.kich_hoat || &#x27;Có&#x27;, chuc_vu: ctx.user.chuc_vu || &#x27;&#x27;, khoa: ctx.user.khoa || &#x27;&#x27;, tro_ly_cho: ctx.user.tro_ly_cho || &#x27;&#x27;, xep_lich: ctx.user.xep_lich || &#x27;&#x27; },
       today: ctx.today,
-      users: ctx.users.map(function (u) { return { email: u.email, ho_ten: u.ho_ten, vai_tro: u.vai_tro, kich_hoat: u.kich_hoat === &#x27;Không&#x27; ? &#x27;Không&#x27; : &#x27;Có&#x27;, chuc_vu: u.chuc_vu || &#x27;&#x27;, khoa: u.khoa || &#x27;&#x27;, tro_ly_cho: u.tro_ly_cho || &#x27;&#x27; }; }),
+      users: ctx.users.map(function (u) { return { email: u.email, ho_ten: u.ho_ten, vai_tro: u.vai_tro, kich_hoat: u.kich_hoat === &#x27;Không&#x27; ? &#x27;Không&#x27; : &#x27;Có&#x27;, chuc_vu: u.chuc_vu || &#x27;&#x27;, khoa: u.khoa || &#x27;&#x27;, tro_ly_cho: u.tro_ly_cho || &#x27;&#x27;, xep_lich: u.xep_lich || &#x27;&#x27; }; }),
       dm: ctx.dm,
       holidays: ctx.holidays,
       patients: pts.map(function (p) { return pick(p, COLS.BenhNhan); }),
@@ -3522,6 +3701,105 @@ var RT = (function () {
     var a = addDays(monday(today), -7), b = addDays(monday(today), 34);
     return rows.filter(function (r) { return r.ngay &gt;= a &amp;&amp; r.ngay &lt;= b &amp;&amp; (r.nhan_vien || r.ghi_chu); });
   }
+  // ---------- Nhập từ sổ chuyên khoa HIS (tệp Excel) ----------
+  function dmyIso(s) {
+    var m = /(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(String(s || &#x27;&#x27;));
+    return m ? m[3] + &#x27;-&#x27; + (&#x27;0&#x27; + m[2]).slice(-2) + &#x27;-&#x27; + (&#x27;0&#x27; + m[1]).slice(-2) : &#x27;&#x27;;
+  }
+  /**
+   * Đọc sổ Excel. aoa: mảng các dòng (mỗi dòng là mảng ô). Tìm dòng tiêu đề theo tên cột;
+   * ngày lấy từ cột ngày (nếu có) hoặc từ dòng &quot;Ngày dd/mm/yyyy&quot; chia nhóm.
+   */
+  function parseHisSheet(aoa) {
+    var f = function (v) { return fold(v); };
+    var hi = -1, col = {};
+    var want = {
+      ma: /^ma (benh nhan|bn|y te|nguoi benh)|^ma bn$|^ma benh nhan$|^ma nguoi benh/, ten: /^ho (va )?ten/, ns: /^(nam sinh|ngay sinh|tuoi)$/,
+      nam: /^nam$/, nu: /^nu$/, gioi: /^gioi( tinh)?$/, cd: /^chan doan/, noi: /^noi gui|^khoa chi dinh|^noi chi dinh/,
+      bs: /^(bac si|bs) chi dinh|^nguoi chi dinh/, dv: /^ten dich vu|^dich vu/, ngay: /^ngay (thuc hien|chi dinh|y lenh|kham)|^ngay$/
+    };
+    for (var i = 0; i &lt; Math.min((aoa || []).length, 30) &amp;&amp; hi &lt; 0; i++) {
+      var r = (aoa[i] || []).map(f);
+      if (r.some(function (c) { return want.ma.test(c); }) &amp;&amp; r.some(function (c) { return want.ten.test(c); })) hi = i;
+    }
+    if (hi &lt; 0) return [];
+    var scan = function (row, base) {
+      (row || []).forEach(function (c, j) {
+        c = f(c);
+        Object.keys(want).forEach(function (k) { if (col[k] === undefined &amp;&amp; want[k].test(c)) col[k] = j; });
+      });
+    };
+    scan(aoa[hi]);
+    // Dòng tiêu đề phụ (Nam / Nữ dưới &quot;Tuổi&quot;)
+    var sub = (aoa[hi + 1] || []).map(f), start = hi + 1;
+    if (sub.some(function (c) { return c === &#x27;nam&#x27; || c === &#x27;nu&#x27;; })) { scan(aoa[hi + 1]); start = hi + 2; }
+    if (col.nam === undefined &amp;&amp; col.ns !== undefined &amp;&amp; col.gioi === undefined) col.nam = col.ns;
+    var day = &#x27;&#x27;, out = [];
+    var cell = function (row, k) { return col[k] === undefined ? &#x27;&#x27; : String(row[col[k]] == null ? &#x27;&#x27; : row[col[k]]).replace(/\s+/g, &#x27; &#x27;).trim(); };
+    for (var n = start; n &lt; aoa.length; n++) {
+      var row = aoa[n] || [];
+      var ma = cell(row, &#x27;ma&#x27;);
+      if (!/^\d{4,12}$/.test(ma)) {
+        var txt = row.map(function (c) { return String(c == null ? &#x27;&#x27; : c); }).join(&#x27; &#x27;);
+        if (/Ngày\s+\d{1,2}\/\d{1,2}\/\d{4}/.test(txt)) day = dmyIso(txt);
+        continue;
+      }
+      var nam = cell(row, &#x27;nam&#x27;), nu = cell(row, &#x27;nu&#x27;), ns = (nam || nu || cell(row, &#x27;ns&#x27;)).replace(/^.*(\d{4}).*$/, &#x27;$1&#x27;);
+      var g = cell(row, &#x27;gioi&#x27;);
+      var nd = cell(row, &#x27;ngay&#x27;);
+      out.push({ ngay: (nd &amp;&amp; (dmyIso(nd) || (isDate(nd.slice(0, 10)) ? nd.slice(0, 10) : &#x27;&#x27;))) || day, ma_his: ma, ho_ten: cell(row, &#x27;ten&#x27;), nam_sinh: ns,
+        gioi: g ? (/^n(u|ữ)/i.test(fold(g)) ? &#x27;Nữ&#x27; : &#x27;Nam&#x27;) : nam ? &#x27;Nam&#x27; : nu ? &#x27;Nữ&#x27; : &#x27;&#x27;,
+        chan_doan: cell(row, &#x27;cd&#x27;), noi_gui: cell(row, &#x27;noi&#x27;), bs: cell(row, &#x27;bs&#x27;), dich_vu: cell(row, &#x27;dv&#x27;) });
+    }
+    return out;
+  }
+  /** Bỏ học hàm, học vị trước tên bác sĩ: &quot;ThS.BSNT. Nguyễn Văn A&quot; → &quot;nguyen van a&quot; */
+  function bareName(s) { return fold(s).replace(/^((gs|pgs|ts|ths|bs|bsck|bscki|bsckii|bsck1|bsck2|bsnt|bscc|ck|cki|ckii|ks|ktv|dd|cn)\b\.?\s*)+/, &#x27;&#x27;).replace(/[.,]/g, &#x27; &#x27;).replace(/\s+/g, &#x27; &#x27;).trim(); }
+  function matchDoctor(users, name) {
+    var t = bareName(name);
+    if (!t) return null;
+    var docs = (users || []).filter(function (u) { return u.kich_hoat !== &#x27;Không&#x27; &amp;&amp; (u.vai_tro === &#x27;BS&#x27; || u.vai_tro === &#x27;ADMIN&#x27;); });
+    var eq = docs.filter(function (u) { return bareName(u.ho_ten) === t; });
+    if (eq.length === 1) return eq[0];
+    if (eq.length) return null;
+    var tail = docs.filter(function (u) { var b = bareName(u.ho_ten); return b &amp;&amp; b.split(&#x27; &#x27;).length &gt;= 2 &amp;&amp; (t.slice(-b.length - 1) === &#x27; &#x27; + b || b.slice(-t.length - 1) === &#x27; &#x27; + t); });
+    return tail.length === 1 ? tail[0] : null;
+  }
+  function titleCase(s) { return String(s || &#x27;&#x27;).toLowerCase().replace(/\s+/g, &#x27; &#x27;).trim().replace(/(^|\s)(\S)/g, function (m, a, b) { return a + b.toUpperCase(); }); }
+  /**
+   * Từ các dòng sổ, lập danh sách BN có dịch vụ mô phỏng, đối chiếu với dữ liệu sẵn có.
+   * d: { patients, users, dm, today }, his: { ma_his: [dòng chỉ mục] }.
+   * trang: &#x27;moi&#x27; (thêm được) · &#x27;co&#x27; (đã có, bỏ qua) · &#x27;xem&#x27; (cần người nhập xem lại).
+   */
+  function planImport(rows, d, his) {
+    var by = {};
+    (rows || []).forEach(function (r) {
+      if (!/^\d{4,12}$/.test(r.ma_his) || fold(r.dich_vu).indexOf(&#x27;mo phong&#x27;) &lt; 0) return;
+      var o = by[r.ma_his];
+      if (!o || (r.ngay || &#x27;&#x27;) &gt; (o.ngay || &#x27;&#x27;)) by[r.ma_his] = r;
+    });
+    var khoas = (d.dm &amp;&amp; d.dm.KHOA) || [];
+    return Object.keys(by).map(function (ma) {
+      var r = by[ma], seen = {}, courses = [];
+      (d.patients || []).forEach(function (p) { if (p.ma_his === ma &amp;&amp; p.trang_thai !== &#x27;HUY&#x27;) { seen[p.id] = 1; courses.push(p); } });
+      ((his || {})[ma] || []).forEach(function (x) { if (!seen[x.id] &amp;&amp; x.trang_thai !== &#x27;HUY&#x27;) courses.push(x); });
+      var doc = matchDoctor(d.users, r.bs);
+      var it = { ngay: r.ngay, ma_his: ma, ho_ten: titleCase(r.ho_ten), nam_sinh: r.nam_sinh, gioi: r.gioi, chan_doan: r.chan_doan,
+        noi_gui: r.noi_gui, bs_his: r.bs, bs_email: doc ? doc.email : &#x27;&#x27;, khoa: doc &amp;&amp; khoas.indexOf(doc.khoa) &gt;= 0 ? doc.khoa : (khoas[0] || &#x27;&#x27;),
+        ngay_mo_phong: r.ngay, trang: &#x27;moi&#x27;, note: &#x27;&#x27;, force_name: false };
+      it.ghi_chu = &#x27;Nhập từ sổ HIS: mô phỏng &#x27; + (r.ngay ? r.ngay.split(&#x27;-&#x27;).reverse().join(&#x27;/&#x27;) : &#x27;?&#x27;) + (r.bs ? &#x27;, BS chỉ định &#x27; + r.bs : &#x27;&#x27;) + (r.noi_gui ? &#x27;, nơi gửi &#x27; + r.noi_gui : &#x27;&#x27;);
+      var active = courses.filter(function (x) { return [&#x27;HOAN_THANH&#x27;, &#x27;HUY&#x27;].indexOf(x.trang_thai) &lt; 0 &amp;&amp; x.luu_tru !== &#x27;Có&#x27;; })[0];
+      var recent = courses.filter(function (x) { return x.ngay_tao &amp;&amp; r.ngay &amp;&amp; x.ngay_tao &gt;= addDays(r.ngay, -30); })[0];
+      var other = courses.filter(function (x) { return fold(x.ho_ten) !== fold(it.ho_ten); })[0];
+      if (active) { it.trang = &#x27;co&#x27;; it.note = &#x27;Đã có trong hệ thống (&#x27; + (STATUS[active.trang_thai] || active.trang_thai) + &#x27;)&#x27;; }
+      else if (recent) { it.trang = &#x27;co&#x27;; it.note = &#x27;Đã nhập đợt xạ ngày &#x27; + recent.ngay_tao.split(&#x27;-&#x27;).reverse().join(&#x27;/&#x27;); }
+      else if (other) { it.trang = &#x27;xem&#x27;; it.note = &#x27;Mã HIS đã dùng cho &#x27; + other.ho_ten + &#x27;: kiểm tra lại&#x27;; it.force_name = true; }
+      else if (!doc) { it.trang = &#x27;xem&#x27;; it.note = &#x27;Chưa khớp bác sĩ &quot;&#x27; + (r.bs || &#x27;—&#x27;) + &#x27;&quot;: chọn bác sĩ&#x27;; }
+      else if (courses.length) it.note = &#x27;Đợt xạ mới (đã xạ trước đây)&#x27;;
+      return it;
+    }).sort(function (a, b) { return (b.ngay || &#x27;&#x27;).localeCompare(a.ngay || &#x27;&#x27;) || a.ho_ten.localeCompare(b.ho_ten); });
+  }
+
   /** Dựng ctx chạy ngay trên trình duyệt từ dữ liệu view (để màn hình cập nhật tức thì) */
   function localCtx(data, now) {
     var d = JSON.parse(JSON.stringify(data));
@@ -3538,6 +3816,7 @@ var RT = (function () {
   return {
     VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, report: report, staffKhoa: staffKhoa, myDoctors: myDoctors,
     normIcd: normIcd, isIcd: isIcd, icdName: icdName, summary: summary, findPatients: findPatients, scopePatients: scopePatients, fold: fold, indexRow: indexRow, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, DOW: DOW,
+    parseHisSheet: parseHisSheet, planImport: planImport, matchDoctor: matchDoctor, schedulers: schedulers,
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
@@ -3574,7 +3853,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
   }
   function role() { return me().vai_tro; }
   function asParam(o) { if (S.viewAs &amp;&amp; realMe().vai_tro === &#x27;ADMIN&#x27;) o.as = S.viewAs; return o; }
-  function can(a) { return RT.can(role(), a, me()); }
+  function can(a) { return RT.can(role(), a, me(), S.data.users); }
   function isLead() { return RT.isLead(me()); }
   function nameOf(email) { var u = S.data.users.filter(function (x) { return x.email === email; })[0]; return u ? u.ho_ten : (email || &#x27;&#x27;); }
   /** Bác sĩ: vai trò BS, hoặc Quản trị có tên bắt đầu bằng &quot;BS&quot; (bác sĩ kiêm quản trị) */
@@ -4442,7 +4721,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     }).sort(function (a, b) { return RT.STATUS_ORDER.indexOf(a.trang_thai) - RT.STATUS_ORDER.indexOf(b.trang_thai) || a.ho_ten.localeCompare(b.ho_ten, &#x27;vi&#x27;); });
     var bsList = doctors().map(function (u) { return { v: u.email, l: u.ho_ten }; });
     var html = &#x27;&lt;div class=&quot;page-head&quot;&gt;&lt;div&gt;&lt;h1&gt;Tất cả bệnh nhân&lt;/h1&gt;&lt;p&gt;&#x27; + list.length + &#x27; kết quả&#x27; + (S.q ? &#x27; cho “&#x27; + esc(S.q) + &#x27;”&#x27; : &#x27;&#x27;) + &#x27;. Gồm BN đang trong quy trình và BN kết thúc xạ trong 60 ngày qua.&lt;/p&gt;&lt;/div&gt;&#x27; +
-      &#x27;&lt;div class=&quot;filters&quot;&gt;&lt;select data-filter=&quot;fStatus&quot; aria-label=&quot;Lọc trạng thái&quot;&gt;&#x27; + opts(RT.STATUS_ORDER.map(function (s) { return { v: s, l: RT.STATUS[s] }; }), S.fStatus, &#x27;Mọi trạng thái&#x27;) + &#x27;&lt;/select&gt;&#x27; +
+      &#x27;&lt;div class=&quot;filters&quot;&gt;&#x27; + (can(&#x27;importPatients&#x27;) ? &#x27;&lt;button class=&quot;btn&quot; data-hisimport=&quot;1&quot; title=&quot;Đọc sổ chuyên khoa xuất từ HIS (tệp Excel), thêm các BN có mô phỏng&quot;&gt;Nhập từ sổ HIS&lt;/button&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;select data-filter=&quot;fStatus&quot; aria-label=&quot;Lọc trạng thái&quot;&gt;&#x27; + opts(RT.STATUS_ORDER.map(function (s) { return { v: s, l: RT.STATUS[s] }; }), S.fStatus, &#x27;Mọi trạng thái&#x27;) + &#x27;&lt;/select&gt;&#x27; +
       &#x27;&lt;select data-filter=&quot;fBs&quot; aria-label=&quot;Lọc bác sĩ&quot;&gt;&#x27; + opts(bsList, S.fBs, &#x27;Mọi bác sĩ&#x27;) + &#x27;&lt;/select&gt;&#x27; +
       (S.data.dm.KHOA.length &gt; 1 ? &#x27;&lt;select data-filter=&quot;fKhoa&quot; aria-label=&quot;Lọc khoa&quot;&gt;&#x27; + opts(S.data.dm.KHOA, S.fKhoa, &#x27;Mọi khoa&#x27;) + &#x27;&lt;/select&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/div&gt;&lt;/div&gt;&#x27;;
     html += table(list, [C.pt, C.dx, C.rx, C.bs, C.st,
@@ -4460,7 +4739,107 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
     }
     return html;
   }
+  // ---------- Nhập BN từ sổ chuyên khoa HIS (tệp Excel) ----------
+  var XLSX_URL = &#x27;https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js&#x27;;
+  function loadScript(src) {
+    return new Promise(function (ok, no) {
+      var s = document.createElement(&#x27;script&#x27;); s.src = src; s.onload = ok;
+      s.onerror = function () { no({ error: &#x27;Không tải được thư viện đọc Excel. Kiểm tra kết nối mạng rồi thử lại.&#x27; }); };
+      document.head.appendChild(s);
+    });
+  }
+  function hisImportPick() {
+    var inp = document.createElement(&#x27;input&#x27;);
+    inp.type = &#x27;file&#x27;; inp.accept = &#x27;.xls,.xlsx&#x27;; inp.hidden = true;
+    document.body.appendChild(inp);
+    inp.onchange = function () { var f = inp.files &amp;&amp; inp.files[0]; inp.remove(); if (f) hisImportRead(f); };
+    inp.click();
+  }
+  function hisImportRead(file) {
+    setBusy(1);
+    var lib = window.XLSX ? Promise.resolve() : loadScript(XLSX_URL);
+    lib.then(function () {
+      return new Promise(function (ok, no) { var r = new FileReader(); r.onload = function () { ok(r.result); }; r.onerror = function () { no({ error: &#x27;Không đọc được tệp.&#x27; }); }; r.readAsArrayBuffer(file); });
+    }).then(function (buf) {
+      var wb = XLSX.read(new Uint8Array(buf), { type: &#x27;array&#x27; });
+      var rows = [];
+      wb.SheetNames.forEach(function (n) { rows = rows.concat(RT.parseHisSheet(XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1, raw: false, defval: &#x27;&#x27; }))); });
+      if (!rows.length) throw { error: &#x27;Không tìm thấy bảng sổ chuyên khoa trong tệp (cần các cột &quot;Mã bệnh nhân&quot;, &quot;Họ và tên&quot;, &quot;Tên dịch vụ&quot;).&#x27; };
+      var mas = {};
+      rows.forEach(function (r) { if (RT.fold(r.dich_vu).indexOf(&#x27;mo phong&#x27;) &gt;= 0) mas[r.ma_his] = 1; });
+      return call(&#x27;lookupHisMany&#x27;, { ma: Object.keys(mas) }).then(function (r) {
+        Object.keys(r.his || {}).forEach(function (m) { S.hisCache[m] = r.his[m]; });
+        return RT.planImport(rows, { patients: S.data.patients, users: S.data.users, dm: S.data.dm, today: today() }, r.his || {});
+      });
+    }).then(function (list) {
+      if (!list.length) { toast(&#x27;Trong sổ không có BN nào làm mô phỏng.&#x27;, true); return; }
+      hisImportModal(list);
+    }).catch(function (e) { toast(errText(e) || String(e &amp;&amp; e.message || e), true); })
+      .finally(function () { setBusy(-1); });
+  }
+  function hisImportModal(list) {
+    var days = list.map(function (x) { return x.ngay; }).filter(Boolean).sort();
+    var lo = days[0] || today(), hi = days[days.length - 1] || today();
+    var from = RT.addDays(today(), -7); if (from &lt; lo) from = lo; if (from &gt; hi) from = hi;
+    var cnt = function (t) { return list.filter(function (x) { return x.trang === t; }).length; };
+    var bsOpts = doctors().map(function (u) { return { v: u.email, l: u.ho_ten }; });
+    var TAG = { moi: &#x27;&lt;span class=&quot;tag imp-new&quot;&gt;Mới&lt;/span&gt;&#x27;, co: &#x27;&lt;span class=&quot;tag&quot;&gt;Đã có&lt;/span&gt;&#x27;, xem: &#x27;&lt;span class=&quot;tag imp-chk&quot;&gt;Cần xem&lt;/span&gt;&#x27; };
+    var body = &#x27;&lt;p class=&quot;imp-sum&quot;&gt;Sổ từ &lt;b&gt;&#x27; + fdy(lo) + &#x27;&lt;/b&gt; đến &lt;b&gt;&#x27; + fdy(hi) + &#x27;&lt;/b&gt;: &#x27; + list.length + &#x27; BN có mô phỏng · &lt;b&gt;&#x27; + cnt(&#x27;moi&#x27;) + &#x27;&lt;/b&gt; mới · &#x27; + cnt(&#x27;co&#x27;) + &#x27; đã có · &#x27; + cnt(&#x27;xem&#x27;) + &#x27; cần xem. &#x27; +
+      &#x27;BN được thêm vào bước &lt;b&gt;Mô phỏng&lt;/b&gt;; bác sĩ điều trị bổ sung chuyên môn sau.&lt;/p&gt;&#x27; +
+      &#x27;&lt;div class=&quot;form imp-filter&quot;&gt;&#x27; + field(&#x27;Từ ngày&#x27;, &#x27;&lt;input type=&quot;date&quot; id=&quot;imp-from&quot; value=&quot;&#x27; + esc(from) + &#x27;&quot; min=&quot;&#x27; + esc(lo) + &#x27;&quot; max=&quot;&#x27; + esc(hi) + &#x27;&quot;&gt;&#x27;) +
+      field(&#x27;Đến ngày&#x27;, &#x27;&lt;input type=&quot;date&quot; id=&quot;imp-to&quot; value=&quot;&#x27; + esc(hi) + &#x27;&quot; min=&quot;&#x27; + esc(lo) + &#x27;&quot; max=&quot;&#x27; + esc(hi) + &#x27;&quot;&gt;&#x27;) +
+      &#x27;&lt;label class=&quot;confirm imp-all&quot;&gt;&lt;input type=&quot;checkbox&quot; id=&quot;imp-hide&quot;&#x27; + &#x27; checked&gt;&lt;span&gt;Ẩn BN đã có&lt;/span&gt;&lt;/label&gt;&lt;/div&gt;&#x27; +
+      &#x27;&lt;div class=&quot;imp-list&quot;&gt;&#x27; + list.map(function (x, i) {
+        var bs = x.bs_email ? &#x27;&lt;span&gt;BS: &#x27; + esc(nameOf(x.bs_email)) + &#x27;&lt;/span&gt;&#x27; :
+          &#x27;&lt;select name=&quot;bs_&#x27; + i + &#x27;&quot; aria-label=&quot;Chọn bác sĩ cho &#x27; + esc(x.ho_ten) + &#x27;&quot;&gt;&#x27; + opts(bsOpts, &#x27;&#x27;, &#x27;Chọn bác sĩ…&#x27;) + &#x27;&lt;/select&gt;&#x27;;
+        return &#x27;&lt;div class=&quot;imp-row&quot; data-i=&quot;&#x27; + i + &#x27;&quot; data-ngay=&quot;&#x27; + esc(x.ngay) + &#x27;&quot; data-trang=&quot;&#x27; + x.trang + &#x27;&quot;&gt;&#x27; +
+          &#x27;&lt;input type=&quot;checkbox&quot; name=&quot;pick&quot; data-multi=&quot;1&quot; value=&quot;&#x27; + i + &#x27;&quot; aria-label=&quot;Chọn &#x27; + esc(x.ho_ten) + &#x27;&quot;&#x27; + (x.trang === &#x27;moi&#x27; ? &#x27; checked&#x27; : &#x27;&#x27;) + (x.trang === &#x27;co&#x27; ? &#x27; disabled&#x27; : &#x27;&#x27;) + &#x27;&gt;&#x27; +
+          &#x27;&lt;div class=&quot;imp-main&quot;&gt;&lt;div&gt;&lt;b&gt;&#x27; + esc(x.ho_ten) + &#x27;&lt;/b&gt; &lt;span class=&quot;sub-in mono&quot;&gt;&#x27; + esc(x.ma_his) + &#x27; · &#x27; + esc(x.nam_sinh) + &#x27; · &#x27; + esc(x.gioi) + &#x27;&lt;/span&gt; &#x27; + TAG[x.trang] + &#x27;&lt;/div&gt;&#x27; +
+          &#x27;&lt;div class=&quot;imp-dx&quot;&gt;&#x27; + esc(x.chan_doan) + &#x27;&lt;/div&gt;&#x27; +
+          &#x27;&lt;div class=&quot;imp-meta&quot;&gt;&lt;span class=&quot;num&quot;&gt;MP &#x27; + fdy(x.ngay) + &#x27;&lt;/span&gt;&#x27; + bs + (x.note ? &#x27;&lt;span class=&quot;imp-note&quot;&gt;&#x27; + esc(x.note) + &#x27;&lt;/span&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&#x27;;
+      }).join(&#x27;&#x27;) + &#x27;&lt;/div&gt;&lt;p class=&quot;muted imp-none&quot; hidden&gt;Không có BN trong khoảng ngày này.&lt;/p&gt;&#x27;;
+    modal({ title: &#x27;Nhập bệnh nhân từ sổ HIS&#x27;, wide: true, ok: &#x27;Thêm BN đã chọn&#x27;, body: body, noFocus: true,
+      onMount: function (form) {
+        var upd = function () {
+          var a = $(&#x27;#imp-from&#x27;, form).value || lo, b = $(&#x27;#imp-to&#x27;, form).value || hi, hide = $(&#x27;#imp-hide&#x27;, form).checked, n = 0, sel = 0;
+          $$(&#x27;.imp-row&#x27;, form).forEach(function (r) {
+            var show = r.dataset.ngay &gt;= a &amp;&amp; r.dataset.ngay &lt;= b &amp;&amp; !(hide &amp;&amp; r.dataset.trang === &#x27;co&#x27;);
+            r.hidden = !show; if (show) n++;
+            if (show &amp;&amp; $(&#x27;input[name=pick]&#x27;, r).checked) sel++;
+          });
+          $(&#x27;.imp-none&#x27;, form).hidden = n &gt; 0;
+          $(&#x27;#mdl-ok&#x27;).textContent = &#x27;Thêm &#x27; + sel + &#x27; BN đã chọn&#x27;;
+        };
+        $$(&#x27;#imp-from,#imp-to,#imp-hide,input[name=pick]&#x27;, form).forEach(function (el) { el.addEventListener(&#x27;change&#x27;, upd); });
+        $$(&#x27;select[name^=bs_]&#x27;, form).forEach(function (sl) {
+          sl.addEventListener(&#x27;change&#x27;, function () { var c = $(&#x27;input[name=pick]&#x27;, sl.closest(&#x27;.imp-row&#x27;)); if (sl.value &amp;&amp; !c.checked) { c.checked = true; upd(); } });
+        });
+        upd();
+      },
+      validate: function (v, form) {
+        var rows = [], miss = [];
+        $$(&#x27;.imp-row&#x27;, form).forEach(function (r) {
+          if (r.hidden || !$(&#x27;input[name=pick]&#x27;, r).checked) return;
+          var i = +r.dataset.i, x = list[i], o = {};
+          [&#x27;ma_his&#x27;, &#x27;ho_ten&#x27;, &#x27;nam_sinh&#x27;, &#x27;gioi&#x27;, &#x27;chan_doan&#x27;, &#x27;khoa&#x27;, &#x27;bs_email&#x27;, &#x27;ngay_mo_phong&#x27;, &#x27;ghi_chu&#x27;, &#x27;force_name&#x27;].forEach(function (k) { o[k] = x[k]; });
+          if (!o.bs_email) {
+            o.bs_email = v[&#x27;bs_&#x27; + i] || &#x27;&#x27;;
+            var u = S.data.users.filter(function (z) { return z.email === o.bs_email; })[0];
+            if (u &amp;&amp; (S.data.dm.KHOA || []).indexOf(u.khoa) &gt;= 0) o.khoa = u.khoa;
+          }
+          if (!o.bs_email) miss.push(x.ho_ten);
+          rows.push(o);
+        });
+        if (!rows.length) return &#x27;Chưa chọn bệnh nhân nào.&#x27;;
+        if (miss.length) return &#x27;Cần chọn bác sĩ cho: &#x27; + miss.slice(0, 3).join(&#x27;, &#x27;) + (miss.length &gt; 3 ? &#x27;…&#x27; : &#x27;&#x27;) + &#x27;.&#x27;;
+        if (rows.length &gt; 150) return &#x27;Mỗi lần nhập tối đa 150 BN. Hãy thu hẹp khoảng ngày.&#x27;;
+        S.impRows = rows;
+        return &#x27;&#x27;;
+      },
+      onOk: function () { var rows = S.impRows; S.impRows = null; run(&#x27;importPatients&#x27;, { rows: rows }); } });
+  }
   function bindAll() {
+    $$(&#x27;#main [data-hisimport]&#x27;).forEach(function (b) { b.onclick = hisImportPick; });
     $$(&#x27;#main [data-archsearch]&#x27;).forEach(function (b) {
       b.onclick = function () {
         var key = S.q.trim();
@@ -4820,7 +5199,7 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
       &#x27;&lt;span class=&quot;hint&quot;&gt;Người dùng cần có tài khoản Google. Với Gmail cá nhân, nhớ chia sẻ Google Sheet cho họ.&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;tbl-wrap&quot;&gt;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Họ tên&lt;/th&gt;&lt;th&gt;Email&lt;/th&gt;&lt;th&gt;Vai trò&lt;/th&gt;&lt;th&gt;Chức vụ&lt;/th&gt;&lt;th&gt;Khoa&lt;/th&gt;&lt;th&gt;Trạng thái&lt;/th&gt;&lt;th&gt;&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&#x27; +
       users.map(function (u) {
         return &#x27;&lt;tr class=&quot;&#x27; + (u.kich_hoat === &#x27;Không&#x27; ? &#x27;off-user&#x27; : &#x27;&#x27;) + &#x27;&quot;&gt;&lt;td&gt;&lt;b&gt;&#x27; + esc(u.ho_ten) + &#x27;&lt;/b&gt;&lt;/td&gt;&lt;td class=&quot;mono&quot;&gt;&#x27; + esc(u.email) + &#x27;&lt;/td&gt;&lt;td&gt;&lt;span class=&quot;role role-&#x27; + esc(u.vai_tro) + &#x27;&quot;&gt;&#x27; + esc(RT.ROLES[u.vai_tro] || u.vai_tro) + &#x27;&lt;/span&gt;&lt;/td&gt;&#x27; +
-          &#x27;&lt;td&gt;&#x27; + esc(u.chuc_vu || &#x27;&#x27;) + (u.tro_ly_cho ? &#x27;&lt;span class=&quot;sub&quot;&gt;Trợ lý cho &#x27; + esc(nameOf(u.tro_ly_cho)) + &#x27;&lt;/span&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + esc(u.khoa || &#x27;&#x27;) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + (u.kich_hoat === &#x27;Không&#x27; ? &#x27;Đã khoá&#x27; : &#x27;Hoạt động&#x27;) + &#x27;&lt;/td&gt;&lt;td class=&quot;act&quot;&gt;&lt;button class=&quot;btn&quot; data-admin=&quot;editUser&quot; data-email=&quot;&#x27; + esc(u.email) + &#x27;&quot;&gt;Sửa&lt;/button&gt;&lt;/td&gt;&lt;/tr&gt;&#x27;;
+          &#x27;&lt;td&gt;&#x27; + esc(u.chuc_vu || &#x27;&#x27;) + (u.xep_lich === &#x27;Có&#x27; ? &#x27; &lt;span class=&quot;tag&quot;&gt;Xếp lịch xạ&lt;/span&gt;&#x27; : &#x27;&#x27;) + (u.tro_ly_cho ? &#x27;&lt;span class=&quot;sub&quot;&gt;Trợ lý cho &#x27; + esc(nameOf(u.tro_ly_cho)) + &#x27;&lt;/span&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + esc(u.khoa || &#x27;&#x27;) + &#x27;&lt;/td&gt;&lt;td&gt;&#x27; + (u.kich_hoat === &#x27;Không&#x27; ? &#x27;Đã khoá&#x27; : &#x27;Hoạt động&#x27;) + &#x27;&lt;/td&gt;&lt;td class=&quot;act&quot;&gt;&lt;button class=&quot;btn&quot; data-admin=&quot;editUser&quot; data-email=&quot;&#x27; + esc(u.email) + &#x27;&quot;&gt;Sửa&lt;/button&gt;&lt;/td&gt;&lt;/tr&gt;&#x27;;
       }).join(&#x27;&#x27;) + &#x27;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;&lt;/div&gt;&lt;/section&gt;&#x27;;
     var dmBox = function (loai, title, help, ph, type) {
       var list = d.dm[loai] || [];
@@ -4866,7 +5245,8 @@ if (typeof module !== &#x27;undefined&#x27;) module.exports = RT;
         field(&#x27;Trạng thái&#x27;, &#x27;&lt;select name=&quot;kich_hoat&quot;&gt;&#x27; + opts([{ v: &#x27;Có&#x27;, l: &#x27;Hoạt động&#x27; }, { v: &#x27;Không&#x27;, l: &#x27;Khoá tài khoản&#x27; }], u.kich_hoat) + &#x27;&lt;/select&gt;&#x27;) +
         field(&#x27;Chức vụ&#x27;, &#x27;&lt;select name=&quot;chuc_vu&quot;&gt;&#x27; + opts(RT.CHUC_VU, u.chuc_vu || &#x27;&#x27;, &#x27;Không&#x27;) + &#x27;&lt;/select&gt;&#x27;, &#x27;&#x27;, &#x27;Trưởng khoa, ĐD trưởng, tài khoản khoa: xem thống kê cả khoa. KTV trưởng: phân công, huỷ buổi xạ ghi nhầm.&#x27;) +
         field(&#x27;Khoa&#x27;, &#x27;&lt;select name=&quot;khoa&quot;&gt;&#x27; + opts(RT.staffKhoa(S.data.dm), u.khoa || &#x27;&#x27;, &#x27;—&#x27;) + &#x27;&lt;/select&gt;&#x27;, &#x27;&#x27;, &#x27;Bắt buộc với trưởng khoa, ĐD trưởng, tài khoản khoa&#x27;) +
-        field(&#x27;Trợ lý cho bác sĩ&#x27;, &#x27;&lt;select name=&quot;tro_ly_cho&quot; id=&quot;tl-sel&quot;&gt;&#x27; + opts(S.data.users.filter(function (x) { return x.kich_hoat !== &#x27;Không&#x27; &amp;&amp; x.email !== u.email &amp;&amp; !x.tro_ly_cho &amp;&amp; (x.vai_tro === &#x27;BS&#x27; || isDoctor(x)); }).map(function (x) { return { v: x.email, l: x.ho_ten }; }), u.tro_ly_cho || &#x27;&#x27;, &#x27;Không (bác sĩ bình thường)&#x27;) + &#x27;&lt;/select&gt;&#x27;, &#x27;full&#x27;, &#x27;Chỉ cho bác sĩ trợ lý: thấy và làm việc trên BN của bác sĩ chính, xem được thống kê của bác sĩ chính. BN vẫn đứng tên bác sĩ chính.&#x27;) + &#x27;&lt;/div&gt;&#x27;,
+        field(&#x27;Trợ lý cho bác sĩ&#x27;, &#x27;&lt;select name=&quot;tro_ly_cho&quot; id=&quot;tl-sel&quot;&gt;&#x27; + opts(S.data.users.filter(function (x) { return x.kich_hoat !== &#x27;Không&#x27; &amp;&amp; x.email !== u.email &amp;&amp; !x.tro_ly_cho &amp;&amp; (x.vai_tro === &#x27;BS&#x27; || isDoctor(x)); }).map(function (x) { return { v: x.email, l: x.ho_ten }; }), u.tro_ly_cho || &#x27;&#x27;, &#x27;Không (bác sĩ bình thường)&#x27;) + &#x27;&lt;/select&gt;&#x27;, &#x27;full&#x27;, &#x27;Chỉ cho bác sĩ trợ lý: thấy và làm việc trên BN của bác sĩ chính, xem được thống kê của bác sĩ chính. BN vẫn đứng tên bác sĩ chính.&#x27;) +
+        &#x27;&lt;label class=&quot;confirm full&quot;&gt;&lt;input type=&quot;checkbox&quot; name=&quot;xep_lich&quot;&#x27; + (u.xep_lich === &#x27;Có&#x27; ? &#x27; checked&#x27; : &#x27;&#x27;) + &#x27;&gt;&lt;span&gt;Người xếp lịch xạ. Khi đã có người được đánh dấu, chỉ những người này (và quản trị) được xếp lịch, đổi ngày xạ.&lt;/span&gt;&lt;/label&gt;&lt;/div&gt;&#x27;,
       onMount: function (form) {
         var vt = $(&#x27;select[name=vai_tro]&#x27;, form), tl = $(&#x27;#tl-sel&#x27;, form), box = tl &amp;&amp; tl.closest(&#x27;.field&#x27;);
         var upd = function () { if (!box) return; box.hidden = vt.value !== &#x27;BS&#x27;; if (vt.value !== &#x27;BS&#x27;) tl.value = &#x27;&#x27;; };

@@ -13,13 +13,13 @@ window.DEMO = (function () {
     { email: 'bs.chi@demo', ho_ten: 'BS. Vũ Chi', vai_tro: 'BS', tro_ly_cho: 'bs.thu@demo' },
     { email: 'ks.nam@demo', ho_ten: 'KS. Đỗ Nam', vai_tro: 'KS' },
     { email: 'ks.ha@demo', ho_ten: 'KS. Vũ Hà', vai_tro: 'KS' },
-    { email: 'ktv.linh@demo', ho_ten: 'KTV. Hoàng Linh', vai_tro: 'KTV', chuc_vu: 'KTV trưởng' },
+    { email: 'ktv.linh@demo', ho_ten: 'KTV. Hoàng Linh', vai_tro: 'KTV', chuc_vu: 'KTV trưởng', xep_lich: 'Có' },
     { email: 'ktv.son@demo', ho_ten: 'KTV. Trần Sơn', vai_tro: 'KTV' },
     { email: 'ktv.ha@demo', ho_ten: 'KTV. Lê Hà', vai_tro: 'KTV' },
     { email: 'dd.mai@demo', ho_ten: 'ĐD. Mai Anh', vai_tro: 'DD', chuc_vu: 'Điều dưỡng trưởng', khoa: 'Xạ trị theo yêu cầu' },
     { email: 'quantri@demo', ho_ten: 'Quản trị khoa', vai_tro: 'ADMIN' }
   ];
-  users.forEach(function (u) { u.kich_hoat = 'Có'; u.chuc_vu = u.chuc_vu || ''; u.khoa = u.khoa || ''; u.tro_ly_cho = u.tro_ly_cho || ''; });
+  users.forEach(function (u) { u.kich_hoat = 'Có'; u.chuc_vu = u.chuc_vu || ''; u.khoa = u.khoa || ''; u.tro_ly_cho = u.tro_ly_cho || ''; u.xep_lich = u.xep_lich || ''; });
   var roster = [], rev = 1;
   var logs = [];
   var dm = JSON.parse(JSON.stringify(RT.DEFAULT_DM));
@@ -239,6 +239,10 @@ window.DEMO = (function () {
         return JSON.stringify({ ok: true, archive: { patients: ps, phases: [], fractions: [] } });
       } else if (action === 'lookupHis') {
         return JSON.stringify({ ok: true, his: archIdx().filter(function (r) { return r.ma_his === String(payload.ma_his || '').trim(); }) });
+      } else if (action === 'lookupHisMany') {
+        var hm = {};
+        (payload.ma || []).forEach(function (m) { hm[m] = archIdx().filter(function (r) { return r.ma_his === m; }); });
+        return JSON.stringify({ ok: true, his: hm });
       } else if (action === 'archiveCourse') {
         var ap = archive.patients.filter(function (p) { return p.id === payload.id; });
         if (!ap.length) throw new Error('Không tìm thấy đợt xạ trong lưu trữ.');

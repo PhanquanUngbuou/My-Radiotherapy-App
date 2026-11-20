@@ -1,5 +1,14 @@
 # Lịch sử phiên bản
 
+## v2.7
+- **Nhập BN từ sổ chuyên khoa HIS (tệp Excel)**: nút "Nhập từ sổ HIS" ở mục Tất cả BN (quản trị, trưởng khoa, ĐD trưởng, tài khoản khoa). Chọn tệp Excel sổ "mô phỏng và mặt nạ" xuất từ HIS, ứng dụng đọc ngay trên máy (không dùng AI, tệp không gửi đi đâu):
+  - Chỉ lấy BN có dịch vụ "Mô phỏng…", bỏ BN chỉ làm mặt nạ. Gộp các dòng cùng mã BN.
+  - Lấy mã HIS, họ tên (đổi về chữ thường), năm sinh, giới (cột Nam/Nữ), chẩn đoán, ngày mô phỏng; tự khớp bác sĩ chỉ định với danh sách bác sĩ (bỏ học hàm "BSCKII.", "ThS.BSNT."…); khoa theo khoa của bác sĩ.
+  - Bảng xem trước: Mới (chọn sẵn) · Đã có (trùng đợt đang hoạt động hoặc đã nhập trong 30 ngày, tra cả lưu trữ) · Cần xem (chưa khớp bác sĩ: chọn bác sĩ ngay trên dòng; mã HIS đã dùng cho tên khác). Lọc theo ngày, mặc định 7 ngày gần nhất.
+  - BN được thêm vào bước **Mô phỏng**, ghi chú nguồn "Nhập từ sổ HIS", BS chỉ định, nơi gửi. Mỗi lần tối đa 150 BN.
+- **Người xếp lịch xạ**: trong Quản trị › Sửa người dùng có ô "Người xếp lịch xạ". Khi đã đánh dấu ít nhất một người, chỉ những người này (và quản trị) được xếp lịch, đổi ngày xạ; KTV, ĐD khác không còn nút "Xếp lịch". Chưa đánh dấu ai thì giữ như cũ (KTV xếp lịch).
+- Cột mới: `xep_lich` trong trang NguoiDung (chạy `setup` một lần).
+
 ## v2.6
 - **Thống kê làm lại**: chọn loại trước (Lượt xạ trị · Vắng buổi xạ · Tìm danh sách BN), chọn khoảng thời gian, rồi xem.
   - Lượt xạ trị: tổng lượt, BN được xạ, bắt đầu / kết thúc, lượt vắng, theo kỹ thuật, bảng theo từng ngày (khoảng ≤ 2 tháng), theo khoa, máy, người, ICD, vị trí.
