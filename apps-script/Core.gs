@@ -1,4 +1,4 @@
-// Điều phối Xạ trị · phiên bản v3.6
+// Điều phối Xạ trị · phiên bản v3.7
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -9,7 +9,7 @@
  */
 var RT = (function () {
   'use strict';
-  var VERSION = '3.6';
+  var VERSION = '3.7';
 
   var STATUS_ORDER = ['CHO_PL', 'MO_PHONG', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA', 'DANG_XA', 'TAM_NGUNG', 'HOAN_THANH', 'KHONG_XA'];
   var STATUS = {
@@ -1200,6 +1200,15 @@ var RT = (function () {
     },
     logFraction: function (ctx, a) {
       var p = findP(ctx, a.bn_id);
+      // BN chờ phân loại đã có buổi xạ (nhập từ HIS) quay lại xạ: KTV ghi buổi luôn, BN chuyển sang Đang xạ (chưa có tổng thì BS bổ sung sau)
+      var fromPl = p.trang_thai === 'CHO_PL' && fxOf(p, ctx.fractions).length > 0;
+      if (fromPl) {
+        if (!p.ky_thuat) fail('BN chưa có kỹ thuật xạ: phân loại BN trước rồi ghi buổi xạ.');
+        p.trang_thai = 'DANG_XA';
+        var f0 = fxOf(p, ctx.fractions)[0].ngay;
+        p.ngay_du_kien = p.ngay_du_kien || f0; p.ngay_contour_xong = p.ngay_contour_xong || f0; p.ngay_kh_xong = p.ngay_kh_xong || f0; p.qa_ket_qua = p.qa_ket_qua || 'Nhập từ HIS';
+        if (num(p.so_buoi) >= 1 && num(p.so_buoi) <= fxOf(p, ctx.fractions).length && !phasesOf(p, envOf(ctx)).length) p.so_buoi = '';
+      }
       need(p, ['CHO_XA', 'DANG_XA', 'TAM_NGUNG'], 'BN chưa ở bước chờ vào xạ hoặc đang xạ, chưa ghi buổi xạ được.');
       var ngay = a.ngay || ctx.today;
       if (!isDate(ngay)) fail('Ngày xạ không hợp lệ.');

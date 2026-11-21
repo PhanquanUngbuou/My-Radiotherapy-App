@@ -542,7 +542,7 @@ if (typeof module !== "undefined") module.exports = ICD10;
  */
 var RT = (function () {
   'use strict';
-  var VERSION = '3.6';
+  var VERSION = '3.7';
 
   var STATUS_ORDER = ['CHO_PL', 'MO_PHONG', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA', 'DANG_XA', 'TAM_NGUNG', 'HOAN_THANH', 'KHONG_XA'];
   var STATUS = {
@@ -1733,6 +1733,15 @@ var RT = (function () {
     },
     logFraction: function (ctx, a) {
       var p = findP(ctx, a.bn_id);
+      // BN chờ phân loại đã có buổi xạ (nhập từ HIS) quay lại xạ: KTV ghi buổi luôn, BN chuyển sang Đang xạ (chưa có tổng thì BS bổ sung sau)
+      var fromPl = p.trang_thai === 'CHO_PL' && fxOf(p, ctx.fractions).length > 0;
+      if (fromPl) {
+        if (!p.ky_thuat) fail('BN chưa có kỹ thuật xạ: phân loại BN trước rồi ghi buổi xạ.');
+        p.trang_thai = 'DANG_XA';
+        var f0 = fxOf(p, ctx.fractions)[0].ngay;
+        p.ngay_du_kien = p.ngay_du_kien || f0; p.ngay_contour_xong = p.ngay_contour_xong || f0; p.ngay_kh_xong = p.ngay_kh_xong || f0; p.qa_ket_qua = p.qa_ket_qua || 'Nhập từ HIS';
+        if (num(p.so_buoi) >= 1 && num(p.so_buoi) <= fxOf(p, ctx.fractions).length && !phasesOf(p, envOf(ctx)).length) p.so_buoi = '';
+      }
       need(p, ['CHO_XA', 'DANG_XA', 'TAM_NGUNG'], 'BN chưa ở bước chờ vào xạ hoặc đang xạ, chưa ghi buổi xạ được.');
       var ngay = a.ngay || ctx.today;
       if (!isDate(ngay)) fail('Ngày xạ không hợp lệ.');
@@ -4263,7 +4272,7 @@ var XL = (function () {
         { h: 'Mô phỏng', cls: 'nowrap', v: function (p) { return p.ngay_mo_phong ? '<span class="num">' + fdy(p.ngay_mo_phong) + '</span>' : '<span class="muted">—</span>'; } },
         { h: 'Đã xạ', cls: 'nowrap', v: function (p) { var f = plFx(p); return f.length ? '<b class="num">' + f.length + ' buổi</b><span class="sub">' + fd(f[0].ngay) + ' → ' + fd(f[f.length - 1].ngay) + (RT.diffDays(f[f.length - 1].ngay, today()) > 7 ? ' · <b style="color:var(--warn)">lâu chưa xạ: đã xong / tạm ngừng?</b>' : '') + '</span>' : '<span class="muted">—</span>'; } },
         { h: 'Ghi chú', v: function (p) { return '<span class="sub" style="white-space:pre-line">' + esc(p.ghi_chu || '') + '</span>'; } },
-        { h: '', cls: 'act', v: function (p) { return canClassify(p) ? btn('classify', p.id, 'Phân loại', 'primary') : ''; } }],
+        { h: '', cls: 'act', v: function (p) { return (canClassify(p) ? btn('classify', p.id, 'Phân loại', 'primary') : '') + (can('logFraction') && plFx(p).length && p.ky_thuat ? btn('logFx', p.id, 'Quay lại xạ: ghi buổi', 'ok') : ''); } }],
         null, 'Không có BN chờ phân loại.');
   }
   function importForm() {
@@ -5359,6 +5368,7 @@ var XL = (function () {
     if (p._arch) return '';
     var a = [], st = p.trang_thai, b = function (act, label, cls) { a.push(btn(act, p.id, label, cls)); };
     if (can('logFraction') && ['CHO_XA', 'DANG_XA', 'TAM_NGUNG'].indexOf(st) >= 0) b('logFx', '✓ Ghi buổi xạ', 'ok');
+    if (can('logFraction') && st === 'CHO_PL' && plFx(p).length && p.ky_thuat) b('logFx', '✓ BN quay lại xạ: ghi buổi xạ', 'ok');
     if (can('simDone') && st === 'MO_PHONG') b('simDone', 'Đã mô phỏng xong', 'primary');
     if (can('contourDone') && st === 'CONTOUR') b('contourDone', 'Contour xong', 'primary');
     if (can('claimPlan') && st === 'CHO_KH') b('claimPlan', 'Nhận ca');

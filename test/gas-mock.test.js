@@ -989,4 +989,16 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   r = ok('ktv@x.vn', 'classifyPatient', { id: a4.id, buoc: 'DANG_XA', ky_thuat: '3D-CRT', tong_lieu: '', so_buoi: '' });
   assert(r.data.patients.find(x => x.id === a4.id).trang_thai === 'DANG_XA' && /chưa có tổng/.test(r.msg), 'KTV cho xạ tiếp khi chưa biết tổng');
 }
+// v3.7: BN chờ phân loại (đã có buổi xạ) quay lại xạ: KTV ghi buổi luôn
+{
+  const RT = ctx.RT, dmy = d => d.slice(8) + '/' + d.slice(5, 7) + '/' + d.slice(0, 4);
+  const old = [0, 1, 2].map(k => RT.addDays(RT.monday(today), k - 14));
+  r = ok('admin@x.vn', 'importFull', { rows: [{ ma_his: '970001', ho_ten: 'Quay Lại', nam_sinh: '1960', gioi: 'Nam', chan_doan: 'K', bs: 'bs@x.vn', ky_thuat: '3D-CRT', ngay_xa: old.map(dmy).join(', ') }] });
+  const q = r.data.patients.find(x => x.ma_his === '970001');
+  assert.strictEqual(q.trang_thai, 'CHO_PL');
+  let wd = today; while (RT.dow(wd) === 0 || RT.dow(wd) === 6) wd = RT.addDays(wd, -1);
+  r = ok('ktv@x.vn', 'logFraction', Object.assign({ bn_id: q.id, ngay: wd }, wd < today ? { ly_do_bu: 'test' } : {}));
+  const q2 = r.data.patients.find(x => x.id === q.id);
+  assert(q2.trang_thai === 'DANG_XA' && /4\/\?/.test(r.msg) && r.data.fractions.filter(f => f.bn_id === q.id).length === 4, 'KTV ghi buổi cho BN chờ phân loại: ' + r.msg);
+}
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');

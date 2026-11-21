@@ -1070,7 +1070,7 @@
         { h: 'Mô phỏng', cls: 'nowrap', v: function (p) { return p.ngay_mo_phong ? '<span class="num">' + fdy(p.ngay_mo_phong) + '</span>' : '<span class="muted">—</span>'; } },
         { h: 'Đã xạ', cls: 'nowrap', v: function (p) { var f = plFx(p); return f.length ? '<b class="num">' + f.length + ' buổi</b><span class="sub">' + fd(f[0].ngay) + ' → ' + fd(f[f.length - 1].ngay) + (RT.diffDays(f[f.length - 1].ngay, today()) > 7 ? ' · <b style="color:var(--warn)">lâu chưa xạ: đã xong / tạm ngừng?</b>' : '') + '</span>' : '<span class="muted">—</span>'; } },
         { h: 'Ghi chú', v: function (p) { return '<span class="sub" style="white-space:pre-line">' + esc(p.ghi_chu || '') + '</span>'; } },
-        { h: '', cls: 'act', v: function (p) { return canClassify(p) ? btn('classify', p.id, 'Phân loại', 'primary') : ''; } }],
+        { h: '', cls: 'act', v: function (p) { return (canClassify(p) ? btn('classify', p.id, 'Phân loại', 'primary') : '') + (can('logFraction') && plFx(p).length && p.ky_thuat ? btn('logFx', p.id, 'Quay lại xạ: ghi buổi', 'ok') : ''); } }],
         null, 'Không có BN chờ phân loại.');
   }
   function importForm() {
@@ -2166,6 +2166,7 @@
     if (p._arch) return '';
     var a = [], st = p.trang_thai, b = function (act, label, cls) { a.push(btn(act, p.id, label, cls)); };
     if (can('logFraction') && ['CHO_XA', 'DANG_XA', 'TAM_NGUNG'].indexOf(st) >= 0) b('logFx', '✓ Ghi buổi xạ', 'ok');
+    if (can('logFraction') && st === 'CHO_PL' && plFx(p).length && p.ky_thuat) b('logFx', '✓ BN quay lại xạ: ghi buổi xạ', 'ok');
     if (can('simDone') && st === 'MO_PHONG') b('simDone', 'Đã mô phỏng xong', 'primary');
     if (can('contourDone') && st === 'CONTOUR') b('contourDone', 'Contour xong', 'primary');
     if (can('claimPlan') && st === 'CHO_KH') b('claimPlan', 'Nhận ca');

@@ -1,5 +1,8 @@
 # Lịch sử phiên bản
 
+## v3.7
+- **BN chờ phân loại quay lại xạ: KTV ghi buổi xạ luôn**, không cần phân loại trước. Áp dụng cho BN đã có buổi xạ (nhập từ HIS) và có kỹ thuật: nút "Quay lại xạ: ghi buổi" ở Xạ trị › Chờ phân loại và "✓ BN quay lại xạ: ghi buổi xạ" trong hồ sơ BN (tìm theo tên / mã HIS). Ghi xong BN tự chuyển sang Đang xạ (chưa có tổng số buổi thì BS bổ sung sau).
+
 ## v3.6
 - **Đang xạ, chưa có tổng số buổi** (BN nhập từ HIS): KTV vẫn ghi buổi xạ bình thường ("Buổi 9 / ?"), ứng dụng không tự kết thúc đợt, chưa tính ngày kết thúc. Danh sách hiện "Đã xạ N buổi · Chưa có tổng liều / số buổi". BS có mục **"BN đang xạ chưa có tổng liều / số buổi"** trong Bệnh nhân của tôi; bổ sung tổng liều, số buổi (sửa chỉ định) là ứng dụng tính lại ngày kết thúc như thường.
 - **Chờ phân loại → Đang xạ khi chưa biết tổng**: BN đã có buổi xạ, KTV (hoặc BS) chọn "Đang xạ", để trống tổng liều / số buổi, chỉ cần kỹ thuật. Dùng khi BN xạ trước 16/11 quay lại xạ tiếp.

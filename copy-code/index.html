@@ -41,21 +41,21 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
 </style>
 <div class="wrap">
   <div class="intro">
-    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v3.6</h1>
+    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v3.7</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v3.6 · bản lưu 09c0d05 · 21/11/2026 12:52. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v3.6”.</span>
+    <span class="rev">Phiên bản v3.7 · bản lưu 3ffb6ea · 21/11/2026 13:31. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v3.7”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Code">Code.gs <span class="ver">· v3.6</span></h2>
+        <h2 id="h-Code">Code.gs <span class="ver">· v3.7</span></h2>
         <p>File có sẵn tên Code.gs: xoá hết nội dung cũ, dán vào.</p>
         <span class="size">643 dòng · 34 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v3.6)</button>
+      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v3.7)</button>
     </div>
-    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v3.6
+    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v3.7
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
@@ -702,13 +702,13 @@ function statsData_(ctx, tu, den) {
   <section class="card" aria-labelledby="h-Core">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Core">Core.gs <span class="ver">· v3.6</span></h2>
+        <h2 id="h-Core">Core.gs <span class="ver">· v3.7</span></h2>
         <p>Bấm + → Script (Tập lệnh), đặt tên Core.</p>
-        <span class="size">2,181 dòng · 160 KB</span>
+        <span class="size">2,190 dòng · 160 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v3.6)</button>
+      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v3.7)</button>
     </div>
-    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v3.6
+    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v3.7
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -719,7 +719,7 @@ function statsData_(ctx, tu, den) {
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;3.6&#x27;;
+  var VERSION = &#x27;3.7&#x27;;
 
   var STATUS_ORDER = [&#x27;CHO_PL&#x27;, &#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;, &#x27;KHONG_XA&#x27;];
   var STATUS = {
@@ -1910,6 +1910,15 @@ var RT = (function () {
     },
     logFraction: function (ctx, a) {
       var p = findP(ctx, a.bn_id);
+      // BN chờ phân loại đã có buổi xạ (nhập từ HIS) quay lại xạ: KTV ghi buổi luôn, BN chuyển sang Đang xạ (chưa có tổng thì BS bổ sung sau)
+      var fromPl = p.trang_thai === &#x27;CHO_PL&#x27; &amp;&amp; fxOf(p, ctx.fractions).length &gt; 0;
+      if (fromPl) {
+        if (!p.ky_thuat) fail(&#x27;BN chưa có kỹ thuật xạ: phân loại BN trước rồi ghi buổi xạ.&#x27;);
+        p.trang_thai = &#x27;DANG_XA&#x27;;
+        var f0 = fxOf(p, ctx.fractions)[0].ngay;
+        p.ngay_du_kien = p.ngay_du_kien || f0; p.ngay_contour_xong = p.ngay_contour_xong || f0; p.ngay_kh_xong = p.ngay_kh_xong || f0; p.qa_ket_qua = p.qa_ket_qua || &#x27;Nhập từ HIS&#x27;;
+        if (num(p.so_buoi) &gt;= 1 &amp;&amp; num(p.so_buoi) &lt;= fxOf(p, ctx.fractions).length &amp;&amp; !phasesOf(p, envOf(ctx)).length) p.so_buoi = &#x27;&#x27;;
+      }
       need(p, [&#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;], &#x27;BN chưa ở bước chờ vào xạ hoặc đang xạ, chưa ghi buổi xạ được.&#x27;);
       var ngay = a.ngay || ctx.today;
       if (!isDate(ngay)) fail(&#x27;Ngày xạ không hợp lệ.&#x27;);
@@ -2893,14 +2902,14 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
   <section class="card" aria-labelledby="h-Index">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Index">Index.html <span class="ver">· v3.6</span></h2>
+        <h2 id="h-Index">Index.html <span class="ver">· v3.7</span></h2>
         <p>Bấm + → HTML, đặt tên Index (chữ I hoa).</p>
-        <span class="size">5,729 dòng · 481 KB</span>
+        <span class="size">5,739 dòng · 482 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v3.6)</button>
+      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v3.7)</button>
     </div>
     <textarea id="t-Index" readonly spellcheck="false" aria-label="Nội dung Index.html">&lt;!DOCTYPE html&gt;
-&lt;!-- Điều phối Xạ trị · phiên bản v3.6 --&gt;
+&lt;!-- Điều phối Xạ trị · phiên bản v3.7 --&gt;
 &lt;html lang=&quot;vi&quot;&gt;
 &lt;head&gt;
 &lt;base target=&quot;_top&quot;&gt;
@@ -3450,7 +3459,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;3.6&#x27;;
+  var VERSION = &#x27;3.7&#x27;;
 
   var STATUS_ORDER = [&#x27;CHO_PL&#x27;, &#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;, &#x27;KHONG_XA&#x27;];
   var STATUS = {
@@ -4641,6 +4650,15 @@ var RT = (function () {
     },
     logFraction: function (ctx, a) {
       var p = findP(ctx, a.bn_id);
+      // BN chờ phân loại đã có buổi xạ (nhập từ HIS) quay lại xạ: KTV ghi buổi luôn, BN chuyển sang Đang xạ (chưa có tổng thì BS bổ sung sau)
+      var fromPl = p.trang_thai === &#x27;CHO_PL&#x27; &amp;&amp; fxOf(p, ctx.fractions).length &gt; 0;
+      if (fromPl) {
+        if (!p.ky_thuat) fail(&#x27;BN chưa có kỹ thuật xạ: phân loại BN trước rồi ghi buổi xạ.&#x27;);
+        p.trang_thai = &#x27;DANG_XA&#x27;;
+        var f0 = fxOf(p, ctx.fractions)[0].ngay;
+        p.ngay_du_kien = p.ngay_du_kien || f0; p.ngay_contour_xong = p.ngay_contour_xong || f0; p.ngay_kh_xong = p.ngay_kh_xong || f0; p.qa_ket_qua = p.qa_ket_qua || &#x27;Nhập từ HIS&#x27;;
+        if (num(p.so_buoi) &gt;= 1 &amp;&amp; num(p.so_buoi) &lt;= fxOf(p, ctx.fractions).length &amp;&amp; !phasesOf(p, envOf(ctx)).length) p.so_buoi = &#x27;&#x27;;
+      }
       need(p, [&#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;], &#x27;BN chưa ở bước chờ vào xạ hoặc đang xạ, chưa ghi buổi xạ được.&#x27;);
       var ngay = a.ngay || ctx.today;
       if (!isDate(ngay)) fail(&#x27;Ngày xạ không hợp lệ.&#x27;);
@@ -6858,7 +6876,7 @@ var XL = (function () {
         { h: &#x27;Mô phỏng&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { return p.ngay_mo_phong ? &#x27;&lt;span class=&quot;num&quot;&gt;&#x27; + fdy(p.ngay_mo_phong) + &#x27;&lt;/span&gt;&#x27; : &#x27;&lt;span class=&quot;muted&quot;&gt;—&lt;/span&gt;&#x27;; } },
         { h: &#x27;Đã xạ&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { var f = plFx(p); return f.length ? &#x27;&lt;b class=&quot;num&quot;&gt;&#x27; + f.length + &#x27; buổi&lt;/b&gt;&lt;span class=&quot;sub&quot;&gt;&#x27; + fd(f[0].ngay) + &#x27; → &#x27; + fd(f[f.length - 1].ngay) + (RT.diffDays(f[f.length - 1].ngay, today()) &gt; 7 ? &#x27; · &lt;b style=&quot;color:var(--warn)&quot;&gt;lâu chưa xạ: đã xong / tạm ngừng?&lt;/b&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/span&gt;&#x27; : &#x27;&lt;span class=&quot;muted&quot;&gt;—&lt;/span&gt;&#x27;; } },
         { h: &#x27;Ghi chú&#x27;, v: function (p) { return &#x27;&lt;span class=&quot;sub&quot; style=&quot;white-space:pre-line&quot;&gt;&#x27; + esc(p.ghi_chu || &#x27;&#x27;) + &#x27;&lt;/span&gt;&#x27;; } },
-        { h: &#x27;&#x27;, cls: &#x27;act&#x27;, v: function (p) { return canClassify(p) ? btn(&#x27;classify&#x27;, p.id, &#x27;Phân loại&#x27;, &#x27;primary&#x27;) : &#x27;&#x27;; } }],
+        { h: &#x27;&#x27;, cls: &#x27;act&#x27;, v: function (p) { return (canClassify(p) ? btn(&#x27;classify&#x27;, p.id, &#x27;Phân loại&#x27;, &#x27;primary&#x27;) : &#x27;&#x27;) + (can(&#x27;logFraction&#x27;) &amp;&amp; plFx(p).length &amp;&amp; p.ky_thuat ? btn(&#x27;logFx&#x27;, p.id, &#x27;Quay lại xạ: ghi buổi&#x27;, &#x27;ok&#x27;) : &#x27;&#x27;); } }],
         null, &#x27;Không có BN chờ phân loại.&#x27;);
   }
   function importForm() {
@@ -7954,6 +7972,7 @@ var XL = (function () {
     if (p._arch) return &#x27;&#x27;;
     var a = [], st = p.trang_thai, b = function (act, label, cls) { a.push(btn(act, p.id, label, cls)); };
     if (can(&#x27;logFraction&#x27;) &amp;&amp; [&#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;].indexOf(st) &gt;= 0) b(&#x27;logFx&#x27;, &#x27;✓ Ghi buổi xạ&#x27;, &#x27;ok&#x27;);
+    if (can(&#x27;logFraction&#x27;) &amp;&amp; st === &#x27;CHO_PL&#x27; &amp;&amp; plFx(p).length &amp;&amp; p.ky_thuat) b(&#x27;logFx&#x27;, &#x27;✓ BN quay lại xạ: ghi buổi xạ&#x27;, &#x27;ok&#x27;);
     if (can(&#x27;simDone&#x27;) &amp;&amp; st === &#x27;MO_PHONG&#x27;) b(&#x27;simDone&#x27;, &#x27;Đã mô phỏng xong&#x27;, &#x27;primary&#x27;);
     if (can(&#x27;contourDone&#x27;) &amp;&amp; st === &#x27;CONTOUR&#x27;) b(&#x27;contourDone&#x27;, &#x27;Contour xong&#x27;, &#x27;primary&#x27;);
     if (can(&#x27;claimPlan&#x27;) &amp;&amp; st === &#x27;CHO_KH&#x27;) b(&#x27;claimPlan&#x27;, &#x27;Nhận ca&#x27;);
