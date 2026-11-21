@@ -1,5 +1,8 @@
 # Lịch sử phiên bản
 
+## v3.5
+- **`nhapDayDu` nhập nhanh hàng trăm BN**: gom lại rồi ghi một lần mỗi trang (BN, buổi xạ, nhật ký, kết quả), dựng lại chỉ mục ở cuối. 550 BN với khoảng 7.700 buổi xạ chạy trong thời gian cho phép của Apps Script (trước đây ghi từng dòng sẽ quá 6 phút). Giới hạn mỗi lần nhập nâng lên 1500 BN.
+
 ## v3.4
 - **Nhập đầy đủ từ HIS** (chuẩn bị cho đợt nhập BN từ 01/09): trang tính **NhapDayDu** + hàm **`nhapDayDu`** chạy trong Apps Script (lần đầu chạy tạo trang có dòng tiêu đề; chạy lại không nhập trùng, cột cuối ghi kết quả từng dòng).
   - Mỗi dòng một BN: mã HIS, họ tên, năm sinh, giới, chẩn đoán, ICD, BS điều trị (email hoặc tên), ngày mô phỏng, tiêm thuốc, mặt nạ, kỹ thuật, **các ngày đã xạ**, tổng liều, tổng số buổi, ghi chú.

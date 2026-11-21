@@ -1,4 +1,4 @@
-// Điều phối Xạ trị · phiên bản v3.4
+// Điều phối Xạ trị · phiên bản v3.5
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -9,7 +9,7 @@
  */
 var RT = (function () {
   'use strict';
-  var VERSION = '3.4';
+  var VERSION = '3.5';
 
   var STATUS_ORDER = ['CHO_PL', 'MO_PHONG', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA', 'DANG_XA', 'TAM_NGUNG', 'HOAN_THANH', 'KHONG_XA'];
   var STATUS = {
@@ -859,7 +859,7 @@ var RT = (function () {
     importFull: function (ctx, a) {
       var rows = Array.isArray(a.rows) ? a.rows : [];
       if (!rows.length) fail('Chưa có dòng nào để nhập.');
-      if (rows.length > 400) fail('Mỗi lần nhập tối đa 400 BN.');
+      if (rows.length > 1500) fail('Mỗi lần nhập tối đa 1500 BN.');
       var res = ctx.importResult = [], cnt = { CHO_PL: 0, DANG_XA: 0, HOAN_THANH: 0 }, skip = 0, nFx = 0;
       rows.forEach(function (x, i) {
         var ho = String(x.ho_ten || '').trim(), his = String(x.ma_his || '').trim();

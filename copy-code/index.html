@@ -41,21 +41,21 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
 </style>
 <div class="wrap">
   <div class="intro">
-    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v3.4</h1>
+    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v3.5</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v3.4 · bản lưu 35457b2 · 20/11/2026 16:08. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v3.4”.</span>
+    <span class="rev">Phiên bản v3.5 · bản lưu b236687 · 20/11/2026 16:27. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v3.5”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Code">Code.gs <span class="ver">· v3.4</span></h2>
+        <h2 id="h-Code">Code.gs <span class="ver">· v3.5</span></h2>
         <p>File có sẵn tên Code.gs: xoá hết nội dung cũ, dán vào.</p>
-        <span class="size">616 dòng · 32 KB</span>
+        <span class="size">641 dòng · 34 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v3.4)</button>
+      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v3.5)</button>
     </div>
-    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v3.4
+    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v3.5
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
@@ -275,9 +275,23 @@ function nhapDayDu() {
     }
     if (!rows.length) return &#x27;Không có dòng mới để nhập.&#x27;;
     var ctx = buildCtx_();
+    // Hàng trăm BN, hàng nghìn buổi xạ: gom lại rồi ghi một lần mỗi trang (tránh quá 6 phút của Apps Script)
+    var bufP = [], seenP = {}, bufF = [], bufL = [];
+    ctx.savePatient = function (p) { if (!seenP[p.id]) { seenP[p.id] = 1; bufP.push(p); } };
+    ctx.addFraction = function (f) { bufF.push(f); };
+    ctx.log = function (a, id, d) { bufL.push([ctx.now, ctx.user.email, a, id || &#x27;&#x27;, d || &#x27;&#x27;]); };
     var msg = RT.handle(ctx, &#x27;importFull&#x27;, { rows: rows });
-    at.forEach(function (row, i) { sh.getRange(row, nc + 1).setValue((ctx.importResult || [])[i] || &#x27;&#x27;); });
+    bulkAppend_(ss, SHEET_NAMES.BN, bufP);
+    bulkAppend_(ss, SHEET_NAMES.BUOI, bufF);
+    var lg = ss.getSheetByName(SHEET_NAMES.LOG);
+    if (lg &amp;&amp; bufL.length) lg.getRange(lg.getLastRow() + 1, 1, bufL.length, 5).setNumberFormat(&#x27;@&#x27;).setValues(bufL);
+    var res = at.map(function (row, i) { return [(ctx.importResult || [])[i] || &#x27;&#x27;]; });
+    // các dòng đã đọc liền nhau thì ghi kết quả một lần
+    var contiguous = at.every(function (row, i) { return !i || row === at[i - 1] + 1; });
+    if (contiguous) sh.getRange(at[0], nc + 1, at.length, 1).setValues(res);
+    else at.forEach(function (row, i) { sh.getRange(row, nc + 1).setValue(res[i][0]); });
     SpreadsheetApp.flush();
+    buildIndex_();
     PropertiesService.getScriptProperties().setProperty(&#x27;REV&#x27;, String(Date.now()));
     Logger.log(msg);
     return msg;
@@ -364,6 +378,17 @@ function ss_() {
 function normalize_(v) {
   if (v instanceof Date) return Utilities.formatDate(v, TZ, &#x27;yyyy-MM-dd&#x27;);
   return v == null ? &#x27;&#x27; : String(v).trim();
+}
+
+/** Ghi thêm nhiều dòng (đối tượng theo tên cột) vào cuối trang trong một lần */
+function bulkAppend_(ss, name, objs) {
+  if (!objs.length) return;
+  var sh = ss.getSheetByName(name);
+  var head = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0].map(function (h) { return String(h).trim(); });
+  var vals = objs.map(function (o) { return head.map(function (h) { return h &amp;&amp; o[h] != null ? String(o[h]) : &#x27;&#x27;; }); });
+  var start = Math.max(sh.getLastRow(), 1) + 1;
+  sh.getRange(start, 1, vals.length, head.length).setNumberFormat(&#x27;@&#x27;).setValues(vals);
+  objs.forEach(function (o, i) { o._row = start + i; });
 }
 
 function readTable_(ss, name) {
@@ -675,13 +700,13 @@ function statsData_(ctx, tu, den) {
   <section class="card" aria-labelledby="h-Core">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Core">Core.gs <span class="ver">· v3.4</span></h2>
+        <h2 id="h-Core">Core.gs <span class="ver">· v3.5</span></h2>
         <p>Bấm + → Script (Tập lệnh), đặt tên Core.</p>
         <span class="size">2,144 dòng · 156 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v3.4)</button>
+      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v3.5)</button>
     </div>
-    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v3.4
+    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v3.5
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -692,7 +717,7 @@ function statsData_(ctx, tu, den) {
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;3.4&#x27;;
+  var VERSION = &#x27;3.5&#x27;;
 
   var STATUS_ORDER = [&#x27;CHO_PL&#x27;, &#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;, &#x27;KHONG_XA&#x27;];
   var STATUS = {
@@ -1542,7 +1567,7 @@ var RT = (function () {
     importFull: function (ctx, a) {
       var rows = Array.isArray(a.rows) ? a.rows : [];
       if (!rows.length) fail(&#x27;Chưa có dòng nào để nhập.&#x27;);
-      if (rows.length &gt; 400) fail(&#x27;Mỗi lần nhập tối đa 400 BN.&#x27;);
+      if (rows.length &gt; 1500) fail(&#x27;Mỗi lần nhập tối đa 1500 BN.&#x27;);
       var res = ctx.importResult = [], cnt = { CHO_PL: 0, DANG_XA: 0, HOAN_THANH: 0 }, skip = 0, nFx = 0;
       rows.forEach(function (x, i) {
         var ho = String(x.ho_ten || &#x27;&#x27;).trim(), his = String(x.ma_his || &#x27;&#x27;).trim();
@@ -2829,14 +2854,14 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
   <section class="card" aria-labelledby="h-Index">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Index">Index.html <span class="ver">· v3.4</span></h2>
+        <h2 id="h-Index">Index.html <span class="ver">· v3.5</span></h2>
         <p>Bấm + → HTML, đặt tên Index (chữ I hoa).</p>
         <span class="size">5,684 dòng · 476 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v3.4)</button>
+      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v3.5)</button>
     </div>
     <textarea id="t-Index" readonly spellcheck="false" aria-label="Nội dung Index.html">&lt;!DOCTYPE html&gt;
-&lt;!-- Điều phối Xạ trị · phiên bản v3.4 --&gt;
+&lt;!-- Điều phối Xạ trị · phiên bản v3.5 --&gt;
 &lt;html lang=&quot;vi&quot;&gt;
 &lt;head&gt;
 &lt;base target=&quot;_top&quot;&gt;
@@ -3386,7 +3411,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;3.4&#x27;;
+  var VERSION = &#x27;3.5&#x27;;
 
   var STATUS_ORDER = [&#x27;CHO_PL&#x27;, &#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;, &#x27;KHONG_XA&#x27;];
   var STATUS = {
@@ -4236,7 +4261,7 @@ var RT = (function () {
     importFull: function (ctx, a) {
       var rows = Array.isArray(a.rows) ? a.rows : [];
       if (!rows.length) fail(&#x27;Chưa có dòng nào để nhập.&#x27;);
-      if (rows.length &gt; 400) fail(&#x27;Mỗi lần nhập tối đa 400 BN.&#x27;);
+      if (rows.length &gt; 1500) fail(&#x27;Mỗi lần nhập tối đa 1500 BN.&#x27;);
       var res = ctx.importResult = [], cnt = { CHO_PL: 0, DANG_XA: 0, HOAN_THANH: 0 }, skip = 0, nFx = 0;
       rows.forEach(function (x, i) {
         var ho = String(x.ho_ten || &#x27;&#x27;).trim(), his = String(x.ma_his || &#x27;&#x27;).trim();

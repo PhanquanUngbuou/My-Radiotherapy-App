@@ -217,9 +217,23 @@ function nhapDayDu() {
     }
     if (!rows.length) return 'Không có dòng mới để nhập.';
     var ctx = buildCtx_();
+    // Hàng trăm BN, hàng nghìn buổi xạ: gom lại rồi ghi một lần mỗi trang (tránh quá 6 phút của Apps Script)
+    var bufP = [], seenP = {}, bufF = [], bufL = [];
+    ctx.savePatient = function (p) { if (!seenP[p.id]) { seenP[p.id] = 1; bufP.push(p); } };
+    ctx.addFraction = function (f) { bufF.push(f); };
+    ctx.log = function (a, id, d) { bufL.push([ctx.now, ctx.user.email, a, id || '', d || '']); };
     var msg = RT.handle(ctx, 'importFull', { rows: rows });
-    at.forEach(function (row, i) { sh.getRange(row, nc + 1).setValue((ctx.importResult || [])[i] || ''); });
+    bulkAppend_(ss, SHEET_NAMES.BN, bufP);
+    bulkAppend_(ss, SHEET_NAMES.BUOI, bufF);
+    var lg = ss.getSheetByName(SHEET_NAMES.LOG);
+    if (lg && bufL.length) lg.getRange(lg.getLastRow() + 1, 1, bufL.length, 5).setNumberFormat('@').setValues(bufL);
+    var res = at.map(function (row, i) { return [(ctx.importResult || [])[i] || '']; });
+    // các dòng đã đọc liền nhau thì ghi kết quả một lần
+    var contiguous = at.every(function (row, i) { return !i || row === at[i - 1] + 1; });
+    if (contiguous) sh.getRange(at[0], nc + 1, at.length, 1).setValues(res);
+    else at.forEach(function (row, i) { sh.getRange(row, nc + 1).setValue(res[i][0]); });
     SpreadsheetApp.flush();
+    buildIndex_();
     PropertiesService.getScriptProperties().setProperty('REV', String(Date.now()));
     Logger.log(msg);
     return msg;
@@ -306,6 +320,17 @@ function ss_() {
 function normalize_(v) {
   if (v instanceof Date) return Utilities.formatDate(v, TZ, 'yyyy-MM-dd');
   return v == null ? '' : String(v).trim();
+}
+
+/** Ghi thêm nhiều dòng (đối tượng theo tên cột) vào cuối trang trong một lần */
+function bulkAppend_(ss, name, objs) {
+  if (!objs.length) return;
+  var sh = ss.getSheetByName(name);
+  var head = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0].map(function (h) { return String(h).trim(); });
+  var vals = objs.map(function (o) { return head.map(function (h) { return h && o[h] != null ? String(o[h]) : ''; }); });
+  var start = Math.max(sh.getLastRow(), 1) + 1;
+  sh.getRange(start, 1, vals.length, head.length).setNumberFormat('@').setValues(vals);
+  objs.forEach(function (o, i) { o._row = start + i; });
 }
 
 function readTable_(ss, name) {

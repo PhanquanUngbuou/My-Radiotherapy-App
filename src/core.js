@@ -858,7 +858,7 @@ var RT = (function () {
     importFull: function (ctx, a) {
       var rows = Array.isArray(a.rows) ? a.rows : [];
       if (!rows.length) fail('Chưa có dòng nào để nhập.');
-      if (rows.length > 400) fail('Mỗi lần nhập tối đa 400 BN.');
+      if (rows.length > 1500) fail('Mỗi lần nhập tối đa 1500 BN.');
       var res = ctx.importResult = [], cnt = { CHO_PL: 0, DANG_XA: 0, HOAN_THANH: 0 }, skip = 0, nFx = 0;
       rows.forEach(function (x, i) {
         var ho = String(x.ho_ten || '').trim(), his = String(x.ma_his || '').trim();
