@@ -8,6 +8,14 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
 
 ## Việc chờ
 
+### v4.5 (anh yêu cầu 22/11/2026, chờ anh bảo "làm đi")
+1. **Không được thêm BN trùng mã HIS** (anh chốt 22/11): mã HIS đã có trong ứng dụng thì mở BN đó ra và thao tác ở hồ sơ, không thêm BN mới.
+   - Form "Thêm bệnh nhân": gõ xong mã HIS là app kiểm tra ngay (cả lưu trữ qua `ChiMuc`).
+   - **Có đợt đang hoạt động** (chờ phân loại, chờ mô phỏng → đang xạ, tạm ngừng): báo "BN đã có trong ứng dụng, đợt đang ở bước …", nút **"Mở hồ sơ BN"**, không cho lưu. Máy chủ chặn hẳn (bỏ "vẫn thêm" của cảnh báo trùng đợt đang hoạt động).
+   - **Chỉ có đợt đã đóng** (đã xạ xong, không xạ, kể cả trong lưu trữ): hiện danh sách đợt xạ cũ (ngày, vị trí, kỹ thuật, liều, trạng thái) và nút **"Thêm đợt xạ mới"** (chép sẵn hành chính, chẩn đoán, ICD như v4.1), không nhập lại từ đầu.
+   - Cùng mã HIS mà khác tên: giữ cảnh báo như cũ.
+   - Mô phỏng 2 lần (lần 1 lập KH xong không xạ): đợt 1 chọn "Không xạ" (vẫn vào sổ mô phỏng), lần 2 thêm đợt mới từ hồ sơ cũ → sổ mô phỏng có 2 dòng đúng thực tế.
+
 ### (v4.4 đã làm, xem CHANGELOG)
 
 ### (v4.3 đã làm, xem CHANGELOG)
