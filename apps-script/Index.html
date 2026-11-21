@@ -4235,7 +4235,7 @@ var XL = (function () {
     var inp = function (name, type, attrs) { return '<input type="' + (type || 'text') + '" name="' + name + '" value="' + esc(p[name] || '') + '" ' + (attrs || '') + '>'; };
     var STEPS_PL = [['CONTOUR', 'Đang contour', 'Đã mô phỏng, BS chưa contour xong'], ['CHO_KH', 'Chờ lập KH', 'Contour xong, chưa KS nào nhận'], ['DANG_KH', 'Đang lập KH', 'KS đang lập'],
       ['CHO_QA', 'Chờ QA', 'Lập KH xong, chờ QA'], ['CHO_XA', 'Chờ vào xạ', 'Chưa xạ buổi nào'], ['DANG_XA', 'Đang xạ', 'Đã xạ một số buổi'], ['TAM_NGUNG', 'Tạm ngừng', 'Đã xạ một số buổi, đang nghỉ'],
-      ['HOAN_THANH', 'Đã xạ xong', 'Chi tiết không bắt buộc'], ['KHONG_XA', 'Không xạ', 'BN không xạ nữa'], ['HUY', 'Huỷ', 'Nhập nhầm']];
+      ['HOAN_THANH', 'Đã xạ xong', 'Chi tiết không bắt buộc'], ['KHONG_XA', 'Không xạ', 'Đã mô phỏng, BN không xạ nữa (vẫn vào sổ mô phỏng)'], ['HUY', 'Huỷ hồ sơ', 'Nhập nhầm (không vào sổ mô phỏng)']];
     var ksList = activeUsers('KS').map(function (u) { return { v: u.email, l: u.ho_ten }; });
     var nf = function (h) { return h.replace('<div class="field ', '<div data-notfor="CONTOUR" class="field '); };
     var hadFx = plFx(p);
@@ -5420,7 +5420,7 @@ var XL = (function () {
       case 'deletePhase': return reasonForm('Huỷ giai đoạn boost', p, 'Lý do huỷ', 'Huỷ boost', function (v) { run('deletePhase', { id: id, ly_do: v.ly_do }); });
       case 'simDone': return simForm(p, id);
       case 'endEarly': return reasonForm('Kết thúc đợt xạ sớm', p, 'Lý do kết thúc sớm', 'Kết thúc đợt xạ', function (v) { run('endEarly', { id: id, ly_do: v.ly_do }); }, 'Đã xạ ' + course(p).done + '/' + p.so_buoi + ' buổi. BN sẽ chuyển sang “Hoàn thành”.');
-      case 'deletePatient': return reasonForm('Huỷ hồ sơ bệnh nhân', p, 'Lý do huỷ', 'Huỷ hồ sơ', function (v) { closeDetail(); run('deletePatient', { id: id, ly_do: v.ly_do }); }, 'Dùng khi nhập nhầm. Hồ sơ bị ẩn khỏi ứng dụng nhưng vẫn lưu trong Google Sheet.');
+      case 'deletePatient': return deleteForm(p);
     }
   }
   /** Chọn nhân viên dạng nút bấm (nhiều người) */
@@ -5461,6 +5461,20 @@ var XL = (function () {
   function whoBox(p, extra) {
     return '<div class="who-box"><span class="nm">' + esc(p.ho_ten) + (p._g ? phTag(p._g) : '') + '</span><span><span class="muted">Mã HIS</span> <span class="his">' + esc(p.ma_his) + '</span>' +
       (age(p) ? ' · ' + age(p) : '') + (p.gioi ? ' · ' + esc(p.gioi) : '') + '</span><span class="muted">' + esc(p.chan_doan) + ' · ' + rx(p) + '</span>' + (extra || '') + '</div>';
+  }
+  /** BN đã mô phỏng (đã qua bước mô phỏng, hoặc nhập từ sổ mô phỏng HIS) */
+  function simulated(p) { return ['MO_PHONG', 'HUY'].indexOf(p.trang_thai) < 0 && (p.trang_thai !== 'CHO_PL' || !!p.ngay_mo_phong); }
+  /** Huỷ hồ sơ = nhập nhầm, không mô phỏng, không vào sổ mô phỏng (khác Không xạ: đã mô phỏng, vẫn vào sổ) */
+  function deleteForm(p) {
+    var sim = simulated(p), kx = sim && can('noTreat') && !course(p).done && ['CHO_PL', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA'].indexOf(p.trang_thai) >= 0;
+    modal({ title: 'Huỷ hồ sơ bệnh nhân', ok: 'Huỷ hồ sơ', btnClass: 'danger',
+      body: whoBox(p) + (sim ? '<div class="confirm" style="cursor:default;font-weight:500;display:block">BN đã mô phỏng' + (p.ngay_mo_phong ? ' (' + fdy(p.ngay_mo_phong) + ')' : '') + '. <b>Huỷ hồ sơ</b> chỉ dùng khi nhập nhầm: BN bị bỏ khỏi sổ mô phỏng và thống kê.<br>Nếu BN <b>không xạ nữa</b>, hãy chọn <b>Không xạ</b> để BN vẫn có trong sổ mô phỏng.' +
+          (kx ? '<div style="margin-top:8px"><button type="button" class="btn" id="dl-kx">Chọn Không xạ thay vì huỷ</button></div>' : '') + '</div>' : '') +
+        field('Lý do huỷ <span class="req">*</span>', '<textarea name="ly_do" required></textarea>', '', 'Dùng khi nhập nhầm. Hồ sơ bị ẩn khỏi ứng dụng, không vào sổ mô phỏng, nhưng vẫn lưu trong Google Sheet.') +
+        (sim ? '<label class="confirm full"><input type="checkbox" name="nham"><span>BN này nhập nhầm, tôi vẫn huỷ hồ sơ (không vào sổ mô phỏng)</span></label>' : ''),
+      onMount: function (form) { var b = $('#dl-kx', form); if (b) b.onclick = function () { closeModal(); doAction('noTreat', p.id); }; },
+      validate: function (v) { return !v.ly_do ? 'Cần ghi lý do huỷ.' : sim && !v.nham ? 'BN đã mô phỏng: đánh dấu ô xác nhận nhập nhầm, hoặc chọn Không xạ.' : ''; },
+      onOk: function (v) { closeDetail(); run('deletePatient', { id: p.id, ly_do: v.ly_do }); } });
   }
   function reasonForm(title, p, label, ok, onOk, help) {
     modal({ title: title, body: whoBox(p) + field(label + ' <span class="req">*</span>', '<textarea name="ly_do" required></textarea>', '', help), ok: ok,

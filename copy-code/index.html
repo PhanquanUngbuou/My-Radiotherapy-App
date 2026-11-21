@@ -43,7 +43,7 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
   <div class="intro">
     <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v4.4</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v4.4 · bản lưu 7021146 · 21/11/2026 18:01. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v4.4”.</span>
+    <span class="rev">Phiên bản v4.4 · bản lưu e1d095e · 21/11/2026 18:07. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v4.4”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
@@ -3021,7 +3021,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
       <div class="meta">
         <h2 id="h-Index">Index.html <span class="ver">· v4.4</span></h2>
         <p>Bấm + → HTML, đặt tên Index (chữ I hoa).</p>
-        <span class="size">6,060 dòng · 511 KB</span>
+        <span class="size">6,074 dòng · 513 KB</span>
       </div>
       <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v4.4)</button>
     </div>
@@ -7262,7 +7262,7 @@ var XL = (function () {
     var inp = function (name, type, attrs) { return &#x27;&lt;input type=&quot;&#x27; + (type || &#x27;text&#x27;) + &#x27;&quot; name=&quot;&#x27; + name + &#x27;&quot; value=&quot;&#x27; + esc(p[name] || &#x27;&#x27;) + &#x27;&quot; &#x27; + (attrs || &#x27;&#x27;) + &#x27;&gt;&#x27;; };
     var STEPS_PL = [[&#x27;CONTOUR&#x27;, &#x27;Đang contour&#x27;, &#x27;Đã mô phỏng, BS chưa contour xong&#x27;], [&#x27;CHO_KH&#x27;, &#x27;Chờ lập KH&#x27;, &#x27;Contour xong, chưa KS nào nhận&#x27;], [&#x27;DANG_KH&#x27;, &#x27;Đang lập KH&#x27;, &#x27;KS đang lập&#x27;],
       [&#x27;CHO_QA&#x27;, &#x27;Chờ QA&#x27;, &#x27;Lập KH xong, chờ QA&#x27;], [&#x27;CHO_XA&#x27;, &#x27;Chờ vào xạ&#x27;, &#x27;Chưa xạ buổi nào&#x27;], [&#x27;DANG_XA&#x27;, &#x27;Đang xạ&#x27;, &#x27;Đã xạ một số buổi&#x27;], [&#x27;TAM_NGUNG&#x27;, &#x27;Tạm ngừng&#x27;, &#x27;Đã xạ một số buổi, đang nghỉ&#x27;],
-      [&#x27;HOAN_THANH&#x27;, &#x27;Đã xạ xong&#x27;, &#x27;Chi tiết không bắt buộc&#x27;], [&#x27;KHONG_XA&#x27;, &#x27;Không xạ&#x27;, &#x27;BN không xạ nữa&#x27;], [&#x27;HUY&#x27;, &#x27;Huỷ&#x27;, &#x27;Nhập nhầm&#x27;]];
+      [&#x27;HOAN_THANH&#x27;, &#x27;Đã xạ xong&#x27;, &#x27;Chi tiết không bắt buộc&#x27;], [&#x27;KHONG_XA&#x27;, &#x27;Không xạ&#x27;, &#x27;Đã mô phỏng, BN không xạ nữa (vẫn vào sổ mô phỏng)&#x27;], [&#x27;HUY&#x27;, &#x27;Huỷ hồ sơ&#x27;, &#x27;Nhập nhầm (không vào sổ mô phỏng)&#x27;]];
     var ksList = activeUsers(&#x27;KS&#x27;).map(function (u) { return { v: u.email, l: u.ho_ten }; });
     var nf = function (h) { return h.replace(&#x27;&lt;div class=&quot;field &#x27;, &#x27;&lt;div data-notfor=&quot;CONTOUR&quot; class=&quot;field &#x27;); };
     var hadFx = plFx(p);
@@ -8447,7 +8447,7 @@ var XL = (function () {
       case &#x27;deletePhase&#x27;: return reasonForm(&#x27;Huỷ giai đoạn boost&#x27;, p, &#x27;Lý do huỷ&#x27;, &#x27;Huỷ boost&#x27;, function (v) { run(&#x27;deletePhase&#x27;, { id: id, ly_do: v.ly_do }); });
       case &#x27;simDone&#x27;: return simForm(p, id);
       case &#x27;endEarly&#x27;: return reasonForm(&#x27;Kết thúc đợt xạ sớm&#x27;, p, &#x27;Lý do kết thúc sớm&#x27;, &#x27;Kết thúc đợt xạ&#x27;, function (v) { run(&#x27;endEarly&#x27;, { id: id, ly_do: v.ly_do }); }, &#x27;Đã xạ &#x27; + course(p).done + &#x27;/&#x27; + p.so_buoi + &#x27; buổi. BN sẽ chuyển sang “Hoàn thành”.&#x27;);
-      case &#x27;deletePatient&#x27;: return reasonForm(&#x27;Huỷ hồ sơ bệnh nhân&#x27;, p, &#x27;Lý do huỷ&#x27;, &#x27;Huỷ hồ sơ&#x27;, function (v) { closeDetail(); run(&#x27;deletePatient&#x27;, { id: id, ly_do: v.ly_do }); }, &#x27;Dùng khi nhập nhầm. Hồ sơ bị ẩn khỏi ứng dụng nhưng vẫn lưu trong Google Sheet.&#x27;);
+      case &#x27;deletePatient&#x27;: return deleteForm(p);
     }
   }
   /** Chọn nhân viên dạng nút bấm (nhiều người) */
@@ -8488,6 +8488,20 @@ var XL = (function () {
   function whoBox(p, extra) {
     return &#x27;&lt;div class=&quot;who-box&quot;&gt;&lt;span class=&quot;nm&quot;&gt;&#x27; + esc(p.ho_ten) + (p._g ? phTag(p._g) : &#x27;&#x27;) + &#x27;&lt;/span&gt;&lt;span&gt;&lt;span class=&quot;muted&quot;&gt;Mã HIS&lt;/span&gt; &lt;span class=&quot;his&quot;&gt;&#x27; + esc(p.ma_his) + &#x27;&lt;/span&gt;&#x27; +
       (age(p) ? &#x27; · &#x27; + age(p) : &#x27;&#x27;) + (p.gioi ? &#x27; · &#x27; + esc(p.gioi) : &#x27;&#x27;) + &#x27;&lt;/span&gt;&lt;span class=&quot;muted&quot;&gt;&#x27; + esc(p.chan_doan) + &#x27; · &#x27; + rx(p) + &#x27;&lt;/span&gt;&#x27; + (extra || &#x27;&#x27;) + &#x27;&lt;/div&gt;&#x27;;
+  }
+  /** BN đã mô phỏng (đã qua bước mô phỏng, hoặc nhập từ sổ mô phỏng HIS) */
+  function simulated(p) { return [&#x27;MO_PHONG&#x27;, &#x27;HUY&#x27;].indexOf(p.trang_thai) &lt; 0 &amp;&amp; (p.trang_thai !== &#x27;CHO_PL&#x27; || !!p.ngay_mo_phong); }
+  /** Huỷ hồ sơ = nhập nhầm, không mô phỏng, không vào sổ mô phỏng (khác Không xạ: đã mô phỏng, vẫn vào sổ) */
+  function deleteForm(p) {
+    var sim = simulated(p), kx = sim &amp;&amp; can(&#x27;noTreat&#x27;) &amp;&amp; !course(p).done &amp;&amp; [&#x27;CHO_PL&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;].indexOf(p.trang_thai) &gt;= 0;
+    modal({ title: &#x27;Huỷ hồ sơ bệnh nhân&#x27;, ok: &#x27;Huỷ hồ sơ&#x27;, btnClass: &#x27;danger&#x27;,
+      body: whoBox(p) + (sim ? &#x27;&lt;div class=&quot;confirm&quot; style=&quot;cursor:default;font-weight:500;display:block&quot;&gt;BN đã mô phỏng&#x27; + (p.ngay_mo_phong ? &#x27; (&#x27; + fdy(p.ngay_mo_phong) + &#x27;)&#x27; : &#x27;&#x27;) + &#x27;. &lt;b&gt;Huỷ hồ sơ&lt;/b&gt; chỉ dùng khi nhập nhầm: BN bị bỏ khỏi sổ mô phỏng và thống kê.&lt;br&gt;Nếu BN &lt;b&gt;không xạ nữa&lt;/b&gt;, hãy chọn &lt;b&gt;Không xạ&lt;/b&gt; để BN vẫn có trong sổ mô phỏng.&#x27; +
+          (kx ? &#x27;&lt;div style=&quot;margin-top:8px&quot;&gt;&lt;button type=&quot;button&quot; class=&quot;btn&quot; id=&quot;dl-kx&quot;&gt;Chọn Không xạ thay vì huỷ&lt;/button&gt;&lt;/div&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/div&gt;&#x27; : &#x27;&#x27;) +
+        field(&#x27;Lý do huỷ &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&#x27;, &#x27;&lt;textarea name=&quot;ly_do&quot; required&gt;&lt;/textarea&gt;&#x27;, &#x27;&#x27;, &#x27;Dùng khi nhập nhầm. Hồ sơ bị ẩn khỏi ứng dụng, không vào sổ mô phỏng, nhưng vẫn lưu trong Google Sheet.&#x27;) +
+        (sim ? &#x27;&lt;label class=&quot;confirm full&quot;&gt;&lt;input type=&quot;checkbox&quot; name=&quot;nham&quot;&gt;&lt;span&gt;BN này nhập nhầm, tôi vẫn huỷ hồ sơ (không vào sổ mô phỏng)&lt;/span&gt;&lt;/label&gt;&#x27; : &#x27;&#x27;),
+      onMount: function (form) { var b = $(&#x27;#dl-kx&#x27;, form); if (b) b.onclick = function () { closeModal(); doAction(&#x27;noTreat&#x27;, p.id); }; },
+      validate: function (v) { return !v.ly_do ? &#x27;Cần ghi lý do huỷ.&#x27; : sim &amp;&amp; !v.nham ? &#x27;BN đã mô phỏng: đánh dấu ô xác nhận nhập nhầm, hoặc chọn Không xạ.&#x27; : &#x27;&#x27;; },
+      onOk: function (v) { closeDetail(); run(&#x27;deletePatient&#x27;, { id: p.id, ly_do: v.ly_do }); } });
   }
   function reasonForm(title, p, label, ok, onOk, help) {
     modal({ title: title, body: whoBox(p) + field(label + &#x27; &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&#x27;, &#x27;&lt;textarea name=&quot;ly_do&quot; required&gt;&lt;/textarea&gt;&#x27;, &#x27;&#x27;, help), ok: ok,
