@@ -41,21 +41,21 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
 </style>
 <div class="wrap">
   <div class="intro">
-    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v3.8</h1>
+    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v3.9</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v3.8 · bản lưu edcfa78 · 21/11/2026 13:34. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v3.8”.</span>
+    <span class="rev">Phiên bản v3.9 · bản lưu 6f61d3a · 21/11/2026 14:30. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v3.9”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Code">Code.gs <span class="ver">· v3.8</span></h2>
+        <h2 id="h-Code">Code.gs <span class="ver">· v3.9</span></h2>
         <p>File có sẵn tên Code.gs: xoá hết nội dung cũ, dán vào.</p>
         <span class="size">643 dòng · 34 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v3.8)</button>
+      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v3.9)</button>
     </div>
-    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v3.8
+    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v3.9
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
@@ -702,13 +702,13 @@ function statsData_(ctx, tu, den) {
   <section class="card" aria-labelledby="h-Core">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Core">Core.gs <span class="ver">· v3.8</span></h2>
+        <h2 id="h-Core">Core.gs <span class="ver">· v3.9</span></h2>
         <p>Bấm + → Script (Tập lệnh), đặt tên Core.</p>
-        <span class="size">2,198 dòng · 161 KB</span>
+        <span class="size">2,213 dòng · 162 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v3.8)</button>
+      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v3.9)</button>
     </div>
-    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v3.8
+    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v3.9
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -719,7 +719,7 @@ function statsData_(ctx, tu, den) {
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;3.8&#x27;;
+  var VERSION = &#x27;3.9&#x27;;
 
   var STATUS_ORDER = [&#x27;CHO_PL&#x27;, &#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;, &#x27;KHONG_XA&#x27;];
   var STATUS = {
@@ -1098,6 +1098,11 @@ var RT = (function () {
   // ---------- Thao tác ----------
   var EDIT_FIELDS = [&#x27;ma_his&#x27;, &#x27;ho_ten&#x27;, &#x27;nam_sinh&#x27;, &#x27;gioi&#x27;, &#x27;icd&#x27;, &#x27;icd_phu&#x27;, &#x27;chan_doan&#x27;, &#x27;vi_tri&#x27;, &#x27;muc_dich&#x27;, &#x27;ngay_mo_phong&#x27;, &#x27;khoa&#x27;, &#x27;bs_email&#x27;, &#x27;ky_thuat&#x27;,
     &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;, &#x27;muc_lieu&#x27;, &#x27;igrt&#x27;, &#x27;sgrt&#x27;, &#x27;uu_tien&#x27;, &#x27;ly_do_uu_tien&#x27;, &#x27;may&#x27;, &#x27;ghi_chu&#x27;, &#x27;mat_na&#x27;, &#x27;tiem_thuoc&#x27;];
+  /** Tên hiển thị các trường khi sửa thông tin BN (lưu vết, xác nhận) */
+  var FIELD_LABELS = { ma_his: &#x27;Mã HIS&#x27;, ho_ten: &#x27;Họ tên&#x27;, nam_sinh: &#x27;Năm sinh&#x27;, gioi: &#x27;Giới&#x27;, icd: &#x27;ICD&#x27;, icd_phu: &#x27;ICD thêm&#x27;, chan_doan: &#x27;Chẩn đoán&#x27;,
+    vi_tri: &#x27;Vị trí xạ&#x27;, muc_dich: &#x27;Mục đích&#x27;, ngay_mo_phong: &#x27;Ngày mô phỏng&#x27;, khoa: &#x27;Khoa&#x27;, bs_email: &#x27;BS điều trị&#x27;, ky_thuat: &#x27;Kỹ thuật&#x27;, tong_lieu: &#x27;Tổng liều (Gy)&#x27;,
+    so_buoi: &#x27;Số buổi&#x27;, muc_lieu: &#x27;Các mức liều&#x27;, igrt: &#x27;IGRT&#x27;, sgrt: &#x27;SGRT&#x27;, uu_tien: &#x27;Ưu tiên&#x27;, ly_do_uu_tien: &#x27;Lý do ưu tiên&#x27;, may: &#x27;Máy&#x27;, ghi_chu: &#x27;Ghi chú&#x27;,
+    mat_na: &#x27;Mặt nạ&#x27;, tiem_thuoc: &#x27;Tiêm thuốc&#x27; };
   /** BN nhập hàng loạt còn thiếu chuyên môn (chờ phân loại, đã xong / không xạ, đang xạ chưa có tổng): sửa thông tin không bắt buộc đủ liều, số buổi */
   function lenientEdit(p, merged, env) {
     if ([&#x27;CHO_PL&#x27;, &#x27;HOAN_THANH&#x27;, &#x27;KHONG_XA&#x27;].indexOf(p.trang_thai) &gt;= 0) return true;
@@ -1385,11 +1390,21 @@ var RT = (function () {
         if (num(merged.so_buoi) &lt; done &amp;&amp; !hasPhases) fail(&#x27;Số buổi không được nhỏ hơn số buổi đã xạ (&#x27; + done + &#x27;).&#x27;);
         if (hasPhases &amp;&amp; num(merged.so_buoi) &lt; done) fail(&#x27;Số buổi GĐ1 không được nhỏ hơn số buổi đã xạ (&#x27; + done + &#x27;).&#x27;);
       }
-      var changed = [];
-      Object.keys(o).forEach(function (k) { if (String(p[k]) !== o[k]) { changed.push(k); p[k] = o[k]; } });
+      var changed = [], trace = [];
+      var show = function (k, v) { return k === &#x27;bs_email&#x27; ? (userName(ctx, v) || &#x27;—&#x27;) : (String(v == null ? &#x27;&#x27; : v) || &#x27;—&#x27;); };
+      Object.keys(o).forEach(function (k) {
+        if (String(p[k] == null ? &#x27;&#x27; : p[k]) !== o[k]) {
+          changed.push(k);
+          // lưu vết: trường, giá trị cũ → mới (ghi chú dài chỉ ghi là đã sửa)
+          trace.push((FIELD_LABELS[k] || k) + (k === &#x27;ghi_chu&#x27; ? &#x27; (đã sửa)&#x27; : &#x27;: &#x27; + show(k, p[k]) + &#x27; → &#x27; + show(k, o[k])));
+          p[k] = o[k];
+        }
+      });
       if (!changed.length) return &#x27;Không có gì thay đổi.&#x27;;
+      var noteTrace = trace.filter(function (t) { return t.indexOf(FIELD_LABELS.ghi_chu) !== 0; });
+      if (noteTrace.length) note(p, ctx.today, &#x27;Sửa thông tin (&#x27; + (ctx.user.ho_ten || ctx.user.email) + &#x27;): &#x27; + noteTrace.join(&#x27;; &#x27;));
       finishIfDone(ctx, p);
-      save(ctx, p, &#x27;Sửa thông tin&#x27;, changed.join(&#x27;, &#x27;));
+      save(ctx, p, &#x27;Sửa thông tin&#x27;, trace.join(&#x27;; &#x27;));
       return &#x27;Đã lưu thông tin &#x27; + p.ho_ten + &#x27;.&#x27;;
     },
     contourDone: function (ctx, a) {
@@ -2896,7 +2911,7 @@ var RT = (function () {
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
-    scheduleLabel: scheduleLabel, isOpen: isOpen, lenientEdit: lenientEdit, missingRx: missingRx, needsOffDay: needsOffDay, offDay: offDay, dosePerFx: dosePerFx,
+    scheduleLabel: scheduleLabel, isOpen: isOpen, lenientEdit: lenientEdit, FIELD_LABELS: FIELD_LABELS, missingRx: missingRx, needsOffDay: needsOffDay, offDay: offDay, dosePerFx: dosePerFx,
     addDays: addDays, diffDays: diffDays, dow: dow, monday: monday, isDate: isDate, num: num, splitList: splitList, fxOf: fxOf
   };
 })();
@@ -2910,14 +2925,14 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
   <section class="card" aria-labelledby="h-Index">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Index">Index.html <span class="ver">· v3.8</span></h2>
+        <h2 id="h-Index">Index.html <span class="ver">· v3.9</span></h2>
         <p>Bấm + → HTML, đặt tên Index (chữ I hoa).</p>
-        <span class="size">5,750 dòng · 484 KB</span>
+        <span class="size">5,783 dòng · 487 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v3.8)</button>
+      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v3.9)</button>
     </div>
     <textarea id="t-Index" readonly spellcheck="false" aria-label="Nội dung Index.html">&lt;!DOCTYPE html&gt;
-&lt;!-- Điều phối Xạ trị · phiên bản v3.8 --&gt;
+&lt;!-- Điều phối Xạ trị · phiên bản v3.9 --&gt;
 &lt;html lang=&quot;vi&quot;&gt;
 &lt;head&gt;
 &lt;base target=&quot;_top&quot;&gt;
@@ -3467,7 +3482,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;3.8&#x27;;
+  var VERSION = &#x27;3.9&#x27;;
 
   var STATUS_ORDER = [&#x27;CHO_PL&#x27;, &#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;, &#x27;KHONG_XA&#x27;];
   var STATUS = {
@@ -3846,6 +3861,11 @@ var RT = (function () {
   // ---------- Thao tác ----------
   var EDIT_FIELDS = [&#x27;ma_his&#x27;, &#x27;ho_ten&#x27;, &#x27;nam_sinh&#x27;, &#x27;gioi&#x27;, &#x27;icd&#x27;, &#x27;icd_phu&#x27;, &#x27;chan_doan&#x27;, &#x27;vi_tri&#x27;, &#x27;muc_dich&#x27;, &#x27;ngay_mo_phong&#x27;, &#x27;khoa&#x27;, &#x27;bs_email&#x27;, &#x27;ky_thuat&#x27;,
     &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;, &#x27;muc_lieu&#x27;, &#x27;igrt&#x27;, &#x27;sgrt&#x27;, &#x27;uu_tien&#x27;, &#x27;ly_do_uu_tien&#x27;, &#x27;may&#x27;, &#x27;ghi_chu&#x27;, &#x27;mat_na&#x27;, &#x27;tiem_thuoc&#x27;];
+  /** Tên hiển thị các trường khi sửa thông tin BN (lưu vết, xác nhận) */
+  var FIELD_LABELS = { ma_his: &#x27;Mã HIS&#x27;, ho_ten: &#x27;Họ tên&#x27;, nam_sinh: &#x27;Năm sinh&#x27;, gioi: &#x27;Giới&#x27;, icd: &#x27;ICD&#x27;, icd_phu: &#x27;ICD thêm&#x27;, chan_doan: &#x27;Chẩn đoán&#x27;,
+    vi_tri: &#x27;Vị trí xạ&#x27;, muc_dich: &#x27;Mục đích&#x27;, ngay_mo_phong: &#x27;Ngày mô phỏng&#x27;, khoa: &#x27;Khoa&#x27;, bs_email: &#x27;BS điều trị&#x27;, ky_thuat: &#x27;Kỹ thuật&#x27;, tong_lieu: &#x27;Tổng liều (Gy)&#x27;,
+    so_buoi: &#x27;Số buổi&#x27;, muc_lieu: &#x27;Các mức liều&#x27;, igrt: &#x27;IGRT&#x27;, sgrt: &#x27;SGRT&#x27;, uu_tien: &#x27;Ưu tiên&#x27;, ly_do_uu_tien: &#x27;Lý do ưu tiên&#x27;, may: &#x27;Máy&#x27;, ghi_chu: &#x27;Ghi chú&#x27;,
+    mat_na: &#x27;Mặt nạ&#x27;, tiem_thuoc: &#x27;Tiêm thuốc&#x27; };
   /** BN nhập hàng loạt còn thiếu chuyên môn (chờ phân loại, đã xong / không xạ, đang xạ chưa có tổng): sửa thông tin không bắt buộc đủ liều, số buổi */
   function lenientEdit(p, merged, env) {
     if ([&#x27;CHO_PL&#x27;, &#x27;HOAN_THANH&#x27;, &#x27;KHONG_XA&#x27;].indexOf(p.trang_thai) &gt;= 0) return true;
@@ -4133,11 +4153,21 @@ var RT = (function () {
         if (num(merged.so_buoi) &lt; done &amp;&amp; !hasPhases) fail(&#x27;Số buổi không được nhỏ hơn số buổi đã xạ (&#x27; + done + &#x27;).&#x27;);
         if (hasPhases &amp;&amp; num(merged.so_buoi) &lt; done) fail(&#x27;Số buổi GĐ1 không được nhỏ hơn số buổi đã xạ (&#x27; + done + &#x27;).&#x27;);
       }
-      var changed = [];
-      Object.keys(o).forEach(function (k) { if (String(p[k]) !== o[k]) { changed.push(k); p[k] = o[k]; } });
+      var changed = [], trace = [];
+      var show = function (k, v) { return k === &#x27;bs_email&#x27; ? (userName(ctx, v) || &#x27;—&#x27;) : (String(v == null ? &#x27;&#x27; : v) || &#x27;—&#x27;); };
+      Object.keys(o).forEach(function (k) {
+        if (String(p[k] == null ? &#x27;&#x27; : p[k]) !== o[k]) {
+          changed.push(k);
+          // lưu vết: trường, giá trị cũ → mới (ghi chú dài chỉ ghi là đã sửa)
+          trace.push((FIELD_LABELS[k] || k) + (k === &#x27;ghi_chu&#x27; ? &#x27; (đã sửa)&#x27; : &#x27;: &#x27; + show(k, p[k]) + &#x27; → &#x27; + show(k, o[k])));
+          p[k] = o[k];
+        }
+      });
       if (!changed.length) return &#x27;Không có gì thay đổi.&#x27;;
+      var noteTrace = trace.filter(function (t) { return t.indexOf(FIELD_LABELS.ghi_chu) !== 0; });
+      if (noteTrace.length) note(p, ctx.today, &#x27;Sửa thông tin (&#x27; + (ctx.user.ho_ten || ctx.user.email) + &#x27;): &#x27; + noteTrace.join(&#x27;; &#x27;));
       finishIfDone(ctx, p);
-      save(ctx, p, &#x27;Sửa thông tin&#x27;, changed.join(&#x27;, &#x27;));
+      save(ctx, p, &#x27;Sửa thông tin&#x27;, trace.join(&#x27;; &#x27;));
       return &#x27;Đã lưu thông tin &#x27; + p.ho_ten + &#x27;.&#x27;;
     },
     contourDone: function (ctx, a) {
@@ -5644,7 +5674,7 @@ var RT = (function () {
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
-    scheduleLabel: scheduleLabel, isOpen: isOpen, lenientEdit: lenientEdit, missingRx: missingRx, needsOffDay: needsOffDay, offDay: offDay, dosePerFx: dosePerFx,
+    scheduleLabel: scheduleLabel, isOpen: isOpen, lenientEdit: lenientEdit, FIELD_LABELS: FIELD_LABELS, missingRx: missingRx, needsOffDay: needsOffDay, offDay: offDay, dosePerFx: dosePerFx,
     addDays: addDays, diffDays: diffDays, dow: dow, monday: monday, isDate: isDate, num: num, splitList: splitList, fxOf: fxOf
   };
 })();
@@ -8511,7 +8541,25 @@ var XL = (function () {
               return true;
             }
           };
-          if (!isNew) return run(action, v, onErr);
+          if (!isNew) {
+            // Xác nhận trước khi lưu: liệt kê từng thay đổi cũ → mới
+            var L = RT.FIELD_LABELS, diffs = [];
+            var showV = function (k, x) { x = x == null ? &#x27;&#x27; : String(x); return k === &#x27;bs_email&#x27; ? (x ? nameOf(x) : &#x27;—&#x27;) : (x || &#x27;—&#x27;); };
+            Object.keys(L).forEach(function (k) {
+              if (v[k] === undefined || v[k] === null) return;
+              var a0 = String(p[k] == null ? &#x27;&#x27; : p[k]).trim(), b0 = String(v[k]).trim();
+              if (k === &#x27;icd&#x27;) { a0 = RT.normIcd(a0); b0 = RT.normIcd(b0); }
+              if (a0 !== b0) diffs.push([L[k], showV(k, a0), showV(k, b0)]);
+            });
+            if (!diffs.length) { toast(&#x27;Không có gì thay đổi.&#x27;); return; }
+            return modal({ title: &#x27;Xác nhận sửa thông tin&#x27;, ok: &#x27;Xác nhận lưu&#x27;, btnClass: &#x27;danger&#x27;, noFocus: true,
+              body: whoBox(p) + &#x27;&lt;p&gt;Kiểm tra lại các thay đổi trước khi lưu. Thay đổi được &lt;b&gt;lưu vết&lt;/b&gt; (ai sửa, lúc nào, giá trị cũ → mới) trong nhật ký và ghi chú của BN.&lt;/p&gt;&#x27; +
+                &#x27;&lt;div class=&quot;tbl-wrap&quot;&gt;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Mục&lt;/th&gt;&lt;th&gt;Trước&lt;/th&gt;&lt;th&gt;Sau&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&#x27; +
+                diffs.map(function (d) { return &#x27;&lt;tr&gt;&lt;td&gt;&lt;b&gt;&#x27; + esc(d[0]) + &#x27;&lt;/b&gt;&lt;/td&gt;&lt;td class=&quot;muted&quot;&gt;&#x27; + esc(d[1]) + &#x27;&lt;/td&gt;&lt;td&gt;&lt;b&gt;&#x27; + esc(d[2]) + &#x27;&lt;/b&gt;&lt;/td&gt;&lt;/tr&gt;&#x27;; }).join(&#x27;&#x27;) + &#x27;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;&#x27; +
+                &#x27;&lt;label class=&quot;confirm&quot; style=&quot;margin-top:12px&quot;&gt;&lt;input type=&quot;checkbox&quot; name=&quot;xac_nhan&quot;&gt;&lt;span&gt;Tôi đã kiểm tra, xác nhận sửa thông tin bệnh nhân.&lt;/span&gt;&lt;/label&gt;&#x27;,
+              validate: function (cv) { return cv.xac_nhan ? &#x27;&#x27; : &#x27;Đánh dấu xác nhận trước khi lưu.&#x27;; },
+              onOk: function () { run(action, v, onErr); } });
+          }
           toast(&#x27;Đang lưu lên máy chủ…&#x27;);
           serverRun(action, v).catch(function (e) {
             if (onErr(e)) return;

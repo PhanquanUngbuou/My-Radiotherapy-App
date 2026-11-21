@@ -1,4 +1,4 @@
-// Điều phối Xạ trị · phiên bản v3.8
+// Điều phối Xạ trị · phiên bản v3.9
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -9,7 +9,7 @@
  */
 var RT = (function () {
   'use strict';
-  var VERSION = '3.8';
+  var VERSION = '3.9';
 
   var STATUS_ORDER = ['CHO_PL', 'MO_PHONG', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA', 'DANG_XA', 'TAM_NGUNG', 'HOAN_THANH', 'KHONG_XA'];
   var STATUS = {
@@ -388,6 +388,11 @@ var RT = (function () {
   // ---------- Thao tác ----------
   var EDIT_FIELDS = ['ma_his', 'ho_ten', 'nam_sinh', 'gioi', 'icd', 'icd_phu', 'chan_doan', 'vi_tri', 'muc_dich', 'ngay_mo_phong', 'khoa', 'bs_email', 'ky_thuat',
     'tong_lieu', 'so_buoi', 'muc_lieu', 'igrt', 'sgrt', 'uu_tien', 'ly_do_uu_tien', 'may', 'ghi_chu', 'mat_na', 'tiem_thuoc'];
+  /** Tên hiển thị các trường khi sửa thông tin BN (lưu vết, xác nhận) */
+  var FIELD_LABELS = { ma_his: 'Mã HIS', ho_ten: 'Họ tên', nam_sinh: 'Năm sinh', gioi: 'Giới', icd: 'ICD', icd_phu: 'ICD thêm', chan_doan: 'Chẩn đoán',
+    vi_tri: 'Vị trí xạ', muc_dich: 'Mục đích', ngay_mo_phong: 'Ngày mô phỏng', khoa: 'Khoa', bs_email: 'BS điều trị', ky_thuat: 'Kỹ thuật', tong_lieu: 'Tổng liều (Gy)',
+    so_buoi: 'Số buổi', muc_lieu: 'Các mức liều', igrt: 'IGRT', sgrt: 'SGRT', uu_tien: 'Ưu tiên', ly_do_uu_tien: 'Lý do ưu tiên', may: 'Máy', ghi_chu: 'Ghi chú',
+    mat_na: 'Mặt nạ', tiem_thuoc: 'Tiêm thuốc' };
   /** BN nhập hàng loạt còn thiếu chuyên môn (chờ phân loại, đã xong / không xạ, đang xạ chưa có tổng): sửa thông tin không bắt buộc đủ liều, số buổi */
   function lenientEdit(p, merged, env) {
     if (['CHO_PL', 'HOAN_THANH', 'KHONG_XA'].indexOf(p.trang_thai) >= 0) return true;
@@ -675,11 +680,21 @@ var RT = (function () {
         if (num(merged.so_buoi) < done && !hasPhases) fail('Số buổi không được nhỏ hơn số buổi đã xạ (' + done + ').');
         if (hasPhases && num(merged.so_buoi) < done) fail('Số buổi GĐ1 không được nhỏ hơn số buổi đã xạ (' + done + ').');
       }
-      var changed = [];
-      Object.keys(o).forEach(function (k) { if (String(p[k]) !== o[k]) { changed.push(k); p[k] = o[k]; } });
+      var changed = [], trace = [];
+      var show = function (k, v) { return k === 'bs_email' ? (userName(ctx, v) || '—') : (String(v == null ? '' : v) || '—'); };
+      Object.keys(o).forEach(function (k) {
+        if (String(p[k] == null ? '' : p[k]) !== o[k]) {
+          changed.push(k);
+          // lưu vết: trường, giá trị cũ → mới (ghi chú dài chỉ ghi là đã sửa)
+          trace.push((FIELD_LABELS[k] || k) + (k === 'ghi_chu' ? ' (đã sửa)' : ': ' + show(k, p[k]) + ' → ' + show(k, o[k])));
+          p[k] = o[k];
+        }
+      });
       if (!changed.length) return 'Không có gì thay đổi.';
+      var noteTrace = trace.filter(function (t) { return t.indexOf(FIELD_LABELS.ghi_chu) !== 0; });
+      if (noteTrace.length) note(p, ctx.today, 'Sửa thông tin (' + (ctx.user.ho_ten || ctx.user.email) + '): ' + noteTrace.join('; '));
       finishIfDone(ctx, p);
-      save(ctx, p, 'Sửa thông tin', changed.join(', '));
+      save(ctx, p, 'Sửa thông tin', trace.join('; '));
       return 'Đã lưu thông tin ' + p.ho_ten + '.';
     },
     contourDone: function (ctx, a) {
@@ -2186,7 +2201,7 @@ var RT = (function () {
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
-    scheduleLabel: scheduleLabel, isOpen: isOpen, lenientEdit: lenientEdit, missingRx: missingRx, needsOffDay: needsOffDay, offDay: offDay, dosePerFx: dosePerFx,
+    scheduleLabel: scheduleLabel, isOpen: isOpen, lenientEdit: lenientEdit, FIELD_LABELS: FIELD_LABELS, missingRx: missingRx, needsOffDay: needsOffDay, offDay: offDay, dosePerFx: dosePerFx,
     addDays: addDays, diffDays: diffDays, dow: dow, monday: monday, isDate: isDate, num: num, splitList: splitList, fxOf: fxOf
   };
 })();

@@ -2689,7 +2689,25 @@
               return true;
             }
           };
-          if (!isNew) return run(action, v, onErr);
+          if (!isNew) {
+            // Xác nhận trước khi lưu: liệt kê từng thay đổi cũ → mới
+            var L = RT.FIELD_LABELS, diffs = [];
+            var showV = function (k, x) { x = x == null ? '' : String(x); return k === 'bs_email' ? (x ? nameOf(x) : '—') : (x || '—'); };
+            Object.keys(L).forEach(function (k) {
+              if (v[k] === undefined || v[k] === null) return;
+              var a0 = String(p[k] == null ? '' : p[k]).trim(), b0 = String(v[k]).trim();
+              if (k === 'icd') { a0 = RT.normIcd(a0); b0 = RT.normIcd(b0); }
+              if (a0 !== b0) diffs.push([L[k], showV(k, a0), showV(k, b0)]);
+            });
+            if (!diffs.length) { toast('Không có gì thay đổi.'); return; }
+            return modal({ title: 'Xác nhận sửa thông tin', ok: 'Xác nhận lưu', btnClass: 'danger', noFocus: true,
+              body: whoBox(p) + '<p>Kiểm tra lại các thay đổi trước khi lưu. Thay đổi được <b>lưu vết</b> (ai sửa, lúc nào, giá trị cũ → mới) trong nhật ký và ghi chú của BN.</p>' +
+                '<div class="tbl-wrap"><table><thead><tr><th>Mục</th><th>Trước</th><th>Sau</th></tr></thead><tbody>' +
+                diffs.map(function (d) { return '<tr><td><b>' + esc(d[0]) + '</b></td><td class="muted">' + esc(d[1]) + '</td><td><b>' + esc(d[2]) + '</b></td></tr>'; }).join('') + '</tbody></table></div>' +
+                '<label class="confirm" style="margin-top:12px"><input type="checkbox" name="xac_nhan"><span>Tôi đã kiểm tra, xác nhận sửa thông tin bệnh nhân.</span></label>',
+              validate: function (cv) { return cv.xac_nhan ? '' : 'Đánh dấu xác nhận trước khi lưu.'; },
+              onOk: function () { run(action, v, onErr); } });
+          }
           toast('Đang lưu lên máy chủ…');
           serverRun(action, v).catch(function (e) {
             if (onErr(e)) return;

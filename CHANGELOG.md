@@ -1,5 +1,10 @@
 # Lịch sử phiên bản
 
+## v3.9
+- **Sửa thông tin BN: xác nhận trước khi lưu.** Bấm "Lưu thay đổi" sẽ hiện bảng từng mục **Trước → Sau** (VD Chẩn đoán, ICD, BS điều trị, mặt nạ…); phải tích "Tôi đã kiểm tra, xác nhận sửa thông tin bệnh nhân" mới lưu. Không có gì thay đổi thì không lưu.
+- **Lưu vết mọi lần sửa:** nhật ký ghi ai sửa, lúc nào, từng mục giá trị cũ → mới; ghi chú của BN thêm dòng "[ngày] Sửa thông tin (tên người sửa): …" để ai mở hồ sơ cũng thấy. Phục vụ sửa sai sót cho BN nhập hàng loạt từ HIS.
+- Không có cột mới: không cần chạy `setup`.
+
 ## v3.8
 - **BS sửa được thông tin BN nhập hàng loạt** (nút "Sửa thông tin" trong hồ sơ BN): BN Chờ phân loại, Đã xạ xong / Không xạ, Đang xạ chưa có tổng số buổi sửa được hành chính, chẩn đoán, ICD, kỹ thuật, BS điều trị… mà không bắt buộc đủ tổng liều, số buổi. Khi đã điền số buổi (BN không có KH thứ hai) thì phải đủ tổng liều, ICD như thường.
 - Form sửa thông tin có thêm **Ngày mô phỏng, Mặt nạ, Tiêm thuốc cản quang** (BN nhập từ HIS có thể thiếu hoặc sai).

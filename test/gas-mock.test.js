@@ -1016,4 +1016,14 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   const done = d.patients.find(x => x.trang_thai === 'HOAN_THANH' && !x.tong_lieu);
   if (done) ok('admin@x.vn', 'updatePatient', { id: done.id, chan_doan: 'K sửa lại' });
 }
+// v3.9: sửa thông tin có lưu vết (cũ → mới)
+{
+  const d = ok('admin@x.vn', 'bootstrap').data;
+  const p0 = d.patients.find(x => x.ma_his === '970001');
+  const before = sheets.NhatKy.getLastRow();
+  r = ok('bs@x.vn', 'updatePatient', { id: p0.id, chan_doan: 'K vú trái', bs_email: 'tk@x.vn' });
+  const row = sheets.NhatKy.data[sheets.NhatKy.getLastRow() - 1].join(' | ');
+  assert(sheets.NhatKy.getLastRow() > before && /Sửa thông tin/.test(row) && /Chẩn đoán: .+ → K vú trái/.test(row) && /BS điều trị: BS A → /.test(row), 'nhật ký ghi cũ → mới: ' + row);
+  assert(/Sửa thông tin \(BS A\): .*Chẩn đoán/.test(r.data.patients.find(x => x.id === p0.id).ghi_chu), 'ghi chú BN có lưu vết');
+}
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');
