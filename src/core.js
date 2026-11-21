@@ -111,6 +111,8 @@ var RT = (function () {
     noTreat: ['BS', 'ADMIN'],
     replan: ['BS', 'ADMIN'],
     classifyPatient: ['KTV', 'BS', 'KS', 'ADMIN'],
+    changeTech: ['KS', 'ADMIN'],
+    setOffDay: ['KTV', 'ADMIN'],
     importFull: ['ADMIN'],
     transferDoctor: ['BS', 'ADMIN'],
     rejectSchedule: ['KTV', 'ADMIN'],
@@ -194,6 +196,7 @@ var RT = (function () {
   function patternDay(p, s) {
     var w = dow(s), off = offDay(p);
     if (off) return w >= 1 && w <= 6 && w !== off;
+    if (needsOffDay(p)) return w >= 1 && w <= 6;
     return w >= 1 && w <= 5;
   }
   function machineOf(p, env) { return p.may || env.defMay; }
@@ -213,8 +216,11 @@ var RT = (function () {
     return patternDay(p, s);
   }
   function exceptionOf(p, s, env) { env = asEnv(env); return (env.exBy[p.id] && env.exBy[p.id][s]) || ''; }
-  function scheduleLabel(p) { var off = offDay(p); return off ? 'T2–T7, nghỉ ' + DOW[off] : 'T2–T6'; }
-  function needsOffDay(p) { return /IMRT|VMAT/i.test(p.ky_thuat || '') && !offDay(p); }
+  function scheduleLabel(p) { var off = offDay(p); return off ? 'T2–T7, nghỉ ' + DOW[off] : needsOffDay(p) ? 'T2–T7, chưa rõ ngày nghỉ' : 'T2–T6'; }
+  /** IMRT/VMAT chưa chọn lịch tuần (ô trống): tạm xạ cả Thứ 7, nhắc KTV chọn ngày nghỉ. '0' = đã chọn T2–T6 (không xạ Thứ 7). */
+  function needsOffDay(p) { return /IMRT|VMAT/i.test(p.ky_thuat || '') && String(p.ngay_nghi_tuan == null ? '' : p.ngay_nghi_tuan).trim() === ''; }
+  /** Các vị trí xạ của BN (nhiều vị trí cách nhau dấu phẩy / chấm phẩy / dấu +) */
+  function viTris(p) { return String((p && p.vi_tri) || '').split(/\s*[,;+]\s*/).map(function (x) { return x.trim(); }).filter(Boolean); }
 
   function dosePerFx(x) { var n = num(x.so_buoi); return n ? round2(num(x.tong_lieu) / n) : 0; }
 
@@ -361,7 +367,11 @@ var RT = (function () {
   function guessOffDay(dates) {
     var c = [0, 0, 0, 0, 0, 0, 0];
     dates.forEach(function (d) { c[dow(d)]++; });
-    if (!c[6]) return '';
+    if (!c[6]) {
+      // Không xạ Thứ 7 nào: đã qua ít nhất một Thứ 7 giữa buổi đầu và buổi cuối thì là T2–T6 ('0'), chưa thì chưa rõ
+      var s = dates.slice().sort();
+      return s.length && diffDays(s[0], s[s.length - 1]) > (6 - dow(s[0]) + 7) % 7 ? '0' : '';
+    }
     var min = Infinity, at = '';
     for (var i = 1; i <= 5; i++) if (c[i] < min) { min = c[i]; at = String(i); }
     var ties = [1, 2, 3, 4, 5].filter(function (i) { return c[i] === min; }).length;
@@ -616,7 +626,7 @@ var RT = (function () {
       if (step === 'MO_PHONG' && p.ngay_mo_phong && !isDate(p.ngay_mo_phong)) fail('Ngày hẹn mô phỏng không hợp lệ.');
       if (step !== 'MO_PHONG') p.ngay_mo_phong = p.ngay_mo_phong || '';
       var nn = String(a.ngay_nghi_tuan || '');
-      if (nn && !/^[1-5]$/.test(nn)) fail('Ngày nghỉ trong tuần không hợp lệ.');
+      if (nn && !/^[0-5]$/.test(nn)) fail('Ngày nghỉ trong tuần không hợp lệ.');
       p.ngay_nghi_tuan = nn;
       p.id = nextId(ctx);
       var env = envOf(ctx);
@@ -925,6 +935,10 @@ var RT = (function () {
           p.ngay_contour_xong = p.ngay_mo_phong || dates[0]; p.ngay_kh_xong = dates[0]; p.qa_ket_qua = 'Nhập từ HIS';
           var curKt = dates2.length ? String(x.ky_thuat_2) : p.ky_thuat, curDates = dates2.length ? dates2 : dates1;
           if (!/3d/i.test(curKt)) p.ngay_nghi_tuan = guessOffDay(curDates);
+          if (!/3d/i.test(curKt) && !p.ngay_nghi_tuan && /IMRT|VMAT/i.test(curKt)) {
+            notes.push('VMAT chưa rõ ngày nghỉ trong tuần (tạm xạ cả Thứ 7, KTV sửa lịch tuần)');
+            note(p, ctx.today, 'VMAT chưa rõ BN nghỉ ngày nào trong tuần: tạm tính xạ cả Thứ 7. KTV sửa “Lịch tuần” khi BN tới xạ.');
+          }
           if (dates2.length) { p.so_buoi = String(dates1.length); p.tong_lieu = p.tong_lieu || ''; }
           var full = p.bs_email && p.icd && p.chan_doan && p.ky_thuat && p.tong_lieu && p.so_buoi && !dates2.length;
           if (wantXong) { p.trang_thai = 'HOAN_THANH'; p.ngay_ket_thuc = dates[dates.length - 1]; }
@@ -1005,6 +1019,33 @@ var RT = (function () {
       });
       return 'Đã nhập ' + added.length + ' BN vào "Chờ phân loại".' + (skip.length ? ' Bỏ qua ' + skip.length + ': ' + skip.join('; ') + '.' : '');
     },
+    /** KS đổi kỹ thuật (chỉ kỹ thuật, không đổi liều / số buổi) khi đang lập KH / chờ QA; báo BS điều trị */
+    changeTech: function (ctx, a) {
+      var t = target(ctx, a.id), x = t.x;
+      need(x, ['CHO_KH', 'DANG_KH', 'CHO_QA'], 'Chỉ đổi kỹ thuật khi đang lập kế hoạch hoặc chờ QA.');
+      var kt = String(a.ky_thuat || '').trim();
+      if (!kt) fail('Chọn kỹ thuật mới.');
+      if ((ctx.dm.KY_THUAT || []).length && ctx.dm.KY_THUAT.indexOf(kt) < 0) fail('Kỹ thuật không có trong danh mục.');
+      if (kt === x.ky_thuat) fail('Kỹ thuật mới giống kỹ thuật hiện tại.');
+      var old = x.ky_thuat || '(trống)';
+      x.ky_thuat = kt;
+      var txt = 'Đổi kỹ thuật' + (t.g ? ' ' + (t.g.loai === 'KH_LAI' ? 'KH lại' : t.g.loai === 'SONG_SONG' ? 'KH đồng thời' : 'boost GĐ' + t.g.stt) : '') + ': ' + old + ' → ' + kt + ' (KS ' + userName(ctx, ctx.user.email) + (a.ly_do ? ': ' + a.ly_do : '') + ')';
+      note(t.p, ctx.today, txt);
+      if (t.g) { t.g.cap_nhat_luc = ctx.now; t.g.cap_nhat_boi = ctx.user.email; ctx.savePhase(t.g); }
+      save(ctx, t.p, 'Đổi kỹ thuật', txt);
+      return 'Đã đổi kỹ thuật ' + t.name + ': ' + old + ' → ' + kt + '. BS điều trị sẽ nhận thông báo.';
+    },
+    /** KTV sửa lịch trong tuần (T2–T6, hoặc T2–T7 nghỉ 1 ngày) cho BN chờ / đang xạ */
+    setOffDay: function (ctx, a) {
+      var p = findP(ctx, a.id);
+      need(p, ['CHO_XA', 'DANG_XA', 'TAM_NGUNG']);
+      var v = String(a.ngay_nghi_tuan == null ? '' : a.ngay_nghi_tuan).trim();
+      if (!/^[0-5]$/.test(v)) fail('Chọn lịch trong tuần.');
+      var old = scheduleLabel(p);
+      p.ngay_nghi_tuan = v;
+      save(ctx, p, 'Sửa lịch tuần', old + ' → ' + scheduleLabel(p));
+      return 'Đã lưu lịch tuần của ' + p.ho_ten + ': ' + scheduleLabel(p) + '.';
+    },
     /** KTV phân loại BN nhập từ hồ sơ giấy: điền đủ thông tin còn thiếu rồi chuyển luồng */
     classifyPatient: function (ctx, a) {
       var p = findP(ctx, a.id);
@@ -1031,6 +1072,8 @@ var RT = (function () {
       var o = clean(a, EDIT_FIELDS);
       Object.keys(o).forEach(function (k) { if (o[k] !== '') p[k] = o[k]; });
       if (p.icd) p.icd = normIcd(p.icd);
+      var autoDone = hadFx.length && (buoc === 'DANG_XA' || buoc === 'TAM_NGUNG') && num(p.so_buoi) >= 1 && hadFx.length === num(p.so_buoi);
+      if (autoDone) buoc = 'HOAN_THANH';
       if (!p.bs_email) fail('Chọn bác sĩ điều trị.');
       var bsU = ctx.users.filter(function (u) { return u.email === p.bs_email && u.kich_hoat !== 'Không'; })[0];
       if (!bsU || (bsU.vai_tro !== 'BS' && bsU.vai_tro !== 'ADMIN')) fail('Bác sĩ điều trị không có trong danh sách bác sĩ.');
@@ -1057,7 +1100,7 @@ var RT = (function () {
         validateBasic(p, ctx.today);
         p.so_buoi = ''; p.ngay_bat_dau = hadFx[0].ngay; p.ngay_du_kien = p.ngay_du_kien || hadFx[0].ngay;
         p.ngay_contour_xong = p.ngay_contour_xong || hadFx[0].ngay; p.ngay_kh_xong = p.ngay_kh_xong || hadFx[0].ngay; p.qa_ket_qua = p.qa_ket_qua || 'Nhập từ HIS';
-        var nn0 = String(a.ngay_nghi_tuan || p.ngay_nghi_tuan || ''); if (nn0 && !/^[1-5]$/.test(nn0)) fail('Ngày nghỉ trong tuần không hợp lệ.'); p.ngay_nghi_tuan = nn0;
+        var nn0 = String(a.ngay_nghi_tuan || p.ngay_nghi_tuan || ''); if (nn0 && !/^[0-5]$/.test(nn0)) fail('Ngày nghỉ trong tuần không hợp lệ.'); p.ngay_nghi_tuan = nn0;
         if (buoc === 'TAM_NGUNG') { if (!a.ly_do) fail('Cần chọn lý do tạm ngừng.'); p.trang_thai = 'TAM_NGUNG'; p.tam_ngung_tu = isDate(a.tam_ngung_tu) ? a.tam_ngung_tu : ctx.today; p.ly_do_tam_ngung = a.ly_do; p.xn_tam_ngung = ''; }
         else p.trang_thai = 'DANG_XA';
         save(ctx, p, 'Phân loại', STATUS[p.trang_thai] + ' · đã xạ ' + hadFx.length + ' buổi · chưa có tổng số buổi');
@@ -1074,7 +1117,7 @@ var RT = (function () {
         return 'Đã chuyển ' + p.ho_ten + ' sang "' + STATUS[buoc] + '".';
       }
       var nn = String(a.ngay_nghi_tuan || '');
-      if (nn && !/^[1-5]$/.test(nn)) fail('Ngày nghỉ trong tuần không hợp lệ.');
+      if (nn && !/^[0-5]$/.test(nn)) fail('Ngày nghỉ trong tuần không hợp lệ.');
       p.ngay_nghi_tuan = nn;
       p.ngay_contour_xong = p.ngay_contour_xong || ctx.today; p.ngay_kh_xong = p.ngay_kh_xong || ctx.today; p.qa_ket_qua = p.qa_ket_qua || 'Nhập từ hồ sơ giấy';
       var done = hadFx.length ? hadFx.length : buoc === 'HOAN_THANH' ? Math.round(num(p.so_buoi)) : buoc === 'CHO_XA' ? 0 : num(a.da_xa);
@@ -1104,8 +1147,8 @@ var RT = (function () {
         if (!a.ly_do) fail('Cần chọn lý do tạm ngừng.');
         p.trang_thai = 'TAM_NGUNG'; p.tam_ngung_tu = isDate(a.tam_ngung_tu) ? a.tam_ngung_tu : ctx.today; p.ly_do_tam_ngung = a.ly_do; p.xn_tam_ngung = '';
       } else { p.trang_thai = 'HOAN_THANH'; p.ngay_ket_thuc = isDate(a.ngay_ket_thuc) && a.ngay_ket_thuc <= ctx.today && a.ngay_ket_thuc >= days[days.length - 1] ? a.ngay_ket_thuc : days[days.length - 1]; }
-      save(ctx, p, 'Phân loại', STATUS[p.trang_thai] + (done ? ' · đã xạ ' + done + ' buổi' : ''));
-      return 'Đã chuyển ' + p.ho_ten + ' sang "' + STATUS[p.trang_thai] + '".';
+      save(ctx, p, 'Phân loại', STATUS[p.trang_thai] + (done ? ' · đã xạ ' + done + ' buổi' : '') + (autoDone ? ' · đủ số buổi nên tự chuyển Đã xạ xong' : ''));
+      return 'Đã chuyển ' + p.ho_ten + ' sang "' + STATUS[p.trang_thai] + '"' + (autoDone ? ' (đã xạ đủ ' + done + '/' + num(p.so_buoi) + ' buổi)' : '') + '.';
     },
     /** BS quyết định không xạ (trước khi xạ buổi nào): đợt đóng lại, vẫn có trong sổ mô phỏng */
     /** Chuyển KH một phần: đặt / bỏ mốc đánh giá lại (số buổi được chuyển của giai đoạn đang xạ). Để trống = xạ tiếp hết KH. */
@@ -1168,7 +1211,7 @@ var RT = (function () {
       }
       if (a.ngay_nghi_tuan !== undefined) {
         var v = String(a.ngay_nghi_tuan || '');
-        if (v && !/^[1-5]$/.test(v)) fail('Ngày nghỉ trong tuần không hợp lệ.');
+        if (v && !/^[0-5]$/.test(v)) fail('Ngày nghỉ trong tuần không hợp lệ.');
         p.ngay_nghi_tuan = v;
         parts.push('lịch ' + scheduleLabel(p));
       }
@@ -1962,15 +2005,16 @@ var RT = (function () {
         .sort(function (a, b) { return b.bn_xa - a.bn_xa || b.bn_bat_dau - a.bn_bat_dau; });
     };
     var icd3 = function (p) { var c = icdsOf(p); return c.length ? c : '(chưa có ICD)'; };
-    var vtKey = function (p) { var v = String(p.vi_tri || '').trim(); return v ? v.charAt(0).toUpperCase() + v.slice(1) : '(chưa ghi vị trí)'; };
+    var cap = function (v) { return v.charAt(0).toUpperCase() + v.slice(1); };
+    var vtKeys = function (p) { var l = viTris(p).map(fold); return l.length ? l : '~'; };
     out.theo_icd = grp(icd3);
-    var vt = grp(function (p) { return fold(p.vi_tri) || '~'; }), label = {};
-    scopePts.concat(Object.keys(ovIds).map(function (k) { return P[k]; })).forEach(function (p) { var k = fold(p.vi_tri) || '~'; if (!label[k]) label[k] = vtKey(p); });
+    var vt = grp(vtKeys), label = { '~': '(chưa ghi vị trí)' };
+    scopePts.concat(Object.keys(ovIds).map(function (k) { return P[k]; })).forEach(function (p) { viTris(p).forEach(function (v) { var k = fold(v); if (!label[k]) label[k] = cap(v); }); });
     vt.forEach(function (r) { r.ma = label[r.ma] || r.ma; });
     out.theo_vi_tri = vt;
     if (detail && detail.loai && detail.ma) {
       if (detail.loai === 'bs' && !sc.byDoctor && myDoctors(u).indexOf(detail.ma) < 0) fail('Bạn không có quyền xem danh sách BN của bác sĩ khác.');
-      var match = detail.loai === 'bs' ? function (p) { return p.bs_email === detail.ma; } : detail.loai === 'icd' ? function (p) { return [].concat(icd3(p)).indexOf(detail.ma) >= 0; } : function (p) { return vtKey(p) === detail.ma || (fold(p.vi_tri) || '~') === fold(detail.ma); };
+      var match = detail.loai === 'bs' ? function (p) { return p.bs_email === detail.ma; } : detail.loai === 'icd' ? function (p) { return [].concat(icd3(p)).indexOf(detail.ma) >= 0; } : function (p) { var k = fold(detail.ma); return [].concat(vtKeys(p)).some(function (x) { return x === k || (x === '~' && k === fold('(chưa ghi vị trí)')); }); };
       var ids = {};
       scopePts.forEach(function (p) { if (inRange(p.ngay_bat_dau) && match(p)) ids[p.id] = 1; });
       Object.keys(ovIds).forEach(function (id) { if (match(P[id])) ids[id] = 1; });
@@ -2202,7 +2246,7 @@ var RT = (function () {
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
-    scheduleLabel: scheduleLabel, isOpen: isOpen, lenientEdit: lenientEdit, FIELD_LABELS: FIELD_LABELS, missingRx: missingRx, needsOffDay: needsOffDay, offDay: offDay, dosePerFx: dosePerFx,
+    scheduleLabel: scheduleLabel, isOpen: isOpen, lenientEdit: lenientEdit, FIELD_LABELS: FIELD_LABELS, missingRx: missingRx, needsOffDay: needsOffDay, offDay: offDay, viTris: viTris, dosePerFx: dosePerFx,
     addDays: addDays, diffDays: diffDays, dow: dow, monday: monday, isDate: isDate, num: num, splitList: splitList, fxOf: fxOf
   };
 })();

@@ -1,5 +1,29 @@
 # Lịch sử phiên bản
 
+## v4.1
+- **BN của tôi (BS): thanh chọn mục.** Bấm ô nào chỉ hiện danh sách của ô đó:
+  - Các ô: Tất cả BN · Cần phân loại · Chờ mô phỏng · Đang contour · Lập KH · Chờ QA · Chờ vào xạ · Đang xạ · Tạm ngừng · Đã xạ xong (60 ngày gần nhất, kèm Không xạ) · Cần chú ý (vắng từ 2 buổi, chưa có tổng liều, cần đánh giá lại KH, tạm ngừng từ 7 ngày).
+  - Ô 0 BN làm mờ; ứng dụng nhớ ô đang chọn. Điện thoại: thanh vuốt ngang.
+  - "Tất cả BN" xếp theo giai đoạn, cùng giai đoạn ABC họ → tên đệm → tên, trùng cả họ tên thì người nhiều tuổi trước.
+  - BN đang xạ mà giai đoạn 2 (boost, KH lại, KH đồng thời) đang mô phỏng / contour / lập KH: hiện ở ô Đang xạ (kèm nhãn giai đoạn 2 đang ở bước nào) và ở ô của bước đó.
+  - Bỏ nút "Chuyển BN giữa các BS"; chuyển BS điều trị bằng nút trong hồ sơ từng BN.
+- **KS đổi kỹ thuật** (chỉ kỹ thuật, giữ liều / số buổi) khi đang lập KH hoặc chờ QA, cả boost:
+  - Có xác nhận Trước → Sau.
+  - Lưu vết trong nhật ký và ghi chú BN.
+  - BS điều trị nhận thông báo trên chuông.
+- **Vị trí xạ: "+ thêm vị trí"** cho BN xạ 2 vị trí; thống kê theo vị trí đếm BN ở mọi vị trí.
+- **Đợt xạ mới chép sẵn chẩn đoán và ICD** (cả ICD thêm) từ đợt trước.
+- **Phân loại:**
+  - Nút "Phân loại" ngay trong hồ sơ BN chờ phân loại.
+  - Form có ô Vị trí xạ. "Lịch trong tuần" chỉ hiện ở Chờ vào xạ / Đang xạ / Tạm ngừng / Đã xạ xong.
+  - "Đang contour" chỉ hỏi BS, chẩn đoán, ICD, vị trí.
+  - BN đã có buổi xạ, nhập số buổi bằng số đã xạ: hỏi xác nhận rồi chuyển "Đã xạ xong".
+- **Lịch tuần VMAT / IMRT:**
+  - Chưa rõ BN nghỉ ngày nào thì tạm tính xạ cả Thứ 7, gắn cờ "Chưa rõ ngày nghỉ".
+  - KTV (không chỉ KTV trưởng) sửa được bằng nút "Sửa lịch tuần" trong hồ sơ, hoặc bấm cờ ở Xạ trị › Tuần. Chọn được "Thứ 2 → Thứ 6 (không xạ Thứ 7)".
+  - Nhập từ HIS: BN VMAT đã qua Thứ 7 mà không xạ Thứ 7 nào → T2–T6. Không suy được ngày nghỉ → ghi chú cho KTV.
+- Không có cột mới trong Google Sheet: không cần chạy `setup`.
+
 ## v4.0
 - **BN có 2 ung thư hiện cả 2 mã ICD:**
   - Danh sách BN: mã chính là nhãn đặc, mã thêm là nhãn viền; rê chuột xem tên bệnh.

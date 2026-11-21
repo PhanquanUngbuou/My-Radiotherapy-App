@@ -515,3 +515,21 @@ table.rpt.grid th.d,table.rpt.grid td.d{padding:4px 3px;min-width:26px;text-alig
 .icd-tag.sec{background:transparent;color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);font-weight:600}
 .icd-line{display:block;font-weight:500;margin:2px 0}
 .icd-line + .icd-line{margin-top:4px}
+
+/* v4.1: vị trí xạ nhiều dòng */
+.vt-box{display:grid;gap:6px}
+.vt-row{display:flex;gap:6px;align-items:center}
+.vt-row input{flex:1;min-width:0}
+.vt-add{justify-self:start;font-weight:600}
+.vt-del{min-width:36px;min-height:36px}
+/* v4.1: BN của tôi (BS): thanh chọn mục */
+.htabs{grid-template-columns:repeat(auto-fill,minmax(122px,1fr))}
+.htabs .kpi{padding:10px 12px}
+.htabs .kpi .n{font-size:24px}
+.htabs .kpi.zero{opacity:.55}
+.htabs .kpi.on{opacity:1;border-color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent),var(--shadow);background:var(--accent-soft)}
+.htabs .kpi.on .l{color:var(--ink);font-weight:600}
+@media (max-width:760px){
+  .htabs{display:flex;overflow-x:auto;scroll-snap-type:x proximity;margin-left:-16px;margin-right:-16px;padding:2px 16px 8px;-webkit-overflow-scrolling:touch}
+  .htabs .kpi{flex:0 0 auto;min-width:112px;scroll-snap-align:start}
+}

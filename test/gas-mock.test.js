@@ -929,7 +929,7 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   assert(Q(2).trang_thai === 'CHO_PL' && fxOfQ(2).length === 3 && Q(3).trang_thai === 'HOAN_THANH' && Q(4).trang_thai === 'CHO_PL' && !Q(4).bs_email, 'thiếu thì chờ phân loại');
   // phân loại BN đã có buổi xạ: chỉ cần tổng liều, số buổi; không ghi bù lại
   assert(!api('bs@x.vn', 'classifyPatient', { id: Q(2).id, buoc: 'CHO_XA', tong_lieu: '50', so_buoi: '25' }).ok, 'đã có buổi xạ thì không về chờ xạ');
-  assert(!api('bs@x.vn', 'classifyPatient', { id: Q(2).id, buoc: 'DANG_XA', tong_lieu: '6', so_buoi: '3' }).ok, 'số buổi phải lớn hơn số đã xạ');
+  assert(!api('bs@x.vn', 'classifyPatient', { id: Q(2).id, buoc: 'DANG_XA', tong_lieu: '4', so_buoi: '2' }).ok, 'số buổi ít hơn số đã xạ thì báo lỗi');
   r = ok('bs@x.vn', 'classifyPatient', { id: Q(2).id, buoc: 'DANG_XA', tong_lieu: '50', so_buoi: '25' });
   const q2 = r.data.patients.find(x => x.ma_his === '950002');
   assert(q2.trang_thai === 'DANG_XA' && q2.ngay_bat_dau === t3[0] && r.data.fractions.filter(f => f.bn_id === q2.id).length === 3, 'giữ đúng 3 buổi đã có');
@@ -1032,5 +1032,54 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   const p = r.data.patients.find(x => x.ma_his === '980001');
   assert(p.icd === 'C15' && p.icd_phu === 'C13', 'ICD chính + ICD thêm (bỏ trùng mã chính): ' + p.icd + ' / ' + p.icd_phu);
   assert.strictEqual(JSON.stringify(ctx.RT.icdsOf(p)), '["C15","C13"]', 'thống kê đếm cả hai mã');
+}
+// v4.1: KS đổi kỹ thuật, phân loại đủ số buổi → xạ xong, lịch tuần VMAT chưa rõ ngày nghỉ, nhiều vị trí xạ
+{
+  const RT = ctx.RT;
+  const dmy = d => d.slice(8) + '/' + d.slice(5, 7) + '/' + d.slice(0, 4);
+  // KS đổi kỹ thuật khi đang lập KH
+  r = ok('bs@x.vn', 'createPatient', { ma_his: '990001', ho_ten: 'Đổi Kỹ Thuật', nam_sinh: '1960', icd: 'C34', chan_doan: 'K phổi', vi_tri: 'Phổi phải, hạch trung thất', ky_thuat: '3D-CRT', tong_lieu: '60', so_buoi: '30', trang_thai: 'CHO_KH' });
+  const pk = r.data.patients.find(x => x.ma_his === '990001');
+  assert(!api('bs@x.vn', 'changeTech', { id: pk.id, ky_thuat: 'VMAT' }).ok, 'BS không dùng nút đổi kỹ thuật của KS');
+  assert(!api('ks@x.vn', 'changeTech', { id: pk.id, ky_thuat: 'Không có' }).ok, 'kỹ thuật phải trong danh mục');
+  ok('ks@x.vn', 'claimPlan', { id: pk.id, ks_email: 'ks@x.vn' });
+  r = ok('ks@x.vn', 'changeTech', { id: pk.id, ky_thuat: 'VMAT', ly_do: 'tránh tim' });
+  const pk2 = r.data.patients.find(x => x.id === pk.id);
+  assert(pk2.ky_thuat === 'VMAT' && pk2.tong_lieu === '60' && pk2.so_buoi === '30' && /Đổi kỹ thuật: 3D-CRT → VMAT/.test(pk2.ghi_chu), 'chỉ đổi kỹ thuật, có lưu vết: ' + pk2.ghi_chu);
+  assert(/Đổi kỹ thuật/.test(sheets.NhatKy.data[sheets.NhatKy.getLastRow() - 1].join(' | ')), 'nhật ký ghi đổi kỹ thuật');
+  assert(!api('ks@x.vn', 'changeTech', { id: pk.id, ky_thuat: 'VMAT' }).ok, 'trùng kỹ thuật cũ');
+  // nhiều vị trí xạ
+  assert.strictEqual(JSON.stringify(RT.viTris(pk2)), '["Phổi phải","hạch trung thất"]', 'tách vị trí');
+  // phân loại BN đã xạ: nhập số buổi = số đã xạ → tự chuyển Đã xạ xong
+  const mon = RT.addDays(RT.monday(today), -14);
+  const d3 = [0, 1, 2].map(k => RT.addDays(mon, k));
+  r = ok('admin@x.vn', 'importFull', { rows: [{ ma_his: '990002', ho_ten: 'Đủ Buổi', nam_sinh: '1950', gioi: 'Nam', chan_doan: 'Di căn xương', icd: 'C79', bs: 'bs@x.vn', ky_thuat: '3D-CRT', ngay_xa: d3.map(dmy).join(', ') }] });
+  const pd = r.data.patients.find(x => x.ma_his === '990002');
+  assert.strictEqual(pd.trang_thai, 'CHO_PL');
+  r = ok('bs@x.vn', 'classifyPatient', { id: pd.id, buoc: 'DANG_XA', ky_thuat: '3D-CRT', tong_lieu: '12', so_buoi: '3', vi_tri: 'Cột sống L2' });
+  const pd2 = r.data.patients.find(x => x.id === pd.id);
+  assert(pd2.trang_thai === 'HOAN_THANH' && pd2.ngay_ket_thuc === d3[2] && pd2.vi_tri === 'Cột sống L2' && /đủ 3\/3/.test(r.msg), 'đủ số buổi → Đã xạ xong: ' + r.msg);
+  // VMAT không suy được ngày nghỉ: tạm xạ cả Thứ 7, ghi chú cho KTV, KTV sửa lịch tuần
+  const vm5 = [0, 1, 2, 3, 4].map(k => RT.addDays(mon, k));
+  assert.strictEqual(RT.guessOffDay(vm5), '', 'mới xạ 1 tuần, chưa qua Thứ 7: chưa rõ');
+  assert.strictEqual(RT.guessOffDay([0, 1, 2, 3, 4, 7, 8, 9].map(k => RT.addDays(mon, k))), '0', 'đã qua Thứ 7 mà không xạ: T2–T6');
+  r = ok('admin@x.vn', 'importFull', { rows: [{ ma_his: '990003', ho_ten: 'Chưa Rõ Ngày Nghỉ', nam_sinh: '1966', gioi: 'Nữ', chan_doan: 'K vòm', icd: 'C11', bs: 'bs@x.vn', ky_thuat: 'VMAT', ngay_xa: vm5.map(dmy).join(', '), trang_thai: 'Đang xạ' }] });
+  const pv = r.data.patients.find(x => x.ma_his === '990003');
+  const sat = RT.addDays(RT.monday(today), 5);
+  assert(pv.trang_thai === 'DANG_XA' && RT.needsOffDay(pv) && RT.isTreatDay(pv, sat, []) && /chưa rõ BN nghỉ ngày nào/.test(pv.ghi_chu), 'VMAT chưa rõ ngày nghỉ: ' + pv.ghi_chu);
+  assert(!api('dd@x.vn', 'setOffDay', { id: pv.id, ngay_nghi_tuan: '0' }).ok, 'ĐD không sửa lịch tuần');
+  r = ok('ktv@x.vn', 'setOffDay', { id: pv.id, ngay_nghi_tuan: '0' });
+  let pv2 = r.data.patients.find(x => x.id === pv.id);
+  assert(!RT.needsOffDay(pv2) && !RT.isTreatDay(pv2, sat, []) && RT.scheduleLabel(pv2) === 'T2–T6', 'KTV chọn T2–T6 (không xạ Thứ 7)');
+  r = ok('ktv@x.vn', 'setOffDay', { id: pv.id, ngay_nghi_tuan: '2' });
+  pv2 = r.data.patients.find(x => x.id === pv.id);
+  assert(RT.isTreatDay(pv2, sat, []) && !RT.isTreatDay(pv2, RT.addDays(RT.monday(today), 1), []), 'T2–T7 nghỉ Thứ Ba');
+  assert(!api('ktv@x.vn', 'setOffDay', { id: pv.id, ngay_nghi_tuan: '6' }).ok, 'giá trị lịch tuần sai');
+  // thống kê theo vị trí: BN 2 vị trí được đếm ở cả hai
+  const data = ok('admin@x.vn', 'bootstrap').data;
+  const rep = RT.report({ patients: data.patients.map(x => x.id === pv.id ? Object.assign({}, x, { vi_tri: 'Vòm, hạch cổ' }) : x), phases: data.phases, fractions: data.fractions, exceptions: data.exceptions, holidays: data.holidays, dm: data.dm, users: data.users, today },
+    mon, today, data.users.find(u => u.email === 'admin@x.vn') || { email: 'admin@x.vn', vai_tro: 'ADMIN' });
+  const names = rep.theo_vi_tri.map(x => x.ma);
+  assert(names.indexOf('Vòm') >= 0 && names.indexOf('Hạch cổ') >= 0, 'đếm BN ở mọi vị trí: ' + names.join(' | '));
 }
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');

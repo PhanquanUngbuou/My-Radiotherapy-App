@@ -8,7 +8,8 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
 
 ## Việc chờ
 
-### v4.1 (anh yêu cầu 21/11/2026, chờ anh bảo "làm đi")
+### (v4.1 đã làm, xem CHANGELOG)
+<!-- v4.1 cũ:
 1. **Đợt xạ mới chép sẵn chẩn đoán + ICD (cả ICD thêm)** từ đợt trước (hiện chỉ chép hành chính, BS điều trị). Vị trí, kỹ thuật, liều để trống (KH mới). BS sửa được trước khi lưu.
 2. **KS đổi kỹ thuật (CHỈ kỹ thuật, không đổi liều / số buổi; anh chốt 21/11) khi lập KH** (trước khi "Lập KH xong" chuyển QA / chờ xạ): nút "Đổi kỹ thuật" ở bước Đang lập KH / Chờ QA, có xác nhận (Trước → Sau), lưu vết, báo BS điều trị trên chuông. Áp dụng cả GĐ boost.
 3. **Vị trí xạ: dấu "+ thêm vị trí"** (như ICD thêm) khi BN xạ 2 vị trí; lưu nhiều vị trí, thống kê theo vị trí đếm BN ở mọi vị trí.
@@ -22,6 +23,8 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
 7. **Bỏ nút "Chuyển BN giữa các BS" ở màn hình BN của tôi**; chuyển BS điều trị chỉ ở nút trong hồ sơ từng BN (có xác nhận như cũ).
 
 8. **Hồ sơ BN Chờ phân loại có nút "Phân loại"** ngay trong hồ sơ (cạnh "Sửa thông tin"), không phải thoát ra danh sách. Form Phân loại có ô Vị trí xạ (mục 5), lấy sẵn thông tin vừa sửa.
+
+-->
 
 ### Việc chờ dữ liệu (không phải sửa code)
 - Tối T7 (tuần này hoặc tuần sau) anh gửi Excel HIS: sổ mô phỏng từ 01/09 + thủ thuật mặt nạ + thủ thuật xạ ("máy gia tốc" = 3D, "có điều biến liều" = VMAT), **có ngày thực hiện**. Em lập bảng NhapDayDu (BS = BS chỉ định mô phỏng; liệt kê BN mà phần lớn buổi xạ dưới tên BS khác, BN có cả 3D và VMAT, BN mô phỏng 2 lần, ICD suy từ chẩn đoán cần BS kiểm tra).
