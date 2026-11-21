@@ -1,4 +1,4 @@
-// Điều phối Xạ trị · phiên bản v3.5
+// Điều phối Xạ trị · phiên bản v3.6
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
@@ -222,10 +222,12 @@ function nhapDayDu() {
     var bufP = [], seenP = {}, bufF = [], bufL = [];
     ctx.savePatient = function (p) { if (!seenP[p.id]) { seenP[p.id] = 1; bufP.push(p); } };
     ctx.addFraction = function (f) { bufF.push(f); };
+    var bufG = []; ctx.savePhase = function (g) { if (bufG.indexOf(g) < 0) bufG.push(g); };
     ctx.log = function (a, id, d) { bufL.push([ctx.now, ctx.user.email, a, id || '', d || '']); };
     var msg = RT.handle(ctx, 'importFull', { rows: rows });
     bulkAppend_(ss, SHEET_NAMES.BN, bufP);
     bulkAppend_(ss, SHEET_NAMES.BUOI, bufF);
+    bulkAppend_(ss, SHEET_NAMES.GD, bufG);
     var lg = ss.getSheetByName(SHEET_NAMES.LOG);
     if (lg && bufL.length) lg.getRange(lg.getLastRow() + 1, 1, bufL.length, 5).setNumberFormat('@').setValues(bufL);
     var res = at.map(function (row, i) { return [(ctx.importResult || [])[i] || '']; });

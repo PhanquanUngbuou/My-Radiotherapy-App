@@ -943,4 +943,50 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   r = ok('bs3@x.vn', 'transferDoctor', { ids: [q2.id], bs_email: 'bs@x.vn' });
   assert.strictEqual(r.data.patients.find(x => x.id === q2.id).bs_email, 'bs@x.vn', 'BS đang điều trị chuyển đi');
 }
+// v3.6: đang xạ chưa rõ tổng số buổi, KH thứ hai khác kỹ thuật, đợt cũ đã xạ xong
+{
+  const RT = ctx.RT;
+  const mon = RT.addDays(RT.monday(today), -7);
+  const dmy = d => d.slice(8) + '/' + d.slice(5, 7) + '/' + d.slice(0, 4);
+  const d5 = [0, 1, 2, 3, 4].map(k => RT.addDays(mon, k));
+  const old3 = [0, 1, 2].map(k => RT.addDays(mon, k - 35));
+  const v3 = [0, 1, 2].map(k => RT.addDays(mon, k)), d2 = [3, 4].map(k => RT.addDays(mon, k));
+  const row = o => RT.FULL_COLS.map(c => o[c[0]] || '');
+  const start = sheets.NhapDayDu.getLastRow() + 1;
+  const rowsF = [
+    row({ ma_his: '960001', ho_ten: 'Mở Tổng', nam_sinh: '1960', gioi: 'Nam', chan_doan: 'K phổi', bs: 'BS A', ky_thuat: '3D-CRT', ngay_xa: d5.map(dmy).join(', '), trang_thai: 'Đang xạ' }),
+    row({ ma_his: '960002', ho_ten: 'Hai Kế Hoạch', nam_sinh: '1961', gioi: 'Nữ', chan_doan: 'K vú', bs: 'BS A', ky_thuat: 'VMAT', ngay_xa: v3.map(dmy).join(', '), ky_thuat_2: '3D-CRT', ngay_xa_2: d2.map(dmy).join(', '), trang_thai: 'Đang xạ' }),
+    row({ ma_his: '960003', ho_ten: 'Đợt Cũ', nam_sinh: '1962', gioi: 'Nam', chan_doan: 'K xương', bs: 'BS A', ky_thuat: '3D-CRT', ngay_xa: old3.map(dmy).join(', '), trang_thai: 'Đã xạ xong' }),
+    row({ ma_his: '960003', ho_ten: 'Đợt Cũ', nam_sinh: '1962', gioi: 'Nam', chan_doan: 'K xương', bs: 'BS A', ky_thuat: '3D-CRT', ngay_xa: d5.slice(0, 2).map(dmy).join(', '), trang_thai: 'Đang xạ' })
+  ];
+  sheets.NhapDayDu.getRange(start, 1, rowsF.length, rowsF[0].length).setValues(rowsF);
+  currentEmail = 'admin@x.vn';
+  const m = vm.runInContext('nhapDayDu()', ctx);
+  assert(/Đã nhập 4 BN: 3 đang xạ, 1 đã xạ xong/.test(m), m);
+  let d = ok('admin@x.vn', 'bootstrap').data;
+  const env = () => RT.makeEnv(today, d.holidays, d.exceptions, d.phases, 'Máy gia tốc 1');
+  const a1 = d.patients.find(x => x.ma_his === '960001');
+  let c = RT.course(a1, d.fractions, env());
+  assert(a1.trang_thai === 'DANG_XA' && c.open && c.total === '?' && c.done === 5 && c.end === '' && !c.projected.length, 'đang xạ chưa rõ tổng');
+  r = ok('ktv@x.vn', 'logFraction', { bn_id: a1.id, ngay: today });
+  assert(/6\/\?/.test(r.msg) && r.data.patients.find(x => x.id === a1.id).trang_thai === 'DANG_XA', 'KTV ghi buổi, không tự kết thúc: ' + r.msg);
+  r = ok('bs@x.vn', 'updatePatient', { id: a1.id, icd: 'C34', tong_lieu: '20', so_buoi: '10' });
+  d = r.data; c = RT.course(d.patients.find(x => x.id === a1.id), d.fractions, env());
+  assert(!c.open && c.total === 10 && c.projected.length === 4, 'BS bổ sung tổng thì tính ngày kết thúc');
+  // hai KH liên tiếp khác kỹ thuật
+  const a2 = d.patients.find(x => x.ma_his === '960002'), g2 = d.phases.find(g => g.bn_id === a2.id);
+  assert(g2 && g2.ky_thuat === '3D-CRT' && a2.so_buoi === '3', 'GĐ1 đủ 3 buổi VMAT, GĐ2 3D');
+  assert.deepStrictEqual(d.fractions.filter(f => f.bn_id === a2.id).map(f => f.gd).sort(), ['1', '1', '1', '2', '2'], 'buổi xạ gắn đúng giai đoạn');
+  c = RT.course(a2, d.fractions, env());
+  assert(c.open && c.cur.ky_thuat === '3D-CRT' && c.done === 5, 'đang ở GĐ2, chưa rõ tổng');
+  // đợt cũ đã xong + đợt mới cùng mã HIS
+  const a3 = d.patients.filter(x => x.ma_his === '960003');
+  assert(a3.length === 2 && a3.some(x => x.trang_thai === 'HOAN_THANH') && a3.some(x => x.trang_thai === 'DANG_XA'), 'tách 2 đợt');
+  // phân loại BN đã có buổi xạ, chưa biết tổng → đang xạ
+  r = ok('admin@x.vn', 'importFull', { rows: [{ ma_his: '960004', ho_ten: 'Chờ PL', nam_sinh: '1960', gioi: 'Nam', chan_doan: 'K', bs: 'bs@x.vn', ky_thuat: '3D-CRT', ngay_xa: d5.slice(0, 3).map(dmy).join(', ') }] });
+  const a4 = r.data.patients.find(x => x.ma_his === '960004');
+  assert.strictEqual(a4.trang_thai, 'CHO_PL');
+  r = ok('ktv@x.vn', 'classifyPatient', { id: a4.id, buoc: 'DANG_XA', ky_thuat: '3D-CRT', tong_lieu: '', so_buoi: '' });
+  assert(r.data.patients.find(x => x.id === a4.id).trang_thai === 'DANG_XA' && /chưa có tổng/.test(r.msg), 'KTV cho xạ tiếp khi chưa biết tổng');
+}
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');

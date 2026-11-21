@@ -185,7 +185,8 @@
       (age(p) ? ' · ' + age(p) : '') + (p.gioi ? ' · ' + esc(p.gioi) : '') + '</span></div>';
   }
   function progCell(p) {
-    var c = course(p), pct = c.total ? Math.round(c.done / c.total * 100) : 0;
+    var c = course(p), pct = c.open ? 0 : c.total ? Math.round(c.done / c.total * 100) : 0;
+    if (c.open) return '<span class="num">Đã xạ ' + c.done + ' buổi</span><span class="flag crit">Chưa có tổng liều / số buổi</span>';
     return '<div class="prog"><span class="bar"><i style="width:' + pct + '%"></i></span><span class="num">' + c.done + '/' + c.total + '</span></div>' +
       (c.par.length ? '<span class="sub">' + esc(mainName(p)) + ' ' + c.mainDone + '/' + c.mainTotal + c.par.map(function (q) { return ' · ' + esc(parName(q)) + ' ' + q.done + '/' + q.total; }).join('') + '</span>' : '');
   }
@@ -580,6 +581,11 @@
     }
     if (isDoctor(me()) && scope === 'mine' && can('transferDoctor')) html += '<div class="filters" style="margin:-4px 0 12px"><button class="btn" data-transfer="1">Chuyển BN giữa các BS</button></div>';
     if (isDoctor(me()) && scope === 'mine') {
+      var opn = list.filter(function (p) { return ['DANG_XA', 'TAM_NGUNG'].indexOf(p.trang_thai) >= 0 && course(p).open; }).sort(byName);
+      if (opn.length) html += group('open', 'BN đang xạ chưa có tổng liều / số buổi', opn, [C.pt, C.dx,
+        { h: 'Đã xạ', cls: 'nowrap', v: function (p) { var c = course(p); return '<b class="num">' + c.done + ' buổi</b><span class="sub">từ ' + fd(c.start) + ' · ' + esc(c.cur.ky_thuat || p.ky_thuat || '') + '</span>'; } },
+        { h: '', cls: 'act', v: function (p) { var c = course(p), g = c.cur && c.cur.g; return g ? btn('openP', p.id, 'Mở hồ sơ: bổ sung GĐ' + g.stt, 'primary') : (can('updatePatient') ? btn('edit', p.id, 'Bổ sung liều, số buổi', 'primary') : ''); } }],
+        'BN nhập từ HIS: KTV vẫn ghi buổi xạ được. Bổ sung tổng liều, tổng số buổi (và ICD) để ứng dụng tính ngày kết thúc.', '');
       var plm = list.filter(function (p) { return p.trang_thai === 'CHO_PL'; }).sort(byName);
       if (plm.length) html += group('plm', 'BN cần phân loại về đúng giai đoạn', plm, [C.pt, C.dx,
         { h: 'Mô phỏng', cls: 'nowrap', v: function (p) { return p.ngay_mo_phong ? '<span class="num">' + fdy(p.ngay_mo_phong) + '</span>' : '<span class="muted">—</span>'; } },
@@ -946,7 +952,7 @@
         else if (RT.isTreatDay(p, d, e) && p.trang_thai === 'TAM_NGUNG') { cls += ' paused'; txt = 'ngừng'; }
         else { cls += ' off'; txt = '–'; }
         if (ex) { cls += ' ex'; title += ex === 'NGHI' ? ' · nghỉ riêng tuần này' : ' · xạ thêm riêng tuần này'; }
-        var editable = can('setDay') && d >= t && fxIdx < 0 && !holiday && !down && p.trang_thai !== 'TAM_NGUNG' && (c.done < c.total);
+        var editable = can('setDay') && d >= t && fxIdx < 0 && !holiday && !down && p.trang_thai !== 'TAM_NGUNG' && (c.open || c.done < c.total);
         if (d === t) cls += ' today';
         return editable ? '<td><button class="' + cls + '" data-wk="' + esc(p.id) + '" data-d="' + d + '" title="' + esc(title + ' · bấm để đổi xạ/nghỉ') + '">' + txt + '</button></td>'
           : '<td><span class="' + cls + '" title="' + esc(title) + '">' + txt + '</span></td>';
@@ -1129,7 +1135,7 @@
     if (hadFx.length) STEPS_PL = STEPS_PL.filter(function (x) { return ['DANG_XA', 'TAM_NGUNG', 'HOAN_THANH', 'HUY'].indexOf(x[0]) >= 0; });
     modal({ title: 'Phân loại BN', ok: 'Chuyển', wide: true,
       body: whoBox(p) + (p.ghi_chu ? '<p class="muted" style="white-space:pre-line">' + esc(p.ghi_chu) + '</p>' : '') +
-        (hadFx.length ? '<div class="confirm" style="cursor:default;font-weight:500">Đã có <b>&nbsp;' + hadFx.length + ' buổi xạ&nbsp;</b> (' + fdy(hadFx[0].ngay) + ' → ' + fdy(hadFx[hadFx.length - 1].ngay) + ', nhập từ HIS). Chỉ cần điền tổng liều, tổng số buổi rồi chọn Đang xạ / Đã xạ xong.</div>' : '') +
+        (hadFx.length ? '<div class="confirm" style="cursor:default;font-weight:500">Đã có <b>&nbsp;' + hadFx.length + ' buổi xạ&nbsp;</b> (' + fdy(hadFx[0].ngay) + ' → ' + fdy(hadFx[hadFx.length - 1].ngay) + ', nhập từ HIS). Chọn <b>&nbsp;Đang xạ&nbsp;</b> để KTV xạ tiếp (tổng liều, số buổi chưa biết thì để trống, BS bổ sung sau), hoặc Đã xạ xong.</div>' : '') +
         '<div class="field full"><span class="lb">Chuyển sang <span class="req">*</span></span><div class="radios">' + STEPS_PL.map(function (x) { return '<label><input type="radio" name="buoc" value="' + x[0] + '"><span><b>' + x[1] + '</b><small>' + x[2] + '</small></span></label>'; }).join('') + '</div></div>' +
         '<div class="form" data-pl="info">' +
         field('Bác sĩ điều trị <span class="req">*</span>', '<select name="bs_email">' + bsOptions(bsList, p.bs_email) + '</select>') +
@@ -1169,11 +1175,12 @@
         if (!v.bs_email) return 'Chọn bác sĩ điều trị.';
         if (v.buoc === 'CONTOUR') return '';
         if (v.buoc === 'HOAN_THANH') return v.ngay_bat_dau && !(v.ky_thuat && RT.num(v.tong_lieu) > 0 && RT.num(v.so_buoi) >= 1) ? 'Có ngày bắt đầu thì cần đủ kỹ thuật, tổng liều, số buổi (hoặc để trống cả).' : '';
+        if (hadFx.length && (v.buoc === 'DANG_XA' || v.buoc === 'TAM_NGUNG') && v.so_buoi === '') return v.ky_thuat ? (v.buoc === 'TAM_NGUNG' && !v.ly_do_tn ? 'Chọn lý do tạm ngừng.' : '') : 'Chọn kỹ thuật xạ.';
         if (!RT.isIcd(RT.normIcd(v.icd))) return 'Cần mã ICD-10 3 ký tự (VD: C50).';
         if (!v.chan_doan || !v.ky_thuat || !(RT.num(v.tong_lieu) > 0) || !(RT.num(v.so_buoi) >= 1)) return 'Cần đủ chẩn đoán, kỹ thuật, tổng liều, số buổi.';
         if (v.buoc === 'DANG_KH' && !v.ks_email) return 'Chọn kỹ sư phụ trách.';
         if (!hadFx.length && ['DANG_XA', 'TAM_NGUNG'].indexOf(v.buoc) >= 0 && !v.ngay_bat_dau) return 'Cần ngày bắt đầu xạ.';
-        if (hadFx.length && v.buoc !== 'HOAN_THANH' && RT.num(v.so_buoi) <= hadFx.length) return 'BN đã xạ ' + hadFx.length + ' buổi: tổng số buổi phải lớn hơn, hoặc chọn "Đã xạ xong".';
+        if (hadFx.length && v.buoc !== 'HOAN_THANH' && v.so_buoi !== '' && RT.num(v.so_buoi) <= hadFx.length) return 'BN đã xạ ' + hadFx.length + ' buổi: tổng số buổi phải lớn hơn, hoặc chọn "Đã xạ xong".';
         if (!hadFx.length && ((v.buoc === 'DANG_XA' && !(RT.num(v.da_xa) >= 1)) || (v.buoc === 'TAM_NGUNG' && v.da_xa === ''))) return 'Cần số buổi đã xạ.';
         if (v.buoc === 'TAM_NGUNG' && !v.ly_do_tn) return 'Chọn lý do tạm ngừng.';
         return '';
@@ -2032,7 +2039,7 @@
     var p = byId(S.detail);
     if (!p) { closeDetail(); return; }
     var c = course(p), started = c.done > 0;
-    var pct = c.total ? Math.round(c.done / c.total * 100) : 0;
+    var pct = c.open ? 0 : c.total ? Math.round(c.done / c.total * 100) : 0;
     var dr = $('#drawer');
     var acts = detailActions(p);
     var tl = [
@@ -2455,6 +2462,7 @@
           if (v.kieu === 't27' && !v.ngay_nghi_tuan) el.innerHTML = 'Chọn ngày nghỉ trong tuần.';
           else if (!c.start) el.innerHTML = 'Chọn ngày bắt đầu để xem ngày kết thúc dự kiến.';
           else if (!RT.isTreatDay(tmp, c.start, env()) && !started) el.innerHTML = '<b style="color:var(--warn)">' + fdw(c.start) + ' không nằm trong lịch xạ đã chọn.</b> Buổi đầu sẽ là ' + fdw(c.projected[0]) + '.';
+          else if (c.open) el.innerHTML = 'BN chưa có tổng số buổi: chưa tính được ngày kết thúc.';
           else el.innerHTML = (started ? 'Còn ' + c.projected.length + ' buổi. ' : 'Bắt đầu <b>' + fdw(c.start) + '</b>. ') + 'Dự kiến kết thúc <b>' + fdw(c.end) + '/' + String(c.end).slice(0, 4) + '</b> · ' + c.total + ' buổi.';
           var qi = $('#sd-quota', form);
           if (qi) {

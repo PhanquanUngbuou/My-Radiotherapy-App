@@ -1,5 +1,14 @@
 # Lịch sử phiên bản
 
+## v3.6
+- **Đang xạ, chưa có tổng số buổi** (BN nhập từ HIS): KTV vẫn ghi buổi xạ bình thường ("Buổi 9 / ?"), ứng dụng không tự kết thúc đợt, chưa tính ngày kết thúc. Danh sách hiện "Đã xạ N buổi · Chưa có tổng liều / số buổi". BS có mục **"BN đang xạ chưa có tổng liều / số buổi"** trong Bệnh nhân của tôi; bổ sung tổng liều, số buổi (sửa chỉ định) là ứng dụng tính lại ngày kết thúc như thường.
+- **Chờ phân loại → Đang xạ khi chưa biết tổng**: BN đã có buổi xạ, KTV (hoặc BS) chọn "Đang xạ", để trống tổng liều / số buổi, chỉ cần kỹ thuật. Dùng khi BN xạ trước 16/11 quay lại xạ tiếp.
+- **Nhập đầy đủ từ HIS** (`nhapDayDu`) thêm 3 cột: Trạng thái (Đang xạ / Đã xạ xong / để trống), Kỹ thuật GĐ2, Các ngày xạ GĐ2:
+  - "Đang xạ": vào thẳng Đang xạ (chưa có tổng thì như trên).
+  - "Đã xạ xong": đợt cũ, ngày kết thúc = buổi cuối.
+  - 2 KH liên tiếp khác kỹ thuật (VD VMAT rồi 3D): GĐ1 = các buổi kỹ thuật đầu, GĐ2 (boost, sẵn sàng) = kỹ thuật sau; buổi xạ gắn đúng giai đoạn để bảng thanh toán 3D / VMAT đúng.
+- Không có cột mới trong Google Sheet: không cần chạy `setup`.
+
 ## v3.5
 - **`nhapDayDu` nhập nhanh hàng trăm BN**: gom lại rồi ghi một lần mỗi trang (BN, buổi xạ, nhật ký, kết quả), dựng lại chỉ mục ở cuối. 550 BN với khoảng 7.700 buổi xạ chạy trong thời gian cho phép của Apps Script (trước đây ghi từng dòng sẽ quá 6 phút). Giới hạn mỗi lần nhập nâng lên 1500 BN.
 
