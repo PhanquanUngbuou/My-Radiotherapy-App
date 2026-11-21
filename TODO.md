@@ -25,7 +25,8 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
    - Áp dụng khi "Mô phỏng xong" cho KH lần 2 / KH lại / KH đồng thời / boost / đợt mới (mọi lần mô phỏng không phải lần đầu). Không có mặt nạ ("Không") thì không hỏi.
    - Có mặt nạ → bắt buộc chọn **Mặt nạ mới** / **Dùng lại mặt nạ cũ** (cột mới `mat_na_cu` ở BenhNhan và GiaiDoan; cần `setup`).
    - Form "Mô phỏng xong" nói rõ cho KTV: **"Lần mô phỏng trước (ngày …) BN dùng mặt nạ <loại>. Lần này dùng mặt nạ cũ hay làm mặt nạ mới?"** (lần trước không có mặt nạ thì ghi rõ "lần trước không dùng mặt nạ").
-   - **Mặt nạ mới** = có chỉ định làm mặt nạ trên HIS → vào sổ mô phỏng (cột mặt nạ) và tổng hợp mô phỏng.
+   - **Lần này khác loại với lần trước** (VD lần trước 5 điểm, lần này 3 điểm) hoặc lần trước không có mặt nạ: chắc chắn là mặt nạ mới, **không hỏi dùng lại** (anh chốt 22/11). Chỉ hỏi khi cùng loại.
+   - **Mặt nạ mới** (chọn mới, hoặc khác loại): KTV phải tích xác nhận **"Đã có thủ thuật làm mặt nạ trên HIS"** → vào sổ mô phỏng (cột mặt nạ) và tổng hợp mô phỏng.
    - **Dùng lại mặt nạ cũ** = không có chỉ định trên HIS → **không ghi mặt nạ vào sổ**, không tính vào tổng hợp (anh chốt 22/11). Hồ sơ BN vẫn ghi "dùng lại mặt nạ <loại>" để KTV biết.
 
 ### (v4.4 đã làm, xem CHANGELOG)
