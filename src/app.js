@@ -1217,6 +1217,7 @@
     var hadFx = plFx(p);
     var fullFx = function (v) { return hadFx.length && (v.buoc === 'DANG_XA' || v.buoc === 'TAM_NGUNG') && RT.num(v.so_buoi) === hadFx.length; };
     if (hadFx.length) STEPS_PL = STEPS_PL.filter(function (x) { return ['DANG_XA', 'TAM_NGUNG', 'HOAN_THANH', 'HUY'].indexOf(x[0]) >= 0; });
+    if (!RT.canCancel(p, S.data.fractions)) STEPS_PL = STEPS_PL.filter(function (x) { return x[0] !== 'HUY'; });
     modal({ title: 'Phân loại BN', ok: 'Chuyển', wide: true,
       body: whoBox(p) + (p.ghi_chu ? '<p class="muted" style="white-space:pre-line">' + esc(p.ghi_chu) + '</p>' : '') +
         (hadFx.length ? '<div class="confirm" style="cursor:default;font-weight:500">Đã có <b>&nbsp;' + hadFx.length + ' buổi xạ&nbsp;</b> (' + fdy(hadFx[0].ngay) + ' → ' + fdy(hadFx[hadFx.length - 1].ngay) + ', nhập từ HIS). Chọn <b>&nbsp;Đang xạ&nbsp;</b> để KTV xạ tiếp (tổng liều, số buổi chưa biết thì để trống, BS bổ sung sau), hoặc Đã xạ xong.</div>' : '') +
@@ -2354,7 +2355,7 @@
     if (can('replan') && (st === 'DANG_XA' || st === 'TAM_NGUNG') && !(S.data.phases || []).some(function (g) { return g.bn_id === p.id && g.loai === 'KH_LAI' && !g.cat_tai && g.trang_thai !== 'HUY'; })) b('replan', 'Lập lại KH');
     if (can('endEarly') && ['CHO_XA', 'DANG_XA', 'TAM_NGUNG'].indexOf(st) >= 0) b('endEarly', 'Kết thúc sớm', 'danger');
     if (can('noTreat') && ['CHO_PL', 'MO_PHONG', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA'].indexOf(st) >= 0 && !course(p).done) b('noTreat', 'Không xạ', 'danger');
-    if (can('deletePatient') && (role() === 'ADMIN' || (RT.myDoctors(me()).indexOf(p.bs_email) >= 0 && !course(p).done))) b('deletePatient', 'Huỷ hồ sơ', 'danger');
+    if (can('deletePatient') && RT.canCancel(p, S.data.fractions) && (role() === 'ADMIN' || RT.myDoctors(me()).indexOf(p.bs_email) >= 0)) b('deletePatient', 'Huỷ hồ sơ', 'danger');
     return a.join('');
   }
 
@@ -2438,18 +2439,13 @@
     return '<div class="who-box"><span class="nm">' + esc(p.ho_ten) + (p._g ? phTag(p._g) : '') + '</span><span><span class="muted">Mã HIS</span> <span class="his">' + esc(p.ma_his) + '</span>' +
       (age(p) ? ' · ' + age(p) : '') + (p.gioi ? ' · ' + esc(p.gioi) : '') + '</span><span class="muted">' + esc(p.chan_doan) + ' · ' + rx(p) + '</span>' + (extra || '') + '</div>';
   }
-  /** BN đã mô phỏng (đã qua bước mô phỏng, hoặc nhập từ sổ mô phỏng HIS) */
-  function simulated(p) { return ['MO_PHONG', 'HUY'].indexOf(p.trang_thai) < 0 && (p.trang_thai !== 'CHO_PL' || !!p.ngay_mo_phong); }
-  /** Huỷ hồ sơ = nhập nhầm, không mô phỏng, không vào sổ mô phỏng (khác Không xạ: đã mô phỏng, vẫn vào sổ) */
+  /** Huỷ hồ sơ = nhập nhầm, BN CHƯA mô phỏng (không vào sổ mô phỏng). Đã mô phỏng → chỉ Không xạ (vẫn vào sổ). */
   function deleteForm(p) {
-    var sim = simulated(p), kx = sim && can('noTreat') && !course(p).done && ['CHO_PL', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA'].indexOf(p.trang_thai) >= 0;
     modal({ title: 'Huỷ hồ sơ bệnh nhân', ok: 'Huỷ hồ sơ', btnClass: 'danger',
-      body: whoBox(p) + (sim ? '<div class="confirm" style="cursor:default;font-weight:500;display:block">BN đã mô phỏng' + (p.ngay_mo_phong ? ' (' + fdy(p.ngay_mo_phong) + ')' : '') + '. <b>Huỷ hồ sơ</b> chỉ dùng khi nhập nhầm: BN bị bỏ khỏi sổ mô phỏng và thống kê.<br>Nếu BN <b>không xạ nữa</b>, hãy chọn <b>Không xạ</b> để BN vẫn có trong sổ mô phỏng.' +
-          (kx ? '<div style="margin-top:8px"><button type="button" class="btn" id="dl-kx">Chọn Không xạ thay vì huỷ</button></div>' : '') + '</div>' : '') +
-        field('Lý do huỷ <span class="req">*</span>', '<textarea name="ly_do" required></textarea>', '', 'Dùng khi nhập nhầm. Hồ sơ bị ẩn khỏi ứng dụng, không vào sổ mô phỏng, nhưng vẫn lưu trong Google Sheet.') +
-        (sim ? '<label class="confirm full"><input type="checkbox" name="nham"><span>BN này nhập nhầm, tôi vẫn huỷ hồ sơ (không vào sổ mô phỏng)</span></label>' : ''),
-      onMount: function (form) { var b = $('#dl-kx', form); if (b) b.onclick = function () { closeModal(); doAction('noTreat', p.id); }; },
-      validate: function (v) { return !v.ly_do ? 'Cần ghi lý do huỷ.' : sim && !v.nham ? 'BN đã mô phỏng: đánh dấu ô xác nhận nhập nhầm, hoặc chọn Không xạ.' : ''; },
+      body: whoBox(p) + '<div class="confirm" style="cursor:default;font-weight:500;display:block">Chỉ huỷ khi <b>nhập nhầm</b> hoặc BN <b>chưa mô phỏng</b> mà không làm nữa.<br>Nếu BN <b>đã mô phỏng</b> thì <b>không được huỷ</b> vì sẽ làm sai lệch báo cáo mô phỏng: bấm “Đã mô phỏng xong” trước, rồi chọn <b>Không xạ</b>.</div>' +
+        field('Lý do huỷ <span class="req">*</span>', '<textarea name="ly_do" required></textarea>', '', 'Hồ sơ bị ẩn khỏi ứng dụng, không vào sổ mô phỏng, nhưng vẫn lưu trong Google Sheet.') +
+        '<label class="confirm full"><input type="checkbox" name="chua_mp"><span>Tôi xác nhận BN <b>chưa mô phỏng</b> (hoặc nhập nhầm)</span></label>',
+      validate: function (v) { return !v.ly_do ? 'Cần ghi lý do huỷ.' : !v.chua_mp ? 'Đánh dấu ô xác nhận BN chưa mô phỏng.' : ''; },
       onOk: function (v) { closeDetail(); run('deletePatient', { id: p.id, ly_do: v.ly_do }); } });
   }
   function reasonForm(title, p, label, ok, onOk, help) {

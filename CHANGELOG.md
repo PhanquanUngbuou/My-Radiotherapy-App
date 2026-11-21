@@ -6,7 +6,7 @@
   - Chưa tích: trợ lý không có trong danh sách chọn BS điều trị (thêm BN, phân loại, chuyển BS); máy chủ cũng chặn khi thêm BN, sửa đổi BS, phân loại, chuyển BS. Trợ lý tự thêm BN thì mặc định đứng tên BS chính.
   - BN cũ đang đứng tên trợ lý giữ nguyên, vẫn sửa thông tin được.
   - Nhập từ HIS: tên BS là trợ lý thì giữ đúng trợ lý; kết quả nhập nhắc Quản trị tích ô nếu chưa tích.
-- **Huỷ hồ sơ** = nhập nhầm, không mô phỏng, không vào sổ mô phỏng (khác **Không xạ**: đã mô phỏng, vẫn vào sổ). BN đã mô phỏng mà bấm "Huỷ hồ sơ": ứng dụng nhắc, có nút "Chọn Không xạ thay vì huỷ", muốn huỷ phải tích ô xác nhận nhập nhầm. Form Phân loại ghi rõ khác nhau giữa hai mục.
+- **Huỷ hồ sơ chỉ khi BN chưa mô phỏng** (Chờ mô phỏng, hoặc chờ phân loại không có ngày mô phỏng): BN huỷ không vào sổ mô phỏng. **Từ Đang contour trở đi không huỷ được nữa, chỉ chọn Không xạ** (vẫn vào sổ mô phỏng); máy chủ cũng chặn. Form huỷ nhắc: đã mô phỏng thì không được huỷ vì sai lệch báo cáo mô phỏng, phải tích ô xác nhận BN chưa mô phỏng. Form Phân loại BN có ngày mô phỏng không còn mục Huỷ.
 - **Cột mới `nhan_bn` trong trang NguoiDung: cần chạy `setup` một lần.**
 
 ## v4.3

@@ -43,7 +43,7 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
   <div class="intro">
     <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v4.4</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v4.4 · bản lưu e1d095e · 21/11/2026 18:07. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v4.4”.</span>
+    <span class="rev">Phiên bản v4.4 · bản lưu 743e86c · 21/11/2026 18:10. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v4.4”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
@@ -718,7 +718,7 @@ function statsData_(ctx, tu, den) {
       <div class="meta">
         <h2 id="h-Core">Core.gs <span class="ver">· v4.4</span></h2>
         <p>Bấm + → Script (Tập lệnh), đặt tên Core.</p>
-        <span class="size">2,293 dòng · 169 KB</span>
+        <span class="size">2,297 dòng · 170 KB</span>
       </div>
       <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v4.4)</button>
     </div>
@@ -876,6 +876,8 @@ var RT = (function () {
   /** Các bác sĩ mà người này phụ trách bệnh nhân: chính mình + bác sĩ chính nếu là trợ lý */
   function myDoctors(u) { return u ? [u.email].concat(u.tro_ly_cho &amp;&amp; u.vai_tro === &#x27;BS&#x27; ? [u.tro_ly_cho] : []) : []; }
   /** Được đứng tên BS điều trị: bác sĩ đang hoạt động; BS trợ lý chỉ khi Quản trị tích &quot;Được làm BS điều trị&quot; (nhan_bn) */
+  /** Huỷ hồ sơ chỉ khi BN CHƯA mô phỏng (Chờ mô phỏng, hoặc chờ phân loại không có ngày mô phỏng / buổi xạ). Đã mô phỏng → chỉ Không xạ. */
+  function canCancel(p, fractions) { return p.trang_thai === &#x27;MO_PHONG&#x27; || (p.trang_thai === &#x27;CHO_PL&#x27; &amp;&amp; !p.ngay_mo_phong &amp;&amp; !fxOf(p, fractions || []).length); }
   function canTreat(u) { return !!u &amp;&amp; u.kich_hoat !== &#x27;Không&#x27; &amp;&amp; (u.vai_tro === &#x27;BS&#x27; || u.vai_tro === &#x27;ADMIN&#x27;) &amp;&amp; !(u.vai_tro === &#x27;BS&#x27; &amp;&amp; u.tro_ly_cho &amp;&amp; u.nhan_bn !== &#x27;Có&#x27;); }
   /** Chặn gán BN mới / đổi BS sang trợ lý chưa được phép (BN cũ đứng tên trợ lý giữ nguyên) */
   function checkTreat(ctx, email, old) {
@@ -1812,6 +1814,7 @@ var RT = (function () {
         return &#x27;Đã ghi &#x27; + p.ho_ten + &#x27; không xạ.&#x27;;
       }
       if (buoc === &#x27;HUY&#x27;) {
+        if (!canCancel(p, ctx.fractions)) fail(&#x27;BN đã mô phỏng: không huỷ hồ sơ được vì sẽ làm sai lệch sổ / báo cáo mô phỏng. BN không xạ nữa thì chọn &quot;Không xạ&quot;.&#x27;);
         if (!a.ly_do) fail(&#x27;Cần ghi lý do huỷ.&#x27;);
         p.trang_thai = &#x27;HUY&#x27;; note(p, ctx.today, &#x27;Huỷ khi phân loại: &#x27; + a.ly_do);
         save(ctx, p, &#x27;Huỷ (phân loại)&#x27;, a.ly_do);
@@ -2153,6 +2156,7 @@ var RT = (function () {
     deletePatient: function (ctx, a) {
       var p = findP(ctx, a.id);
       if (!a.ly_do) fail(&#x27;Cần ghi lý do huỷ hồ sơ.&#x27;);
+      if (!canCancel(p, ctx.fractions)) fail(&#x27;BN đã mô phỏng: không huỷ hồ sơ được vì sẽ làm sai lệch sổ / báo cáo mô phỏng. BN không xạ nữa thì chọn &quot;Không xạ&quot;.&#x27;);
       if (ctx.user.vai_tro !== &#x27;ADMIN&#x27;) {
         if (myDoctors(ctx.user).indexOf(p.bs_email) &lt; 0) fail(&#x27;Chỉ bác sĩ điều trị hoặc quản trị được huỷ hồ sơ này.&#x27;);
         if (fxOf(p, ctx.fractions).length) fail(&#x27;BN đã có buổi xạ, chỉ quản trị được huỷ hồ sơ.&#x27;);
@@ -3005,7 +3009,7 @@ var RT = (function () {
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
-    scheduleLabel: scheduleLabel, isOpen: isOpen, lenientEdit: lenientEdit, FIELD_LABELS: FIELD_LABELS, missingRx: missingRx, needsOffDay: needsOffDay, offDay: offDay, viTris: viTris, canTreat: canTreat, dosePerFx: dosePerFx,
+    scheduleLabel: scheduleLabel, isOpen: isOpen, lenientEdit: lenientEdit, FIELD_LABELS: FIELD_LABELS, missingRx: missingRx, needsOffDay: needsOffDay, offDay: offDay, viTris: viTris, canTreat: canTreat, canCancel: canCancel, dosePerFx: dosePerFx,
     addDays: addDays, diffDays: diffDays, dow: dow, monday: monday, isDate: isDate, num: num, splitList: splitList, fxOf: fxOf
   };
 })();
@@ -3744,6 +3748,8 @@ var RT = (function () {
   /** Các bác sĩ mà người này phụ trách bệnh nhân: chính mình + bác sĩ chính nếu là trợ lý */
   function myDoctors(u) { return u ? [u.email].concat(u.tro_ly_cho &amp;&amp; u.vai_tro === &#x27;BS&#x27; ? [u.tro_ly_cho] : []) : []; }
   /** Được đứng tên BS điều trị: bác sĩ đang hoạt động; BS trợ lý chỉ khi Quản trị tích &quot;Được làm BS điều trị&quot; (nhan_bn) */
+  /** Huỷ hồ sơ chỉ khi BN CHƯA mô phỏng (Chờ mô phỏng, hoặc chờ phân loại không có ngày mô phỏng / buổi xạ). Đã mô phỏng → chỉ Không xạ. */
+  function canCancel(p, fractions) { return p.trang_thai === &#x27;MO_PHONG&#x27; || (p.trang_thai === &#x27;CHO_PL&#x27; &amp;&amp; !p.ngay_mo_phong &amp;&amp; !fxOf(p, fractions || []).length); }
   function canTreat(u) { return !!u &amp;&amp; u.kich_hoat !== &#x27;Không&#x27; &amp;&amp; (u.vai_tro === &#x27;BS&#x27; || u.vai_tro === &#x27;ADMIN&#x27;) &amp;&amp; !(u.vai_tro === &#x27;BS&#x27; &amp;&amp; u.tro_ly_cho &amp;&amp; u.nhan_bn !== &#x27;Có&#x27;); }
   /** Chặn gán BN mới / đổi BS sang trợ lý chưa được phép (BN cũ đứng tên trợ lý giữ nguyên) */
   function checkTreat(ctx, email, old) {
@@ -4680,6 +4686,7 @@ var RT = (function () {
         return &#x27;Đã ghi &#x27; + p.ho_ten + &#x27; không xạ.&#x27;;
       }
       if (buoc === &#x27;HUY&#x27;) {
+        if (!canCancel(p, ctx.fractions)) fail(&#x27;BN đã mô phỏng: không huỷ hồ sơ được vì sẽ làm sai lệch sổ / báo cáo mô phỏng. BN không xạ nữa thì chọn &quot;Không xạ&quot;.&#x27;);
         if (!a.ly_do) fail(&#x27;Cần ghi lý do huỷ.&#x27;);
         p.trang_thai = &#x27;HUY&#x27;; note(p, ctx.today, &#x27;Huỷ khi phân loại: &#x27; + a.ly_do);
         save(ctx, p, &#x27;Huỷ (phân loại)&#x27;, a.ly_do);
@@ -5021,6 +5028,7 @@ var RT = (function () {
     deletePatient: function (ctx, a) {
       var p = findP(ctx, a.id);
       if (!a.ly_do) fail(&#x27;Cần ghi lý do huỷ hồ sơ.&#x27;);
+      if (!canCancel(p, ctx.fractions)) fail(&#x27;BN đã mô phỏng: không huỷ hồ sơ được vì sẽ làm sai lệch sổ / báo cáo mô phỏng. BN không xạ nữa thì chọn &quot;Không xạ&quot;.&#x27;);
       if (ctx.user.vai_tro !== &#x27;ADMIN&#x27;) {
         if (myDoctors(ctx.user).indexOf(p.bs_email) &lt; 0) fail(&#x27;Chỉ bác sĩ điều trị hoặc quản trị được huỷ hồ sơ này.&#x27;);
         if (fxOf(p, ctx.fractions).length) fail(&#x27;BN đã có buổi xạ, chỉ quản trị được huỷ hồ sơ.&#x27;);
@@ -5873,7 +5881,7 @@ var RT = (function () {
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
-    scheduleLabel: scheduleLabel, isOpen: isOpen, lenientEdit: lenientEdit, FIELD_LABELS: FIELD_LABELS, missingRx: missingRx, needsOffDay: needsOffDay, offDay: offDay, viTris: viTris, canTreat: canTreat, dosePerFx: dosePerFx,
+    scheduleLabel: scheduleLabel, isOpen: isOpen, lenientEdit: lenientEdit, FIELD_LABELS: FIELD_LABELS, missingRx: missingRx, needsOffDay: needsOffDay, offDay: offDay, viTris: viTris, canTreat: canTreat, canCancel: canCancel, dosePerFx: dosePerFx,
     addDays: addDays, diffDays: diffDays, dow: dow, monday: monday, isDate: isDate, num: num, splitList: splitList, fxOf: fxOf
   };
 })();
@@ -7268,6 +7276,7 @@ var XL = (function () {
     var hadFx = plFx(p);
     var fullFx = function (v) { return hadFx.length &amp;&amp; (v.buoc === &#x27;DANG_XA&#x27; || v.buoc === &#x27;TAM_NGUNG&#x27;) &amp;&amp; RT.num(v.so_buoi) === hadFx.length; };
     if (hadFx.length) STEPS_PL = STEPS_PL.filter(function (x) { return [&#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;, &#x27;HUY&#x27;].indexOf(x[0]) &gt;= 0; });
+    if (!RT.canCancel(p, S.data.fractions)) STEPS_PL = STEPS_PL.filter(function (x) { return x[0] !== &#x27;HUY&#x27;; });
     modal({ title: &#x27;Phân loại BN&#x27;, ok: &#x27;Chuyển&#x27;, wide: true,
       body: whoBox(p) + (p.ghi_chu ? &#x27;&lt;p class=&quot;muted&quot; style=&quot;white-space:pre-line&quot;&gt;&#x27; + esc(p.ghi_chu) + &#x27;&lt;/p&gt;&#x27; : &#x27;&#x27;) +
         (hadFx.length ? &#x27;&lt;div class=&quot;confirm&quot; style=&quot;cursor:default;font-weight:500&quot;&gt;Đã có &lt;b&gt;&amp;nbsp;&#x27; + hadFx.length + &#x27; buổi xạ&amp;nbsp;&lt;/b&gt; (&#x27; + fdy(hadFx[0].ngay) + &#x27; → &#x27; + fdy(hadFx[hadFx.length - 1].ngay) + &#x27;, nhập từ HIS). Chọn &lt;b&gt;&amp;nbsp;Đang xạ&amp;nbsp;&lt;/b&gt; để KTV xạ tiếp (tổng liều, số buổi chưa biết thì để trống, BS bổ sung sau), hoặc Đã xạ xong.&lt;/div&gt;&#x27; : &#x27;&#x27;) +
@@ -8405,7 +8414,7 @@ var XL = (function () {
     if (can(&#x27;replan&#x27;) &amp;&amp; (st === &#x27;DANG_XA&#x27; || st === &#x27;TAM_NGUNG&#x27;) &amp;&amp; !(S.data.phases || []).some(function (g) { return g.bn_id === p.id &amp;&amp; g.loai === &#x27;KH_LAI&#x27; &amp;&amp; !g.cat_tai &amp;&amp; g.trang_thai !== &#x27;HUY&#x27;; })) b(&#x27;replan&#x27;, &#x27;Lập lại KH&#x27;);
     if (can(&#x27;endEarly&#x27;) &amp;&amp; [&#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;].indexOf(st) &gt;= 0) b(&#x27;endEarly&#x27;, &#x27;Kết thúc sớm&#x27;, &#x27;danger&#x27;);
     if (can(&#x27;noTreat&#x27;) &amp;&amp; [&#x27;CHO_PL&#x27;, &#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;].indexOf(st) &gt;= 0 &amp;&amp; !course(p).done) b(&#x27;noTreat&#x27;, &#x27;Không xạ&#x27;, &#x27;danger&#x27;);
-    if (can(&#x27;deletePatient&#x27;) &amp;&amp; (role() === &#x27;ADMIN&#x27; || (RT.myDoctors(me()).indexOf(p.bs_email) &gt;= 0 &amp;&amp; !course(p).done))) b(&#x27;deletePatient&#x27;, &#x27;Huỷ hồ sơ&#x27;, &#x27;danger&#x27;);
+    if (can(&#x27;deletePatient&#x27;) &amp;&amp; RT.canCancel(p, S.data.fractions) &amp;&amp; (role() === &#x27;ADMIN&#x27; || RT.myDoctors(me()).indexOf(p.bs_email) &gt;= 0)) b(&#x27;deletePatient&#x27;, &#x27;Huỷ hồ sơ&#x27;, &#x27;danger&#x27;);
     return a.join(&#x27;&#x27;);
   }
 
@@ -8489,18 +8498,13 @@ var XL = (function () {
     return &#x27;&lt;div class=&quot;who-box&quot;&gt;&lt;span class=&quot;nm&quot;&gt;&#x27; + esc(p.ho_ten) + (p._g ? phTag(p._g) : &#x27;&#x27;) + &#x27;&lt;/span&gt;&lt;span&gt;&lt;span class=&quot;muted&quot;&gt;Mã HIS&lt;/span&gt; &lt;span class=&quot;his&quot;&gt;&#x27; + esc(p.ma_his) + &#x27;&lt;/span&gt;&#x27; +
       (age(p) ? &#x27; · &#x27; + age(p) : &#x27;&#x27;) + (p.gioi ? &#x27; · &#x27; + esc(p.gioi) : &#x27;&#x27;) + &#x27;&lt;/span&gt;&lt;span class=&quot;muted&quot;&gt;&#x27; + esc(p.chan_doan) + &#x27; · &#x27; + rx(p) + &#x27;&lt;/span&gt;&#x27; + (extra || &#x27;&#x27;) + &#x27;&lt;/div&gt;&#x27;;
   }
-  /** BN đã mô phỏng (đã qua bước mô phỏng, hoặc nhập từ sổ mô phỏng HIS) */
-  function simulated(p) { return [&#x27;MO_PHONG&#x27;, &#x27;HUY&#x27;].indexOf(p.trang_thai) &lt; 0 &amp;&amp; (p.trang_thai !== &#x27;CHO_PL&#x27; || !!p.ngay_mo_phong); }
-  /** Huỷ hồ sơ = nhập nhầm, không mô phỏng, không vào sổ mô phỏng (khác Không xạ: đã mô phỏng, vẫn vào sổ) */
+  /** Huỷ hồ sơ = nhập nhầm, BN CHƯA mô phỏng (không vào sổ mô phỏng). Đã mô phỏng → chỉ Không xạ (vẫn vào sổ). */
   function deleteForm(p) {
-    var sim = simulated(p), kx = sim &amp;&amp; can(&#x27;noTreat&#x27;) &amp;&amp; !course(p).done &amp;&amp; [&#x27;CHO_PL&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;].indexOf(p.trang_thai) &gt;= 0;
     modal({ title: &#x27;Huỷ hồ sơ bệnh nhân&#x27;, ok: &#x27;Huỷ hồ sơ&#x27;, btnClass: &#x27;danger&#x27;,
-      body: whoBox(p) + (sim ? &#x27;&lt;div class=&quot;confirm&quot; style=&quot;cursor:default;font-weight:500;display:block&quot;&gt;BN đã mô phỏng&#x27; + (p.ngay_mo_phong ? &#x27; (&#x27; + fdy(p.ngay_mo_phong) + &#x27;)&#x27; : &#x27;&#x27;) + &#x27;. &lt;b&gt;Huỷ hồ sơ&lt;/b&gt; chỉ dùng khi nhập nhầm: BN bị bỏ khỏi sổ mô phỏng và thống kê.&lt;br&gt;Nếu BN &lt;b&gt;không xạ nữa&lt;/b&gt;, hãy chọn &lt;b&gt;Không xạ&lt;/b&gt; để BN vẫn có trong sổ mô phỏng.&#x27; +
-          (kx ? &#x27;&lt;div style=&quot;margin-top:8px&quot;&gt;&lt;button type=&quot;button&quot; class=&quot;btn&quot; id=&quot;dl-kx&quot;&gt;Chọn Không xạ thay vì huỷ&lt;/button&gt;&lt;/div&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/div&gt;&#x27; : &#x27;&#x27;) +
-        field(&#x27;Lý do huỷ &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&#x27;, &#x27;&lt;textarea name=&quot;ly_do&quot; required&gt;&lt;/textarea&gt;&#x27;, &#x27;&#x27;, &#x27;Dùng khi nhập nhầm. Hồ sơ bị ẩn khỏi ứng dụng, không vào sổ mô phỏng, nhưng vẫn lưu trong Google Sheet.&#x27;) +
-        (sim ? &#x27;&lt;label class=&quot;confirm full&quot;&gt;&lt;input type=&quot;checkbox&quot; name=&quot;nham&quot;&gt;&lt;span&gt;BN này nhập nhầm, tôi vẫn huỷ hồ sơ (không vào sổ mô phỏng)&lt;/span&gt;&lt;/label&gt;&#x27; : &#x27;&#x27;),
-      onMount: function (form) { var b = $(&#x27;#dl-kx&#x27;, form); if (b) b.onclick = function () { closeModal(); doAction(&#x27;noTreat&#x27;, p.id); }; },
-      validate: function (v) { return !v.ly_do ? &#x27;Cần ghi lý do huỷ.&#x27; : sim &amp;&amp; !v.nham ? &#x27;BN đã mô phỏng: đánh dấu ô xác nhận nhập nhầm, hoặc chọn Không xạ.&#x27; : &#x27;&#x27;; },
+      body: whoBox(p) + &#x27;&lt;div class=&quot;confirm&quot; style=&quot;cursor:default;font-weight:500;display:block&quot;&gt;Chỉ huỷ khi &lt;b&gt;nhập nhầm&lt;/b&gt; hoặc BN &lt;b&gt;chưa mô phỏng&lt;/b&gt; mà không làm nữa.&lt;br&gt;Nếu BN &lt;b&gt;đã mô phỏng&lt;/b&gt; thì &lt;b&gt;không được huỷ&lt;/b&gt; vì sẽ làm sai lệch báo cáo mô phỏng: bấm “Đã mô phỏng xong” trước, rồi chọn &lt;b&gt;Không xạ&lt;/b&gt;.&lt;/div&gt;&#x27; +
+        field(&#x27;Lý do huỷ &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&#x27;, &#x27;&lt;textarea name=&quot;ly_do&quot; required&gt;&lt;/textarea&gt;&#x27;, &#x27;&#x27;, &#x27;Hồ sơ bị ẩn khỏi ứng dụng, không vào sổ mô phỏng, nhưng vẫn lưu trong Google Sheet.&#x27;) +
+        &#x27;&lt;label class=&quot;confirm full&quot;&gt;&lt;input type=&quot;checkbox&quot; name=&quot;chua_mp&quot;&gt;&lt;span&gt;Tôi xác nhận BN &lt;b&gt;chưa mô phỏng&lt;/b&gt; (hoặc nhập nhầm)&lt;/span&gt;&lt;/label&gt;&#x27;,
+      validate: function (v) { return !v.ly_do ? &#x27;Cần ghi lý do huỷ.&#x27; : !v.chua_mp ? &#x27;Đánh dấu ô xác nhận BN chưa mô phỏng.&#x27; : &#x27;&#x27;; },
       onOk: function (v) { closeDetail(); run(&#x27;deletePatient&#x27;, { id: p.id, ly_do: v.ly_do }); } });
   }
   function reasonForm(title, p, label, ok, onOk, help) {

@@ -152,6 +152,8 @@ var RT = (function () {
   /** Các bác sĩ mà người này phụ trách bệnh nhân: chính mình + bác sĩ chính nếu là trợ lý */
   function myDoctors(u) { return u ? [u.email].concat(u.tro_ly_cho && u.vai_tro === 'BS' ? [u.tro_ly_cho] : []) : []; }
   /** Được đứng tên BS điều trị: bác sĩ đang hoạt động; BS trợ lý chỉ khi Quản trị tích "Được làm BS điều trị" (nhan_bn) */
+  /** Huỷ hồ sơ chỉ khi BN CHƯA mô phỏng (Chờ mô phỏng, hoặc chờ phân loại không có ngày mô phỏng / buổi xạ). Đã mô phỏng → chỉ Không xạ. */
+  function canCancel(p, fractions) { return p.trang_thai === 'MO_PHONG' || (p.trang_thai === 'CHO_PL' && !p.ngay_mo_phong && !fxOf(p, fractions || []).length); }
   function canTreat(u) { return !!u && u.kich_hoat !== 'Không' && (u.vai_tro === 'BS' || u.vai_tro === 'ADMIN') && !(u.vai_tro === 'BS' && u.tro_ly_cho && u.nhan_bn !== 'Có'); }
   /** Chặn gán BN mới / đổi BS sang trợ lý chưa được phép (BN cũ đứng tên trợ lý giữ nguyên) */
   function checkTreat(ctx, email, old) {
@@ -1088,6 +1090,7 @@ var RT = (function () {
         return 'Đã ghi ' + p.ho_ten + ' không xạ.';
       }
       if (buoc === 'HUY') {
+        if (!canCancel(p, ctx.fractions)) fail('BN đã mô phỏng: không huỷ hồ sơ được vì sẽ làm sai lệch sổ / báo cáo mô phỏng. BN không xạ nữa thì chọn "Không xạ".');
         if (!a.ly_do) fail('Cần ghi lý do huỷ.');
         p.trang_thai = 'HUY'; note(p, ctx.today, 'Huỷ khi phân loại: ' + a.ly_do);
         save(ctx, p, 'Huỷ (phân loại)', a.ly_do);
@@ -1429,6 +1432,7 @@ var RT = (function () {
     deletePatient: function (ctx, a) {
       var p = findP(ctx, a.id);
       if (!a.ly_do) fail('Cần ghi lý do huỷ hồ sơ.');
+      if (!canCancel(p, ctx.fractions)) fail('BN đã mô phỏng: không huỷ hồ sơ được vì sẽ làm sai lệch sổ / báo cáo mô phỏng. BN không xạ nữa thì chọn "Không xạ".');
       if (ctx.user.vai_tro !== 'ADMIN') {
         if (myDoctors(ctx.user).indexOf(p.bs_email) < 0) fail('Chỉ bác sĩ điều trị hoặc quản trị được huỷ hồ sơ này.');
         if (fxOf(p, ctx.fractions).length) fail('BN đã có buổi xạ, chỉ quản trị được huỷ hồ sơ.');
@@ -2281,7 +2285,7 @@ var RT = (function () {
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
-    scheduleLabel: scheduleLabel, isOpen: isOpen, lenientEdit: lenientEdit, FIELD_LABELS: FIELD_LABELS, missingRx: missingRx, needsOffDay: needsOffDay, offDay: offDay, viTris: viTris, canTreat: canTreat, dosePerFx: dosePerFx,
+    scheduleLabel: scheduleLabel, isOpen: isOpen, lenientEdit: lenientEdit, FIELD_LABELS: FIELD_LABELS, missingRx: missingRx, needsOffDay: needsOffDay, offDay: offDay, viTris: viTris, canTreat: canTreat, canCancel: canCancel, dosePerFx: dosePerFx,
     addDays: addDays, diffDays: diffDays, dow: dow, monday: monday, isDate: isDate, num: num, splitList: splitList, fxOf: fxOf
   };
 })();

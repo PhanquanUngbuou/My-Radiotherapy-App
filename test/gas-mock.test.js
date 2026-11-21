@@ -63,7 +63,7 @@ assert(!r.ok && /danh sách bác sĩ/.test(r.error), 'BS điều trị phải l�
 r = ok('ktv@x.vn', 'createPatient', { ma_his: '0125', ho_ten: 'Nhập bởi KTV', nam_sinh: '1960', icd: 'C50.9', chan_doan: 'K', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25', bs_email: 'bs@x.vn', trang_thai: 'MO_PHONG' });
 let byKtv = r.data.patients.find(x => x.ma_his === '0125');
 assert.strictEqual(byKtv.nguoi_nhap, 'ktv@x.vn'); assert.strictEqual(byKtv.bs_email, 'bs@x.vn');
-ok('ks@x.vn', 'createPatient', { ma_his: '0126', ho_ten: 'Nhập bởi KS', nam_sinh: '1960', icd: 'C50.9', chan_doan: 'K', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25', bs_email: 'bs@x.vn' });
+ok('ks@x.vn', 'createPatient', { ma_his: '0126', ho_ten: 'Nhập bởi KS', nam_sinh: '1960', icd: 'C50.9', chan_doan: 'K', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25', bs_email: 'bs@x.vn', trang_thai: 'MO_PHONG' });
 assert(!api('ktv@x.vn', 'updatePatient', { id: byKtv.id, tong_lieu: '60' }).ok, 'KTV không sửa chỉ định');
 ok('bs@x.vn', 'deletePatient', { id: byKtv.id, ly_do: 'test' });
 ok('bs@x.vn', 'deletePatient', { id: r.data.patients.find(x => x.ma_his === '0125').id === byKtv.id ? ok('admin@x.vn', 'bootstrap').data.patients.find(x => x.ma_his === '0126').id : '', ly_do: 'test' });
@@ -135,13 +135,17 @@ r = ok('admin@x.vn', 'getLog');
 assert(r.log.length > 10 && r.log[0].thao_tac);
 assert(!api('bs@x.vn', 'getLog').ok);
 // Huỷ hồ sơ
-r = ok('bs@x.vn', 'createPatient', { ma_his: '999', ho_ten: 'Nhầm', nam_sinh: '1960', icd: 'C50.9', chan_doan: 'K', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25' });
+r = ok('bs@x.vn', 'createPatient', { ma_his: '999', ho_ten: 'Nhầm', nam_sinh: '1960', icd: 'C50.9', chan_doan: 'K', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25', trang_thai: 'MO_PHONG' });
 const nid = r.data.patients.find(x => x.ma_his === '999').id;
 r = ok('bs@x.vn', 'deletePatient', { id: nid, ly_do: 'nhập nhầm' });
 assert(!r.data.patients.some(x => x.id === nid), 'hồ sơ huỷ bị ẩn');
+r = ok('bs@x.vn', 'createPatient', { ma_his: '998', ho_ten: 'Đã Mô Phỏng', nam_sinh: '1960', icd: 'C50', chan_doan: 'K', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25', trang_thai: 'CONTOUR' });
+const sid = r.data.patients.find(x => x.ma_his === '998').id;
+assert(!api('admin@x.vn', 'deletePatient', { id: sid, ly_do: 'x' }).ok, 'đã mô phỏng (contour) thì không huỷ được, kể cả quản trị');
+ok('bs@x.vn', 'noTreat', { id: sid, ly_do: 'BN từ chối' });
 // Nâng cấp: chạy lại setup không làm mất dữ liệu
 vm.runInContext('setup()', ctx);
-assert.strictEqual(ok('admin@x.vn', 'bootstrap').data.patients.length, 2);
+assert.strictEqual(ok('admin@x.vn', 'bootstrap').data.patients.length, 3);
 
 // ---- Boost theo giai đoạn ----
 r = ok('bs@x.vn', 'createPatient', { ma_his: '5001', ho_ten: 'BN Boost', nam_sinh: '1960', icd: 'C50.9', chan_doan: 'K TTL', vi_tri: 'Tiểu khung', ky_thuat: 'VMAT', tong_lieu: '4', so_buoi: '2', trang_thai: 'CHO_XA', ngay_du_kien: today, boost: { ky_thuat: 'VMAT', tong_lieu: '6', so_buoi: '2', buoc: 'CONTOUR' } });
@@ -363,7 +367,7 @@ assert(!api('admin@x.vn', 'saveUser', { email: 'tl4@x.vn', ho_ten: 'X', vai_tro:
 let rTL = rep('tl@x.vn').report;
 assert(rTL.theo_bac_si.length === 1 && rTL.theo_bac_si[0].email === 'bs2@x.vn', 'trợ lý xem thống kê của bác sĩ chính');
 assert.strictEqual(rTL.tong_quan.luot_xa, 2);
-r = ok('tl@x.vn', 'createPatient', { ma_his: 'TL1', ho_ten: 'BN trợ lý', nam_sinh: '1970', bs_email: 'bs2@x.vn', trang_thai: 'CONTOUR' });
+r = ok('tl@x.vn', 'createPatient', { ma_his: 'TL1', ho_ten: 'BN trợ lý', nam_sinh: '1970', bs_email: 'bs2@x.vn', trang_thai: 'MO_PHONG' });
 ok('tl@x.vn', 'deletePatient', { id: r.data.patients.find(x => x.ma_his === 'TL1').id, ly_do: 'nhập nhầm' });
 // trợ lý chuyển thành bác sĩ chính: bỏ liên kết
 ok('admin@x.vn', 'saveUser', { email: 'tl@x.vn', ho_ten: 'BS Trợ lý', vai_tro: 'BS', khoa: 'Xạ trị theo yêu cầu', tro_ly_cho: '' });
