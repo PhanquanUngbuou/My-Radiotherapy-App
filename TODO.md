@@ -21,6 +21,8 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
    - BN đang xạ mà đang mô phỏng lại / contour / lập KH giai đoạn 2 (boost, KH lại, KH đồng thời): hiện ở ô **Đang xạ** VÀ ở ô của bước giai đoạn 2 (Chờ mô phỏng / Đang contour / Lập KH / Chờ QA) có nhãn "Boost GĐ2" / "KH lại"; trong "Tất cả BN" chỉ 1 dòng ở nhóm Đang xạ kèm nhãn giai đoạn 2 đang ở bước nào. (Chờ anh xác nhận.)
 7. **Bỏ nút "Chuyển BN giữa các BS" ở màn hình BN của tôi**; chuyển BS điều trị chỉ ở nút trong hồ sơ từng BN (có xác nhận như cũ).
 
+8. **Hồ sơ BN Chờ phân loại có nút "Phân loại"** ngay trong hồ sơ (cạnh "Sửa thông tin"), không phải thoát ra danh sách. Form Phân loại có ô Vị trí xạ (mục 5), lấy sẵn thông tin vừa sửa.
+
 ### Việc chờ dữ liệu (không phải sửa code)
 - Tối T7 (tuần này hoặc tuần sau) anh gửi Excel HIS: sổ mô phỏng từ 01/09 + thủ thuật mặt nạ + thủ thuật xạ ("máy gia tốc" = 3D, "có điều biến liều" = VMAT), **có ngày thực hiện**. Em lập bảng NhapDayDu (BS = BS chỉ định mô phỏng; liệt kê BN mà phần lớn buổi xạ dưới tên BS khác, BN có cả 3D và VMAT, BN mô phỏng 2 lần, ICD suy từ chẩn đoán cần BS kiểm tra).
 
