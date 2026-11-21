@@ -8,6 +8,12 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
 
 ## Việc chờ
 
+### v4.1 (anh yêu cầu 21/11/2026, chờ anh bảo "làm đi")
+1. **Đợt xạ mới chép sẵn chẩn đoán + ICD (cả ICD thêm)** từ đợt trước (hiện chỉ chép hành chính, BS điều trị). Vị trí, kỹ thuật, liều để trống (KH mới). BS sửa được trước khi lưu.
+2. **KS đổi kỹ thuật khi lập KH** (trước khi "Lập KH xong" chuyển QA / chờ xạ): nút "Đổi kỹ thuật" ở bước Đang lập KH / Chờ QA, có xác nhận (Trước → Sau), lưu vết, báo BS điều trị trên chuông. Áp dụng cả GĐ boost.
+3. **Vị trí xạ: dấu "+ thêm vị trí"** (như ICD thêm) khi BN xạ 2 vị trí; lưu nhiều vị trí, thống kê theo vị trí đếm BN ở mọi vị trí.
+4. **Phân loại BN đã có buổi xạ: đủ số buổi thì tự vào "Đã xạ xong"**. VD đã đếm 30 buổi, BS nhập 60 Gy / 30 buổi, chọn "Đang xạ" → ứng dụng hỏi xác nhận rồi chuyển Đã xạ xong (hiện đang báo lỗi bắt chọn lại). Sửa thông tin BN đang xạ chưa có tổng mà số buổi = số đã xạ thì đã tự hoàn thành (có sẵn).
+
 ### Việc chờ dữ liệu (không phải sửa code)
 - Tối T7 (tuần này hoặc tuần sau) anh gửi Excel HIS: sổ mô phỏng từ 01/09 + thủ thuật mặt nạ + thủ thuật xạ ("máy gia tốc" = 3D, "có điều biến liều" = VMAT), **có ngày thực hiện**. Em lập bảng NhapDayDu (BS = BS chỉ định mô phỏng; liệt kê BN mà phần lớn buổi xạ dưới tên BS khác, BN có cả 3D và VMAT, BN mô phỏng 2 lần, ICD suy từ chẩn đoán cần BS kiểm tra).
 
