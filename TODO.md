@@ -13,7 +13,7 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
    - Quản trị › sửa người dùng: ô tích **"Được làm BS điều trị"** (cột mới `nhan_bn` trong NguoiDung, chỉ hiện khi có "Trợ lý cho bác sĩ"; cần chạy `setup`).
    - Chưa tích: trợ lý không có trong danh sách chọn BS điều trị ở mọi form (thêm BN, sửa, phân loại, chuyển BS, nhập Excel HIS); máy chủ cũng chặn (createPatient, updatePatient, classifyPatient, transferDoctor). Trợ lý vẫn thêm BN cho BS chính như cũ.
    - **BN cũ đang đứng tên trợ lý: giữ nguyên** (anh chốt), chỉ chặn BN mới / đổi BS mới. Sửa thông tin BN cũ mà không đổi BS thì vẫn lưu được.
-   - Đề xuất (chờ anh xác nhận khi làm): nhập từ HIS (`importHisBook`, `importFull`) mà tên BS khớp trợ lý chưa được phép → gán BS chính của trợ lý, ghi chú vào kết quả nhập.
+   - Nhập từ HIS (`importHisBook`, `importFull`): tên BS khớp trợ lý thì **giữ đúng trợ lý làm BS điều trị** (anh chốt 22/11: có tên trên HIS nghĩa là đã được làm BS chính), không chặn; nếu trợ lý chưa được tích thì cột kết quả nhập nhắc "BS … đang là trợ lý: Quản trị tích ô Được làm BS điều trị".
 
 ### (v4.3 đã làm, xem CHANGELOG)
 
