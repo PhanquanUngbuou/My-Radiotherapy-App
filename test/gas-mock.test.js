@@ -168,7 +168,7 @@ let env2 = ctx.RT.makeEnv(today, [], r.data.exceptions, r.data.phases, 'Máy gia
 let cb = ctx.RT.course(r.data.patients.find(x => x.id === bp.id), r.data.fractions, env2);
 assert.strictEqual(cb.total, 4); assert.strictEqual(cb.doseDone, 7); assert.strictEqual(cb.doseTotal, 10);
 // Thêm boost mô phỏng lại cho BN đang xạ, rồi huỷ
-r = ok('bs@x.vn', 'addPhase', { bn_id: bp.id, ky_thuat: '3D-CRT', tong_lieu: '4', so_buoi: '2', buoc: 'MO_PHONG' });
+r = ok('bs@x.vn', 'addPhase', { bn_id: bp.id, ky_thuat: '3D-CRT', tong_lieu: '4', so_buoi: '2', buoc: 'MO_PHONG', mp_his: 'Có' });
 let g3 = r.data.phases.find(x => x.bn_id === bp.id && x.stt === '3');
 assert.strictEqual(g3.trang_thai, 'MO_PHONG');
 ok('ktv@x.vn', 'simDone', { id: g3.id, nguoi_mo_phong: ['ktv@x.vn'] });
@@ -190,8 +190,8 @@ r = ok('ktv@x.vn', 'machineUp', { id: mid });
 assert(!r.data.exceptions.some(e => e.loai === 'MAY_NGHI'));
 assert(!api('dd@x.vn', 'setDay', { bn_id: bp.id, ngay: wd, xa: false }).ok, 'ĐD không đổi lịch');
 // ---- Đợt xạ mới cho cùng BN (xạ triệu chứng vị trí khác) ----
-r = ok('bs@x.vn', 'createPatient', { ma_his: '5001', ho_ten: 'BN Boost', nam_sinh: '1960', icd: 'C50.9', chan_doan: 'Di căn xương', vi_tri: 'Cột sống L3', muc_dich: 'Giảm nhẹ / triệu chứng', ky_thuat: '3D-CRT', tong_lieu: '8', so_buoi: '1', force: true });
-assert.strictEqual(r.data.patients.filter(x => x.ma_his === '5001').length, 2);
+r = api('bs@x.vn', 'createPatient', { ma_his: '5001', ho_ten: 'BN Boost', nam_sinh: '1960', icd: 'C50.9', chan_doan: 'Di căn xương', vi_tri: 'Cột sống L3', muc_dich: 'Giảm nhẹ / triệu chứng', ky_thuat: '3D-CRT', tong_lieu: '8', so_buoi: '1', force: true });
+assert(!r.ok && /DUP_HIS/.test(r.error), 'không bao giờ thêm BN trùng mã HIS đang hoạt động (kể cả force)');
 // ---- Lưu trữ ----
 const BN = sheets.BenhNhan, head = BN.data[0];
 const ci = n => head.indexOf(n);
@@ -212,8 +212,11 @@ let lh = ok('bs@x.vn', 'lookupHis', { ma_his: '777' });
 assert(lh.his.length === 1 && lh.his[0].luu_tru === 'Có', 'tra mã HIS thấy cả đợt đã lưu trữ');
 r = api('bs@x.vn', 'createPatient', { ma_his: '777', ho_ten: 'Tên Khác', nam_sinh: '1960' });
 assert(!r.ok && /^HIS_NAME:/.test(r.error), 'mã HIS đã có với tên khác thì cảnh báo: ' + r.error);
-r = ok('bs@x.vn', 'createPatient', { ma_his: '777', ho_ten: 'Bn cũ', nam_sinh: '1960' });
-assert(r.data.patients.some(x => x.ma_his === '777'), 'cùng tên (không phân biệt hoa/dấu) thì không cảnh báo');
+r = api('bs@x.vn', 'createPatient', { ma_his: '777', ho_ten: 'Bn cũ', nam_sinh: '1960' });
+assert(!r.ok && /^HAS_HIS:/.test(r.error), 'mã HIS đã có (kể cả trong lưu trữ, tra ChiMuc): phải thêm đợt mới từ hồ sơ cũ: ' + r.error);
+assert(!api('bs@x.vn', 'createPatient', { ma_his: '777', ho_ten: 'Bn cũ', nam_sinh: '1960', dot_moi: true }).ok, 'đợt mới phải trả lời chỉ định mô phỏng lại trên HIS');
+r = ok('bs@x.vn', 'createPatient', { ma_his: '777', ho_ten: 'Bn cũ', nam_sinh: '1960', dot_moi: true, mp_his: 'Không' });
+assert(r.data.patients.some(x => x.ma_his === '777' && x.mp_his === 'Không'), 'cùng tên (không phân biệt hoa/dấu) thì không cảnh báo; lưu chỉ định mô phỏng lại');
 sr = JSON.parse(ctx.api('searchArchive', { q: 'bn cu' }));
 assert(sr.ok && sr.archive.patients.length === 1, 'tìm không dấu');
 r = ok('bs@x.vn', 'createPatient', { ma_his: '6001', ho_ten: 'Mới', nam_sinh: '1960', icd: 'C50.9', chan_doan: 'K', ky_thuat: 'IMRT', tong_lieu: '50', so_buoi: '25' });
@@ -681,7 +684,7 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   assert(nt.trang_thai === 'KHONG_XA' && /^Không xạ: /.test(nt.ly_do_ket_thuc), 'trạng thái Không xạ');
   let kr = ok('tk@x.vn', 'khoaReport', { tu: today, den: today }).kreport;
   assert(kr.mo_phong.some(x => x.ma_his === 'NT1'), 'đợt không xạ vẫn vào sổ mô phỏng');
-  r = ok('bs@x.vn', 'createPatient', { ma_his: 'NT1', ho_ten: 'V3 NT1', nam_sinh: '1960', trang_thai: 'MO_PHONG' });
+  r = ok('bs@x.vn', 'createPatient', { ma_his: 'NT1', ho_ten: 'V3 NT1', nam_sinh: '1960', trang_thai: 'MO_PHONG', dot_moi: true, mp_his: 'Có' });
   assert(!r.warn || !/đang hoạt động/.test(r.warn), 'mô phỏng lại: không báo trùng đợt đang hoạt động');
   assert.strictEqual(r.data.patients.filter(x => x.ma_his === 'NT1').length, 2, 'đợt mới');
   const nx = mk('NT2', 'CHO_XA', '3D-CRT', '6', '3'); fx(nx, 1);
@@ -1127,5 +1130,33 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   r = ok('ktv@x.vn', 'createPatient', Object.assign({ ma_his: '991004', bs_email: 'tl@x.vn' }, bn));
   assert.strictEqual(r.data.patients.find(x => x.ma_his === '991004').bs_email, 'tl@x.vn', 'được phép thì nhận BN');
   assert.strictEqual(r.data.users.find(u => u.email === 'tl@x.vn').nhan_bn, 'Có');
+}
+// v4.5: mô phỏng lại có / không chỉ định trên HIS; mặt nạ mới / dùng lại
+{
+  r = ok('bs@x.vn', 'createPatient', { ma_his: '995001', ho_ten: 'Mô Phỏng Lại', nam_sinh: '1960', icd: 'C11', chan_doan: 'K vòm', ky_thuat: 'VMAT', tong_lieu: '70', so_buoi: '35', trang_thai: 'MO_PHONG' });
+  const p = r.data.patients.find(x => x.ma_his === '995001');
+  assert.strictEqual(p.mp_his, '', 'lần mô phỏng đầu không hỏi');
+  ok('ktv@x.vn', 'simDone', { id: p.id, mat_na: '5 điểm', tiem_thuoc: 'Không' });
+  // GĐ2 mô phỏng lại, có chỉ định trên HIS, cùng loại mặt nạ
+  assert(!api('bs@x.vn', 'addPhase', { bn_id: p.id, ky_thuat: 'VMAT', tong_lieu: '10', so_buoi: '5', buoc: 'MO_PHONG' }).ok, 'phải trả lời chỉ định mô phỏng lại');
+  r = ok('bs@x.vn', 'addPhase', { bn_id: p.id, ky_thuat: 'VMAT', tong_lieu: '10', so_buoi: '5', buoc: 'MO_PHONG', mp_his: 'Có' });
+  const g2 = r.data.phases.find(g => g.bn_id === p.id && g.stt === '2');
+  assert.strictEqual(ctx.RT.prevSim(r.data, p.id, g2.id).mat_na, '5 điểm', 'lần trước mặt nạ 5 điểm');
+  assert(/dùng lại mặt nạ cũ/.test(api('ktv@x.vn', 'simDone', { id: g2.id, mat_na: '5 điểm', tiem_thuoc: 'Không' }).error), 'cùng loại: hỏi dùng lại hay mới');
+  assert(/thủ thuật làm mặt nạ trên HIS/.test(api('ktv@x.vn', 'simDone', { id: g2.id, mat_na: '5 điểm', mat_na_cu: 'Không', tiem_thuoc: 'Không' }).error), 'mặt nạ mới: xác nhận thủ thuật trên HIS');
+  ok('ktv@x.vn', 'simDone', { id: g2.id, mat_na: '5 điểm', mat_na_cu: 'Có', tiem_thuoc: 'Không' });
+  // GĐ3 mô phỏng lại không có chỉ định trên HIS, khác loại mặt nạ (chắc chắn mới)
+  r = ok('bs@x.vn', 'addPhase', { bn_id: p.id, ky_thuat: 'VMAT', tong_lieu: '10', so_buoi: '5', buoc: 'MO_PHONG', mp_his: 'Không' });
+  const g3 = r.data.phases.find(g => g.bn_id === p.id && g.stt === '3');
+  assert(/thủ thuật làm mặt nạ trên HIS/.test(api('ktv@x.vn', 'simDone', { id: g3.id, mat_na: '3 điểm', mat_na_cu: 'Có', tiem_thuoc: 'Không' }).error), 'khác loại thì là mặt nạ mới, không dùng lại được');
+  r = ok('ktv@x.vn', 'simDone', { id: g3.id, mat_na: '3 điểm', mat_na_his: true, tiem_thuoc: 'Không' });
+  assert.strictEqual(r.data.phases.find(g => g.id === g3.id).mat_na_cu, 'Không');
+  const kr = ok('admin@x.vn', 'khoaReport', { tu: today, den: today }).kreport;
+  const rows = kr.mo_phong.filter(x => x.ma_his === '995001');
+  assert.strictEqual(rows.length, 2, 'lần đầu + GĐ2 (có chỉ định) vào sổ; GĐ3 (không chỉ định) không vào sổ');
+  assert.strictEqual(rows.filter(x => x.mat_na).length, 1, 'mặt nạ dùng lại không ghi vào sổ, không tính tổng hợp');
+  // BS sửa câu trả lời sau khi tích trên HIS
+  r = ok('bs@x.vn', 'updatePhase', { id: g3.id, mp_his: 'Có' });
+  assert.strictEqual(ok('admin@x.vn', 'khoaReport', { tu: today, den: today }).kreport.mo_phong.filter(x => x.ma_his === '995001').length, 3, 'sửa thành Có thì vào sổ');
 }
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');

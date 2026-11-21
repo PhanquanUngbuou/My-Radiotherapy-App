@@ -8,26 +8,7 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
 
 ## Việc chờ
 
-### v4.5 (anh yêu cầu 22/11/2026, chờ anh bảo "làm đi")
-1. **Không bao giờ có 2 BN trùng mã HIS** (anh chốt 22/11): mã HIS đã có thì người nhập phải xem lại, mở BN đó ra và thao tác ở hồ sơ, không thêm BN mới. Đợt xạ mới của cùng BN chỉ thêm từ hồ sơ cũ (nút "Thêm đợt xạ mới").
-   - Form "Thêm bệnh nhân": gõ xong mã HIS là app kiểm tra ngay, tra trang `ChiMuc` (có mã HIS của mọi đợt, kể cả đã lưu trữ; không mở trang lưu trữ).
-   - **Có đợt đang hoạt động** (chờ phân loại, chờ mô phỏng → đang xạ, tạm ngừng): báo "BN đã có trong ứng dụng, đợt đang ở bước …", nút **"Mở hồ sơ BN"**, không cho lưu. Máy chủ chặn hẳn (bỏ "vẫn thêm" của cảnh báo trùng đợt đang hoạt động).
-   - **Chỉ có đợt đã đóng** (đã xạ xong, không xạ, kể cả trong lưu trữ): hiện danh sách đợt xạ cũ (ngày, vị trí, kỹ thuật, liều, trạng thái) và nút **"Thêm đợt xạ mới"** (chép sẵn hành chính, chẩn đoán, ICD như v4.1), không nhập lại từ đầu.
-   - Cùng mã HIS mà khác tên: giữ cảnh báo như cũ.
-   - Mô phỏng 2 lần (lần 1 lập KH xong không xạ): đợt 1 chọn "Không xạ" (vẫn vào sổ mô phỏng), lần 2 thêm đợt mới từ hồ sơ cũ → sổ mô phỏng có 2 dòng đúng thực tế.
-2. **Mô phỏng lại / mô phỏng lần 2: hỏi BS có chỉ định mô phỏng lại trên HIS không** (anh chốt 22/11):
-   - Áp dụng mọi lần mô phỏng không phải lần đầu của BN: boost / KH lại / KH đồng thời chọn "mô phỏng lại", "Mô phỏng lại (đợt mới)", thêm đợt xạ mới có bước mô phỏng.
-   - Form có câu hỏi bắt buộc **"Đã tích chỉ định mô phỏng lại trên HIS?"** Có / Không (lưu cột mới `mp_his` ở BenhNhan và GiaiDoan; cần chạy `setup`).
-   - **Có** → lần mô phỏng đó vào sổ mô phỏng (và tổng hợp mô phỏng). **Không** → vẫn theo dõi quy trình (KTV vẫn bấm mô phỏng xong, mặt nạ…) nhưng **không vào sổ mô phỏng**.
-   - Lần mô phỏng đầu tiên của BN: vào sổ như hiện nay, không hỏi.
-   - BS sửa được câu trả lời trong hồ sơ (có lưu vết) nếu sau đó mới tích trên HIS.
-3. **Mặt nạ khi mô phỏng lại: hỏi mặt nạ mới hay dùng lại mặt nạ cũ** (anh chốt 22/11):
-   - Áp dụng khi "Mô phỏng xong" cho KH lần 2 / KH lại / KH đồng thời / boost / đợt mới (mọi lần mô phỏng không phải lần đầu). Không có mặt nạ ("Không") thì không hỏi.
-   - Có mặt nạ → bắt buộc chọn **Mặt nạ mới** / **Dùng lại mặt nạ cũ** (cột mới `mat_na_cu` ở BenhNhan và GiaiDoan; cần `setup`).
-   - Form "Mô phỏng xong" nói rõ cho KTV: **"Lần mô phỏng trước (ngày …) BN dùng mặt nạ <loại>. Lần này dùng mặt nạ cũ hay làm mặt nạ mới?"** (lần trước không có mặt nạ thì ghi rõ "lần trước không dùng mặt nạ").
-   - **Lần này khác loại với lần trước** (VD lần trước 5 điểm, lần này 3 điểm) hoặc lần trước không có mặt nạ: chắc chắn là mặt nạ mới, **không hỏi dùng lại** (anh chốt 22/11). Chỉ hỏi khi cùng loại.
-   - **Mặt nạ mới** (chọn mới, hoặc khác loại): KTV phải tích xác nhận **"Đã có thủ thuật làm mặt nạ trên HIS"** → vào sổ mô phỏng (cột mặt nạ) và tổng hợp mô phỏng.
-   - **Dùng lại mặt nạ cũ** = không có chỉ định trên HIS → **không ghi mặt nạ vào sổ**, không tính vào tổng hợp (anh chốt 22/11). Hồ sơ BN vẫn ghi "dùng lại mặt nạ <loại>" để KTV biết.
+### (v4.5 đã làm, xem CHANGELOG)
 
 ### (v4.4 đã làm, xem CHANGELOG)
 

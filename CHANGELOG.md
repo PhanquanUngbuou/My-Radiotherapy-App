@@ -1,5 +1,19 @@
 # Lịch sử phiên bản
 
+## v4.5
+- **Không bao giờ có 2 BN trùng mã HIS:**
+  - Form "Thêm bệnh nhân": gõ mã HIS là tra ngay (trang `ChiMuc`, gồm cả đợt đã lưu trữ).
+  - Đang có đợt hoạt động: báo bước hiện tại, nút "Mở hồ sơ BN", không cho lưu; máy chủ chặn hẳn (bỏ "vẫn tạo đợt mới").
+  - Chỉ có đợt đã kết thúc: liệt kê các đợt cũ, nút "Thêm đợt xạ mới" (chép sẵn hành chính, chẩn đoán, ICD).
+- **Mô phỏng lại / đợt mới: hỏi BS "Đã tích chỉ định mô phỏng lại trên HIS?"** (boost, KH lại, KH đồng thời chọn mô phỏng lại; đợt xạ mới):
+  - Có → vào sổ mô phỏng. Không → vẫn theo dõi quy trình, không vào sổ.
+  - BS sửa được câu trả lời trong "Sửa thông tin" / sửa giai đoạn. Hồ sơ BN hiện dòng "Mô phỏng lại".
+- **Mặt nạ khi mô phỏng lại** (form "Mô phỏng xong" của KTV):
+  - Nói rõ lần mô phỏng trước BN có dùng mặt nạ loại nào không.
+  - Cùng loại với lần trước: chọn "Dùng lại mặt nạ cũ" hoặc "Làm mặt nạ mới". Khác loại (hoặc lần trước không có): là mặt nạ mới, không hỏi.
+  - Mặt nạ mới: phải tích "Đã có thủ thuật làm mặt nạ trên HIS" → vào sổ mô phỏng và thống kê mặt nạ. Dùng lại: không ghi mặt nạ vào sổ.
+- **Cột mới `mp_his`, `mat_na_cu` (BenhNhan, GiaiDoan): cần chạy `setup` một lần.**
+
 ## v4.4
 - **BS trợ lý chỉ đứng tên BS điều trị khi Quản trị cho phép:**
   - Quản trị › sửa người dùng: ô tích "Được làm BS điều trị" (hiện khi có "Trợ lý cho bác sĩ"). Bảng người dùng ghi "chưa nhận BN" / "được làm BS điều trị".

@@ -238,7 +238,8 @@
   function errText(e) {
     var m = String(e && e.error || e || '');
     if (m.indexOf('HIS_NAME:') === 0) return 'Mã HIS này đã dùng cho bệnh nhân khác: ' + m.slice(9) + '. Kiểm tra lại mã HIS.';
-    if (m.indexOf('DUP_HIS:') === 0) return 'Mã HIS đang có đợt xạ hoạt động: ' + m.slice(8) + '.';
+    if (m.indexOf('DUP_HIS:') === 0) return 'Mã HIS đang có đợt xạ hoạt động: ' + m.slice(8) + '. Không thêm BN trùng mã HIS: mở hồ sơ BN đó để thao tác.';
+    if (m.indexOf('HAS_HIS:') === 0) return 'Mã HIS đã có trong ứng dụng: ' + m.slice(8) + '. Mở hồ sơ BN cũ và bấm “Thêm đợt xạ mới”.';
     if (m.indexOf('QUOTA:') === 0) return m.slice(6);
     if (isNetErr(m)) return 'Mất kết nối khi lưu (đã tự gửi lại 3 lần). Giữ màn hình mở, kiểm tra mạng rồi thử lại';
     return m;
@@ -2271,7 +2272,7 @@
       icdKv(p) + kvi('Chẩn đoán', p.chan_doan) + kvi('Vị trí xạ', p.vi_tri || '—') + kvi('Mục đích', p.muc_dich || '—') + kvi('Bác sĩ điều trị', nameOf(p.bs_email)) + kvi('Khoa', p.khoa) +
       kvi('Kỹ thuật', p.ky_thuat) + kvi('Tổng liều', p.tong_lieu + ' Gy / ' + p.so_buoi + ' buổi') + kvi('Liều mỗi buổi', RT.dosePerFx(p) + ' Gy') +
       (p.muc_lieu ? kvi('Các mức liều (SIB)', p.muc_lieu) : '') +
-      kvi('IGRT', p.igrt || 'Không') + kvi('SGRT', p.sgrt || 'Không') + kvi('Lịch tuần', RT.needsOffDay(p) ? 'Chưa rõ ngày nghỉ (tạm xạ cả T7)' : RT.scheduleLabel(p)) +
+      kvi('IGRT', p.igrt || 'Không') + kvi('SGRT', p.sgrt || 'Không') + kvi('Lịch tuần', RT.needsOffDay(p) ? 'Chưa rõ ngày nghỉ (tạm xạ cả T7)' : RT.scheduleLabel(p)) + (p.mp_his ? kvi('Mô phỏng lại', p.mp_his === 'Có' ? 'Có chỉ định trên HIS (vào sổ mô phỏng)' : 'Chưa có chỉ định trên HIS (không vào sổ)') : '') + (p.mat_na && p.mat_na !== 'Không' ? kvi('Mặt nạ', p.mat_na + (p.mat_na_cu === 'Có' ? ' (dùng lại mặt nạ cũ)' : '')) : '') +
       kvi('Máy', p.may || '—') + kvi('Kỹ sư lập KH', p.ks_email ? nameOf(p.ks_email) : '—') + kvi('QA', p.qa_ket_qua || '—') +
       (c.par.length ? '<div class="kv-full"><span>Hai kế hoạch xạ cùng ngày · tổng ' + c.total + ' ngày xạ</span><b>' + ['<div>' + esc(mainName(p)) + ': ' + esc(p.ky_thuat) + ' ' + c.doseTotal + ' Gy/' + c.mainTotal + ' buổi · đã xạ ' + c.mainDone + '/' + c.mainTotal + '</div>'].concat(c.par.map(function (q) { return '<div>' + esc(parName(q)) + ': ' + esc(q.ky_thuat) + ' ' + RT.num(q.g.tong_lieu) + ' Gy/' + q.total + ' buổi · đã xạ ' + q.done + '/' + q.total + '</div>'; })).join('') + '</b></div>'
         : c.multi ? kvi('Tổng cả đợt', c.doseTotal + ' Gy / ' + c.total + ' buổi') : '') +
@@ -2415,15 +2416,46 @@
     var list = ktvList();
     var sel = rosterToday(function (v) { return /mô phỏng/i.test(v); }).filter(function (e) { return list.some(function (u) { return u.email === e; }); });
     if (!sel.length) sel = S.lastSim || (role() === 'KTV' ? [me().email] : []);
+    var g = p._g, mph = g ? g.mp_his : p.mp_his, resim = !!mph, pv = resim ? RT.prevSim(S.data, g ? g.bn_id : p.id, g ? g.id : '') : null;
+    var resimBox = !resim ? '' : '<div class="confirm" style="cursor:default;font-weight:500;display:block">Mô phỏng lại. ' +
+      (pv ? 'Lần mô phỏng trước (' + fdy(pv.ngay) + '): ' + (pv.mat_na ? 'BN <b>có dùng mặt nạ ' + esc(pv.mat_na) + '</b>.' : 'BN <b>không dùng mặt nạ</b>.') : 'Không thấy lần mô phỏng trước trong ứng dụng (đợt cũ đã lưu trữ).') +
+      (mph === 'Không' ? '<br>BS ghi: <b>chưa tích chỉ định mô phỏng lại trên HIS</b>, lần mô phỏng này không vào sổ mô phỏng.' : '') + '</div>';
+    var maskQ = !resim ? '' :
+      '<div class="field full" id="mn-cu" hidden><span class="lb">Lần trước BN dùng mặt nạ ' + esc(pv ? pv.mat_na : '') + '. Lần này dùng mặt nạ cũ hay làm mặt nạ mới? <span class="req">*</span></span><div class="radios">' +
+        '<label><input type="radio" name="mat_na_cu" value="Có"><span><b>Dùng lại mặt nạ cũ</b><small>Không có thủ thuật mặt nạ trên HIS, không ghi mặt nạ vào sổ</small></span></label>' +
+        '<label><input type="radio" name="mat_na_cu" value="Không"><span><b>Làm mặt nạ mới</b><small>Phải có thủ thuật làm mặt nạ trên HIS</small></span></label></div></div>' +
+      '<p class="muted full" id="mn-new" hidden>Khác loại với lần trước (hoặc lần trước không có mặt nạ): đây là <b>mặt nạ mới</b>.</p>' +
+      '<label class="confirm full" id="mn-his" hidden><input type="checkbox" name="mat_na_his"><span>Đã có <b>thủ thuật làm mặt nạ trên HIS</b> (để vào sổ mô phỏng và thống kê mặt nạ)</span></label>';
     modal({ title: p._g ? 'Đã mô phỏng lại xong (' + phKind(p._g) + ')' : 'Đã mô phỏng xong', ok: 'Xác nhận',
-      body: whoBox(p) + '<p class="muted">Ghi nhận BN đã chụp CT mô phỏng hôm nay. BN chuyển sang bước bác sĩ contour.</p>' +
+      body: whoBox(p) + '<p class="muted">Ghi nhận BN đã chụp CT mô phỏng hôm nay. BN chuyển sang bước bác sĩ contour.</p>' + resimBox +
 
         '<div class="form">' + field('Mặt nạ <span class="req">*</span>', '<select name="mat_na">' + opts([{ v: 'Không', l: 'Không làm mặt nạ' }].concat((S.data.dm.MAT_NA || RT.DEFAULT_DM.MAT_NA).map(function (x) { return { v: x, l: 'Mặt nạ ' + x }; })), '', 'Chọn…') + '</select>') +
-        '<div class="field"><span class="lb">Tiêm thuốc cản quang <span class="req">*</span></span><div class="radios inline"><label><input type="radio" name="tiem_thuoc" value="Có"><span><b>Có</b></span></label><label><input type="radio" name="tiem_thuoc" value="Không"><span><b>Không</b></span></label></div></div></div>' +
+        maskQ + '<div class="field"><span class="lb">Tiêm thuốc cản quang <span class="req">*</span></span><div class="radios inline"><label><input type="radio" name="tiem_thuoc" value="Có"><span><b>Có</b></span></label><label><input type="radio" name="tiem_thuoc" value="Không"><span><b>Không</b></span></label></div></div></div>' +
         '<div class="field"><span class="lb">Dụng cụ khác (nếu có)</span><div class="checks">' + (S.data.dm.DUNG_CU || RT.DEFAULT_DM.DUNG_CU).map(function (x) { return '<label><input type="checkbox" name="dung_cu" data-multi="1" value="' + esc(x) + '"><span>' + esc(x) + '</span></label>'; }).join('') + '</div>' +
         '<input type="text" name="dung_cu_khac" placeholder="Khác, tự ghi" style="margin-top:6px"></div>',
-      validate: function (v) { if (!v.mat_na) return 'Chọn có làm mặt nạ không.'; if (!v.tiem_thuoc) return 'Chọn có tiêm thuốc không.'; return ''; },
-      onOk: function (v) { run('simDone', { id: id, mat_na: v.mat_na, tiem_thuoc: v.tiem_thuoc, dung_cu: v.dung_cu || [], dung_cu_khac: v.dung_cu_khac }); } });
+      validate: function (v) {
+        if (!v.mat_na) return 'Chọn có làm mặt nạ không.';
+        if (resim && v.mat_na !== 'Không') {
+          var same = pv && pv.mat_na === v.mat_na;
+          if (same && !v.mat_na_cu) return 'Lần trước BN dùng mặt nạ ' + pv.mat_na + ': chọn dùng lại mặt nạ cũ hay làm mặt nạ mới.';
+          if ((!same || v.mat_na_cu === 'Không') && !v.mat_na_his) return 'Mặt nạ mới: tích xác nhận đã có thủ thuật làm mặt nạ trên HIS.';
+        }
+        if (!v.tiem_thuoc) return 'Chọn có tiêm thuốc không.'; return '';
+      },
+      onMount: function (form) {
+        var upd = function () {
+          var v = formValues(form), on = resim && v.mat_na && v.mat_na !== 'Không', same = on && pv && pv.mat_na === v.mat_na;
+          var cuBox = $('#mn-cu', form), hisBox = $('#mn-his', form), info = $('#mn-new', form);
+          if (cuBox) cuBox.hidden = !same;
+          if (info) { info.hidden = !(on && !same); }
+          if (hisBox) hisBox.hidden = !(on && (!same || v.mat_na_cu === 'Không'));
+        };
+        $$('select,input', form).forEach(function (el) { el.addEventListener('change', upd); }); upd();
+      },
+      onOk: function (v) {
+        var same = resim && pv && pv.mat_na === v.mat_na && v.mat_na !== 'Không';
+        run('simDone', { id: id, mat_na: v.mat_na, mat_na_cu: same ? v.mat_na_cu : '', mat_na_his: !!v.mat_na_his, tiem_thuoc: v.tiem_thuoc, dung_cu: v.dung_cu || [], dung_cu_khac: v.dung_cu_khac });
+      } });
   }
   /** KTV xạ ca này: theo bảng phân công máy của BN hôm nay (ca sáng / chiều), nếu không có thì lấy lần ghi trước */
   function defaultKtv(p) {
@@ -2692,6 +2724,12 @@
     ['DANG_XA', 'Đang xạ dở', 'BN đã xạ một số buổi trước khi dùng ứng dụng.']
   ];
   /** Các đợt xạ khác cùng mã HIS: đang có trên trang chính + chỉ mục lưu trữ */
+  /** Câu hỏi bắt buộc khi mô phỏng lại / đợt mới: BS đã tích chỉ định mô phỏng lại trên HIS chưa (Có → vào sổ mô phỏng) */
+  function mpHisField(attr, cur) {
+    return '<div class="field full"' + (attr || '') + '><span class="lb">Đã tích chỉ định mô phỏng lại trên HIS? <span class="req">*</span></span><div class="radios inline">' +
+      '<label><input type="radio" name="mp_his" value="Có"' + (cur === 'Có' ? ' checked' : '') + '><span><b>Có</b><small>Lần mô phỏng này vào sổ mô phỏng</small></span></label>' +
+      '<label><input type="radio" name="mp_his" value="Không"' + (cur === 'Không' ? ' checked' : '') + '><span><b>Không</b><small>Vẫn mô phỏng, nhưng không vào sổ mô phỏng</small></span></label></div></div>';
+  }
   function hisMatches(ma, exceptId) {
     if (!ma) return [];
     var seen = {}, out = [];
@@ -2717,7 +2755,7 @@
     var mucDich = d.MUC_DICH || RT.DEFAULT_DM.MUC_DICH;
     var bsList = treatDoctors().map(function (u) { return { v: u.email, l: u.ho_ten }; });
     var inp = function (name, type, attrs) { return '<input type="' + (type || 'text') + '" name="' + name + '" value="' + esc(v0[name] || '') + '" ' + (attrs || '') + '>'; };
-    var exceptId = p ? p.id : '';
+    var exceptId = p ? p.id : '', dotMoi = !!(isNew && prefill && prefill._force);
     modal({
       title: prefill && prefill._retry ? 'Thêm bệnh nhân: chưa lưu được' : prefill ? 'Đợt xạ mới · ' + prefill.ho_ten : isNew ? 'Thêm bệnh nhân' : 'Sửa thông tin bệnh nhân',
       ok: prefill && prefill._retry ? 'Gửi lại' : prefill ? 'Tạo đợt xạ mới' : isNew ? 'Thêm bệnh nhân' : 'Lưu thay đổi',
@@ -2726,6 +2764,8 @@
         field('Mã BN trên HIS <span class="req">*</span>', inp('ma_his', 'text', 'inputmode="numeric" autocomplete="off"'), '', 'Dùng để tra cứu, khớp với HIS') +
         field('Họ và tên <span class="req">*</span>', inp('ho_ten')) +
         '<div class="full his-note" id="his-note" hidden></div>' +
+        (dotMoi ? mpHisField('', prefill.mp_his) : '') +
+        (!isNew && p.mp_his ? field('Chỉ định mô phỏng lại trên HIS', '<select name="mp_his">' + opts([{ v: 'Có', l: 'Có (vào sổ mô phỏng)' }, { v: 'Không', l: 'Không (không vào sổ mô phỏng)' }], p.mp_his) + '</select>') : '') +
         field('Năm sinh hoặc tuổi <span class="req">*</span>', inp('nam_sinh', 'number', 'min="0" max="2100" placeholder="VD: 1965 hoặc 61"')) +
         field('Giới', '<select name="gioi">' + opts(['Nam', 'Nữ'], v0.gioi, '—') + '</select>') +
         (isNew ? field('Bước hiện tại của bệnh nhân <span class="req">*</span>', '<select name="trang_thai" id="step-sel">' + opts(STEPS.map(function (x) { return { v: x[0], l: x[1] }; }), (prefill && prefill._step) || '', 'Chọn bước…') + '</select>', 'full', '<span id="step-help">Bấm để chọn: chưa mô phỏng, đang contour, chờ lập KH…</span>') +
@@ -2798,9 +2838,33 @@
           if (!ma || (!isNew && ma === p.ma_his && RT.fold(nameEl.value) === RT.fold(p.ho_ten))) { note.hidden = true; return; }
           var list = hisMatches(ma, exceptId);
           if (!list.length) { note.hidden = true; return; }
+          if (isNew && !dotMoi) {
+            // Không bao giờ thêm BN trùng mã HIS: mở hồ sơ cũ hoặc thêm đợt mới từ hồ sơ cũ
+            var act = list.filter(function (x) { return ['HOAN_THANH', 'HUY', 'KHONG_XA'].indexOf(x.trang_thai) < 0 && x.luu_tru !== 'Có' && !x._arch; })[0];
+            var last = list.slice().sort(function (a, b) { return String(b.ngay_tao || b.id) > String(a.ngay_tao || a.id) ? 1 : -1; })[0];
+            note.className = 'full his-note bad';
+            var nh = '<b>Mã HIS ' + esc(ma) + ' đã có trong ứng dụng.</b> Không thêm BN mới trùng mã HIS. ' + (act ? 'BN đang có đợt xạ ở bước <b>' + esc(RT.STATUS[act.trang_thai] || act.trang_thai) + '</b>: mở hồ sơ để thao tác.' : 'Các đợt xạ trước đã kết thúc: thêm đợt xạ mới từ hồ sơ cũ.') +
+              '<ul>' + list.slice(0, 6).map(function (x) {
+                return '<li><span class="mono">' + esc(x.id) + '</span> · ' + esc(x.ho_ten) + ' · ' + esc(x.vi_tri || x.chan_doan || '—') + ' · ' + esc(x.ky_thuat || '') + (x.tong_lieu ? ' ' + esc(x.tong_lieu) + ' Gy/' + esc(x.so_buoi || '?') : '') +
+                  ' · <b>' + esc(RT.STATUS[x.trang_thai] || x.trang_thai) + '</b>' + (x.ngay_bat_dau ? ' · ' + fdy(x.ngay_bat_dau) + (x.ngay_ket_thuc ? ' → ' + fdy(x.ngay_ket_thuc) : '') : '') + (x.luu_tru === 'Có' || x._arch ? ' · <i>lưu trữ</i>' : '') + '</li>';
+              }).join('') + '</ul>' +
+              (act ? (byId(act.id) ? '<button type="button" class="btn primary sm" id="his-open">Mở hồ sơ BN</button>' : '') :
+                '<button type="button" class="btn primary sm" id="his-new">Thêm đợt xạ mới</button>' + (byId(last.id) ? ' <button type="button" class="btn sm" id="his-open">Mở hồ sơ đợt gần nhất</button>' : ''));
+            if (note.dataset.k === nh && !note.hidden) return;
+            note.dataset.k = nh; note.innerHTML = nh;
+            note.hidden = false;
+            var ob = $('#his-open', note), nb = $('#his-new', note);
+            if (ob) ob.onclick = function () { closeModal(); openDetail((act || last).id); };
+            if (nb) nb.onclick = function () {
+              closeModal();
+              patientForm(null, { ma_his: last.ma_his, ho_ten: last.ho_ten, nam_sinh: last.nam_sinh, gioi: last.gioi, khoa: last.khoa, bs_email: last.bs_email, chan_doan: last.chan_doan, icd: last.icd, icd_phu: last.icd_phu,
+                uu_tien: 'Thường', igrt: 'Không', sgrt: 'Không', muc_dich: 'Giảm nhẹ / triệu chứng', _force: true });
+            };
+            return;
+          }
           var diff = nameEl.value.trim() && list.filter(function (x) { return RT.fold(x.ho_ten) !== RT.fold(nameEl.value); })[0];
           var cur = list[0];
-          note.className = 'full his-note' + (diff ? ' bad' : '');
+          note.dataset.k = ''; note.className = 'full his-note' + (diff ? ' bad' : '');
           note.innerHTML = (diff ? '<b>Cảnh báo: mã HIS này đã dùng cho bệnh nhân tên “' + esc(diff.ho_ten) + '”</b>, khác tên đang nhập. Kiểm tra lại mã HIS trước khi lưu.<br>' : '') +
             'Mã HIS <b class="mono">' + esc(ma) + '</b> đã có ' + list.length + ' đợt xạ:<ul>' + list.slice(0, 6).map(function (x) {
               return '<li><span class="mono">' + esc(x.id) + '</span> · ' + esc(x.ho_ten) + (x.nam_sinh ? ' (' + esc(x.nam_sinh) + ')' : '') + ' · ' + esc(x.vi_tri || x.chan_doan || '—') +
@@ -2822,6 +2886,8 @@
       },
       validate: function (v) {
         if (!v.ma_his) return 'Cần nhập mã BN trên HIS.';
+        if (isNew && !dotMoi && hisMatches(v.ma_his, exceptId).length) return 'Mã HIS này đã có trong ứng dụng: mở hồ sơ BN cũ (hoặc “Thêm đợt xạ mới”), không thêm BN trùng mã HIS.';
+        if (dotMoi && !v.mp_his) return 'Trả lời: BS đã tích chỉ định mô phỏng lại trên HIS chưa?';
         if (!v.ho_ten) return 'Cần nhập họ tên.';
         if (!v.nam_sinh) return 'Cần nhập năm sinh hoặc tuổi.';
         if (isNew && !v.trang_thai) return 'Cần chọn bước hiện tại của bệnh nhân (chưa mô phỏng, đang contour…).';
@@ -2853,16 +2919,20 @@
         if (isNew) {
           if (v.co_boost) v.boost = { ky_thuat: v.b_ky_thuat, tong_lieu: v.b_tong_lieu, so_buoi: v.b_so_buoi, buoc: v.b_buoc };
           ['co_boost', 'b_ky_thuat', 'b_tong_lieu', 'b_so_buoi', 'b_buoc'].forEach(function (k) { v[k] = undefined; });
-          if (prefill && prefill._force) v.force = true;
+          if (dotMoi) v.dot_moi = true;
         } else v.id = p.id;
         var action = isNew ? 'createPatient' : 'updatePatient';
         var send = function () {
           var onErr = function (e) {
             var m = String(e.error);
-            if (m.indexOf('DUP_HIS:') === 0) {
-              modal({ title: 'Mã HIS đã có đợt xạ đang hoạt động', body: '<p>Mã HIS <b class="mono">' + esc(v.ma_his) + '</b> đang có đợt xạ: <b>' + esc(m.slice(8)) + '</b>.</p><p>Chỉ tạo thêm nếu đây là một đợt xạ mới của cùng bệnh nhân (VD: xạ vị trí khác).</p>',
-                ok: 'Vẫn tạo đợt mới', btnClass: 'danger', onOk: function () { v.force = true; send(); } });
+            if (m.indexOf('HAS_HIS:') === 0) {
+              modal({ title: 'Mã HIS đã có trong ứng dụng', body: '<p>Mã HIS <b class="mono">' + esc(v.ma_his) + '</b> đã có: <b>' + esc(m.slice(8)) + '</b>.</p><p>Không thêm BN trùng mã HIS. Nếu BN quay lại xạ, tạo <b>đợt xạ mới</b> từ hồ sơ cũ.</p>',
+                ok: 'Thêm đợt xạ mới', onOk: function () { var b2 = JSON.parse(JSON.stringify(raw)); b2._force = true; patientForm(null, b2); } });
               return true;
+            }
+            if (m.indexOf('DUP_HIS:') === 0) {
+              return modal({ title: 'Mã HIS đang có đợt xạ hoạt động', body: '<p>Mã HIS <b class="mono">' + esc(v.ma_his) + '</b> đang có đợt xạ: <b>' + esc(m.slice(8)) + '</b>.</p><p>Không thêm BN trùng mã HIS. Mở hồ sơ BN đó để thao tác.</p>',
+                ok: 'Tìm BN này', onOk: function () { S.q = v.ma_his; S.tab = 'all'; render(); } }) || true;
             }
             if (m.indexOf('HIS_NAME:') === 0) {
               modal({ title: 'Mã HIS đã dùng cho bệnh nhân khác tên', body: '<p>Mã HIS <b class="mono">' + esc(v.ma_his) + '</b> đã có trong hệ thống với tên <b>' + esc(m.slice(9)) + '</b>, khác tên đang nhập <b>' + esc(v.ho_ten) + '</b>.</p>' +
@@ -2926,7 +2996,8 @@
         (isNew ? '<div class="field full"><span class="lb">Lập kế hoạch</span><div class="radios">' + BOOST_KINDS.map(function (k, i) {
           var dis = k[0] === 'CUNG_LUC' && ['CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA'].indexOf(p.trang_thai) < 0;
           return '<label' + (dis ? ' style="opacity:.5"' : '') + '><input type="radio" name="buoc" value="' + k[0] + '"' + ((dis ? i === 1 : i === 0) ? ' checked' : '') + (dis ? ' disabled' : '') + '><span><b>' + k[1] + '</b><small>' + k[2] + '</small></span></label>';
-        }).join('') + '</div></div>' + '<div class="field" data-sim><label>Hẹn mô phỏng lại</label><input type="date" name="ngay_mo_phong" min="' + today() + '"></div>' : '') +
+        }).join('') + '</div></div>' + '<div class="field" data-sim><label>Hẹn mô phỏng lại</label><input type="date" name="ngay_mo_phong" min="' + today() + '"></div>' + mpHisField(' data-sim') : '') +
+        (!isNew && g.mp_his ? mpHisField('', g.mp_his) : '') +
         field('Ghi chú', '<textarea name="ghi_chu">' + esc(v0.ghi_chu || '') + '</textarea>', 'full') + '</div>',
       onMount: function (form) {
         var upd = function () { var v = formValues(form); $$('[data-sim]', form).forEach(function (el) { el.hidden = v.buoc !== 'MO_PHONG'; }); };
@@ -2935,6 +3006,7 @@
       },
       validate: function (v) {
         if (!v.ky_thuat) return 'Chọn kỹ thuật.';
+        if (isNew && v.buoc === 'MO_PHONG' && !v.mp_his) return 'Trả lời: BS đã tích chỉ định mô phỏng lại trên HIS chưa?';
         if (prioError(v)) return prioError(v);
         if (!(RT.num(v.tong_lieu) > 0) || !(RT.num(v.so_buoi) >= 1)) return 'Nhập liều và số buổi.';
         return '';
@@ -2971,7 +3043,7 @@
           '<label><input type="radio" name="buoc" value="MO_PHONG" checked><span><b>Mô phỏng lại</b><small>Chụp CT mô phỏng lại, rồi contour và lập KH</small></span></label>' +
           '<label><input type="radio" name="buoc" value="CONTOUR"><span><b>Contour lại trên CT cũ</b><small>BS sửa contour, kỹ sư lập KH mới</small></span></label>' +
           '<label><input type="radio" name="buoc" value="CHO_KH"><span><b>Chỉ lập lại KH</b><small>Contour giữ nguyên, kỹ sư lập KH mới</small></span></label></div></div>' +
-        '<div class="field" data-sim><label>Hẹn mô phỏng lại</label><input type="date" name="ngay_mo_phong" min="' + today() + '"></div>' +
+        '<div class="field" data-sim><label>Hẹn mô phỏng lại</label><input type="date" name="ngay_mo_phong" min="' + today() + '"></div>' + mpHisField(' data-sim') +
         '<div class="field full"><span class="lb">Trong lúc chờ KH mới</span><div class="radios">' +
           '<label><input type="radio" name="dung" value="" checked><span><b>Vẫn xạ KH cũ</b><small>Khi KH mới sẵn sàng, KH cũ dừng ở số buổi đã xạ, các buổi sau xạ KH mới</small></span></label>' +
           '<label><input type="radio" name="dung" value="1"><span><b>Tạm dừng xạ</b><small>BN chuyển sang Tạm ngừng, KH mới sẵn sàng thì tự xạ tiếp</small></span></label></div></div>' +
@@ -2986,10 +3058,11 @@
       },
       validate: function (v) {
         if (!v.ky_thuat) return 'Chọn kỹ thuật.';
+        if (v.buoc === 'MO_PHONG' && !v.mp_his) return 'Trả lời: BS đã tích chỉ định mô phỏng lại trên HIS chưa?';
         if (!(RT.num(v.tong_lieu) > 0) || !(RT.num(v.so_buoi) >= 1)) return 'Nhập liều và số buổi của KH mới.';
         return '';
       },
-      onOk: function (v) { run('replan', { id: p.id, buoc: v.buoc, ngay_mo_phong: v.buoc === 'MO_PHONG' ? v.ngay_mo_phong : '', dung_xa: !!v.dung, ky_thuat: v.ky_thuat, tong_lieu: v.tong_lieu, so_buoi: v.so_buoi, muc_lieu: v.muc_lieu, ghi_chu: v.ghi_chu }); } });
+      onOk: function (v) { run('replan', { id: p.id, buoc: v.buoc, ngay_mo_phong: v.buoc === 'MO_PHONG' ? v.ngay_mo_phong : '', mp_his: v.buoc === 'MO_PHONG' ? v.mp_his : '', dung_xa: !!v.dung, ky_thuat: v.ky_thuat, tong_lieu: v.tong_lieu, so_buoi: v.so_buoi, muc_lieu: v.muc_lieu, ghi_chu: v.ghi_chu }); } });
   }
 
   // ---------- khởi động ----------
