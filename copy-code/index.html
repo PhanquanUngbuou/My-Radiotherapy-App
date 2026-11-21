@@ -43,7 +43,7 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
   <div class="intro">
     <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v3.7</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v3.7 · bản lưu 3ffb6ea · 21/11/2026 13:31. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v3.7”.</span>
+    <span class="rev">Phiên bản v3.7 · bản lưu 6780c2a · 21/11/2026 13:33. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v3.7”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
@@ -8102,7 +8102,7 @@ var XL = (function () {
     var min = RT.addDays(t, -7);
     modal({
       title: &#x27;Xác nhận buổi xạ&#x27;, ok: &#x27;Ghi buổi xạ&#x27;, btnClass: &#x27;ok&#x27;, noFocus: true,
-      body: whoBox(p, &#x27;&lt;span style=&quot;margin-top:6px&quot;&gt;&lt;b class=&quot;num&quot; style=&quot;font-size:17px&quot;&gt;Buổi &#x27; + n + &#x27; / &#x27; + c.total + &#x27;&lt;/b&gt; &lt;span class=&quot;muted&quot;&gt;· &#x27; + c.dosePerFx + &#x27; Gy&#x27; + (c.multi &amp;&amp; !parOpen.length ? &#x27; · &#x27; + c.cur.label + &#x27; &#x27; + esc(c.cur.ky_thuat) : &#x27;&#x27;) + (parOpen.length ? &#x27; (&#x27; + esc(mainName(p)) + &#x27;) + &#x27; + parOpen.map(function (q) { return Math.round(RT.num(q.g.tong_lieu) / Math.max(1, q.total) * 100) / 100 + &#x27; Gy (&#x27; + esc(parName(q)) + &#x27;)&#x27;; }).join(&#x27; + &#x27;) : &#x27;&#x27;) + &#x27; · sau buổi này còn &#x27; + (c.total - n) + &#x27; buổi&lt;/span&gt;&lt;/span&gt;&#x27;) +
+      body: whoBox(p, &#x27;&lt;span style=&quot;margin-top:6px&quot;&gt;&lt;b class=&quot;num&quot; style=&quot;font-size:17px&quot;&gt;Buổi &#x27; + n + &#x27; / &#x27; + c.total + &#x27;&lt;/b&gt; &lt;span class=&quot;muted&quot;&gt;· &#x27; + c.dosePerFx + &#x27; Gy&#x27; + (c.multi &amp;&amp; !parOpen.length ? &#x27; · &#x27; + c.cur.label + &#x27; &#x27; + esc(c.cur.ky_thuat) : &#x27;&#x27;) + (parOpen.length ? &#x27; (&#x27; + esc(mainName(p)) + &#x27;) + &#x27; + parOpen.map(function (q) { return Math.round(RT.num(q.g.tong_lieu) / Math.max(1, q.total) * 100) / 100 + &#x27; Gy (&#x27; + esc(parName(q)) + &#x27;)&#x27;; }).join(&#x27; + &#x27;) : &#x27;&#x27;) + &#x27; · &#x27; + (c.open ? &#x27;chưa có tổng số buổi&#x27; : &#x27;sau buổi này còn &#x27; + (c.total - n) + &#x27; buổi&#x27;) + &#x27;&lt;/span&gt;&lt;/span&gt;&#x27;) +
         (hasToday ? &#x27;&lt;div class=&quot;confirm&quot; style=&quot;background:var(--crit-soft);cursor:default&quot;&gt;BN này đã có buổi xạ ghi nhận hôm nay. Kiểm tra lại trước khi ghi thêm.&lt;/div&gt;&#x27; : &#x27;&#x27;) +
         field(&#x27;Ngày xạ&#x27;, &#x27;&lt;input type=&quot;date&quot; name=&quot;ngay&quot; id=&quot;fx-day&quot; value=&quot;&#x27; + (day0 || t) + &#x27;&quot; min=&quot;&#x27; + min + &#x27;&quot; max=&quot;&#x27; + t + &#x27;&quot;&gt;&#x27;, &#x27;&#x27;, &#x27;Mặc định hôm nay. Chỉ ghi bù trong vòng 7 ngày.&#x27;) +
         &#x27;&lt;div class=&quot;field&quot; id=&quot;fx-late&quot;&gt;&lt;label&gt;Lý do ghi bù cho ngày đã qua &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&lt;/label&gt;&lt;input type=&quot;text&quot; name=&quot;ly_do_bu&quot; placeholder=&quot;VD: BN có xạ nhưng quên tích xác nhận&quot;&gt;&lt;span class=&quot;help&quot;&gt;Được lưu vết; ngày ghi bù hiện màu khác trên lịch.&lt;/span&gt;&lt;/div&gt;&#x27; +
