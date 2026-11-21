@@ -15,6 +15,12 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
    - **Chỉ có đợt đã đóng** (đã xạ xong, không xạ, kể cả trong lưu trữ): hiện danh sách đợt xạ cũ (ngày, vị trí, kỹ thuật, liều, trạng thái) và nút **"Thêm đợt xạ mới"** (chép sẵn hành chính, chẩn đoán, ICD như v4.1), không nhập lại từ đầu.
    - Cùng mã HIS mà khác tên: giữ cảnh báo như cũ.
    - Mô phỏng 2 lần (lần 1 lập KH xong không xạ): đợt 1 chọn "Không xạ" (vẫn vào sổ mô phỏng), lần 2 thêm đợt mới từ hồ sơ cũ → sổ mô phỏng có 2 dòng đúng thực tế.
+2. **Mô phỏng lại / mô phỏng lần 2: hỏi BS có chỉ định mô phỏng lại trên HIS không** (anh chốt 22/11):
+   - Áp dụng mọi lần mô phỏng không phải lần đầu của BN: boost / KH lại / KH đồng thời chọn "mô phỏng lại", "Mô phỏng lại (đợt mới)", thêm đợt xạ mới có bước mô phỏng.
+   - Form có câu hỏi bắt buộc **"Đã tích chỉ định mô phỏng lại trên HIS?"** Có / Không (lưu cột mới `mp_his` ở BenhNhan và GiaiDoan; cần chạy `setup`).
+   - **Có** → lần mô phỏng đó vào sổ mô phỏng (và tổng hợp mô phỏng). **Không** → vẫn theo dõi quy trình (KTV vẫn bấm mô phỏng xong, mặt nạ…) nhưng **không vào sổ mô phỏng**.
+   - Lần mô phỏng đầu tiên của BN: vào sổ như hiện nay, không hỏi.
+   - BS sửa được câu trả lời trong hồ sơ (có lưu vết) nếu sau đó mới tích trên HIS.
 
 ### (v4.4 đã làm, xem CHANGELOG)
 
