@@ -8,13 +8,7 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
 
 ## Việc chờ
 
-### v4.3 (anh yêu cầu 22/11/2026, chờ anh bảo "làm đi")
-1. **Thanh chọn mục ở BN của tôi (BS) nằm trên 1 dòng**, không xuống dòng:
-   - Ô gọn: số và tên trên cùng một hàng, chữ nhỏ hơn.
-   - Dòng phụ ("2 kết thúc trong 7 ngày", "1 chưa xếp lịch", "cấp cứu") thành chấm nhỏ cạnh số, rê chuột xem.
-   - Màn hình rộng: 11 ô chia đều một hàng. Màn hình hẹp / điện thoại: được xuống dòng (lưới ô gọn), anh chốt 22/11.
-
-2. **Ô "Lập KH" ở BN của tôi (Của tôi và Cả khoa): BN Chờ lập KH lên trên** (theo hàng đợi của phòng: cấp cứu → boost sắp tới lượt → nộp trước làm trước), **BN Đang lập KH xuống dưới** (cấp cứu → nộp trước; hiện đang chưa xếp, theo thứ tự nhập). Không tách thành 2 ô (anh chốt 22/11).
+### (v4.3 đã làm, xem CHANGELOG)
 
 ### (v4.1 đã làm, xem CHANGELOG)
 <!-- v4.1 cũ:

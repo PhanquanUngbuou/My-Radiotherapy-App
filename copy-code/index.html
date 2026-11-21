@@ -41,21 +41,21 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
 </style>
 <div class="wrap">
   <div class="intro">
-    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v4.2</h1>
+    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v4.3</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v4.2 · bản lưu 3bbdbc2 · 21/11/2026 17:19. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v4.2”.</span>
+    <span class="rev">Phiên bản v4.3 · bản lưu e948320 · 21/11/2026 17:46. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v4.3”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Code">Code.gs <span class="ver">· v4.2</span></h2>
+        <h2 id="h-Code">Code.gs <span class="ver">· v4.3</span></h2>
         <p>File có sẵn tên Code.gs: xoá hết nội dung cũ, dán vào.</p>
         <span class="size">657 dòng · 34 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v4.2)</button>
+      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v4.3)</button>
     </div>
-    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v4.2
+    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v4.3
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
@@ -716,13 +716,13 @@ function statsData_(ctx, tu, den) {
   <section class="card" aria-labelledby="h-Core">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Core">Core.gs <span class="ver">· v4.2</span></h2>
+        <h2 id="h-Core">Core.gs <span class="ver">· v4.3</span></h2>
         <p>Bấm + → Script (Tập lệnh), đặt tên Core.</p>
         <span class="size">2,274 dòng · 167 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v4.2)</button>
+      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v4.3)</button>
     </div>
-    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v4.2
+    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v4.3
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -733,7 +733,7 @@ function statsData_(ctx, tu, den) {
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;4.2&#x27;;
+  var VERSION = &#x27;4.3&#x27;;
 
   var STATUS_ORDER = [&#x27;CHO_PL&#x27;, &#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;, &#x27;KHONG_XA&#x27;];
   var STATUS = {
@@ -3000,14 +3000,14 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
   <section class="card" aria-labelledby="h-Index">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Index">Index.html <span class="ver">· v4.2</span></h2>
+        <h2 id="h-Index">Index.html <span class="ver">· v4.3</span></h2>
         <p>Bấm + → HTML, đặt tên Index (chữ I hoa).</p>
-        <span class="size">6,013 dòng · 506 KB</span>
+        <span class="size">6,037 dòng · 508 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v4.2)</button>
+      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v4.3)</button>
     </div>
     <textarea id="t-Index" readonly spellcheck="false" aria-label="Nội dung Index.html">&lt;!DOCTYPE html&gt;
-&lt;!-- Điều phối Xạ trị · phiên bản v4.2 --&gt;
+&lt;!-- Điều phối Xạ trị · phiên bản v4.3 --&gt;
 &lt;html lang=&quot;vi&quot;&gt;
 &lt;head&gt;
 &lt;base target=&quot;_top&quot;&gt;
@@ -3542,17 +3542,19 @@ table.rpt.grid th.d,table.rpt.grid td.d{padding:4px 3px;min-width:26px;text-alig
 .vt-row input{flex:1;min-width:0}
 .vt-add{justify-self:start;font-weight:600}
 .vt-del{min-width:36px;min-height:36px}
-/* v4.1: BN của tôi (BS): thanh chọn mục */
-.htabs{grid-template-columns:repeat(auto-fill,minmax(122px,1fr))}
-.htabs .kpi{padding:10px 12px}
-.htabs .kpi .n{font-size:24px}
+/* v4.3: BN của tôi (BS): thanh chọn mục gọn, màn rộng 1 hàng, màn hẹp xuống dòng */
+.htabs{grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
+.htabs .kpi{padding:8px 10px 9px;gap:1px;border-radius:10px;border-left:4px solid var(--k)}
+.htabs .kpi::before{display:none}
+.htabs .kpi .n{font-size:21px;display:flex;align-items:center;gap:6px}
+.htabs .kpi .l{font-size:12.5px;line-height:1.25}
+.htabs .kdot{width:8px;height:8px;border-radius:50%;background:var(--d);display:inline-block}
 .htabs .kpi.zero{opacity:.55}
-.htabs .kpi.on{opacity:1;border-color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent),var(--shadow);background:var(--accent-soft)}
+.htabs .kpi.on{opacity:1;border-color:var(--accent);border-left-color:var(--k);box-shadow:inset 0 0 0 2px var(--accent),var(--shadow);background:var(--accent-soft)}
 .htabs .kpi.on .l{color:var(--ink);font-weight:600}
-@media (max-width:760px){
-  .htabs{display:flex;overflow-x:auto;scroll-snap-type:x proximity;margin-left:-16px;margin-right:-16px;padding:2px 16px 8px;-webkit-overflow-scrolling:touch}
-  .htabs .kpi{flex:0 0 auto;min-width:112px;scroll-snap-align:start}
-}
+@media (min-width:1000px){ .htabs{grid-template-columns:repeat(11,minmax(0,1fr));gap:6px} .htabs .kpi .l{text-wrap:balance} }
+@media (min-width:1000px) and (max-width:1199px){ .htabs{gap:5px} .htabs .kpi{padding:7px 7px 8px} .htabs .kpi .l{font-size:12px} .htabs .kpi .n{font-size:19px} }
+@media (max-width:760px){ .htabs{grid-template-columns:repeat(3,minmax(0,1fr))} }
 
 &lt;/style&gt;
 &lt;/head&gt;
@@ -3580,7 +3582,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;4.2&#x27;;
+  var VERSION = &#x27;4.3&#x27;;
 
   var STATUS_ORDER = [&#x27;CHO_PL&#x27;, &#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;, &#x27;KHONG_XA&#x27;];
   var STATUS = {
@@ -6062,6 +6064,7 @@ var XL = (function () {
     return pts().filter(function (p) { if (docs.indexOf(p.bs_email) &lt; 0 || (p.trang_thai !== &#x27;DANG_XA&#x27; &amp;&amp; p.trang_thai !== &#x27;TAM_NGUNG&#x27;)) return false; var c = course(p); return c.review &amp;&amp; c.review - c.done &lt;= 2; });
   }
   function absenceAlerts() {
+    if (S.data) bellLoad();
     if (!S.data || !isDoctor(me()) || typeof pushNotes !== &#x27;function&#x27;) return;
     var list = absentLong().filter(function (p) { var k = p.id + &#x27;|&#x27; + today(); if (S.alerted[k]) return false; S.alerted[k] = 1; return true; });
     var ask = pauseAskList().filter(function (p) { var k = &#x27;tn|&#x27; + p.id + &#x27;|&#x27; + today(); if (S.alerted[k]) return false; S.alerted[k] = 1; return true; });
@@ -6069,6 +6072,7 @@ var XL = (function () {
     var notes = rv.map(function (p) { var c = course(p); return { pid: p.id, text: p.ho_ten + &#x27; (&#x27; + p.ma_his + &#x27;): &#x27; + (c.reviewWait ? &#x27;đã xạ hết &#x27; + c.review + &#x27; buổi được chuyển, cần BS đánh giá lại&#x27; : &#x27;còn &#x27; + (c.review - c.done) + &#x27; buổi tới mốc đánh giá lại (buổi &#x27; + c.review + &#x27;)&#x27;), time: &#x27;&#x27; }; }).concat(list.map(function (p) { var n = course(p).streak; return { pid: p.id, text: p.ho_ten + &#x27; (&#x27; + p.ma_his + &#x27;): vắng &#x27; + n + &#x27; buổi liên tiếp&#x27; + (n &gt;= 3 ? &#x27;, cân nhắc chuyển Tạm ngừng&#x27; : &#x27;&#x27;), time: &#x27;&#x27; }; })
       .concat(ask.map(function (p) { return { pid: p.id, text: p.ho_ten + &#x27; (&#x27; + p.ma_his + &#x27;): tạm ngừng &#x27; + daysSince(p.tam_ngung_tu) + &#x27; ngày, BN còn xạ tiếp không?&#x27;, time: &#x27;&#x27; }; })));
     if (notes.length) setTimeout(function () { pushNotes(notes); if (S.data) renderShell(); }, 0);
+    else bellSave();
   }
   /** Các &quot;việc lập kế hoạch&quot;: BN (GĐ1) và các boost đang ở bước mô phỏng → QA. Boost mượn thông tin hành chính của BN. */
   var PH_FIELDS = [&#x27;ky_thuat&#x27;, &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;, &#x27;muc_lieu&#x27;, &#x27;uu_tien&#x27;, &#x27;ly_do_uu_tien&#x27;, &#x27;tg_nop_kh&#x27;, &#x27;trang_thai&#x27;, &#x27;ngay_tao&#x27;, &#x27;ngay_mo_phong&#x27;, &#x27;ngay_contour_xong&#x27;, &#x27;ks_email&#x27;, &#x27;ngay_nhan_kh&#x27;, &#x27;ngay_kh_xong&#x27;, &#x27;can_qa&#x27;, &#x27;qa_ket_qua&#x27;, &#x27;ngay_qa&#x27;, &#x27;ghi_chu&#x27;];
@@ -6602,7 +6606,7 @@ var XL = (function () {
     var queue = RT.planningQueue(items(), boostLeft);
     var qpos = function (p) { for (var i = 0; i &lt; queue.length; i++) if (queue[i].id === p.id) return i + 1; return 0; };
     var g = {}; HOME_GROUPS.forEach(function (x) { g[x.id] = by(x.st, x.items); });
-    g.ks.sort(function (a, b) { return (a.trang_thai === &#x27;DANG_KH&#x27; ? 0 : 1) - (b.trang_thai === &#x27;DANG_KH&#x27; ? 0 : 1) || qpos(a) - qpos(b); });
+    g.ks.sort(function (a, b) { return (a.trang_thai === &#x27;DANG_KH&#x27; ? 1 : 0) - (b.trang_thai === &#x27;DANG_KH&#x27; ? 1 : 0) || (a.trang_thai === &#x27;DANG_KH&#x27; ? RT.planOrder(a, b) : qpos(a) - qpos(b)); });
     g.wait.sort(function (a, b) { return (a.ngay_du_kien || &#x27;9&#x27;) &lt; (b.ngay_du_kien || &#x27;9&#x27;) ? -1 : 1; });
     g.tx.sort(function (a, b) { return (course(b).missed.length - course(a).missed.length) || (course(a).end &lt; course(b).end ? -1 : 1); });
     var doneSoon = list.filter(function (p) { return p.trang_thai === &#x27;DANG_XA&#x27; &amp;&amp; course(p).end &amp;&amp; RT.diffDays(today(), course(p).end) &lt;= 6; }).length;
@@ -6705,7 +6709,9 @@ var XL = (function () {
     S.homeTab = cur;
     var html = &#x27;&lt;div class=&quot;kpis htabs&quot; role=&quot;tablist&quot; aria-label=&quot;Chọn nhóm bệnh nhân&quot;&gt;&#x27; + T.map(function (x) {
       var on = x[0] === cur;
-      return &#x27;&lt;button class=&quot;kpi htab&#x27; + (x[2] ? &#x27;&#x27; : &#x27; zero&#x27;) + (on ? &#x27; on&#x27; : &#x27;&#x27;) + &#x27;&quot; role=&quot;tab&quot; aria-selected=&quot;&#x27; + on + &#x27;&quot; style=&quot;--k:&#x27; + x[3] + &#x27;&quot; data-htab=&quot;&#x27; + x[0] + &#x27;&quot;&gt;&lt;span class=&quot;n&quot;&gt;&#x27; + x[2] + &#x27;&lt;/span&gt;&lt;span class=&quot;l&quot;&gt;&#x27; + esc(x[1]) + &#x27;&lt;/span&gt;&#x27; + kx(x[0]) + &#x27;&lt;/button&gt;&#x27;;
+      var ex = kx(x[0]), exT = ex.replace(/&lt;[^&gt;]+&gt;/g, &#x27;&#x27;).trim(), exC = (ex.match(/color:([^;&quot;]+)/) || [])[1] || &#x27;var(--muted)&#x27;;
+      return &#x27;&lt;button class=&quot;kpi htab&#x27; + (x[2] ? &#x27;&#x27; : &#x27; zero&#x27;) + (on ? &#x27; on&#x27; : &#x27;&#x27;) + &#x27;&quot; role=&quot;tab&quot; aria-selected=&quot;&#x27; + on + &#x27;&quot; style=&quot;--k:&#x27; + x[3] + &#x27;&quot; data-htab=&quot;&#x27; + x[0] + &#x27;&quot;&#x27; + (exT ? &#x27; title=&quot;&#x27; + esc(x[1] + &#x27;: &#x27; + exT) + &#x27;&quot;&#x27; : &#x27;&#x27;) + &#x27;&gt;&#x27; +
+        &#x27;&lt;span class=&quot;n&quot;&gt;&#x27; + x[2] + (exT ? &#x27;&lt;i class=&quot;kdot&quot; style=&quot;--d:&#x27; + exC + &#x27;&quot; aria-label=&quot;&#x27; + esc(exT) + &#x27;&quot;&gt;&lt;/i&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/span&gt;&lt;span class=&quot;l&quot;&gt;&#x27; + esc(x[1]) + &#x27;&lt;/span&gt;&lt;/button&gt;&#x27;;
     }).join(&#x27;&#x27;) + &#x27;&lt;/div&gt;&#x27;;
     var empty = function (id, title, txt) { return group(id, title, [], [C.pt], null, txt); };
     if (cur === &#x27;all&#x27;) return html + group(&#x27;all&#x27;, &#x27;Tất cả BN của tôi&#x27;, all, [C.pt2, C.dx, C.rx,
@@ -7501,6 +7507,22 @@ var XL = (function () {
 
   // ---------- Chuông: việc mới liên quan đến tôi (khi ứng dụng đang mở) ----------
   S.notes = []; S.unread = 0;
+  /** Nhớ thông báo đã báo / đã xem trong trình duyệt (theo từng tài khoản), tải lại trang không báo lại */
+  function bellKey() { return &#x27;rt.bell.&#x27; + ((me() &amp;&amp; me().email) || &#x27;&#x27;); }
+  function bellLoad() {
+    if (!S.data || !me() || S.bellUser === me().email) return;
+    S.bellUser = me().email;
+    var o = {}; try { o = JSON.parse(lsGet(bellKey()) || &#x27;{}&#x27;) || {}; } catch (e) { o = {}; }
+    S.alerted = o.alerted || {}; S.notes = o.notes || []; S.unread = o.unread || 0;
+  }
+  function bellSave() {
+    if (!S.bellUser) return;
+    var ks = Object.keys(S.alerted || {}), t = today(), keep = {};
+    // giữ khoá của hôm nay và khoá mốc đánh giá lại (không theo ngày), tối đa 600 khoá gần nhất
+    ks.slice(-600).forEach(function (k) { if (k.indexOf(&#x27;|20&#x27;) &lt; 0 || k.indexOf(t) &gt;= 0 || /^rv\|/.test(k)) keep[k] = 1; });
+    S.alerted = keep;
+    lsSet(&#x27;rt.bell.&#x27; + S.bellUser, JSON.stringify({ alerted: keep, notes: S.notes.slice(0, 50), unread: S.unread }));
+  }
   function bell() {
     return &#x27;&lt;div class=&quot;bell-wrap&quot;&gt;&lt;button class=&quot;bell&quot; id=&quot;bell&quot; aria-label=&quot;Việc mới&quot; title=&quot;Việc mới&quot;&gt;&#x27; +
       &#x27;&lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot;&gt;&lt;path d=&quot;M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8&quot;/&gt;&lt;path d=&quot;M10 21a2 2 0 0 0 4 0&quot;/&gt;&lt;/svg&gt;&#x27; +
@@ -7513,7 +7535,7 @@ var XL = (function () {
   function bindBell() {
     var b = $(&#x27;#bell&#x27;), p = $(&#x27;#bell-panel&#x27;);
     if (!b) return;
-    b.onclick = function (e) { e.stopPropagation(); p.hidden = !p.hidden; if (!p.hidden &amp;&amp; S.unread) { S.unread = 0; var n = $(&#x27;.bell-n&#x27;); if (n) n.remove(); } };
+    b.onclick = function (e) { e.stopPropagation(); p.hidden = !p.hidden; if (!p.hidden &amp;&amp; S.unread) { S.unread = 0; bellSave(); var n = $(&#x27;.bell-n&#x27;); if (n) n.remove(); } };
     $$(&#x27;[data-note]&#x27;, p).forEach(function (x) { x.onclick = function () { p.hidden = true; if (x.dataset.note) openDetail(x.dataset.note); }; });
     document.addEventListener(&#x27;click&#x27;, function (e) { if (!p.hidden &amp;&amp; !e.target.closest(&#x27;.bell-wrap&#x27;)) p.hidden = true; }, { once: true });
   }
@@ -7591,8 +7613,10 @@ var XL = (function () {
   }
   function pushNotes(list) {
     if (!list.length) return;
+    bellLoad();
     S.notes = list.concat(S.notes).slice(0, 50);
     S.unread += list.length;
+    bellSave();
     toast(list.length === 1 ? &#x27;Việc mới: &#x27; + list[0].text : list.length + &#x27; việc mới. Bấm chuông để xem.&#x27;);
   }
 

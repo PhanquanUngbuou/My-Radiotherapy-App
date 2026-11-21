@@ -1,5 +1,15 @@
 # Lịch sử phiên bản
 
+## v4.3
+- **Thanh chọn mục ở Bệnh nhân của tôi (BS) gọn hơn:**
+  - Màn hình máy tính: 11 ô trên một hàng. Màn hẹp / điện thoại: ô nhỏ, xuống dòng.
+  - Dòng phụ (sắp kết thúc, chưa xếp lịch, cấp cứu) thành chấm màu cạnh số, rê chuột xem.
+- **Ô "Lập KH"** (Của tôi và Cả khoa):
+  - BN chờ lập KH lên trên, theo hàng đợi của phòng (cấp cứu → boost sắp tới lượt → nộp trước làm trước).
+  - BN đang lập KH xuống dưới (cấp cứu → nộp trước).
+- **Chuông:** thông báo đã xem không sáng lại khi tải lại trang. Nhắc việc hằng ngày (vắng từ 2 buổi, tạm ngừng 7 ngày, mốc đánh giá lại KH) báo mỗi BN một lần mỗi ngày; danh sách việc mới giữ lại sau khi tải trang (nhớ trong trình duyệt, theo từng tài khoản).
+- Không có cột mới: không cần chạy `setup`.
+
 ## v4.2
 - Hàm **`suaLichTuan()`** (chạy tay một lần trong Apps Script, quyền Quản trị) cho BN đã nhập từ HIS bằng bản trước v4.1:
   - BN VMAT / IMRT chưa rõ lịch tuần được suy lại từ các buổi đã xạ.

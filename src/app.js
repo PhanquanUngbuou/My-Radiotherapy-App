@@ -51,6 +51,7 @@
     return pts().filter(function (p) { if (docs.indexOf(p.bs_email) < 0 || (p.trang_thai !== 'DANG_XA' && p.trang_thai !== 'TAM_NGUNG')) return false; var c = course(p); return c.review && c.review - c.done <= 2; });
   }
   function absenceAlerts() {
+    if (S.data) bellLoad();
     if (!S.data || !isDoctor(me()) || typeof pushNotes !== 'function') return;
     var list = absentLong().filter(function (p) { var k = p.id + '|' + today(); if (S.alerted[k]) return false; S.alerted[k] = 1; return true; });
     var ask = pauseAskList().filter(function (p) { var k = 'tn|' + p.id + '|' + today(); if (S.alerted[k]) return false; S.alerted[k] = 1; return true; });
@@ -58,6 +59,7 @@
     var notes = rv.map(function (p) { var c = course(p); return { pid: p.id, text: p.ho_ten + ' (' + p.ma_his + '): ' + (c.reviewWait ? 'đã xạ hết ' + c.review + ' buổi được chuyển, cần BS đánh giá lại' : 'còn ' + (c.review - c.done) + ' buổi tới mốc đánh giá lại (buổi ' + c.review + ')'), time: '' }; }).concat(list.map(function (p) { var n = course(p).streak; return { pid: p.id, text: p.ho_ten + ' (' + p.ma_his + '): vắng ' + n + ' buổi liên tiếp' + (n >= 3 ? ', cân nhắc chuyển Tạm ngừng' : ''), time: '' }; })
       .concat(ask.map(function (p) { return { pid: p.id, text: p.ho_ten + ' (' + p.ma_his + '): tạm ngừng ' + daysSince(p.tam_ngung_tu) + ' ngày, BN còn xạ tiếp không?', time: '' }; })));
     if (notes.length) setTimeout(function () { pushNotes(notes); if (S.data) renderShell(); }, 0);
+    else bellSave();
   }
   /** Các "việc lập kế hoạch": BN (GĐ1) và các boost đang ở bước mô phỏng → QA. Boost mượn thông tin hành chính của BN. */
   var PH_FIELDS = ['ky_thuat', 'tong_lieu', 'so_buoi', 'muc_lieu', 'uu_tien', 'ly_do_uu_tien', 'tg_nop_kh', 'trang_thai', 'ngay_tao', 'ngay_mo_phong', 'ngay_contour_xong', 'ks_email', 'ngay_nhan_kh', 'ngay_kh_xong', 'can_qa', 'qa_ket_qua', 'ngay_qa', 'ghi_chu'];
@@ -591,7 +593,7 @@
     var queue = RT.planningQueue(items(), boostLeft);
     var qpos = function (p) { for (var i = 0; i < queue.length; i++) if (queue[i].id === p.id) return i + 1; return 0; };
     var g = {}; HOME_GROUPS.forEach(function (x) { g[x.id] = by(x.st, x.items); });
-    g.ks.sort(function (a, b) { return (a.trang_thai === 'DANG_KH' ? 0 : 1) - (b.trang_thai === 'DANG_KH' ? 0 : 1) || qpos(a) - qpos(b); });
+    g.ks.sort(function (a, b) { return (a.trang_thai === 'DANG_KH' ? 1 : 0) - (b.trang_thai === 'DANG_KH' ? 1 : 0) || (a.trang_thai === 'DANG_KH' ? RT.planOrder(a, b) : qpos(a) - qpos(b)); });
     g.wait.sort(function (a, b) { return (a.ngay_du_kien || '9') < (b.ngay_du_kien || '9') ? -1 : 1; });
     g.tx.sort(function (a, b) { return (course(b).missed.length - course(a).missed.length) || (course(a).end < course(b).end ? -1 : 1); });
     var doneSoon = list.filter(function (p) { return p.trang_thai === 'DANG_XA' && course(p).end && RT.diffDays(today(), course(p).end) <= 6; }).length;
@@ -694,7 +696,9 @@
     S.homeTab = cur;
     var html = '<div class="kpis htabs" role="tablist" aria-label="Chọn nhóm bệnh nhân">' + T.map(function (x) {
       var on = x[0] === cur;
-      return '<button class="kpi htab' + (x[2] ? '' : ' zero') + (on ? ' on' : '') + '" role="tab" aria-selected="' + on + '" style="--k:' + x[3] + '" data-htab="' + x[0] + '"><span class="n">' + x[2] + '</span><span class="l">' + esc(x[1]) + '</span>' + kx(x[0]) + '</button>';
+      var ex = kx(x[0]), exT = ex.replace(/<[^>]+>/g, '').trim(), exC = (ex.match(/color:([^;"]+)/) || [])[1] || 'var(--muted)';
+      return '<button class="kpi htab' + (x[2] ? '' : ' zero') + (on ? ' on' : '') + '" role="tab" aria-selected="' + on + '" style="--k:' + x[3] + '" data-htab="' + x[0] + '"' + (exT ? ' title="' + esc(x[1] + ': ' + exT) + '"' : '') + '>' +
+        '<span class="n">' + x[2] + (exT ? '<i class="kdot" style="--d:' + exC + '" aria-label="' + esc(exT) + '"></i>' : '') + '</span><span class="l">' + esc(x[1]) + '</span></button>';
     }).join('') + '</div>';
     var empty = function (id, title, txt) { return group(id, title, [], [C.pt], null, txt); };
     if (cur === 'all') return html + group('all', 'Tất cả BN của tôi', all, [C.pt2, C.dx, C.rx,
@@ -1490,6 +1494,22 @@
 
   // ---------- Chuông: việc mới liên quan đến tôi (khi ứng dụng đang mở) ----------
   S.notes = []; S.unread = 0;
+  /** Nhớ thông báo đã báo / đã xem trong trình duyệt (theo từng tài khoản), tải lại trang không báo lại */
+  function bellKey() { return 'rt.bell.' + ((me() && me().email) || ''); }
+  function bellLoad() {
+    if (!S.data || !me() || S.bellUser === me().email) return;
+    S.bellUser = me().email;
+    var o = {}; try { o = JSON.parse(lsGet(bellKey()) || '{}') || {}; } catch (e) { o = {}; }
+    S.alerted = o.alerted || {}; S.notes = o.notes || []; S.unread = o.unread || 0;
+  }
+  function bellSave() {
+    if (!S.bellUser) return;
+    var ks = Object.keys(S.alerted || {}), t = today(), keep = {};
+    // giữ khoá của hôm nay và khoá mốc đánh giá lại (không theo ngày), tối đa 600 khoá gần nhất
+    ks.slice(-600).forEach(function (k) { if (k.indexOf('|20') < 0 || k.indexOf(t) >= 0 || /^rv\|/.test(k)) keep[k] = 1; });
+    S.alerted = keep;
+    lsSet('rt.bell.' + S.bellUser, JSON.stringify({ alerted: keep, notes: S.notes.slice(0, 50), unread: S.unread }));
+  }
   function bell() {
     return '<div class="bell-wrap"><button class="bell" id="bell" aria-label="Việc mới" title="Việc mới">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>' +
@@ -1502,7 +1522,7 @@
   function bindBell() {
     var b = $('#bell'), p = $('#bell-panel');
     if (!b) return;
-    b.onclick = function (e) { e.stopPropagation(); p.hidden = !p.hidden; if (!p.hidden && S.unread) { S.unread = 0; var n = $('.bell-n'); if (n) n.remove(); } };
+    b.onclick = function (e) { e.stopPropagation(); p.hidden = !p.hidden; if (!p.hidden && S.unread) { S.unread = 0; bellSave(); var n = $('.bell-n'); if (n) n.remove(); } };
     $$('[data-note]', p).forEach(function (x) { x.onclick = function () { p.hidden = true; if (x.dataset.note) openDetail(x.dataset.note); }; });
     document.addEventListener('click', function (e) { if (!p.hidden && !e.target.closest('.bell-wrap')) p.hidden = true; }, { once: true });
   }
@@ -1580,8 +1600,10 @@
   }
   function pushNotes(list) {
     if (!list.length) return;
+    bellLoad();
     S.notes = list.concat(S.notes).slice(0, 50);
     S.unread += list.length;
+    bellSave();
     toast(list.length === 1 ? 'Việc mới: ' + list[0].text : list.length + ' việc mới. Bấm chuông để xem.');
   }
 
