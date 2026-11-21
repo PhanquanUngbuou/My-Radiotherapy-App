@@ -41,21 +41,21 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
 </style>
 <div class="wrap">
   <div class="intro">
-    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v3.9</h1>
+    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v4.0</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v3.9 · bản lưu 6f61d3a · 21/11/2026 14:30. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v3.9”.</span>
+    <span class="rev">Phiên bản v4.0 · bản lưu d1343f7 · 21/11/2026 14:40. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v4.0”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Code">Code.gs <span class="ver">· v3.9</span></h2>
+        <h2 id="h-Code">Code.gs <span class="ver">· v4.0</span></h2>
         <p>File có sẵn tên Code.gs: xoá hết nội dung cũ, dán vào.</p>
         <span class="size">643 dòng · 34 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v3.9)</button>
+      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v4.0)</button>
     </div>
-    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v3.9
+    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v4.0
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
@@ -702,13 +702,13 @@ function statsData_(ctx, tu, den) {
   <section class="card" aria-labelledby="h-Core">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Core">Core.gs <span class="ver">· v3.9</span></h2>
+        <h2 id="h-Core">Core.gs <span class="ver">· v4.0</span></h2>
         <p>Bấm + → Script (Tập lệnh), đặt tên Core.</p>
-        <span class="size">2,213 dòng · 162 KB</span>
+        <span class="size">2,215 dòng · 163 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v3.9)</button>
+      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v4.0)</button>
     </div>
-    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v3.9
+    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v4.0
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -719,7 +719,7 @@ function statsData_(ctx, tu, den) {
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;3.9&#x27;;
+  var VERSION = &#x27;4.0&#x27;;
 
   var STATUS_ORDER = [&#x27;CHO_PL&#x27;, &#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;, &#x27;KHONG_XA&#x27;];
   var STATUS = {
@@ -1059,7 +1059,8 @@ var RT = (function () {
   var FULL_COLS = [[&#x27;ma_his&#x27;, &#x27;Mã HIS&#x27;], [&#x27;ho_ten&#x27;, &#x27;Họ tên&#x27;], [&#x27;nam_sinh&#x27;, &#x27;Năm sinh&#x27;], [&#x27;gioi&#x27;, &#x27;Giới&#x27;], [&#x27;chan_doan&#x27;, &#x27;Chẩn đoán&#x27;], [&#x27;icd&#x27;, &#x27;ICD&#x27;],
     [&#x27;bs&#x27;, &#x27;BS điều trị (email hoặc tên)&#x27;], [&#x27;ngay_mo_phong&#x27;, &#x27;Ngày mô phỏng&#x27;], [&#x27;tiem_thuoc&#x27;, &#x27;Tiêm thuốc (Có/Không)&#x27;], [&#x27;mat_na&#x27;, &#x27;Mặt nạ&#x27;],
     [&#x27;ky_thuat&#x27;, &#x27;Kỹ thuật&#x27;], [&#x27;ngay_xa&#x27;, &#x27;Các ngày đã xạ (dd/mm/yyyy, cách nhau dấu phẩy)&#x27;], [&#x27;tong_lieu&#x27;, &#x27;Tổng liều (Gy)&#x27;], [&#x27;so_buoi&#x27;, &#x27;Tổng số buổi&#x27;], [&#x27;ghi_chu&#x27;, &#x27;Ghi chú&#x27;],
-    [&#x27;trang_thai&#x27;, &#x27;Trạng thái (Đang xạ / Đã xạ xong / trống)&#x27;], [&#x27;ky_thuat_2&#x27;, &#x27;Kỹ thuật GĐ2&#x27;], [&#x27;ngay_xa_2&#x27;, &#x27;Các ngày xạ GĐ2&#x27;]];
+    [&#x27;trang_thai&#x27;, &#x27;Trạng thái (Đang xạ / Đã xạ xong / trống)&#x27;], [&#x27;ky_thuat_2&#x27;, &#x27;Kỹ thuật GĐ2&#x27;], [&#x27;ngay_xa_2&#x27;, &#x27;Các ngày xạ GĐ2&#x27;],
+    [&#x27;icd_phu&#x27;, &#x27;ICD thêm (BN có 2 ung thư; nhiều mã cách nhau dấu phẩy)&#x27;]];
   function isoDate(s) {
     s = String(s || &#x27;&#x27;).trim();
     var m = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(s);
@@ -1612,6 +1613,7 @@ var RT = (function () {
         var ns = String(x.nam_sinh || &#x27;&#x27;).match(/(19|20)\d\d/); p.nam_sinh = ns ? ns[0] : &#x27;&#x27;;
         var g = fold(x.gioi); p.gioi = /^n(u|ữ)/.test(g) ? &#x27;Nữ&#x27; : /^nam/.test(g) ? &#x27;Nam&#x27; : &#x27;&#x27;;
         if (x.icd) { var ic = normIcd(x.icd); if (isIcd(ic)) p.icd = ic; }
+        if (x.icd_phu) p.icd_phu = normIcdList(x.icd_phu, p.icd);
         if (num(x.tong_lieu) &gt; 0) p.tong_lieu = String(num(x.tong_lieu));
         if (num(x.so_buoi) &gt;= 1) p.so_buoi = String(Math.round(num(x.so_buoi)));
         var tt = fold(x.tiem_thuoc); p.tiem_thuoc = /^(co|x|yes|1)/.test(tt) ? &#x27;Có&#x27; : /^(khong|0|no)/.test(tt) ? &#x27;Không&#x27; : &#x27;&#x27;;
@@ -2925,14 +2927,14 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
   <section class="card" aria-labelledby="h-Index">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Index">Index.html <span class="ver">· v3.9</span></h2>
+        <h2 id="h-Index">Index.html <span class="ver">· v4.0</span></h2>
         <p>Bấm + → HTML, đặt tên Index (chữ I hoa).</p>
-        <span class="size">5,783 dòng · 487 KB</span>
+        <span class="size">5,803 dòng · 488 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v3.9)</button>
+      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v4.0)</button>
     </div>
     <textarea id="t-Index" readonly spellcheck="false" aria-label="Nội dung Index.html">&lt;!DOCTYPE html&gt;
-&lt;!-- Điều phối Xạ trị · phiên bản v3.9 --&gt;
+&lt;!-- Điều phối Xạ trị · phiên bản v4.0 --&gt;
 &lt;html lang=&quot;vi&quot;&gt;
 &lt;head&gt;
 &lt;base target=&quot;_top&quot;&gt;
@@ -3456,6 +3458,11 @@ table.rpt.grid th.d,table.rpt.grid td.d{padding:4px 3px;min-width:26px;text-alig
 .st-chips .chip b{margin-left:4px}
 .st-chips .chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 
+/* ICD: mã thêm (BN có 2 ung thư) */
+.icd-tag.sec{background:transparent;color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);font-weight:600}
+.icd-line{display:block;font-weight:500;margin:2px 0}
+.icd-line + .icd-line{margin-top:4px}
+
 &lt;/style&gt;
 &lt;/head&gt;
 &lt;body&gt;
@@ -3482,7 +3489,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;3.9&#x27;;
+  var VERSION = &#x27;4.0&#x27;;
 
   var STATUS_ORDER = [&#x27;CHO_PL&#x27;, &#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;, &#x27;KHONG_XA&#x27;];
   var STATUS = {
@@ -3822,7 +3829,8 @@ var RT = (function () {
   var FULL_COLS = [[&#x27;ma_his&#x27;, &#x27;Mã HIS&#x27;], [&#x27;ho_ten&#x27;, &#x27;Họ tên&#x27;], [&#x27;nam_sinh&#x27;, &#x27;Năm sinh&#x27;], [&#x27;gioi&#x27;, &#x27;Giới&#x27;], [&#x27;chan_doan&#x27;, &#x27;Chẩn đoán&#x27;], [&#x27;icd&#x27;, &#x27;ICD&#x27;],
     [&#x27;bs&#x27;, &#x27;BS điều trị (email hoặc tên)&#x27;], [&#x27;ngay_mo_phong&#x27;, &#x27;Ngày mô phỏng&#x27;], [&#x27;tiem_thuoc&#x27;, &#x27;Tiêm thuốc (Có/Không)&#x27;], [&#x27;mat_na&#x27;, &#x27;Mặt nạ&#x27;],
     [&#x27;ky_thuat&#x27;, &#x27;Kỹ thuật&#x27;], [&#x27;ngay_xa&#x27;, &#x27;Các ngày đã xạ (dd/mm/yyyy, cách nhau dấu phẩy)&#x27;], [&#x27;tong_lieu&#x27;, &#x27;Tổng liều (Gy)&#x27;], [&#x27;so_buoi&#x27;, &#x27;Tổng số buổi&#x27;], [&#x27;ghi_chu&#x27;, &#x27;Ghi chú&#x27;],
-    [&#x27;trang_thai&#x27;, &#x27;Trạng thái (Đang xạ / Đã xạ xong / trống)&#x27;], [&#x27;ky_thuat_2&#x27;, &#x27;Kỹ thuật GĐ2&#x27;], [&#x27;ngay_xa_2&#x27;, &#x27;Các ngày xạ GĐ2&#x27;]];
+    [&#x27;trang_thai&#x27;, &#x27;Trạng thái (Đang xạ / Đã xạ xong / trống)&#x27;], [&#x27;ky_thuat_2&#x27;, &#x27;Kỹ thuật GĐ2&#x27;], [&#x27;ngay_xa_2&#x27;, &#x27;Các ngày xạ GĐ2&#x27;],
+    [&#x27;icd_phu&#x27;, &#x27;ICD thêm (BN có 2 ung thư; nhiều mã cách nhau dấu phẩy)&#x27;]];
   function isoDate(s) {
     s = String(s || &#x27;&#x27;).trim();
     var m = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(s);
@@ -4375,6 +4383,7 @@ var RT = (function () {
         var ns = String(x.nam_sinh || &#x27;&#x27;).match(/(19|20)\d\d/); p.nam_sinh = ns ? ns[0] : &#x27;&#x27;;
         var g = fold(x.gioi); p.gioi = /^n(u|ữ)/.test(g) ? &#x27;Nữ&#x27; : /^nam/.test(g) ? &#x27;Nam&#x27; : &#x27;&#x27;;
         if (x.icd) { var ic = normIcd(x.icd); if (isIcd(ic)) p.icd = ic; }
+        if (x.icd_phu) p.icd_phu = normIcdList(x.icd_phu, p.icd);
         if (num(x.tong_lieu) &gt; 0) p.tong_lieu = String(num(x.tong_lieu));
         if (num(x.so_buoi) &gt;= 1) p.so_buoi = String(Math.round(num(x.so_buoi)));
         var tt = fold(x.tiem_thuoc); p.tiem_thuoc = /^(co|x|yes|1)/.test(tt) ? &#x27;Có&#x27; : /^(khong|0|no)/.test(tt) ? &#x27;Không&#x27; : &#x27;&#x27;;
@@ -6361,7 +6370,7 @@ var XL = (function () {
 
   var C = {
     pt: { h: &#x27;Bệnh nhân&#x27;, v: ptCell },
-    dx: { h: &#x27;Chẩn đoán&#x27;, v: function (p) { return (p.icd ? RT.icdsOf(p).map(function (c) { return &#x27;&lt;span class=&quot;icd-tag&quot;&gt;&#x27; + esc(c) + &#x27;&lt;/span&gt; &#x27;; }).join(&#x27;&#x27;) : &#x27;&#x27;) + esc(p.chan_doan) + (p.vi_tri ? &#x27;&lt;span class=&quot;sub&quot;&gt;Vị trí: &#x27; + esc(p.vi_tri) + &#x27;&lt;/span&gt;&#x27; : &#x27;&#x27;); } },
+    dx: { h: &#x27;Chẩn đoán&#x27;, v: function (p) { return icdTags(p) + esc(p.chan_doan) + (p.vi_tri ? &#x27;&lt;span class=&quot;sub&quot;&gt;Vị trí: &#x27; + esc(p.vi_tri) + &#x27;&lt;/span&gt;&#x27; : &#x27;&#x27;); } },
     rx: { h: &#x27;Kỹ thuật · liều&#x27;, v: rx, cls: &#x27;nowrap&#x27; },
     bs: { h: &#x27;BS điều trị&#x27;, v: function (p) { return esc(nameOf(p.bs_email)); }, cls: &#x27;nowrap&#x27; },
     pr: { h: &#x27;Ưu tiên&#x27;, v: prCell },
@@ -7593,7 +7602,7 @@ var XL = (function () {
       &#x27;&lt;div class=&quot;kpi&quot; style=&quot;cursor:default&quot;&gt;&lt;span class=&quot;n&quot;&gt;&#x27; + r.luot + &#x27;&lt;/span&gt;&lt;span class=&quot;l&quot;&gt;Lượt xạ trong khoảng&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&#x27;;
     html += group(&#x27;found&#x27;, &#x27;Kết quả · &#x27; + fdy(r.tu) + &#x27; → &#x27; + fdy(r.den), r.rows, [
       { h: &#x27;Bệnh nhân&#x27;, v: function (x) { return &#x27;&lt;b&gt;&#x27; + esc(x.ho_ten) + &#x27;&lt;/b&gt;&lt;span class=&quot;sub mono&quot;&gt;&#x27; + esc(x.ma_his) + (x.nam_sinh ? &#x27; · &#x27; + esc(x.nam_sinh) : &#x27;&#x27;) + (x.gioi ? &#x27; · &#x27; + esc(x.gioi) : &#x27;&#x27;) + &#x27;&lt;/span&gt;&#x27;; } },
-      { h: &#x27;Chẩn đoán&#x27;, v: function (x) { return (x.icd ? &#x27;&lt;span class=&quot;icd-tag&quot;&gt;&#x27; + esc(x.icd) + &#x27;&lt;/span&gt; &#x27; : &#x27;&#x27;) + esc(x.chan_doan || &#x27;—&#x27;) + (x.vi_tri ? &#x27;&lt;span class=&quot;sub&quot;&gt;&#x27; + esc(x.vi_tri) + &#x27;&lt;/span&gt;&#x27; : &#x27;&#x27;); } },
+      { h: &#x27;Chẩn đoán&#x27;, v: function (x) { return icdTags(x) + esc(x.chan_doan || &#x27;—&#x27;) + (x.vi_tri ? &#x27;&lt;span class=&quot;sub&quot;&gt;&#x27; + esc(x.vi_tri) + &#x27;&lt;/span&gt;&#x27; : &#x27;&#x27;); } },
       { h: &#x27;Kỹ thuật · liều&#x27;, cls: &#x27;nowrap&#x27;, v: function (x) { return esc(x.ky_thuat || &#x27;—&#x27;) + (x.tong_lieu ? &#x27;&lt;span class=&quot;sub&quot;&gt;&#x27; + esc(x.tong_lieu) + &#x27; Gy / &#x27; + esc(x.so_buoi) + &#x27; buổi&lt;/span&gt;&#x27; : &#x27;&#x27;); } },
       { h: &#x27;BS điều trị&#x27;, v: function (x) { return esc(x.bs); } },
       { h: &#x27;Thời gian xạ&#x27;, cls: &#x27;nowrap&#x27;, v: function (x) { return &#x27;&lt;span class=&quot;num&quot;&gt;&#x27; + fdy(x.ngay_bat_dau) + &#x27; → &#x27; + fdy(x.ngay_ket_thuc) + &#x27;&lt;/span&gt;&lt;span class=&quot;sub&quot;&gt;&#x27; + esc(RT.STATUS[x.trang_thai] || &#x27;&#x27;) + (x.luu_tru ? &#x27; · lưu trữ&#x27; : &#x27;&#x27;) + &#x27;&lt;/span&gt;&#x27;; } },
@@ -7653,7 +7662,7 @@ var XL = (function () {
               (list.length ? &#x27;&lt;div class=&quot;tbl-wrap&quot;&gt;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Bệnh nhân&lt;/th&gt;&lt;th&gt;Chẩn đoán&lt;/th&gt;&lt;th&gt;Kỹ thuật · liều&lt;/th&gt;&lt;th&gt;BS&lt;/th&gt;&lt;th&gt;Thời gian xạ&lt;/th&gt;&lt;th&gt;Lượt trong kỳ&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&#x27; +
                 list.map(function (x) {
                   return &#x27;&lt;tr&gt;&lt;td&gt;&lt;b&gt;&#x27; + esc(x.ho_ten) + &#x27;&lt;/b&gt;&lt;span class=&quot;sub mono&quot;&gt;&#x27; + esc(x.ma_his) + (x.nam_sinh ? &#x27; · &#x27; + esc(x.nam_sinh) : &#x27;&#x27;) + &#x27;&lt;/span&gt;&lt;/td&gt;&#x27; +
-                    &#x27;&lt;td&gt;&#x27; + (x.icd ? &#x27;&lt;span class=&quot;icd-tag&quot;&gt;&#x27; + esc(x.icd) + &#x27;&lt;/span&gt; &#x27; : &#x27;&#x27;) + esc(x.chan_doan || &#x27;—&#x27;) + (x.vi_tri ? &#x27;&lt;span class=&quot;sub&quot;&gt;&#x27; + esc(x.vi_tri) + &#x27;&lt;/span&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/td&gt;&#x27; +
+                    &#x27;&lt;td&gt;&#x27; + icdTags(x) + esc(x.chan_doan || &#x27;—&#x27;) + (x.vi_tri ? &#x27;&lt;span class=&quot;sub&quot;&gt;&#x27; + esc(x.vi_tri) + &#x27;&lt;/span&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/td&gt;&#x27; +
                     &#x27;&lt;td class=&quot;nowrap&quot;&gt;&#x27; + esc(x.ky_thuat || &#x27;—&#x27;) + (x.tong_lieu ? &#x27;&lt;span class=&quot;sub&quot;&gt;&#x27; + esc(x.tong_lieu) + &#x27; Gy / &#x27; + esc(x.so_buoi) + &#x27; buổi&lt;/span&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/td&gt;&#x27; +
                     &#x27;&lt;td class=&quot;nowrap&quot;&gt;&#x27; + esc(x.bs) + &#x27;&lt;/td&gt;&lt;td class=&quot;nowrap num&quot;&gt;&#x27; + fdy(x.ngay_bat_dau) + &#x27; → &#x27; + fdy(x.ngay_ket_thuc) + &#x27;&lt;/td&gt;&lt;td class=&quot;num&quot;&gt;&#x27; + x.luot_trong_ky + &#x27;&lt;/td&gt;&lt;/tr&gt;&#x27;;
                 }).join(&#x27;&#x27;) + &#x27;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;&#x27; : &#x27;&lt;div class=&quot;empty&quot;&gt;Không có bệnh nhân.&lt;/div&gt;&#x27;),
@@ -7965,7 +7974,7 @@ var XL = (function () {
        c.blocked &amp;&amp; p.trang_thai !== &#x27;HOAN_THANH&#x27; ? &#x27;&lt;div class=&quot;sec&quot; style=&quot;border-color:var(--crit)&quot;&gt;&lt;h3 style=&quot;color:var(--crit)&quot;&gt;BN đang chờ kế hoạch boost&lt;/h3&gt;&lt;p&gt;Đã xạ xong các giai đoạn trước. Kế hoạch &#x27; + esc(c.cur.label) + &#x27; chưa sẵn sàng nên KTV chưa ghi được buổi xạ tiếp theo.&lt;/p&gt;&lt;/div&gt;&#x27; :
         (!ro &amp;&amp; c.leftBeforeBlock &gt; 0 &amp;&amp; c.leftBeforeBlock &lt;= 5 &amp;&amp; c.readyTo &lt; c.total &amp;&amp; [&#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;].indexOf(p.trang_thai) &gt;= 0 ? &#x27;&lt;div class=&quot;sec&quot; style=&quot;border-color:var(--warn)&quot;&gt;&lt;h3 style=&quot;color:var(--warn)&quot;&gt;Sắp tới boost&lt;/h3&gt;&lt;p&gt;Còn &#x27; + c.leftBeforeBlock + &#x27; buổi nữa là hết giai đoạn hiện tại, kế hoạch boost chưa sẵn sàng.&lt;/p&gt;&lt;/div&gt;&#x27; : &#x27;&#x27;)) +
       &#x27;&lt;div class=&quot;sec&quot;&gt;&lt;h3&gt;Chỉ định&#x27; + (c.multi ? &#x27; · GĐ1&#x27; : &#x27;&#x27;) + &#x27;&lt;/h3&gt;&lt;div class=&quot;kv&quot;&gt;&#x27; +
-      kvi(&#x27;Mã ICD-10&#x27;, p.icd ? RT.icdsOf(p).map(function (c) { return c + (RT.icdName(c) ? &#x27; · &#x27; + RT.icdName(c) : &#x27;&#x27;); }).join(&#x27;; &#x27;) : &#x27;—&#x27;) + kvi(&#x27;Chẩn đoán&#x27;, p.chan_doan) + kvi(&#x27;Vị trí xạ&#x27;, p.vi_tri || &#x27;—&#x27;) + kvi(&#x27;Mục đích&#x27;, p.muc_dich || &#x27;—&#x27;) + kvi(&#x27;Bác sĩ điều trị&#x27;, nameOf(p.bs_email)) + kvi(&#x27;Khoa&#x27;, p.khoa) +
+      icdKv(p) + kvi(&#x27;Chẩn đoán&#x27;, p.chan_doan) + kvi(&#x27;Vị trí xạ&#x27;, p.vi_tri || &#x27;—&#x27;) + kvi(&#x27;Mục đích&#x27;, p.muc_dich || &#x27;—&#x27;) + kvi(&#x27;Bác sĩ điều trị&#x27;, nameOf(p.bs_email)) + kvi(&#x27;Khoa&#x27;, p.khoa) +
       kvi(&#x27;Kỹ thuật&#x27;, p.ky_thuat) + kvi(&#x27;Tổng liều&#x27;, p.tong_lieu + &#x27; Gy / &#x27; + p.so_buoi + &#x27; buổi&#x27;) + kvi(&#x27;Liều mỗi buổi&#x27;, RT.dosePerFx(p) + &#x27; Gy&#x27;) +
       (p.muc_lieu ? kvi(&#x27;Các mức liều (SIB)&#x27;, p.muc_lieu) : &#x27;&#x27;) +
       kvi(&#x27;IGRT&#x27;, p.igrt || &#x27;Không&#x27;) + kvi(&#x27;SGRT&#x27;, p.sgrt || &#x27;Không&#x27;) + kvi(&#x27;Lịch tuần&#x27;, RT.needsOffDay(p) ? &#x27;Chưa chọn ngày nghỉ&#x27; : RT.scheduleLabel(p)) +
@@ -8013,6 +8022,19 @@ var XL = (function () {
   }
   function selectText(el) { var r = document.createRange(); r.selectNodeContents(el); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); toast(&#x27;Đã chọn mã HIS, bấm Ctrl+C để sao chép.&#x27;); }
   function kvi(k, v) { return &#x27;&lt;div&gt;&lt;span&gt;&#x27; + esc(k) + &#x27;&lt;/span&gt;&lt;b&gt;&#x27; + esc(v || &#x27;—&#x27;) + &#x27;&lt;/b&gt;&lt;/div&gt;&#x27;; }
+  /** Mã ICD dạng nhãn: mã chính đậm, mã thêm (BN có 2 ung thư) nhạt hơn, rê chuột xem tên bệnh */
+  function icdTags(p) {
+    if (!p.icd &amp;&amp; !p.icd_phu) return &#x27;&#x27;;
+    return RT.icdsOf(p).map(function (c, i) { return &#x27;&lt;span class=&quot;icd-tag&#x27; + (i ? &#x27; sec&#x27; : &#x27;&#x27;) + &#x27;&quot; title=&quot;&#x27; + esc((i ? &#x27;ICD thêm: &#x27; : &#x27;ICD chính: &#x27;) + c + (RT.icdName(c) ? &#x27; · &#x27; + RT.icdName(c) : &#x27;&#x27;)) + &#x27;&quot;&gt;&#x27; + esc(c) + &#x27;&lt;/span&gt; &#x27;; }).join(&#x27;&#x27;);
+  }
+  /** Ô ICD trong hồ sơ: mỗi mã một dòng kèm tên bệnh, ghi rõ chính / thêm */
+  function icdKv(p) {
+    var l = RT.icdsOf(p);
+    if (!l.length) return kvi(&#x27;Mã ICD-10&#x27;, &#x27;&#x27;);
+    return &#x27;&lt;div class=&quot;kv-full&quot;&gt;&lt;span&gt;Mã ICD-10&#x27; + (l.length &gt; 1 ? &#x27; (BN có &#x27; + l.length + &#x27; ung thư)&#x27; : &#x27;&#x27;) + &#x27;&lt;/span&gt;&lt;b&gt;&#x27; + l.map(function (c, i) {
+      return &#x27;&lt;span class=&quot;icd-line&quot;&gt;&lt;span class=&quot;icd-tag&#x27; + (i ? &#x27; sec&#x27; : &#x27;&#x27;) + &#x27;&quot;&gt;&#x27; + esc(c) + &#x27;&lt;/span&gt; &#x27; + esc(RT.icdName(c) || &#x27;&#x27;) + (l.length &gt; 1 ? &#x27; &lt;span class=&quot;tag&quot;&gt;&#x27; + (i ? &#x27;thêm&#x27; : &#x27;chính&#x27;) + &#x27;&lt;/span&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/span&gt;&#x27;;
+    }).join(&#x27;&#x27;) + &#x27;&lt;/b&gt;&lt;/div&gt;&#x27;;
+  }
 
   function detailActions(p) {
     if (p._arch) return &#x27;&#x27;;

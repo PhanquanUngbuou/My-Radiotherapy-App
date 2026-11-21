@@ -1026,4 +1026,11 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   assert(sheets.NhatKy.getLastRow() > before && /Sửa thông tin/.test(row) && /Chẩn đoán: .+ → K vú trái/.test(row) && /BS điều trị: BS A → /.test(row), 'nhật ký ghi cũ → mới: ' + row);
   assert(/Sửa thông tin \(BS A\): .*Chẩn đoán/.test(r.data.patients.find(x => x.id === p0.id).ghi_chu), 'ghi chú BN có lưu vết');
 }
+// v3.10: nhập đầy đủ có ICD thêm (BN 2 ung thư)
+{
+  r = ok('admin@x.vn', 'importFull', { rows: [{ ma_his: '980001', ho_ten: 'Hai Ung Thư', nam_sinh: '1972', gioi: 'Nam', chan_doan: 'K thực quản + K hạ họng', icd: 'C15.4', icd_phu: 'C13.2, C15', bs: 'bs@x.vn', ky_thuat: 'VMAT', ngay_xa: '', tong_lieu: '70', so_buoi: '35' }] });
+  const p = r.data.patients.find(x => x.ma_his === '980001');
+  assert(p.icd === 'C15' && p.icd_phu === 'C13', 'ICD chính + ICD thêm (bỏ trùng mã chính): ' + p.icd + ' / ' + p.icd_phu);
+  assert.strictEqual(JSON.stringify(ctx.RT.icdsOf(p)), '["C15","C13"]', 'thống kê đếm cả hai mã');
+}
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');

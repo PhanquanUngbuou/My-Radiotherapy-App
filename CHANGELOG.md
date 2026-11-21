@@ -1,5 +1,13 @@
 # Lịch sử phiên bản
 
+## v4.0
+- **BN có 2 ung thư hiện cả 2 mã ICD:**
+  - Danh sách BN: mã chính là nhãn đặc, mã thêm là nhãn viền; rê chuột xem tên bệnh.
+  - Hồ sơ BN: mỗi mã một dòng kèm tên bệnh, ghi "chính" / "thêm", tiêu đề "Mã ICD-10 (BN có 2 ung thư)".
+  - Áp dụng cả kết quả Tìm BN và tra lưu trữ. Thống kê theo ICD đếm BN ở mọi mã (như v3.0).
+- **Nhập đầy đủ từ HIS** (`nhapDayDu`) thêm cột cuối **"ICD thêm"** (nhiều mã cách nhau dấu phẩy, bỏ trùng mã chính).
+- Không có cột mới trong Google Sheet: không cần chạy `setup`.
+
 ## v3.9
 - **Sửa thông tin BN: xác nhận trước khi lưu.** Bấm "Lưu thay đổi" sẽ hiện bảng từng mục **Trước → Sau** (VD Chẩn đoán, ICD, BS điều trị, mặt nạ…); phải tích "Tôi đã kiểm tra, xác nhận sửa thông tin bệnh nhân" mới lưu. Không có gì thay đổi thì không lưu.
 - **Lưu vết mọi lần sửa:** nhật ký ghi ai sửa, lúc nào, từng mục giá trị cũ → mới; ghi chú của BN thêm dòng "[ngày] Sửa thông tin (tên người sửa): …" để ai mở hồ sơ cũng thấy. Phục vụ sửa sai sót cho BN nhập hàng loạt từ HIS.

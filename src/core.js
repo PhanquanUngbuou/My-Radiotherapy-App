@@ -348,7 +348,8 @@ var RT = (function () {
   var FULL_COLS = [['ma_his', 'Mã HIS'], ['ho_ten', 'Họ tên'], ['nam_sinh', 'Năm sinh'], ['gioi', 'Giới'], ['chan_doan', 'Chẩn đoán'], ['icd', 'ICD'],
     ['bs', 'BS điều trị (email hoặc tên)'], ['ngay_mo_phong', 'Ngày mô phỏng'], ['tiem_thuoc', 'Tiêm thuốc (Có/Không)'], ['mat_na', 'Mặt nạ'],
     ['ky_thuat', 'Kỹ thuật'], ['ngay_xa', 'Các ngày đã xạ (dd/mm/yyyy, cách nhau dấu phẩy)'], ['tong_lieu', 'Tổng liều (Gy)'], ['so_buoi', 'Tổng số buổi'], ['ghi_chu', 'Ghi chú'],
-    ['trang_thai', 'Trạng thái (Đang xạ / Đã xạ xong / trống)'], ['ky_thuat_2', 'Kỹ thuật GĐ2'], ['ngay_xa_2', 'Các ngày xạ GĐ2']];
+    ['trang_thai', 'Trạng thái (Đang xạ / Đã xạ xong / trống)'], ['ky_thuat_2', 'Kỹ thuật GĐ2'], ['ngay_xa_2', 'Các ngày xạ GĐ2'],
+    ['icd_phu', 'ICD thêm (BN có 2 ung thư; nhiều mã cách nhau dấu phẩy)']];
   function isoDate(s) {
     s = String(s || '').trim();
     var m = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(s);
@@ -901,6 +902,7 @@ var RT = (function () {
         var ns = String(x.nam_sinh || '').match(/(19|20)\d\d/); p.nam_sinh = ns ? ns[0] : '';
         var g = fold(x.gioi); p.gioi = /^n(u|ữ)/.test(g) ? 'Nữ' : /^nam/.test(g) ? 'Nam' : '';
         if (x.icd) { var ic = normIcd(x.icd); if (isIcd(ic)) p.icd = ic; }
+        if (x.icd_phu) p.icd_phu = normIcdList(x.icd_phu, p.icd);
         if (num(x.tong_lieu) > 0) p.tong_lieu = String(num(x.tong_lieu));
         if (num(x.so_buoi) >= 1) p.so_buoi = String(Math.round(num(x.so_buoi)));
         var tt = fold(x.tiem_thuoc); p.tiem_thuoc = /^(co|x|yes|1)/.test(tt) ? 'Có' : /^(khong|0|no)/.test(tt) ? 'Không' : '';

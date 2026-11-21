@@ -509,7 +509,7 @@
 
   var C = {
     pt: { h: 'Bệnh nhân', v: ptCell },
-    dx: { h: 'Chẩn đoán', v: function (p) { return (p.icd ? RT.icdsOf(p).map(function (c) { return '<span class="icd-tag">' + esc(c) + '</span> '; }).join('') : '') + esc(p.chan_doan) + (p.vi_tri ? '<span class="sub">Vị trí: ' + esc(p.vi_tri) + '</span>' : ''); } },
+    dx: { h: 'Chẩn đoán', v: function (p) { return icdTags(p) + esc(p.chan_doan) + (p.vi_tri ? '<span class="sub">Vị trí: ' + esc(p.vi_tri) + '</span>' : ''); } },
     rx: { h: 'Kỹ thuật · liều', v: rx, cls: 'nowrap' },
     bs: { h: 'BS điều trị', v: function (p) { return esc(nameOf(p.bs_email)); }, cls: 'nowrap' },
     pr: { h: 'Ưu tiên', v: prCell },
@@ -1741,7 +1741,7 @@
       '<div class="kpi" style="cursor:default"><span class="n">' + r.luot + '</span><span class="l">Lượt xạ trong khoảng</span></div></div>';
     html += group('found', 'Kết quả · ' + fdy(r.tu) + ' → ' + fdy(r.den), r.rows, [
       { h: 'Bệnh nhân', v: function (x) { return '<b>' + esc(x.ho_ten) + '</b><span class="sub mono">' + esc(x.ma_his) + (x.nam_sinh ? ' · ' + esc(x.nam_sinh) : '') + (x.gioi ? ' · ' + esc(x.gioi) : '') + '</span>'; } },
-      { h: 'Chẩn đoán', v: function (x) { return (x.icd ? '<span class="icd-tag">' + esc(x.icd) + '</span> ' : '') + esc(x.chan_doan || '—') + (x.vi_tri ? '<span class="sub">' + esc(x.vi_tri) + '</span>' : ''); } },
+      { h: 'Chẩn đoán', v: function (x) { return icdTags(x) + esc(x.chan_doan || '—') + (x.vi_tri ? '<span class="sub">' + esc(x.vi_tri) + '</span>' : ''); } },
       { h: 'Kỹ thuật · liều', cls: 'nowrap', v: function (x) { return esc(x.ky_thuat || '—') + (x.tong_lieu ? '<span class="sub">' + esc(x.tong_lieu) + ' Gy / ' + esc(x.so_buoi) + ' buổi</span>' : ''); } },
       { h: 'BS điều trị', v: function (x) { return esc(x.bs); } },
       { h: 'Thời gian xạ', cls: 'nowrap', v: function (x) { return '<span class="num">' + fdy(x.ngay_bat_dau) + ' → ' + fdy(x.ngay_ket_thuc) + '</span><span class="sub">' + esc(RT.STATUS[x.trang_thai] || '') + (x.luu_tru ? ' · lưu trữ' : '') + '</span>'; } },
@@ -1801,7 +1801,7 @@
               (list.length ? '<div class="tbl-wrap"><table><thead><tr><th>Bệnh nhân</th><th>Chẩn đoán</th><th>Kỹ thuật · liều</th><th>BS</th><th>Thời gian xạ</th><th>Lượt trong kỳ</th></tr></thead><tbody>' +
                 list.map(function (x) {
                   return '<tr><td><b>' + esc(x.ho_ten) + '</b><span class="sub mono">' + esc(x.ma_his) + (x.nam_sinh ? ' · ' + esc(x.nam_sinh) : '') + '</span></td>' +
-                    '<td>' + (x.icd ? '<span class="icd-tag">' + esc(x.icd) + '</span> ' : '') + esc(x.chan_doan || '—') + (x.vi_tri ? '<span class="sub">' + esc(x.vi_tri) + '</span>' : '') + '</td>' +
+                    '<td>' + icdTags(x) + esc(x.chan_doan || '—') + (x.vi_tri ? '<span class="sub">' + esc(x.vi_tri) + '</span>' : '') + '</td>' +
                     '<td class="nowrap">' + esc(x.ky_thuat || '—') + (x.tong_lieu ? '<span class="sub">' + esc(x.tong_lieu) + ' Gy / ' + esc(x.so_buoi) + ' buổi</span>' : '') + '</td>' +
                     '<td class="nowrap">' + esc(x.bs) + '</td><td class="nowrap num">' + fdy(x.ngay_bat_dau) + ' → ' + fdy(x.ngay_ket_thuc) + '</td><td class="num">' + x.luot_trong_ky + '</td></tr>';
                 }).join('') + '</tbody></table></div>' : '<div class="empty">Không có bệnh nhân.</div>'),
@@ -2113,7 +2113,7 @@
        c.blocked && p.trang_thai !== 'HOAN_THANH' ? '<div class="sec" style="border-color:var(--crit)"><h3 style="color:var(--crit)">BN đang chờ kế hoạch boost</h3><p>Đã xạ xong các giai đoạn trước. Kế hoạch ' + esc(c.cur.label) + ' chưa sẵn sàng nên KTV chưa ghi được buổi xạ tiếp theo.</p></div>' :
         (!ro && c.leftBeforeBlock > 0 && c.leftBeforeBlock <= 5 && c.readyTo < c.total && ['DANG_XA', 'TAM_NGUNG'].indexOf(p.trang_thai) >= 0 ? '<div class="sec" style="border-color:var(--warn)"><h3 style="color:var(--warn)">Sắp tới boost</h3><p>Còn ' + c.leftBeforeBlock + ' buổi nữa là hết giai đoạn hiện tại, kế hoạch boost chưa sẵn sàng.</p></div>' : '')) +
       '<div class="sec"><h3>Chỉ định' + (c.multi ? ' · GĐ1' : '') + '</h3><div class="kv">' +
-      kvi('Mã ICD-10', p.icd ? RT.icdsOf(p).map(function (c) { return c + (RT.icdName(c) ? ' · ' + RT.icdName(c) : ''); }).join('; ') : '—') + kvi('Chẩn đoán', p.chan_doan) + kvi('Vị trí xạ', p.vi_tri || '—') + kvi('Mục đích', p.muc_dich || '—') + kvi('Bác sĩ điều trị', nameOf(p.bs_email)) + kvi('Khoa', p.khoa) +
+      icdKv(p) + kvi('Chẩn đoán', p.chan_doan) + kvi('Vị trí xạ', p.vi_tri || '—') + kvi('Mục đích', p.muc_dich || '—') + kvi('Bác sĩ điều trị', nameOf(p.bs_email)) + kvi('Khoa', p.khoa) +
       kvi('Kỹ thuật', p.ky_thuat) + kvi('Tổng liều', p.tong_lieu + ' Gy / ' + p.so_buoi + ' buổi') + kvi('Liều mỗi buổi', RT.dosePerFx(p) + ' Gy') +
       (p.muc_lieu ? kvi('Các mức liều (SIB)', p.muc_lieu) : '') +
       kvi('IGRT', p.igrt || 'Không') + kvi('SGRT', p.sgrt || 'Không') + kvi('Lịch tuần', RT.needsOffDay(p) ? 'Chưa chọn ngày nghỉ' : RT.scheduleLabel(p)) +
@@ -2161,6 +2161,19 @@
   }
   function selectText(el) { var r = document.createRange(); r.selectNodeContents(el); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); toast('Đã chọn mã HIS, bấm Ctrl+C để sao chép.'); }
   function kvi(k, v) { return '<div><span>' + esc(k) + '</span><b>' + esc(v || '—') + '</b></div>'; }
+  /** Mã ICD dạng nhãn: mã chính đậm, mã thêm (BN có 2 ung thư) nhạt hơn, rê chuột xem tên bệnh */
+  function icdTags(p) {
+    if (!p.icd && !p.icd_phu) return '';
+    return RT.icdsOf(p).map(function (c, i) { return '<span class="icd-tag' + (i ? ' sec' : '') + '" title="' + esc((i ? 'ICD thêm: ' : 'ICD chính: ') + c + (RT.icdName(c) ? ' · ' + RT.icdName(c) : '')) + '">' + esc(c) + '</span> '; }).join('');
+  }
+  /** Ô ICD trong hồ sơ: mỗi mã một dòng kèm tên bệnh, ghi rõ chính / thêm */
+  function icdKv(p) {
+    var l = RT.icdsOf(p);
+    if (!l.length) return kvi('Mã ICD-10', '');
+    return '<div class="kv-full"><span>Mã ICD-10' + (l.length > 1 ? ' (BN có ' + l.length + ' ung thư)' : '') + '</span><b>' + l.map(function (c, i) {
+      return '<span class="icd-line"><span class="icd-tag' + (i ? ' sec' : '') + '">' + esc(c) + '</span> ' + esc(RT.icdName(c) || '') + (l.length > 1 ? ' <span class="tag">' + (i ? 'thêm' : 'chính') + '</span>' : '') + '</span>';
+    }).join('') + '</b></div>';
+  }
 
   function detailActions(p) {
     if (p._arch) return '';
