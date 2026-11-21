@@ -14,6 +14,8 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
 3. **Vị trí xạ: dấu "+ thêm vị trí"** (như ICD thêm) khi BN xạ 2 vị trí; lưu nhiều vị trí, thống kê theo vị trí đếm BN ở mọi vị trí.
 4. **Phân loại BN đã có buổi xạ: đủ số buổi thì tự vào "Đã xạ xong"**. VD đã đếm 30 buổi, BS nhập 60 Gy / 30 buổi, chọn "Đang xạ" → ứng dụng hỏi xác nhận rồi chuyển Đã xạ xong (hiện đang báo lỗi bắt chọn lại). Sửa thông tin BN đang xạ chưa có tổng mà số buổi = số đã xạ thì đã tự hoàn thành (có sẵn).
 
+5. **Form Phân loại gọn theo bước:** "Lịch trong tuần" chỉ hiện khi chọn Chờ vào xạ / Đang xạ / Tạm ngừng / Đã xạ xong (không hiện ở Đang contour, Chờ lập KH, Đang lập KH, Chờ QA). **Thêm ô "Vị trí xạ"** (gợi ý từ danh mục, có "+ thêm vị trí" như mục 3). Bước "Đang contour": chỉ hỏi BS điều trị, chẩn đoán, ICD (không bắt buộc), vị trí; ẩn kỹ thuật / liều / số buổi.
+
 ### Việc chờ dữ liệu (không phải sửa code)
 - Tối T7 (tuần này hoặc tuần sau) anh gửi Excel HIS: sổ mô phỏng từ 01/09 + thủ thuật mặt nạ + thủ thuật xạ ("máy gia tốc" = 3D, "có điều biến liều" = VMAT), **có ngày thực hiện**. Em lập bảng NhapDayDu (BS = BS chỉ định mô phỏng; liệt kê BN mà phần lớn buổi xạ dưới tên BS khác, BN có cả 3D và VMAT, BN mô phỏng 2 lần, ICD suy từ chẩn đoán cần BS kiểm tra).
 
