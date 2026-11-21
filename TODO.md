@@ -12,7 +12,7 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
 1. **Thanh chọn mục ở BN của tôi (BS) nằm trên 1 dòng**, không xuống dòng:
    - Ô gọn: số và tên trên cùng một hàng, chữ nhỏ hơn.
    - Dòng phụ ("2 kết thúc trong 7 ngày", "1 chưa xếp lịch", "cấp cứu") thành chấm nhỏ cạnh số, rê chuột xem.
-   - Màn hình rộng: 11 ô chia đều một hàng. Màn hình hẹp / điện thoại: vuốt ngang, không xuống dòng.
+   - Màn hình rộng: 11 ô chia đều một hàng. Màn hình hẹp / điện thoại: được xuống dòng (lưới ô gọn), anh chốt 22/11.
 
 ### (v4.1 đã làm, xem CHANGELOG)
 <!-- v4.1 cũ:
