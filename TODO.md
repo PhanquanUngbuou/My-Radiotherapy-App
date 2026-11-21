@@ -21,6 +21,10 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
    - **Có** → lần mô phỏng đó vào sổ mô phỏng (và tổng hợp mô phỏng). **Không** → vẫn theo dõi quy trình (KTV vẫn bấm mô phỏng xong, mặt nạ…) nhưng **không vào sổ mô phỏng**.
    - Lần mô phỏng đầu tiên của BN: vào sổ như hiện nay, không hỏi.
    - BS sửa được câu trả lời trong hồ sơ (có lưu vết) nếu sau đó mới tích trên HIS.
+3. **Mặt nạ khi mô phỏng lại: hỏi mặt nạ mới hay dùng lại mặt nạ cũ** (anh chốt 22/11):
+   - Áp dụng khi "Mô phỏng xong" cho KH lần 2 / KH lại / KH đồng thời / boost / đợt mới (mọi lần mô phỏng không phải lần đầu). Không có mặt nạ ("Không") thì không hỏi.
+   - Có mặt nạ → bắt buộc chọn **Mặt nạ mới** / **Dùng lại mặt nạ cũ** (cột mới `mat_na_cu` ở BenhNhan và GiaiDoan; cần `setup`).
+   - Đề xuất (chờ anh xác nhận khi làm): sổ mô phỏng ghi loại mặt nạ kèm "(dùng lại)"; tổng hợp mô phỏng chỉ đếm **mặt nạ mới** vào số mặt nạ.
 
 ### (v4.4 đã làm, xem CHANGELOG)
 
