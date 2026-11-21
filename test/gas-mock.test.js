@@ -1102,4 +1102,26 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   p = ok('admin@x.vn', 'bootstrap').data.patients.find(x => x.ma_his === '990021');
   assert.strictEqual(p.ngay_nghi_tuan, '0', 'đã ghi T2–T6');
 }
+// v4.4: BS trợ lý chỉ làm BS điều trị khi Quản trị cho phép
+{
+  ok('admin@x.vn', 'saveUser', { email: 'tl@x.vn', ho_ten: 'BS Trợ Lý', vai_tro: 'BS', kich_hoat: 'Có', khoa: 'Xạ trị', tro_ly_cho: 'bs@x.vn' });
+  const bn = { ho_ten: 'BN Trợ Lý', nam_sinh: '1960', icd: 'C50', chan_doan: 'K vú', ky_thuat: '3D-CRT', tong_lieu: '50', so_buoi: '25' };
+  r = api('ktv@x.vn', 'createPatient', Object.assign({ ma_his: '991001', bs_email: 'tl@x.vn' }, bn));
+  assert(!r.ok && /trợ lý/.test(r.error || r.msg || ''), 'KTV không thêm BN cho trợ lý: ' + JSON.stringify(r).slice(0, 200));
+  r = ok('tl@x.vn', 'createPatient', Object.assign({ ma_his: '991002' }, bn));
+  const p1 = r.data.patients.find(x => x.ma_his === '991002');
+  assert.strictEqual(p1.bs_email, 'bs@x.vn', 'trợ lý tự thêm BN: mặc định BS chính');
+  assert(!api('admin@x.vn', 'transferDoctor', { ids: [p1.id], bs_email: 'tl@x.vn', ly_do: 'thử' }).ok, 'không chuyển BN cho trợ lý');
+  assert(!api('bs@x.vn', 'updatePatient', { id: p1.id, bs_email: 'tl@x.vn' }).ok, 'không đổi BS sang trợ lý');
+  // nhập sổ HIS: giữ tên trợ lý, nhắc quản trị
+  r = ok('admin@x.vn', 'importHisBook', { rows: [{ ma_his: '991003', ho_ten: 'BN HIS Trợ Lý', nam_sinh: '1970', gioi: 'Nữ', chan_doan: 'K vú', khoa: 'Xạ trị', bs_email: 'tl@x.vn', ngay_mo_phong: today }] });
+  const p3 = r.data.patients.find(x => x.ma_his === '991003');
+  assert(p3 && p3.bs_email === 'tl@x.vn' && /BS Trợ Lý đang là BS trợ lý/.test(r.msg), 'nhập HIS giữ trợ lý + nhắc: ' + r.msg);
+  ok('bs@x.vn', 'updatePatient', { id: p3.id, chan_doan: 'K vú trái' }); // BN cũ đứng tên trợ lý vẫn sửa được
+  // Quản trị cho phép
+  ok('admin@x.vn', 'saveUser', { email: 'tl@x.vn', ho_ten: 'BS Trợ Lý', vai_tro: 'BS', kich_hoat: 'Có', khoa: 'Xạ trị', tro_ly_cho: 'bs@x.vn', nhan_bn: true });
+  r = ok('ktv@x.vn', 'createPatient', Object.assign({ ma_his: '991004', bs_email: 'tl@x.vn' }, bn));
+  assert.strictEqual(r.data.patients.find(x => x.ma_his === '991004').bs_email, 'tl@x.vn', 'được phép thì nhận BN');
+  assert.strictEqual(r.data.users.find(u => u.email === 'tl@x.vn').nhan_bn, 'Có');
+}
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');

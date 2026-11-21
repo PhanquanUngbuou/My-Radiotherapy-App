@@ -29,6 +29,8 @@
   /** Bác sĩ: vai trò BS, hoặc Quản trị có tên bắt đầu bằng "BS" (bác sĩ kiêm quản trị) */
   function isDoctor(u) { return u && (u.vai_tro === 'BS' || (u.vai_tro === 'ADMIN' && /^\s*(BS|Bác sĩ|ThS|TS|PGS)/i.test(u.ho_ten || ''))); }
   function doctors() { return S.data.users.filter(function (u) { return u.kich_hoat !== 'Không' && isDoctor(u); }); }
+  /** Danh sách chọn BS điều trị: bỏ BS trợ lý chưa được Quản trị cho phép */
+  function treatDoctors() { return doctors().filter(function (u) { return RT.canTreat(u) || u.vai_tro === 'ADMIN'; }); }
   function activeUsers(role) { return S.data.users.filter(function (u) { return u.kich_hoat !== 'Không' && (!role || u.vai_tro === role); }); }
   function unitName() { return (S.data.dm.TEN_DON_VI || [])[0] || ''; }
   function env() { return S.env || (S.env = RT.makeEnv(today(), S.data.holidays, S.data.exceptions, S.data.phases, (S.data.dm.MAY || [])[0])); }
@@ -1171,7 +1173,7 @@
   /** Chuyển BS điều trị: BS đang điều trị, BS nhận, trưởng khoa, quản trị */
   function canTransfer(p) { return can('transferDoctor') && p.trang_thai !== 'HUY' && (role() === 'ADMIN' || me().chuc_vu === 'Trưởng khoa' || RT.myDoctors(me()).indexOf(p.bs_email) >= 0 || isDoctor(me())); }
   function transferForm(fromEmail, preIds) {
-    var docs = doctors().map(function (u) { return { v: u.email, l: u.ho_ten }; });
+    var docs = treatDoctors().map(function (u) { return { v: u.email, l: u.ho_ten }; });
     var single = preIds && preIds.length === 1, me0 = me().email;
     var listOf = function (from) { return pts().filter(function (p) { return p.bs_email === from && ['HUY'].indexOf(p.trang_thai) < 0 && (p.trang_thai !== 'HOAN_THANH' || (preIds || []).indexOf(p.id) >= 0); }).sort(byName); };
     var rowsHtml = function (from, pre) {
@@ -1205,7 +1207,7 @@
   function canClassify(p) { return can('classifyPatient') && (role() !== 'BS' || !p.bs_email || RT.myDoctors(me()).indexOf(p.bs_email) >= 0); }
   function classifyForm(p) {
     var d = S.data.dm, t = today();
-    var bsList = doctors().map(function (u) { return { v: u.email, l: u.ho_ten }; });
+    var bsList = treatDoctors().map(function (u) { return { v: u.email, l: u.ho_ten }; });
     var inp = function (name, type, attrs) { return '<input type="' + (type || 'text') + '" name="' + name + '" value="' + esc(p[name] || '') + '" ' + (attrs || '') + '>'; };
     var STEPS_PL = [['CONTOUR', 'Đang contour', 'Đã mô phỏng, BS chưa contour xong'], ['CHO_KH', 'Chờ lập KH', 'Contour xong, chưa KS nào nhận'], ['DANG_KH', 'Đang lập KH', 'KS đang lập'],
       ['CHO_QA', 'Chờ QA', 'Lập KH xong, chờ QA'], ['CHO_XA', 'Chờ vào xạ', 'Chưa xạ buổi nào'], ['DANG_XA', 'Đang xạ', 'Đã xạ một số buổi'], ['TAM_NGUNG', 'Tạm ngừng', 'Đã xạ một số buổi, đang nghỉ'],
@@ -2041,7 +2043,7 @@
       '<span class="hint">Người dùng cần có tài khoản Google. Với Gmail cá nhân, nhớ chia sẻ Google Sheet cho họ.</span></div><div class="card"><div class="tbl-wrap"><table><thead><tr><th>Họ tên</th><th>Email</th><th>Vai trò</th><th>Chức vụ</th><th>Khoa</th><th>Trạng thái</th><th></th></tr></thead><tbody>' +
       users.map(function (u) {
         return '<tr class="' + (u.kich_hoat === 'Không' ? 'off-user' : '') + '"><td><b>' + esc(u.ho_ten) + '</b></td><td class="mono">' + esc(u.email) + '</td><td><span class="role role-' + esc(u.vai_tro) + '">' + esc(RT.ROLES[u.vai_tro] || u.vai_tro) + '</span></td>' +
-          '<td>' + esc(u.chuc_vu || '') + (u.tro_ly_cho ? '<span class="sub">Trợ lý cho ' + esc(nameOf(u.tro_ly_cho)) + '</span>' : '') + '</td><td>' + esc(u.khoa || '') + (u.ky_hieu ? '<span class="sub">Ký hiệu: ' + esc(u.ky_hieu) + '</span>' : '') + '</td><td>' + (u.kich_hoat === 'Không' ? 'Đã khoá' : 'Hoạt động') + '</td><td class="act"><button class="btn" data-admin="editUser" data-email="' + esc(u.email) + '">Sửa</button></td></tr>';
+          '<td>' + esc(u.chuc_vu || '') + (u.tro_ly_cho ? '<span class="sub">Trợ lý cho ' + esc(nameOf(u.tro_ly_cho)) + (u.nhan_bn === 'Có' ? ' · được làm BS điều trị' : ' · chưa nhận BN') + '</span>' : '') + '</td><td>' + esc(u.khoa || '') + (u.ky_hieu ? '<span class="sub">Ký hiệu: ' + esc(u.ky_hieu) + '</span>' : '') + '</td><td>' + (u.kich_hoat === 'Không' ? 'Đã khoá' : 'Hoạt động') + '</td><td class="act"><button class="btn" data-admin="editUser" data-email="' + esc(u.email) + '">Sửa</button></td></tr>';
       }).join('') + '</tbody></table></div></div></section>';
     var dmBox = function (loai, title, help, ph, type) {
       var list = d.dm[loai] || [];
@@ -2096,12 +2098,14 @@
         field('Chức vụ', '<select name="chuc_vu">' + opts(RT.CHUC_VU, u.chuc_vu || '', 'Không') + '</select>', '', 'Trưởng khoa, ĐD trưởng: thống kê cả khoa theo từng bác sĩ. Tài khoản khoa: số tổng của khoa. KTV trưởng: phân công, huỷ buổi xạ ghi nhầm.') +
         field('Khoa', '<select name="khoa">' + opts(RT.staffKhoa(S.data.dm), u.khoa || '', '—') + '</select>', '', 'Bắt buộc với bác sĩ, điều dưỡng, trưởng khoa, tài khoản khoa. BN mới nhận khoa theo bác sĩ điều trị; điều dưỡng chỉ thấy BN khoa mình.') +
         field('Ký hiệu (in trên bảng xạ trị)', '<input type="text" name="ky_hieu" maxlength="4" value="' + esc(u.ky_hieu || '') + '" placeholder="VD: T, Đ, IT">', '', 'Dùng cho KTV. Để trống thì lấy chữ cái đầu của tên.') +
+        '<label class="confirm full" id="nb-box"><input type="checkbox" name="nhan_bn"' + (u.nhan_bn === 'Có' ? ' checked' : '') + '><span><b>Được làm BS điều trị</b>&nbsp;(trợ lý đứng tên BN). Chưa tích: trợ lý không có trong danh sách chọn BS điều trị; BN cũ đang đứng tên trợ lý vẫn giữ nguyên.</span></label>' +
         field('Trợ lý cho bác sĩ', '<select name="tro_ly_cho" id="tl-sel">' + opts(S.data.users.filter(function (x) { return x.kich_hoat !== 'Không' && x.email !== u.email && !x.tro_ly_cho && (x.vai_tro === 'BS' || isDoctor(x)); }).map(function (x) { return { v: x.email, l: x.ho_ten }; }), u.tro_ly_cho || '', 'Không (bác sĩ bình thường)') + '</select>', 'full', 'Chỉ cho bác sĩ trợ lý: thấy và làm việc trên BN của bác sĩ chính, xem được thống kê của bác sĩ chính. BN vẫn đứng tên bác sĩ chính.') +
 '</div>',
       onMount: function (form) {
         var vt = $('select[name=vai_tro]', form), tl = $('#tl-sel', form), box = tl && tl.closest('.field');
-        var upd = function () { if (!box) return; box.hidden = vt.value !== 'BS'; if (vt.value !== 'BS') tl.value = ''; };
-        vt.addEventListener('change', upd); upd();
+        var nb = $('#nb-box', form);
+        var upd = function () { if (!box) return; box.hidden = vt.value !== 'BS'; if (vt.value !== 'BS') tl.value = ''; if (nb) nb.hidden = !tl.value; };
+        vt.addEventListener('change', upd); if (tl) tl.addEventListener('change', upd); upd();
       },
       validate: function (v) { if (!v.ho_ten) return 'Cần nhập họ tên.'; if (v.tro_ly_cho && v.vai_tro !== 'BS') return 'Chỉ bác sĩ mới được gán làm trợ lý.'; if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.email)) return 'Email không hợp lệ.'; if (['Trưởng khoa', 'Điều dưỡng trưởng', 'Tài khoản khoa'].indexOf(v.chuc_vu) >= 0 && !v.khoa) return 'Chức vụ này cần chọn khoa.'; if ((v.vai_tro === 'BS' || v.vai_tro === 'DD') && v.kich_hoat !== 'Không' && S.data.dm.KHOA.indexOf(v.khoa) < 0) return (v.vai_tro === 'BS' ? 'Bác sĩ' : 'Điều dưỡng') + ' cần chọn khoa: ' + S.data.dm.KHOA.join(' hoặc ') + '.'; return ''; },
       onOk: function (v) { run('saveUser', v); } });
@@ -2699,9 +2703,9 @@
     }).join('');
   }
   function patientForm(p, prefill) {
-    var isNew = !p, d = S.data.dm, v0 = p || prefill || { bs_email: isDoctor(me()) ? (me().tro_ly_cho || me().email) : '', khoa: '', uu_tien: 'Thường', igrt: 'Không', sgrt: 'Không' };
+    var isNew = !p, d = S.data.dm, v0 = p || prefill || { bs_email: isDoctor(me()) ? (me().tro_ly_cho && !RT.canTreat(me()) ? me().tro_ly_cho : me().email) : '', khoa: '', uu_tien: 'Thường', igrt: 'Không', sgrt: 'Không' };
     var mucDich = d.MUC_DICH || RT.DEFAULT_DM.MUC_DICH;
-    var bsList = doctors().map(function (u) { return { v: u.email, l: u.ho_ten }; });
+    var bsList = treatDoctors().map(function (u) { return { v: u.email, l: u.ho_ten }; });
     var inp = function (name, type, attrs) { return '<input type="' + (type || 'text') + '" name="' + name + '" value="' + esc(v0[name] || '') + '" ' + (attrs || '') + '>'; };
     var exceptId = p ? p.id : '';
     modal({

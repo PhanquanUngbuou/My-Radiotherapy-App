@@ -1,5 +1,13 @@
 # Lịch sử phiên bản
 
+## v4.4
+- **BS trợ lý chỉ đứng tên BS điều trị khi Quản trị cho phép:**
+  - Quản trị › sửa người dùng: ô tích "Được làm BS điều trị" (hiện khi có "Trợ lý cho bác sĩ"). Bảng người dùng ghi "chưa nhận BN" / "được làm BS điều trị".
+  - Chưa tích: trợ lý không có trong danh sách chọn BS điều trị (thêm BN, phân loại, chuyển BS); máy chủ cũng chặn khi thêm BN, sửa đổi BS, phân loại, chuyển BS. Trợ lý tự thêm BN thì mặc định đứng tên BS chính.
+  - BN cũ đang đứng tên trợ lý giữ nguyên, vẫn sửa thông tin được.
+  - Nhập từ HIS: tên BS là trợ lý thì giữ đúng trợ lý; kết quả nhập nhắc Quản trị tích ô nếu chưa tích.
+- **Cột mới `nhan_bn` trong trang NguoiDung: cần chạy `setup` một lần.**
+
 ## v4.3
 - **Thanh chọn mục ở Bệnh nhân của tôi (BS) gọn hơn:**
   - Màn hình máy tính: 11 ô trên một hàng. Màn hẹp / điện thoại: ô nhỏ, xuống dòng.
