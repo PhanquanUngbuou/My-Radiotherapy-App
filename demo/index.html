@@ -542,7 +542,7 @@ if (typeof module !== "undefined") module.exports = ICD10;
  */
 var RT = (function () {
   'use strict';
-  var VERSION = '3.7';
+  var VERSION = '3.8';
 
   var STATUS_ORDER = ['CHO_PL', 'MO_PHONG', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA', 'DANG_XA', 'TAM_NGUNG', 'HOAN_THANH', 'KHONG_XA'];
   var STATUS = {
@@ -920,7 +920,13 @@ var RT = (function () {
 
   // ---------- Thao tác ----------
   var EDIT_FIELDS = ['ma_his', 'ho_ten', 'nam_sinh', 'gioi', 'icd', 'icd_phu', 'chan_doan', 'vi_tri', 'muc_dich', 'ngay_mo_phong', 'khoa', 'bs_email', 'ky_thuat',
-    'tong_lieu', 'so_buoi', 'muc_lieu', 'igrt', 'sgrt', 'uu_tien', 'ly_do_uu_tien', 'may', 'ghi_chu'];
+    'tong_lieu', 'so_buoi', 'muc_lieu', 'igrt', 'sgrt', 'uu_tien', 'ly_do_uu_tien', 'may', 'ghi_chu', 'mat_na', 'tiem_thuoc'];
+  /** BN nhập hàng loạt còn thiếu chuyên môn (chờ phân loại, đã xong / không xạ, đang xạ chưa có tổng): sửa thông tin không bắt buộc đủ liều, số buổi */
+  function lenientEdit(p, merged, env) {
+    if (['CHO_PL', 'HOAN_THANH', 'KHONG_XA'].indexOf(p.trang_thai) >= 0) return true;
+    if (['DANG_XA', 'TAM_NGUNG'].indexOf(p.trang_thai) >= 0 && isOpen(p, env)) return phasesOf(p, env).length > 0 || !(num(merged.so_buoi) >= 1);
+    return false;
+  }
   var PHASE_FIELDS = ['ky_thuat', 'tong_lieu', 'so_buoi', 'muc_lieu', 'uu_tien', 'ly_do_uu_tien', 'ngay_mo_phong', 'ghi_chu', 'vi_tri'];
 
   function fail(msg) { throw new Error(msg); }
@@ -1188,7 +1194,9 @@ var RT = (function () {
         checkPrio(merged, undefined, merged.uu_tien !== p.uu_tien || PLAN_STATES.indexOf(p.trang_thai) >= 0);
         o.ly_do_uu_tien = merged.ly_do_uu_tien;
       }
-      if (EARLY.indexOf(p.trang_thai) >= 0) validateBasic(merged, ctx.today); else validate(merged, ctx.today);
+      if (o.tiem_thuoc !== undefined && ['', 'Có', 'Không'].indexOf(o.tiem_thuoc) < 0) fail('Tiêm thuốc chỉ chọn Có hoặc Không.');
+      if (o.ngay_mo_phong && !isDate(o.ngay_mo_phong)) fail('Ngày mô phỏng không hợp lệ.');
+      if (EARLY.indexOf(p.trang_thai) >= 0 || lenientEdit(p, merged, envOf(ctx))) validateBasic(merged, ctx.today); else validate(merged, ctx.today);
       if (merged.icd !== (o.icd === undefined ? merged.icd : o.icd)) o.icd = merged.icd;
       if (o.icd !== undefined) o.icd = merged.icd;
       if ((o.ma_his !== undefined && o.ma_his !== p.ma_his) || (o.ho_ten !== undefined && fold(o.ho_ten) !== fold(p.ho_ten))) checkHis(ctx, merged, a, p.id);
@@ -2711,7 +2719,7 @@ var RT = (function () {
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
-    scheduleLabel: scheduleLabel, isOpen: isOpen, missingRx: missingRx, needsOffDay: needsOffDay, offDay: offDay, dosePerFx: dosePerFx,
+    scheduleLabel: scheduleLabel, isOpen: isOpen, lenientEdit: lenientEdit, missingRx: missingRx, needsOffDay: needsOffDay, offDay: offDay, dosePerFx: dosePerFx,
     addDays: addDays, diffDays: diffDays, dow: dow, monday: monday, isDate: isDate, num: num, splitList: splitList, fxOf: fxOf
   };
 })();
@@ -5768,6 +5776,9 @@ var XL = (function () {
         field('IGRT dự kiến', '<select name="igrt">' + opts(d.IGRT, v0.igrt) + '</select>') +
         field('SGRT', '<select name="sgrt">' + opts(['Không', 'Có'], v0.sgrt) + '</select>') +
         field('Các mức liều (SIB, nếu có)', inp('muc_lieu', 'text', 'placeholder="VD: 70 / 60 / 54 Gy"'), 'full') +
+        (!isNew ? field('Ngày mô phỏng', '<input type="date" name="ngay_mo_phong" value="' + esc(v0.ngay_mo_phong || '') + '" max="' + today() + '">') +
+          field('Mặt nạ', '<select name="mat_na">' + opts([{ v: '', l: '—' }, { v: 'Không', l: 'Không làm mặt nạ' }].concat((d.MAT_NA || RT.DEFAULT_DM.MAT_NA).map(function (x) { return { v: x, l: x }; })), v0.mat_na || '') + '</select>') +
+          field('Tiêm thuốc cản quang', '<select name="tiem_thuoc">' + opts([{ v: '', l: '—' }, { v: 'Có', l: 'Có' }, { v: 'Không', l: 'Không' }], v0.tiem_thuoc || '') + '</select>') : '') +
         field('Ghi chú', '<textarea name="ghi_chu">' + esc(v0.ghi_chu || '') + '</textarea>', 'full') +
         (isNew ? '<label class="confirm full" style="background:var(--ks-soft);font-weight:600"><input type="checkbox" name="co_boost" id="co-boost"><span>Có boost tuần tự (giai đoạn 2)</span></label>' +
           '<div class="field" data-boost><label>Kỹ thuật boost</label><select name="b_ky_thuat">' + opts(d.KY_THUAT, '', 'Chọn') + '</select></div>' +
@@ -5794,7 +5805,7 @@ var XL = (function () {
         var cb = $('#co-boost', form), more = $('#more', form);
         var step = function () {
           var st = (formValues(form).trang_thai) || '';
-          var early = isNew ? (st === 'MO_PHONG' || st === 'CONTOUR' || !st) && !(cb && cb.checked) : ['MO_PHONG', 'CONTOUR'].indexOf(p.trang_thai) >= 0;
+          var early = isNew ? (st === 'MO_PHONG' || st === 'CONTOUR' || !st) && !(cb && cb.checked) : ['MO_PHONG', 'CONTOUR'].indexOf(p.trang_thai) >= 0 || RT.lenientEdit(p, formValues(form), env());
           $$('.rx-req', form).forEach(function (el) { el.hidden = early; });
           $$('.icd-req', form).forEach(function (el) { el.hidden = !(isNew && st === 'CHO_KH'); });
           $$('[data-for]', form).forEach(function (el) { el.hidden = !isNew || el.dataset.for.split(' ').indexOf(st) < 0; });
@@ -5846,7 +5857,7 @@ var XL = (function () {
         if (!v.khoa) return 'Cần chọn khoa.';
         if (prioError(v)) return prioError(v);
         if (v.icd && !RT.isIcd(RT.normIcd(v.icd))) return 'Mã ICD-10 chưa đúng dạng (VD: C50).';
-        var early = isNew ? (!v.trang_thai || v.trang_thai === 'MO_PHONG' || v.trang_thai === 'CONTOUR') && !v.co_boost : ['MO_PHONG', 'CONTOUR'].indexOf(p.trang_thai) >= 0;
+        var early = isNew ? (!v.trang_thai || v.trang_thai === 'MO_PHONG' || v.trang_thai === 'CONTOUR') && !v.co_boost : ['MO_PHONG', 'CONTOUR'].indexOf(p.trang_thai) >= 0 || RT.lenientEdit(p, v, env());
         if (!early) {
           var miss = RT.missingRx(v, isNew && v.trang_thai === 'CHO_KH');
           if (miss.length) return 'Ở bước này cần nhập đủ: ' + miss.join(', ') + '.';

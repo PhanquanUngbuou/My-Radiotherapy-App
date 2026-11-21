@@ -2566,6 +2566,9 @@
         field('IGRT dự kiến', '<select name="igrt">' + opts(d.IGRT, v0.igrt) + '</select>') +
         field('SGRT', '<select name="sgrt">' + opts(['Không', 'Có'], v0.sgrt) + '</select>') +
         field('Các mức liều (SIB, nếu có)', inp('muc_lieu', 'text', 'placeholder="VD: 70 / 60 / 54 Gy"'), 'full') +
+        (!isNew ? field('Ngày mô phỏng', '<input type="date" name="ngay_mo_phong" value="' + esc(v0.ngay_mo_phong || '') + '" max="' + today() + '">') +
+          field('Mặt nạ', '<select name="mat_na">' + opts([{ v: '', l: '—' }, { v: 'Không', l: 'Không làm mặt nạ' }].concat((d.MAT_NA || RT.DEFAULT_DM.MAT_NA).map(function (x) { return { v: x, l: x }; })), v0.mat_na || '') + '</select>') +
+          field('Tiêm thuốc cản quang', '<select name="tiem_thuoc">' + opts([{ v: '', l: '—' }, { v: 'Có', l: 'Có' }, { v: 'Không', l: 'Không' }], v0.tiem_thuoc || '') + '</select>') : '') +
         field('Ghi chú', '<textarea name="ghi_chu">' + esc(v0.ghi_chu || '') + '</textarea>', 'full') +
         (isNew ? '<label class="confirm full" style="background:var(--ks-soft);font-weight:600"><input type="checkbox" name="co_boost" id="co-boost"><span>Có boost tuần tự (giai đoạn 2)</span></label>' +
           '<div class="field" data-boost><label>Kỹ thuật boost</label><select name="b_ky_thuat">' + opts(d.KY_THUAT, '', 'Chọn') + '</select></div>' +
@@ -2592,7 +2595,7 @@
         var cb = $('#co-boost', form), more = $('#more', form);
         var step = function () {
           var st = (formValues(form).trang_thai) || '';
-          var early = isNew ? (st === 'MO_PHONG' || st === 'CONTOUR' || !st) && !(cb && cb.checked) : ['MO_PHONG', 'CONTOUR'].indexOf(p.trang_thai) >= 0;
+          var early = isNew ? (st === 'MO_PHONG' || st === 'CONTOUR' || !st) && !(cb && cb.checked) : ['MO_PHONG', 'CONTOUR'].indexOf(p.trang_thai) >= 0 || RT.lenientEdit(p, formValues(form), env());
           $$('.rx-req', form).forEach(function (el) { el.hidden = early; });
           $$('.icd-req', form).forEach(function (el) { el.hidden = !(isNew && st === 'CHO_KH'); });
           $$('[data-for]', form).forEach(function (el) { el.hidden = !isNew || el.dataset.for.split(' ').indexOf(st) < 0; });
@@ -2644,7 +2647,7 @@
         if (!v.khoa) return 'Cần chọn khoa.';
         if (prioError(v)) return prioError(v);
         if (v.icd && !RT.isIcd(RT.normIcd(v.icd))) return 'Mã ICD-10 chưa đúng dạng (VD: C50).';
-        var early = isNew ? (!v.trang_thai || v.trang_thai === 'MO_PHONG' || v.trang_thai === 'CONTOUR') && !v.co_boost : ['MO_PHONG', 'CONTOUR'].indexOf(p.trang_thai) >= 0;
+        var early = isNew ? (!v.trang_thai || v.trang_thai === 'MO_PHONG' || v.trang_thai === 'CONTOUR') && !v.co_boost : ['MO_PHONG', 'CONTOUR'].indexOf(p.trang_thai) >= 0 || RT.lenientEdit(p, v, env());
         if (!early) {
           var miss = RT.missingRx(v, isNew && v.trang_thai === 'CHO_KH');
           if (miss.length) return 'Ở bước này cần nhập đủ: ' + miss.join(', ') + '.';

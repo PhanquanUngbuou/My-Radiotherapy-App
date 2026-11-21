@@ -41,21 +41,21 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
 </style>
 <div class="wrap">
   <div class="intro">
-    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v3.7</h1>
+    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v3.8</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v3.7 · bản lưu 6780c2a · 21/11/2026 13:33. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v3.7”.</span>
+    <span class="rev">Phiên bản v3.8 · bản lưu edcfa78 · 21/11/2026 13:34. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v3.8”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Code">Code.gs <span class="ver">· v3.7</span></h2>
+        <h2 id="h-Code">Code.gs <span class="ver">· v3.8</span></h2>
         <p>File có sẵn tên Code.gs: xoá hết nội dung cũ, dán vào.</p>
         <span class="size">643 dòng · 34 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v3.7)</button>
+      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v3.8)</button>
     </div>
-    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v3.7
+    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v3.8
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
@@ -702,13 +702,13 @@ function statsData_(ctx, tu, den) {
   <section class="card" aria-labelledby="h-Core">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Core">Core.gs <span class="ver">· v3.7</span></h2>
+        <h2 id="h-Core">Core.gs <span class="ver">· v3.8</span></h2>
         <p>Bấm + → Script (Tập lệnh), đặt tên Core.</p>
-        <span class="size">2,190 dòng · 160 KB</span>
+        <span class="size">2,198 dòng · 161 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v3.7)</button>
+      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v3.8)</button>
     </div>
-    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v3.7
+    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v3.8
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -719,7 +719,7 @@ function statsData_(ctx, tu, den) {
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;3.7&#x27;;
+  var VERSION = &#x27;3.8&#x27;;
 
   var STATUS_ORDER = [&#x27;CHO_PL&#x27;, &#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;, &#x27;KHONG_XA&#x27;];
   var STATUS = {
@@ -1097,7 +1097,13 @@ var RT = (function () {
 
   // ---------- Thao tác ----------
   var EDIT_FIELDS = [&#x27;ma_his&#x27;, &#x27;ho_ten&#x27;, &#x27;nam_sinh&#x27;, &#x27;gioi&#x27;, &#x27;icd&#x27;, &#x27;icd_phu&#x27;, &#x27;chan_doan&#x27;, &#x27;vi_tri&#x27;, &#x27;muc_dich&#x27;, &#x27;ngay_mo_phong&#x27;, &#x27;khoa&#x27;, &#x27;bs_email&#x27;, &#x27;ky_thuat&#x27;,
-    &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;, &#x27;muc_lieu&#x27;, &#x27;igrt&#x27;, &#x27;sgrt&#x27;, &#x27;uu_tien&#x27;, &#x27;ly_do_uu_tien&#x27;, &#x27;may&#x27;, &#x27;ghi_chu&#x27;];
+    &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;, &#x27;muc_lieu&#x27;, &#x27;igrt&#x27;, &#x27;sgrt&#x27;, &#x27;uu_tien&#x27;, &#x27;ly_do_uu_tien&#x27;, &#x27;may&#x27;, &#x27;ghi_chu&#x27;, &#x27;mat_na&#x27;, &#x27;tiem_thuoc&#x27;];
+  /** BN nhập hàng loạt còn thiếu chuyên môn (chờ phân loại, đã xong / không xạ, đang xạ chưa có tổng): sửa thông tin không bắt buộc đủ liều, số buổi */
+  function lenientEdit(p, merged, env) {
+    if ([&#x27;CHO_PL&#x27;, &#x27;HOAN_THANH&#x27;, &#x27;KHONG_XA&#x27;].indexOf(p.trang_thai) &gt;= 0) return true;
+    if ([&#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;].indexOf(p.trang_thai) &gt;= 0 &amp;&amp; isOpen(p, env)) return phasesOf(p, env).length &gt; 0 || !(num(merged.so_buoi) &gt;= 1);
+    return false;
+  }
   var PHASE_FIELDS = [&#x27;ky_thuat&#x27;, &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;, &#x27;muc_lieu&#x27;, &#x27;uu_tien&#x27;, &#x27;ly_do_uu_tien&#x27;, &#x27;ngay_mo_phong&#x27;, &#x27;ghi_chu&#x27;, &#x27;vi_tri&#x27;];
 
   function fail(msg) { throw new Error(msg); }
@@ -1365,7 +1371,9 @@ var RT = (function () {
         checkPrio(merged, undefined, merged.uu_tien !== p.uu_tien || PLAN_STATES.indexOf(p.trang_thai) &gt;= 0);
         o.ly_do_uu_tien = merged.ly_do_uu_tien;
       }
-      if (EARLY.indexOf(p.trang_thai) &gt;= 0) validateBasic(merged, ctx.today); else validate(merged, ctx.today);
+      if (o.tiem_thuoc !== undefined &amp;&amp; [&#x27;&#x27;, &#x27;Có&#x27;, &#x27;Không&#x27;].indexOf(o.tiem_thuoc) &lt; 0) fail(&#x27;Tiêm thuốc chỉ chọn Có hoặc Không.&#x27;);
+      if (o.ngay_mo_phong &amp;&amp; !isDate(o.ngay_mo_phong)) fail(&#x27;Ngày mô phỏng không hợp lệ.&#x27;);
+      if (EARLY.indexOf(p.trang_thai) &gt;= 0 || lenientEdit(p, merged, envOf(ctx))) validateBasic(merged, ctx.today); else validate(merged, ctx.today);
       if (merged.icd !== (o.icd === undefined ? merged.icd : o.icd)) o.icd = merged.icd;
       if (o.icd !== undefined) o.icd = merged.icd;
       if ((o.ma_his !== undefined &amp;&amp; o.ma_his !== p.ma_his) || (o.ho_ten !== undefined &amp;&amp; fold(o.ho_ten) !== fold(p.ho_ten))) checkHis(ctx, merged, a, p.id);
@@ -2888,7 +2896,7 @@ var RT = (function () {
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
-    scheduleLabel: scheduleLabel, isOpen: isOpen, missingRx: missingRx, needsOffDay: needsOffDay, offDay: offDay, dosePerFx: dosePerFx,
+    scheduleLabel: scheduleLabel, isOpen: isOpen, lenientEdit: lenientEdit, missingRx: missingRx, needsOffDay: needsOffDay, offDay: offDay, dosePerFx: dosePerFx,
     addDays: addDays, diffDays: diffDays, dow: dow, monday: monday, isDate: isDate, num: num, splitList: splitList, fxOf: fxOf
   };
 })();
@@ -2902,14 +2910,14 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
   <section class="card" aria-labelledby="h-Index">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Index">Index.html <span class="ver">· v3.7</span></h2>
+        <h2 id="h-Index">Index.html <span class="ver">· v3.8</span></h2>
         <p>Bấm + → HTML, đặt tên Index (chữ I hoa).</p>
-        <span class="size">5,739 dòng · 482 KB</span>
+        <span class="size">5,750 dòng · 484 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v3.7)</button>
+      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v3.8)</button>
     </div>
     <textarea id="t-Index" readonly spellcheck="false" aria-label="Nội dung Index.html">&lt;!DOCTYPE html&gt;
-&lt;!-- Điều phối Xạ trị · phiên bản v3.7 --&gt;
+&lt;!-- Điều phối Xạ trị · phiên bản v3.8 --&gt;
 &lt;html lang=&quot;vi&quot;&gt;
 &lt;head&gt;
 &lt;base target=&quot;_top&quot;&gt;
@@ -3459,7 +3467,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;3.7&#x27;;
+  var VERSION = &#x27;3.8&#x27;;
 
   var STATUS_ORDER = [&#x27;CHO_PL&#x27;, &#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;, &#x27;KHONG_XA&#x27;];
   var STATUS = {
@@ -3837,7 +3845,13 @@ var RT = (function () {
 
   // ---------- Thao tác ----------
   var EDIT_FIELDS = [&#x27;ma_his&#x27;, &#x27;ho_ten&#x27;, &#x27;nam_sinh&#x27;, &#x27;gioi&#x27;, &#x27;icd&#x27;, &#x27;icd_phu&#x27;, &#x27;chan_doan&#x27;, &#x27;vi_tri&#x27;, &#x27;muc_dich&#x27;, &#x27;ngay_mo_phong&#x27;, &#x27;khoa&#x27;, &#x27;bs_email&#x27;, &#x27;ky_thuat&#x27;,
-    &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;, &#x27;muc_lieu&#x27;, &#x27;igrt&#x27;, &#x27;sgrt&#x27;, &#x27;uu_tien&#x27;, &#x27;ly_do_uu_tien&#x27;, &#x27;may&#x27;, &#x27;ghi_chu&#x27;];
+    &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;, &#x27;muc_lieu&#x27;, &#x27;igrt&#x27;, &#x27;sgrt&#x27;, &#x27;uu_tien&#x27;, &#x27;ly_do_uu_tien&#x27;, &#x27;may&#x27;, &#x27;ghi_chu&#x27;, &#x27;mat_na&#x27;, &#x27;tiem_thuoc&#x27;];
+  /** BN nhập hàng loạt còn thiếu chuyên môn (chờ phân loại, đã xong / không xạ, đang xạ chưa có tổng): sửa thông tin không bắt buộc đủ liều, số buổi */
+  function lenientEdit(p, merged, env) {
+    if ([&#x27;CHO_PL&#x27;, &#x27;HOAN_THANH&#x27;, &#x27;KHONG_XA&#x27;].indexOf(p.trang_thai) &gt;= 0) return true;
+    if ([&#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;].indexOf(p.trang_thai) &gt;= 0 &amp;&amp; isOpen(p, env)) return phasesOf(p, env).length &gt; 0 || !(num(merged.so_buoi) &gt;= 1);
+    return false;
+  }
   var PHASE_FIELDS = [&#x27;ky_thuat&#x27;, &#x27;tong_lieu&#x27;, &#x27;so_buoi&#x27;, &#x27;muc_lieu&#x27;, &#x27;uu_tien&#x27;, &#x27;ly_do_uu_tien&#x27;, &#x27;ngay_mo_phong&#x27;, &#x27;ghi_chu&#x27;, &#x27;vi_tri&#x27;];
 
   function fail(msg) { throw new Error(msg); }
@@ -4105,7 +4119,9 @@ var RT = (function () {
         checkPrio(merged, undefined, merged.uu_tien !== p.uu_tien || PLAN_STATES.indexOf(p.trang_thai) &gt;= 0);
         o.ly_do_uu_tien = merged.ly_do_uu_tien;
       }
-      if (EARLY.indexOf(p.trang_thai) &gt;= 0) validateBasic(merged, ctx.today); else validate(merged, ctx.today);
+      if (o.tiem_thuoc !== undefined &amp;&amp; [&#x27;&#x27;, &#x27;Có&#x27;, &#x27;Không&#x27;].indexOf(o.tiem_thuoc) &lt; 0) fail(&#x27;Tiêm thuốc chỉ chọn Có hoặc Không.&#x27;);
+      if (o.ngay_mo_phong &amp;&amp; !isDate(o.ngay_mo_phong)) fail(&#x27;Ngày mô phỏng không hợp lệ.&#x27;);
+      if (EARLY.indexOf(p.trang_thai) &gt;= 0 || lenientEdit(p, merged, envOf(ctx))) validateBasic(merged, ctx.today); else validate(merged, ctx.today);
       if (merged.icd !== (o.icd === undefined ? merged.icd : o.icd)) o.icd = merged.icd;
       if (o.icd !== undefined) o.icd = merged.icd;
       if ((o.ma_his !== undefined &amp;&amp; o.ma_his !== p.ma_his) || (o.ho_ten !== undefined &amp;&amp; fold(o.ho_ten) !== fold(p.ho_ten))) checkHis(ctx, merged, a, p.id);
@@ -5628,7 +5644,7 @@ var RT = (function () {
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
-    scheduleLabel: scheduleLabel, isOpen: isOpen, missingRx: missingRx, needsOffDay: needsOffDay, offDay: offDay, dosePerFx: dosePerFx,
+    scheduleLabel: scheduleLabel, isOpen: isOpen, lenientEdit: lenientEdit, missingRx: missingRx, needsOffDay: needsOffDay, offDay: offDay, dosePerFx: dosePerFx,
     addDays: addDays, diffDays: diffDays, dow: dow, monday: monday, isDate: isDate, num: num, splitList: splitList, fxOf: fxOf
   };
 })();
@@ -8372,6 +8388,9 @@ var XL = (function () {
         field(&#x27;IGRT dự kiến&#x27;, &#x27;&lt;select name=&quot;igrt&quot;&gt;&#x27; + opts(d.IGRT, v0.igrt) + &#x27;&lt;/select&gt;&#x27;) +
         field(&#x27;SGRT&#x27;, &#x27;&lt;select name=&quot;sgrt&quot;&gt;&#x27; + opts([&#x27;Không&#x27;, &#x27;Có&#x27;], v0.sgrt) + &#x27;&lt;/select&gt;&#x27;) +
         field(&#x27;Các mức liều (SIB, nếu có)&#x27;, inp(&#x27;muc_lieu&#x27;, &#x27;text&#x27;, &#x27;placeholder=&quot;VD: 70 / 60 / 54 Gy&quot;&#x27;), &#x27;full&#x27;) +
+        (!isNew ? field(&#x27;Ngày mô phỏng&#x27;, &#x27;&lt;input type=&quot;date&quot; name=&quot;ngay_mo_phong&quot; value=&quot;&#x27; + esc(v0.ngay_mo_phong || &#x27;&#x27;) + &#x27;&quot; max=&quot;&#x27; + today() + &#x27;&quot;&gt;&#x27;) +
+          field(&#x27;Mặt nạ&#x27;, &#x27;&lt;select name=&quot;mat_na&quot;&gt;&#x27; + opts([{ v: &#x27;&#x27;, l: &#x27;—&#x27; }, { v: &#x27;Không&#x27;, l: &#x27;Không làm mặt nạ&#x27; }].concat((d.MAT_NA || RT.DEFAULT_DM.MAT_NA).map(function (x) { return { v: x, l: x }; })), v0.mat_na || &#x27;&#x27;) + &#x27;&lt;/select&gt;&#x27;) +
+          field(&#x27;Tiêm thuốc cản quang&#x27;, &#x27;&lt;select name=&quot;tiem_thuoc&quot;&gt;&#x27; + opts([{ v: &#x27;&#x27;, l: &#x27;—&#x27; }, { v: &#x27;Có&#x27;, l: &#x27;Có&#x27; }, { v: &#x27;Không&#x27;, l: &#x27;Không&#x27; }], v0.tiem_thuoc || &#x27;&#x27;) + &#x27;&lt;/select&gt;&#x27;) : &#x27;&#x27;) +
         field(&#x27;Ghi chú&#x27;, &#x27;&lt;textarea name=&quot;ghi_chu&quot;&gt;&#x27; + esc(v0.ghi_chu || &#x27;&#x27;) + &#x27;&lt;/textarea&gt;&#x27;, &#x27;full&#x27;) +
         (isNew ? &#x27;&lt;label class=&quot;confirm full&quot; style=&quot;background:var(--ks-soft);font-weight:600&quot;&gt;&lt;input type=&quot;checkbox&quot; name=&quot;co_boost&quot; id=&quot;co-boost&quot;&gt;&lt;span&gt;Có boost tuần tự (giai đoạn 2)&lt;/span&gt;&lt;/label&gt;&#x27; +
           &#x27;&lt;div class=&quot;field&quot; data-boost&gt;&lt;label&gt;Kỹ thuật boost&lt;/label&gt;&lt;select name=&quot;b_ky_thuat&quot;&gt;&#x27; + opts(d.KY_THUAT, &#x27;&#x27;, &#x27;Chọn&#x27;) + &#x27;&lt;/select&gt;&lt;/div&gt;&#x27; +
@@ -8398,7 +8417,7 @@ var XL = (function () {
         var cb = $(&#x27;#co-boost&#x27;, form), more = $(&#x27;#more&#x27;, form);
         var step = function () {
           var st = (formValues(form).trang_thai) || &#x27;&#x27;;
-          var early = isNew ? (st === &#x27;MO_PHONG&#x27; || st === &#x27;CONTOUR&#x27; || !st) &amp;&amp; !(cb &amp;&amp; cb.checked) : [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;].indexOf(p.trang_thai) &gt;= 0;
+          var early = isNew ? (st === &#x27;MO_PHONG&#x27; || st === &#x27;CONTOUR&#x27; || !st) &amp;&amp; !(cb &amp;&amp; cb.checked) : [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;].indexOf(p.trang_thai) &gt;= 0 || RT.lenientEdit(p, formValues(form), env());
           $$(&#x27;.rx-req&#x27;, form).forEach(function (el) { el.hidden = early; });
           $$(&#x27;.icd-req&#x27;, form).forEach(function (el) { el.hidden = !(isNew &amp;&amp; st === &#x27;CHO_KH&#x27;); });
           $$(&#x27;[data-for]&#x27;, form).forEach(function (el) { el.hidden = !isNew || el.dataset.for.split(&#x27; &#x27;).indexOf(st) &lt; 0; });
@@ -8450,7 +8469,7 @@ var XL = (function () {
         if (!v.khoa) return &#x27;Cần chọn khoa.&#x27;;
         if (prioError(v)) return prioError(v);
         if (v.icd &amp;&amp; !RT.isIcd(RT.normIcd(v.icd))) return &#x27;Mã ICD-10 chưa đúng dạng (VD: C50).&#x27;;
-        var early = isNew ? (!v.trang_thai || v.trang_thai === &#x27;MO_PHONG&#x27; || v.trang_thai === &#x27;CONTOUR&#x27;) &amp;&amp; !v.co_boost : [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;].indexOf(p.trang_thai) &gt;= 0;
+        var early = isNew ? (!v.trang_thai || v.trang_thai === &#x27;MO_PHONG&#x27; || v.trang_thai === &#x27;CONTOUR&#x27;) &amp;&amp; !v.co_boost : [&#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;].indexOf(p.trang_thai) &gt;= 0 || RT.lenientEdit(p, v, env());
         if (!early) {
           var miss = RT.missingRx(v, isNew &amp;&amp; v.trang_thai === &#x27;CHO_KH&#x27;);
           if (miss.length) return &#x27;Ở bước này cần nhập đủ: &#x27; + miss.join(&#x27;, &#x27;) + &#x27;.&#x27;;

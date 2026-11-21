@@ -386,7 +386,13 @@ var RT = (function () {
 
   // ---------- Thao tác ----------
   var EDIT_FIELDS = ['ma_his', 'ho_ten', 'nam_sinh', 'gioi', 'icd', 'icd_phu', 'chan_doan', 'vi_tri', 'muc_dich', 'ngay_mo_phong', 'khoa', 'bs_email', 'ky_thuat',
-    'tong_lieu', 'so_buoi', 'muc_lieu', 'igrt', 'sgrt', 'uu_tien', 'ly_do_uu_tien', 'may', 'ghi_chu'];
+    'tong_lieu', 'so_buoi', 'muc_lieu', 'igrt', 'sgrt', 'uu_tien', 'ly_do_uu_tien', 'may', 'ghi_chu', 'mat_na', 'tiem_thuoc'];
+  /** BN nhập hàng loạt còn thiếu chuyên môn (chờ phân loại, đã xong / không xạ, đang xạ chưa có tổng): sửa thông tin không bắt buộc đủ liều, số buổi */
+  function lenientEdit(p, merged, env) {
+    if (['CHO_PL', 'HOAN_THANH', 'KHONG_XA'].indexOf(p.trang_thai) >= 0) return true;
+    if (['DANG_XA', 'TAM_NGUNG'].indexOf(p.trang_thai) >= 0 && isOpen(p, env)) return phasesOf(p, env).length > 0 || !(num(merged.so_buoi) >= 1);
+    return false;
+  }
   var PHASE_FIELDS = ['ky_thuat', 'tong_lieu', 'so_buoi', 'muc_lieu', 'uu_tien', 'ly_do_uu_tien', 'ngay_mo_phong', 'ghi_chu', 'vi_tri'];
 
   function fail(msg) { throw new Error(msg); }
@@ -654,7 +660,9 @@ var RT = (function () {
         checkPrio(merged, undefined, merged.uu_tien !== p.uu_tien || PLAN_STATES.indexOf(p.trang_thai) >= 0);
         o.ly_do_uu_tien = merged.ly_do_uu_tien;
       }
-      if (EARLY.indexOf(p.trang_thai) >= 0) validateBasic(merged, ctx.today); else validate(merged, ctx.today);
+      if (o.tiem_thuoc !== undefined && ['', 'Có', 'Không'].indexOf(o.tiem_thuoc) < 0) fail('Tiêm thuốc chỉ chọn Có hoặc Không.');
+      if (o.ngay_mo_phong && !isDate(o.ngay_mo_phong)) fail('Ngày mô phỏng không hợp lệ.');
+      if (EARLY.indexOf(p.trang_thai) >= 0 || lenientEdit(p, merged, envOf(ctx))) validateBasic(merged, ctx.today); else validate(merged, ctx.today);
       if (merged.icd !== (o.icd === undefined ? merged.icd : o.icd)) o.icd = merged.icd;
       if (o.icd !== undefined) o.icd = merged.icd;
       if ((o.ma_his !== undefined && o.ma_his !== p.ma_his) || (o.ho_ten !== undefined && fold(o.ho_ten) !== fold(p.ho_ten))) checkHis(ctx, merged, a, p.id);
@@ -2177,7 +2185,7 @@ var RT = (function () {
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
-    scheduleLabel: scheduleLabel, isOpen: isOpen, missingRx: missingRx, needsOffDay: needsOffDay, offDay: offDay, dosePerFx: dosePerFx,
+    scheduleLabel: scheduleLabel, isOpen: isOpen, lenientEdit: lenientEdit, missingRx: missingRx, needsOffDay: needsOffDay, offDay: offDay, dosePerFx: dosePerFx,
     addDays: addDays, diffDays: diffDays, dow: dow, monday: monday, isDate: isDate, num: num, splitList: splitList, fxOf: fxOf
   };
 })();

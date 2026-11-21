@@ -1001,4 +1001,19 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   const q2 = r.data.patients.find(x => x.id === q.id);
   assert(q2.trang_thai === 'DANG_XA' && /4\/\?/.test(r.msg) && r.data.fractions.filter(f => f.bn_id === q.id).length === 4, 'KTV ghi buổi cho BN chờ phân loại: ' + r.msg);
 }
+// v3.8: BS sửa thông tin BN nhập hàng loạt (thiếu liều / số buổi)
+{
+  let d = ok('admin@x.vn', 'bootstrap').data;
+  const pl = d.patients.find(x => x.trang_thai === 'CHO_PL' && x.bs_email === 'bs@x.vn');
+  r = ok('bs@x.vn', 'updatePatient', { id: pl.id, chan_doan: 'K phổi phải', icd: 'C34', ngay_mo_phong: '2026-08-26', mat_na: '5 điểm', tiem_thuoc: 'Có' });
+  const p1 = r.data.patients.find(x => x.id === pl.id);
+  assert(p1.chan_doan === 'K phổi phải' && p1.ngay_mo_phong === '2026-08-26' && p1.mat_na === '5 điểm' && p1.tiem_thuoc === 'Có', 'sửa BN chờ phân loại không cần đủ liều');
+  assert(!api('bs@x.vn', 'updatePatient', { id: pl.id, tiem_thuoc: 'Hơi có' }).ok, 'tiêm thuốc sai giá trị');
+  const op = d.patients.find(x => x.ma_his === '970001');
+  r = ok('bs@x.vn', 'updatePatient', { id: op.id, ho_ten: 'Quay Lại Sửa', icd: 'C50' });
+  assert.strictEqual(r.data.patients.find(x => x.id === op.id).ho_ten, 'Quay Lại Sửa', 'sửa BN đang xạ chưa có tổng');
+  assert(!api('bs@x.vn', 'updatePatient', { id: op.id, so_buoi: '25' }).ok, 'điền số buổi thì phải đủ liều');
+  const done = d.patients.find(x => x.trang_thai === 'HOAN_THANH' && !x.tong_lieu);
+  if (done) ok('admin@x.vn', 'updatePatient', { id: done.id, chan_doan: 'K sửa lại' });
+}
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');

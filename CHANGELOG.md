@@ -1,5 +1,10 @@
 # Lịch sử phiên bản
 
+## v3.8
+- **BS sửa được thông tin BN nhập hàng loạt** (nút "Sửa thông tin" trong hồ sơ BN): BN Chờ phân loại, Đã xạ xong / Không xạ, Đang xạ chưa có tổng số buổi sửa được hành chính, chẩn đoán, ICD, kỹ thuật, BS điều trị… mà không bắt buộc đủ tổng liều, số buổi. Khi đã điền số buổi (BN không có KH thứ hai) thì phải đủ tổng liều, ICD như thường.
+- Form sửa thông tin có thêm **Ngày mô phỏng, Mặt nạ, Tiêm thuốc cản quang** (BN nhập từ HIS có thể thiếu hoặc sai).
+- Không có cột mới: không cần chạy `setup`.
+
 ## v3.7
 - **BN chờ phân loại quay lại xạ: KTV ghi buổi xạ luôn**, không cần phân loại trước. Áp dụng cho BN đã có buổi xạ (nhập từ HIS) và có kỹ thuật: nút "Quay lại xạ: ghi buổi" ở Xạ trị › Chờ phân loại và "✓ BN quay lại xạ: ghi buổi xạ" trong hồ sơ BN (tìm theo tên / mã HIS). Ghi xong BN tự chuyển sang Đang xạ (chưa có tổng số buổi thì BS bổ sung sau).
 
