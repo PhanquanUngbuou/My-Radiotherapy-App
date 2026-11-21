@@ -1082,4 +1082,24 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   const names = rep.theo_vi_tri.map(x => x.ma);
   assert(names.indexOf('Vòm') >= 0 && names.indexOf('Hạch cổ') >= 0, 'đếm BN ở mọi vị trí: ' + names.join(' | '));
 }
+// v4.2: suaLichTuan() suy lại lịch tuần cho BN VMAT nhập trước v4.1
+{
+  const RT = ctx.RT;
+  const mon = RT.addDays(RT.monday(today), -14);
+  const dmy = d => d.slice(8) + '/' + d.slice(5, 7) + '/' + d.slice(0, 4);
+  const two = [0, 1, 2, 3, 4, 7, 8, 9, 10, 11].map(k => RT.addDays(mon, k));
+  r = ok('admin@x.vn', 'importFull', { rows: [{ ma_his: '990021', ho_ten: 'Cũ Không T7', nam_sinh: '1966', gioi: 'Nữ', chan_doan: 'K vòm', icd: 'C11', bs: 'bs@x.vn', ky_thuat: 'VMAT', ngay_xa: two.map(dmy).join(', '), trang_thai: 'Đang xạ' }] });
+  let p = r.data.patients.find(x => x.ma_his === '990021');
+  assert.strictEqual(p.ngay_nghi_tuan, '0', 'nhập bằng v4.1+: T2–T6');
+  // giả lập BN nhập bằng bản cũ: lịch tuần trống
+  const row = sheets.BenhNhan.data.findIndex(x => x[0] === p.id);
+  const col = sheets.BenhNhan.data[0].indexOf('ngay_nghi_tuan');
+  sheets.BenhNhan.data[row][col] = '';
+  assert(!api('bs@x.vn', 'fixOffDays', {}).ok, 'chỉ quản trị');
+  currentEmail = 'admin@x.vn';
+  const msg = vm.runInContext('suaLichTuan()', ctx);
+  assert(/Đã sửa lịch tuần [1-9]/.test(msg) && /Cũ Không T7 \(990021\): T2–T6/.test(msg), msg);
+  p = ok('admin@x.vn', 'bootstrap').data.patients.find(x => x.ma_his === '990021');
+  assert.strictEqual(p.ngay_nghi_tuan, '0', 'đã ghi T2–T6');
+}
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');

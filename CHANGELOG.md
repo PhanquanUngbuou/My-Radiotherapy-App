@@ -1,5 +1,13 @@
 # Lịch sử phiên bản
 
+## v4.2
+- Hàm **`suaLichTuan()`** (chạy tay một lần trong Apps Script, quyền Quản trị) cho BN đã nhập từ HIS bằng bản trước v4.1:
+  - BN VMAT / IMRT chưa rõ lịch tuần được suy lại từ các buổi đã xạ.
+  - Đã qua Thứ 7 mà không xạ Thứ 7 nào → T2–T6. Đoán được ngày nghỉ → T2–T7 nghỉ ngày đó.
+  - Không đoán được thì giữ cờ "Chưa rõ ngày nghỉ" để KTV sửa.
+  - Các buổi "vắng" Thứ 7 cũ của BN được sửa tự mất.
+- Không có cột mới: không cần chạy `setup`.
+
 ## v4.1
 - **BN của tôi (BS): thanh chọn mục.** Bấm ô nào chỉ hiện danh sách của ô đó:
   - Các ô: Tất cả BN · Cần phân loại · Chờ mô phỏng · Đang contour · Lập KH · Chờ QA · Chờ vào xạ · Đang xạ · Tạm ngừng · Đã xạ xong (60 ngày gần nhất, kèm Không xạ) · Cần chú ý (vắng từ 2 buổi, chưa có tổng liều, cần đánh giá lại KH, tạm ngừng từ 7 ngày).

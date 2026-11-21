@@ -1,4 +1,4 @@
-// Điều phối Xạ trị · phiên bản v4.1
+// Điều phối Xạ trị · phiên bản v4.2
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
@@ -194,6 +194,20 @@ var FULL_SHEET = 'NhapDayDu';
  * (BN + mặt nạ, tiêm thuốc + các ngày đã xạ). Lần đầu chạy tạo trang có dòng tiêu đề.
  * Dòng đã có kết quả ở cột cuối sẽ bỏ qua, nên chạy lại không bị trùng.
  */
+/** Chạy tay một lần (v4.2): BN VMAT/IMRT nhập trước v4.1 có lịch tuần trống → suy lại từ các buổi đã xạ. */
+function suaLichTuan() {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    var ctx = buildCtx_();
+    var msg = RT.handle(ctx, 'fixOffDays', {});
+    SpreadsheetApp.flush();
+    PropertiesService.getScriptProperties().setProperty('REV', String(Date.now()));
+    Logger.log(msg);
+    return msg;
+  } finally { lock.releaseLock(); }
+}
+
 function nhapDayDu() {
   var lock = LockService.getScriptLock();
   lock.waitLock(30000);

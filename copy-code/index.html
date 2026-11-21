@@ -41,21 +41,21 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
 </style>
 <div class="wrap">
   <div class="intro">
-    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v4.1</h1>
+    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v4.2</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v4.1 · bản lưu 3dcb524 · 21/11/2026 16:58. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v4.1”.</span>
+    <span class="rev">Phiên bản v4.2 · bản lưu 3bbdbc2 · 21/11/2026 17:19. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v4.2”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Code">Code.gs <span class="ver">· v4.1</span></h2>
+        <h2 id="h-Code">Code.gs <span class="ver">· v4.2</span></h2>
         <p>File có sẵn tên Code.gs: xoá hết nội dung cũ, dán vào.</p>
-        <span class="size">643 dòng · 34 KB</span>
+        <span class="size">657 dòng · 34 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v4.1)</button>
+      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v4.2)</button>
     </div>
-    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v4.1
+    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v4.2
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
@@ -251,6 +251,20 @@ var FULL_SHEET = &#x27;NhapDayDu&#x27;;
  * (BN + mặt nạ, tiêm thuốc + các ngày đã xạ). Lần đầu chạy tạo trang có dòng tiêu đề.
  * Dòng đã có kết quả ở cột cuối sẽ bỏ qua, nên chạy lại không bị trùng.
  */
+/** Chạy tay một lần (v4.2): BN VMAT/IMRT nhập trước v4.1 có lịch tuần trống → suy lại từ các buổi đã xạ. */
+function suaLichTuan() {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    var ctx = buildCtx_();
+    var msg = RT.handle(ctx, &#x27;fixOffDays&#x27;, {});
+    SpreadsheetApp.flush();
+    PropertiesService.getScriptProperties().setProperty(&#x27;REV&#x27;, String(Date.now()));
+    Logger.log(msg);
+    return msg;
+  } finally { lock.releaseLock(); }
+}
+
 function nhapDayDu() {
   var lock = LockService.getScriptLock();
   lock.waitLock(30000);
@@ -702,13 +716,13 @@ function statsData_(ctx, tu, den) {
   <section class="card" aria-labelledby="h-Core">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Core">Core.gs <span class="ver">· v4.1</span></h2>
+        <h2 id="h-Core">Core.gs <span class="ver">· v4.2</span></h2>
         <p>Bấm + → Script (Tập lệnh), đặt tên Core.</p>
-        <span class="size">2,259 dòng · 166 KB</span>
+        <span class="size">2,274 dòng · 167 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v4.1)</button>
+      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v4.2)</button>
     </div>
-    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v4.1
+    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v4.2
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -719,7 +733,7 @@ function statsData_(ctx, tu, den) {
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;4.1&#x27;;
+  var VERSION = &#x27;4.2&#x27;;
 
   var STATUS_ORDER = [&#x27;CHO_PL&#x27;, &#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;, &#x27;KHONG_XA&#x27;];
   var STATUS = {
@@ -824,6 +838,7 @@ var RT = (function () {
     classifyPatient: [&#x27;KTV&#x27;, &#x27;BS&#x27;, &#x27;KS&#x27;, &#x27;ADMIN&#x27;],
     changeTech: [&#x27;KS&#x27;, &#x27;ADMIN&#x27;],
     setOffDay: [&#x27;KTV&#x27;, &#x27;ADMIN&#x27;],
+    fixOffDays: [&#x27;ADMIN&#x27;],
     importFull: [&#x27;ADMIN&#x27;],
     transferDoctor: [&#x27;BS&#x27;, &#x27;ADMIN&#x27;],
     rejectSchedule: [&#x27;KTV&#x27;, &#x27;ADMIN&#x27;],
@@ -1756,6 +1771,20 @@ var RT = (function () {
       p.ngay_nghi_tuan = v;
       save(ctx, p, &#x27;Sửa lịch tuần&#x27;, old + &#x27; → &#x27; + scheduleLabel(p));
       return &#x27;Đã lưu lịch tuần của &#x27; + p.ho_ten + &#x27;: &#x27; + scheduleLabel(p) + &#x27;.&#x27;;
+    },
+    /** Chạy một lần (suaLichTuan): BN VMAT/IMRT chưa rõ lịch tuần → suy từ các buổi đã xạ (không xạ T7 nào mà đã qua T7 → T2–T6) */
+    fixOffDays: function (ctx) {
+      var done = [], left = 0;
+      ctx.patients.forEach(function (p) {
+        if ([&#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;].indexOf(p.trang_thai) &lt; 0 || !needsOffDay(p)) return;
+        var g = guessOffDay(fxOf(p, ctx.fractions).map(function (f) { return f.ngay; }));
+        if (!g) { left++; return; }
+        p.ngay_nghi_tuan = g;
+        save(ctx, p, &#x27;Sửa lịch tuần theo buổi đã xạ&#x27;, scheduleLabel(p));
+        done.push(p.ho_ten + &#x27; (&#x27; + p.ma_his + &#x27;): &#x27; + scheduleLabel(p));
+      });
+      return &#x27;Đã sửa lịch tuần &#x27; + done.length + &#x27; BN&#x27; + (done.length ? &#x27;:\n&#x27; + done.join(&#x27;\n&#x27;) : &#x27;.&#x27;) +
+        &#x27;\nCòn &#x27; + left + &#x27; BN VMAT/IMRT chưa rõ ngày nghỉ (tạm xạ cả T7): KTV sửa bằng nút &quot;Sửa lịch tuần&quot;.&#x27;;
     },
     /** KTV phân loại BN nhập từ hồ sơ giấy: điền đủ thông tin còn thiếu rồi chuyển luồng */
     classifyPatient: function (ctx, a) {
@@ -2971,14 +3000,14 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
   <section class="card" aria-labelledby="h-Index">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Index">Index.html <span class="ver">· v4.1</span></h2>
+        <h2 id="h-Index">Index.html <span class="ver">· v4.2</span></h2>
         <p>Bấm + → HTML, đặt tên Index (chữ I hoa).</p>
-        <span class="size">5,998 dòng · 505 KB</span>
+        <span class="size">6,013 dòng · 506 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v4.1)</button>
+      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v4.2)</button>
     </div>
     <textarea id="t-Index" readonly spellcheck="false" aria-label="Nội dung Index.html">&lt;!DOCTYPE html&gt;
-&lt;!-- Điều phối Xạ trị · phiên bản v4.1 --&gt;
+&lt;!-- Điều phối Xạ trị · phiên bản v4.2 --&gt;
 &lt;html lang=&quot;vi&quot;&gt;
 &lt;head&gt;
 &lt;base target=&quot;_top&quot;&gt;
@@ -3551,7 +3580,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;4.1&#x27;;
+  var VERSION = &#x27;4.2&#x27;;
 
   var STATUS_ORDER = [&#x27;CHO_PL&#x27;, &#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;, &#x27;KHONG_XA&#x27;];
   var STATUS = {
@@ -3656,6 +3685,7 @@ var RT = (function () {
     classifyPatient: [&#x27;KTV&#x27;, &#x27;BS&#x27;, &#x27;KS&#x27;, &#x27;ADMIN&#x27;],
     changeTech: [&#x27;KS&#x27;, &#x27;ADMIN&#x27;],
     setOffDay: [&#x27;KTV&#x27;, &#x27;ADMIN&#x27;],
+    fixOffDays: [&#x27;ADMIN&#x27;],
     importFull: [&#x27;ADMIN&#x27;],
     transferDoctor: [&#x27;BS&#x27;, &#x27;ADMIN&#x27;],
     rejectSchedule: [&#x27;KTV&#x27;, &#x27;ADMIN&#x27;],
@@ -4588,6 +4618,20 @@ var RT = (function () {
       p.ngay_nghi_tuan = v;
       save(ctx, p, &#x27;Sửa lịch tuần&#x27;, old + &#x27; → &#x27; + scheduleLabel(p));
       return &#x27;Đã lưu lịch tuần của &#x27; + p.ho_ten + &#x27;: &#x27; + scheduleLabel(p) + &#x27;.&#x27;;
+    },
+    /** Chạy một lần (suaLichTuan): BN VMAT/IMRT chưa rõ lịch tuần → suy từ các buổi đã xạ (không xạ T7 nào mà đã qua T7 → T2–T6) */
+    fixOffDays: function (ctx) {
+      var done = [], left = 0;
+      ctx.patients.forEach(function (p) {
+        if ([&#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;].indexOf(p.trang_thai) &lt; 0 || !needsOffDay(p)) return;
+        var g = guessOffDay(fxOf(p, ctx.fractions).map(function (f) { return f.ngay; }));
+        if (!g) { left++; return; }
+        p.ngay_nghi_tuan = g;
+        save(ctx, p, &#x27;Sửa lịch tuần theo buổi đã xạ&#x27;, scheduleLabel(p));
+        done.push(p.ho_ten + &#x27; (&#x27; + p.ma_his + &#x27;): &#x27; + scheduleLabel(p));
+      });
+      return &#x27;Đã sửa lịch tuần &#x27; + done.length + &#x27; BN&#x27; + (done.length ? &#x27;:\n&#x27; + done.join(&#x27;\n&#x27;) : &#x27;.&#x27;) +
+        &#x27;\nCòn &#x27; + left + &#x27; BN VMAT/IMRT chưa rõ ngày nghỉ (tạm xạ cả T7): KTV sửa bằng nút &quot;Sửa lịch tuần&quot;.&#x27;;
     },
     /** KTV phân loại BN nhập từ hồ sơ giấy: điền đủ thông tin còn thiếu rồi chuyển luồng */
     classifyPatient: function (ctx, a) {

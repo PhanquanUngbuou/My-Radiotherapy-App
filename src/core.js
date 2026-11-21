@@ -113,6 +113,7 @@ var RT = (function () {
     classifyPatient: ['KTV', 'BS', 'KS', 'ADMIN'],
     changeTech: ['KS', 'ADMIN'],
     setOffDay: ['KTV', 'ADMIN'],
+    fixOffDays: ['ADMIN'],
     importFull: ['ADMIN'],
     transferDoctor: ['BS', 'ADMIN'],
     rejectSchedule: ['KTV', 'ADMIN'],
@@ -1045,6 +1046,20 @@ var RT = (function () {
       p.ngay_nghi_tuan = v;
       save(ctx, p, 'Sửa lịch tuần', old + ' → ' + scheduleLabel(p));
       return 'Đã lưu lịch tuần của ' + p.ho_ten + ': ' + scheduleLabel(p) + '.';
+    },
+    /** Chạy một lần (suaLichTuan): BN VMAT/IMRT chưa rõ lịch tuần → suy từ các buổi đã xạ (không xạ T7 nào mà đã qua T7 → T2–T6) */
+    fixOffDays: function (ctx) {
+      var done = [], left = 0;
+      ctx.patients.forEach(function (p) {
+        if (['CHO_XA', 'DANG_XA', 'TAM_NGUNG'].indexOf(p.trang_thai) < 0 || !needsOffDay(p)) return;
+        var g = guessOffDay(fxOf(p, ctx.fractions).map(function (f) { return f.ngay; }));
+        if (!g) { left++; return; }
+        p.ngay_nghi_tuan = g;
+        save(ctx, p, 'Sửa lịch tuần theo buổi đã xạ', scheduleLabel(p));
+        done.push(p.ho_ten + ' (' + p.ma_his + '): ' + scheduleLabel(p));
+      });
+      return 'Đã sửa lịch tuần ' + done.length + ' BN' + (done.length ? ':\n' + done.join('\n') : '.') +
+        '\nCòn ' + left + ' BN VMAT/IMRT chưa rõ ngày nghỉ (tạm xạ cả T7): KTV sửa bằng nút "Sửa lịch tuần".';
     },
     /** KTV phân loại BN nhập từ hồ sơ giấy: điền đủ thông tin còn thiếu rồi chuyển luồng */
     classifyPatient: function (ctx, a) {
