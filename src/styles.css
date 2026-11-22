@@ -535,3 +535,7 @@ table.rpt.grid th.d,table.rpt.grid td.d{padding:4px 3px;min-width:26px;text-alig
 @media (min-width:1000px){ .htabs{grid-template-columns:repeat(11,minmax(0,1fr));gap:6px} .htabs .kpi .l{text-wrap:balance} }
 @media (min-width:1000px) and (max-width:1199px){ .htabs{gap:5px} .htabs .kpi{padding:7px 7px 8px} .htabs .kpi .l{font-size:12px} .htabs .kpi .n{font-size:19px} }
 @media (max-width:760px){ .htabs{grid-template-columns:repeat(3,minmax(0,1fr))} }
+
+/* v4.6: khung nhắc dạng đoạn văn (không chia cột) */
+div.confirm{display:block;line-height:1.5}
+.nurse-tbl th{white-space:normal;vertical-align:bottom;min-width:70px;line-height:1.25}

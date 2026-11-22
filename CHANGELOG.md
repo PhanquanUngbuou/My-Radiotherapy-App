@@ -1,5 +1,11 @@
 # Lịch sử phiên bản
 
+## v4.6
+- **Số liệu điều dưỡng sau ngày nghỉ:** cột "Hôm qua" thay bằng các ngày từ ngày làm việc trước, **mỗi ngày một cột riêng**. Sáng thứ Hai: cột "Thứ Sáu" và "Thứ Bảy (xạ bù)", rồi Hôm nay, Tuần này. Chủ nhật / ngày lễ chỉ hiện khi có buổi xạ bù. Ngày đầu sau nghỉ lễ cũng vậy.
+- Sửa các khung nhắc màu vàng bị vỡ thành nhiều cột chữ (form Phân loại, Thêm bệnh nhân…).
+- Tiêu đề bảng số liệu điều dưỡng xuống dòng trên điện thoại, không đè chữ.
+- Không có cột mới: không cần chạy `setup`.
+
 ## v4.5
 - **Không bao giờ có 2 BN trùng mã HIS:**
   - Form "Thêm bệnh nhân": gõ mã HIS là tra ngay (trang `ChiMuc`, gồm cả đợt đã lưu trữ).

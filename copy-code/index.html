@@ -41,21 +41,21 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
 </style>
 <div class="wrap">
   <div class="intro">
-    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v4.5</h1>
+    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v4.6</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v4.5 · bản lưu 2ce18c0 · 21/11/2026 18:30. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v4.5”.</span>
+    <span class="rev">Phiên bản v4.6 · bản lưu f59ba83 · 22/11/2026 01:30. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v4.6”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Code">Code.gs <span class="ver">· v4.5</span></h2>
+        <h2 id="h-Code">Code.gs <span class="ver">· v4.6</span></h2>
         <p>File có sẵn tên Code.gs: xoá hết nội dung cũ, dán vào.</p>
         <span class="size">657 dòng · 34 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v4.5)</button>
+      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v4.6)</button>
     </div>
-    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v4.5
+    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v4.6
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
@@ -716,13 +716,13 @@ function statsData_(ctx, tu, den) {
   <section class="card" aria-labelledby="h-Core">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Core">Core.gs <span class="ver">· v4.5</span></h2>
+        <h2 id="h-Core">Core.gs <span class="ver">· v4.6</span></h2>
         <p>Bấm + → Script (Tập lệnh), đặt tên Core.</p>
         <span class="size">2,337 dòng · 173 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v4.5)</button>
+      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v4.6)</button>
     </div>
-    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v4.5
+    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v4.6
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -733,7 +733,7 @@ function statsData_(ctx, tu, den) {
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;4.5&#x27;;
+  var VERSION = &#x27;4.6&#x27;;
 
   var STATUS_ORDER = [&#x27;CHO_PL&#x27;, &#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;, &#x27;KHONG_XA&#x27;];
   var STATUS = {
@@ -3063,14 +3063,14 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
   <section class="card" aria-labelledby="h-Index">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Index">Index.html <span class="ver">· v4.5</span></h2>
+        <h2 id="h-Index">Index.html <span class="ver">· v4.6</span></h2>
         <p>Bấm + → HTML, đặt tên Index (chữ I hoa).</p>
-        <span class="size">6,187 dòng · 525 KB</span>
+        <span class="size">6,202 dòng · 526 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v4.5)</button>
+      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v4.6)</button>
     </div>
     <textarea id="t-Index" readonly spellcheck="false" aria-label="Nội dung Index.html">&lt;!DOCTYPE html&gt;
-&lt;!-- Điều phối Xạ trị · phiên bản v4.5 --&gt;
+&lt;!-- Điều phối Xạ trị · phiên bản v4.6 --&gt;
 &lt;html lang=&quot;vi&quot;&gt;
 &lt;head&gt;
 &lt;base target=&quot;_top&quot;&gt;
@@ -3619,6 +3619,10 @@ table.rpt.grid th.d,table.rpt.grid td.d{padding:4px 3px;min-width:26px;text-alig
 @media (min-width:1000px) and (max-width:1199px){ .htabs{gap:5px} .htabs .kpi{padding:7px 7px 8px} .htabs .kpi .l{font-size:12px} .htabs .kpi .n{font-size:19px} }
 @media (max-width:760px){ .htabs{grid-template-columns:repeat(3,minmax(0,1fr))} }
 
+/* v4.6: khung nhắc dạng đoạn văn (không chia cột) */
+div.confirm{display:block;line-height:1.5}
+.nurse-tbl th{white-space:normal;vertical-align:bottom;min-width:70px;line-height:1.25}
+
 &lt;/style&gt;
 &lt;/head&gt;
 &lt;body&gt;
@@ -3645,7 +3649,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;4.5&#x27;;
+  var VERSION = &#x27;4.6&#x27;;
 
   var STATUS_ORDER = [&#x27;CHO_PL&#x27;, &#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;, &#x27;KHONG_XA&#x27;];
   var STATUS = {
@@ -6875,8 +6879,19 @@ var XL = (function () {
   }
   function renderNurse() {
     var t = today(), list = nurseScope();
-    var cols = [[&#x27;Hôm qua&#x27;, RT.addDays(t, -1), RT.addDays(t, -1)], [&#x27;Hôm nay&#x27;, t, t], [&#x27;Tuần này&#x27;, RT.monday(t), t]];
-    var sums = cols.map(function (c) { return sumOf(list, c[1], c[2]); });
+    // &quot;Hôm qua&quot; = từ ngày làm việc trước tới hôm qua: sáng thứ Hai gộp T6 → CN (T7, CN chỉ KTV xạ bù), sau nghỉ lễ gộp cả kỳ nghỉ
+    var yd = RT.addDays(t, -1), from = yd, hol = S.data.holidays || [];
+    for (var k = 0; k &lt; 15 &amp;&amp; (RT.dow(from) === 0 || RT.dow(from) === 6 || hol.indexOf(from) &gt;= 0); k++) from = RT.addDays(from, -1);
+    var dw = function (d) { return fdw(d).split(&#x27; &#x27;)[0]; };
+    // mỗi ngày một cột riêng (T6, T7…); ngày nghỉ (CN, lễ) chỉ hiện khi có buổi xạ bù
+    var cols = [], sums = [];
+    for (var d0 = from; d0 &lt;= yd; d0 = RT.addDays(d0, 1)) {
+      var s0 = sumOf(list, d0, d0);
+      if (d0 !== from &amp;&amp; !s0.luot) continue;
+      var dn = [&#x27;Chủ nhật&#x27;, &#x27;Thứ Hai&#x27;, &#x27;Thứ Ba&#x27;, &#x27;Thứ Tư&#x27;, &#x27;Thứ Năm&#x27;, &#x27;Thứ Sáu&#x27;, &#x27;Thứ Bảy&#x27;][RT.dow(d0)];
+      cols.push([from === yd ? &#x27;Hôm qua&#x27; : dn + (d0 !== from ? &#x27; (xạ bù)&#x27; : &#x27;&#x27;), d0, d0]); sums.push(s0);
+    }
+    [[&#x27;Hôm nay&#x27;, t, t], [&#x27;Tuần này&#x27;, RT.monday(t), t]].forEach(function (c) { cols.push(c); sums.push(sumOf(list, c[1], c[2])); });
     S.nurseSums = sums;
     var techs = (S.data.dm.KY_THUAT || []).slice();
     sums.forEach(function (x) { Object.keys(x.ky_thuat).forEach(function (k) { if (techs.indexOf(k) &lt; 0) techs.push(k); }); });

@@ -736,8 +736,19 @@
   }
   function renderNurse() {
     var t = today(), list = nurseScope();
-    var cols = [['Hôm qua', RT.addDays(t, -1), RT.addDays(t, -1)], ['Hôm nay', t, t], ['Tuần này', RT.monday(t), t]];
-    var sums = cols.map(function (c) { return sumOf(list, c[1], c[2]); });
+    // "Hôm qua" = từ ngày làm việc trước tới hôm qua: sáng thứ Hai gộp T6 → CN (T7, CN chỉ KTV xạ bù), sau nghỉ lễ gộp cả kỳ nghỉ
+    var yd = RT.addDays(t, -1), from = yd, hol = S.data.holidays || [];
+    for (var k = 0; k < 15 && (RT.dow(from) === 0 || RT.dow(from) === 6 || hol.indexOf(from) >= 0); k++) from = RT.addDays(from, -1);
+    var dw = function (d) { return fdw(d).split(' ')[0]; };
+    // mỗi ngày một cột riêng (T6, T7…); ngày nghỉ (CN, lễ) chỉ hiện khi có buổi xạ bù
+    var cols = [], sums = [];
+    for (var d0 = from; d0 <= yd; d0 = RT.addDays(d0, 1)) {
+      var s0 = sumOf(list, d0, d0);
+      if (d0 !== from && !s0.luot) continue;
+      var dn = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'][RT.dow(d0)];
+      cols.push([from === yd ? 'Hôm qua' : dn + (d0 !== from ? ' (xạ bù)' : ''), d0, d0]); sums.push(s0);
+    }
+    [['Hôm nay', t, t], ['Tuần này', RT.monday(t), t]].forEach(function (c) { cols.push(c); sums.push(sumOf(list, c[1], c[2])); });
     S.nurseSums = sums;
     var techs = (S.data.dm.KY_THUAT || []).slice();
     sums.forEach(function (x) { Object.keys(x.ky_thuat).forEach(function (k) { if (techs.indexOf(k) < 0) techs.push(k); }); });
