@@ -11,6 +11,8 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
 ### v4.6 (em phát hiện 22/11/2026 khi làm video, chờ anh bảo "làm đi")
 1. **Lỗi hiển thị form Phân loại:** khung vàng "Đã có 7 buổi xạ (…), nhập từ HIS. Chọn Đang xạ…" bị vỡ thành nhiều cột chữ (khung `.confirm` dạng flex chia các thẻ `<b>` thành cột). Sửa thành đoạn văn bình thường (`display:block`) như các khung nhắc khác.
 
+2. **Số liệu điều dưỡng (BN của tôi › ĐD): cột "Hôm qua" tính từ ngày làm việc trước** (anh yêu cầu 22/11): T7, CN không làm việc chính thức (chỉ KTV xạ bù), nên sáng thứ Hai cột này gộp **T6 + T7 + CN** (nhãn "T6 → CN 20–22/11"), để ĐD thấy BN xạ hôm thứ Sáu và xạ bù thứ Bảy. Ngày sau nghỉ lễ (`NGAY_LE`) cũng gộp từ ngày làm việc trước kỳ nghỉ. Các con số bấm vào vẫn ra danh sách BN như cũ; BN vắng tính theo cả khoảng.
+
 ### (v4.5 đã làm, xem CHANGELOG)
 
 ### (v4.4 đã làm, xem CHANGELOG)
