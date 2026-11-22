@@ -8,6 +8,9 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
 
 ## Việc chờ
 
+### v4.6 (em phát hiện 22/11/2026 khi làm video, chờ anh bảo "làm đi")
+1. **Lỗi hiển thị form Phân loại:** khung vàng "Đã có 7 buổi xạ (…), nhập từ HIS. Chọn Đang xạ…" bị vỡ thành nhiều cột chữ (khung `.confirm` dạng flex chia các thẻ `<b>` thành cột). Sửa thành đoạn văn bình thường (`display:block`) như các khung nhắc khác.
+
 ### (v4.5 đã làm, xem CHANGELOG)
 
 ### (v4.4 đã làm, xem CHANGELOG)
