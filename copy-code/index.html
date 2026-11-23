@@ -43,7 +43,7 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
   <div class="intro">
     <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v4.8</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v4.8 · bản lưu 405e1a4 · 23/11/2026 00:19. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v4.8”.</span>
+    <span class="rev">Phiên bản v4.8 · bản lưu 126ae38 · 23/11/2026 00:24. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v4.8”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
@@ -6949,7 +6949,7 @@ var XL = (function () {
     // Cột: từng ngày từ ngày làm việc trước tới hôm qua (sáng T2: T6, T7 xạ bù…), hôm nay, tuần này. Ngày nghỉ (CN, lễ) chỉ hiện khi có buổi xạ bù.
     var nr = RT.nurseRanges(t, S.data.holidays), from = nr.from, yd = nr.yd;
     // Tổng các khoa: ĐD nhận số tổng từ máy chủ (không có danh sách BN khoa khác); người xem lọc theo khoa thì tính tại chỗ
-    var tot = function (a, b) { if (S.data.khoi) return S.data.khoi[a + &#x27;|&#x27; + b] || null; return S.fKhoa ? RT.slimSum(sumOf(pts(), a, b)) : null; };
+    var tot = function (a, b) { if (S.data.khoi) return S.data.khoi[a + &#x27;|&#x27; + b] || null; return S.fKhoa || RT.nurseKhoa(me(), S.data.dm) ? RT.slimSum(sumOf(S.data.patients.filter(function (p) { return p.trang_thai !== &#x27;HUY&#x27;; }), a, b)) : null; };
     var cols = [], sums = [], tots = [];
     nr.ranges.forEach(function (r, i) {
       var s0 = sumOf(list, r[0], r[1]), t0 = tot(r[0], r[1]), last = nr.ranges.length;

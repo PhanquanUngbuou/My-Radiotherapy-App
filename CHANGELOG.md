@@ -1,5 +1,9 @@
 # Lịch sử phiên bản
 
+## v4.9
+- Sửa: Quản trị dùng "Xem như" một ĐD / tài khoản khoa thì cột "tổng các khoa" trong số liệu ĐD bị tính bằng số của khoa. Nay tính trên toàn bộ BN như khi ĐD đăng nhập thật (ĐD đăng nhập thật không bị lỗi này).
+- Không có cột mới: không cần chạy `setup`.
+
 ## v4.8
 - **Tìm kiếm ngay tại tab đang đứng** (Bệnh nhân của tôi, Mô phỏng, Contour, Lập kế hoạch, QA, Xạ trị): không chuyển trang; khung "Kết quả tìm" hiện ở đầu tab, tìm trên toàn bộ BN (BN thuộc bước của tab lên trước), mỗi BN có nút đúng bước và đúng quyền người xem: Đã mô phỏng xong, Contour xong, Nhận ca, Lập KH xong, Đổi kỹ thuật, QA đạt / không đạt, Phân loại, Xếp lịch, ✓ Xác nhận xạ, Vắng, Mở hồ sơ. Nút "Xoá tìm kiếm" (hoặc xoá chữ) → danh sách của tab hiện lại. Tab khác (Phân công, Thống kê, Quản trị) vẫn chuyển sang "Tất cả BN".
 - **Số liệu điều dưỡng: mỗi ô "số của khoa / tổng các khoa"** (lượt xạ, theo kỹ thuật, BN được xạ, mới vào, kết thúc, vắng, ghi bù) để báo cáo xạ của khoa trên tổng số. Máy chủ chỉ gửi con số tổng, ĐD vẫn chỉ thấy danh sách BN khoa mình. Người xem lọc theo một khoa (Quản trị, ĐD trưởng…) cũng thấy số tổng.

@@ -4163,7 +4163,7 @@ var XL = (function () {
     // Cột: từng ngày từ ngày làm việc trước tới hôm qua (sáng T2: T6, T7 xạ bù…), hôm nay, tuần này. Ngày nghỉ (CN, lễ) chỉ hiện khi có buổi xạ bù.
     var nr = RT.nurseRanges(t, S.data.holidays), from = nr.from, yd = nr.yd;
     // Tổng các khoa: ĐD nhận số tổng từ máy chủ (không có danh sách BN khoa khác); người xem lọc theo khoa thì tính tại chỗ
-    var tot = function (a, b) { if (S.data.khoi) return S.data.khoi[a + '|' + b] || null; return S.fKhoa ? RT.slimSum(sumOf(pts(), a, b)) : null; };
+    var tot = function (a, b) { if (S.data.khoi) return S.data.khoi[a + '|' + b] || null; return S.fKhoa || RT.nurseKhoa(me(), S.data.dm) ? RT.slimSum(sumOf(S.data.patients.filter(function (p) { return p.trang_thai !== 'HUY'; }), a, b)) : null; };
     var cols = [], sums = [], tots = [];
     nr.ranges.forEach(function (r, i) {
       var s0 = sumOf(list, r[0], r[1]), t0 = tot(r[0], r[1]), last = nr.ranges.length;
