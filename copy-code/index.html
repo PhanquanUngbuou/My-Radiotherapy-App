@@ -41,21 +41,21 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
 </style>
 <div class="wrap">
   <div class="intro">
-    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v4.8</h1>
+    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v4.9</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v4.8 · bản lưu 126ae38 · 23/11/2026 00:24. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v4.8”.</span>
+    <span class="rev">Phiên bản v4.9 · bản lưu 8b73a83 · 23/11/2026 02:40. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v4.9”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Code">Code.gs <span class="ver">· v4.8</span></h2>
+        <h2 id="h-Code">Code.gs <span class="ver">· v4.9</span></h2>
         <p>File có sẵn tên Code.gs: xoá hết nội dung cũ, dán vào.</p>
         <span class="size">657 dòng · 34 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v4.8)</button>
+      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v4.9)</button>
     </div>
-    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v4.8
+    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v4.9
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
@@ -716,13 +716,13 @@ function statsData_(ctx, tu, den) {
   <section class="card" aria-labelledby="h-Core">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Core">Core.gs <span class="ver">· v4.8</span></h2>
+        <h2 id="h-Core">Core.gs <span class="ver">· v4.9</span></h2>
         <p>Bấm + → Script (Tập lệnh), đặt tên Core.</p>
-        <span class="size">2,358 dòng · 175 KB</span>
+        <span class="size">2,359 dòng · 175 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v4.8)</button>
+      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v4.9)</button>
     </div>
-    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v4.8
+    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v4.9
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -733,7 +733,7 @@ function statsData_(ctx, tu, den) {
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;4.8&#x27;;
+  var VERSION = &#x27;4.9&#x27;;
 
   var STATUS_ORDER = [&#x27;CHO_PL&#x27;, &#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;, &#x27;KHONG_XA&#x27;];
   var STATUS = {
@@ -1023,7 +1023,8 @@ var RT = (function () {
     });
     var start = p.ngay_bat_dau || (fx[0] &amp;&amp; fx[0].ngay) || p.ngay_du_kien || &#x27;&#x27;;
     var missed = [], projected = [];
-    if (fx.length &amp;&amp; isDate(start)) {
+    // Vắng chỉ tính cho BN đang trong đợt xạ (không tính BN chờ phân loại / không xạ có buổi xạ cũ nhập từ HIS)
+    if (fx.length &amp;&amp; isDate(start) &amp;&amp; [&#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;, &#x27;CHO_XA&#x27;].indexOf(p.trang_thai) &gt;= 0) {
       var stop = p.trang_thai === &#x27;HOAN_THANH&#x27; ? fx[fx.length - 1].ngay : addDays(today, -1);
       for (var s = start, i = 0; s &lt;= stop &amp;&amp; i &lt; 800; s = addDays(s, 1), i++) {
         if (isTreatDay(p, s, env) &amp;&amp; !doneDates[s]) missed.push(s);
@@ -3084,14 +3085,14 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
   <section class="card" aria-labelledby="h-Index">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Index">Index.html <span class="ver">· v4.8</span></h2>
+        <h2 id="h-Index">Index.html <span class="ver">· v4.9</span></h2>
         <p>Bấm + → HTML, đặt tên Index (chữ I hoa).</p>
-        <span class="size">6,315 dòng · 536 KB</span>
+        <span class="size">6,342 dòng · 538 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v4.8)</button>
+      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v4.9)</button>
     </div>
     <textarea id="t-Index" readonly spellcheck="false" aria-label="Nội dung Index.html">&lt;!DOCTYPE html&gt;
-&lt;!-- Điều phối Xạ trị · phiên bản v4.8 --&gt;
+&lt;!-- Điều phối Xạ trị · phiên bản v4.9 --&gt;
 &lt;html lang=&quot;vi&quot;&gt;
 &lt;head&gt;
 &lt;base target=&quot;_top&quot;&gt;
@@ -3665,6 +3666,9 @@ div.confirm{display:block;line-height:1.5}
 :root[data-theme=&quot;dark&quot;] .fx-who{background:#4a3410;color:#ffe9c4;border-color:#f0b450}
 .modal-body:has(.fx-who){align-content:start}
 
+/* v4.9: mục Mô phỏng trong hồ sơ */
+.sim-t{display:block;margin-top:6px;padding-top:8px;border-top:1px dashed var(--line);color:var(--accent)}
+
 &lt;/style&gt;
 &lt;/head&gt;
 &lt;body&gt;
@@ -3691,7 +3695,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;4.8&#x27;;
+  var VERSION = &#x27;4.9&#x27;;
 
   var STATUS_ORDER = [&#x27;CHO_PL&#x27;, &#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;, &#x27;KHONG_XA&#x27;];
   var STATUS = {
@@ -3981,7 +3985,8 @@ var RT = (function () {
     });
     var start = p.ngay_bat_dau || (fx[0] &amp;&amp; fx[0].ngay) || p.ngay_du_kien || &#x27;&#x27;;
     var missed = [], projected = [];
-    if (fx.length &amp;&amp; isDate(start)) {
+    // Vắng chỉ tính cho BN đang trong đợt xạ (không tính BN chờ phân loại / không xạ có buổi xạ cũ nhập từ HIS)
+    if (fx.length &amp;&amp; isDate(start) &amp;&amp; [&#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;, &#x27;CHO_XA&#x27;].indexOf(p.trang_thai) &gt;= 0) {
       var stop = p.trang_thai === &#x27;HOAN_THANH&#x27; ? fx[fx.length - 1].ngay : addDays(today, -1);
       for (var s = start, i = 0; s &lt;= stop &amp;&amp; i &lt; 800; s = addDays(s, 1), i++) {
         if (isTreatDay(p, s, env) &amp;&amp; !doneDates[s]) missed.push(s);
@@ -8552,11 +8557,12 @@ var XL = (function () {
         (can(&#x27;setReview&#x27;) ? btn(&#x27;reviewGo&#x27;, p.id, &#x27;Xạ tiếp KH cũ&#x27;, &#x27;primary&#x27;) : &#x27;&#x27;) + (can(&#x27;replan&#x27;) ? btn(&#x27;replan&#x27;, p.id, &#x27;Lập lại KH (contour / mô phỏng lại)&#x27;) : &#x27;&#x27;) + (can(&#x27;endEarly&#x27;) ? btn(&#x27;endEarly&#x27;, p.id, &#x27;Kết thúc đợt&#x27;, &#x27;danger&#x27;) : &#x27;&#x27;) + &#x27;&lt;/div&gt;&lt;/div&gt;&#x27; :
        c.blocked &amp;&amp; p.trang_thai !== &#x27;HOAN_THANH&#x27; ? &#x27;&lt;div class=&quot;sec&quot; style=&quot;border-color:var(--crit)&quot;&gt;&lt;h3 style=&quot;color:var(--crit)&quot;&gt;BN đang chờ kế hoạch boost&lt;/h3&gt;&lt;p&gt;Đã xạ xong các giai đoạn trước. Kế hoạch &#x27; + esc(c.cur.label) + &#x27; chưa sẵn sàng nên KTV chưa ghi được buổi xạ tiếp theo.&lt;/p&gt;&lt;/div&gt;&#x27; :
         (!ro &amp;&amp; c.leftBeforeBlock &gt; 0 &amp;&amp; c.leftBeforeBlock &lt;= 5 &amp;&amp; c.readyTo &lt; c.total &amp;&amp; [&#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;].indexOf(p.trang_thai) &gt;= 0 ? &#x27;&lt;div class=&quot;sec&quot; style=&quot;border-color:var(--warn)&quot;&gt;&lt;h3 style=&quot;color:var(--warn)&quot;&gt;Sắp tới boost&lt;/h3&gt;&lt;p&gt;Còn &#x27; + c.leftBeforeBlock + &#x27; buổi nữa là hết giai đoạn hiện tại, kế hoạch boost chưa sẵn sàng.&lt;/p&gt;&lt;/div&gt;&#x27; : &#x27;&#x27;)) +
+      simSec(p) +
       &#x27;&lt;div class=&quot;sec&quot;&gt;&lt;h3&gt;Chỉ định&#x27; + (c.multi ? &#x27; · GĐ1&#x27; : &#x27;&#x27;) + &#x27;&lt;/h3&gt;&lt;div class=&quot;kv&quot;&gt;&#x27; +
       icdKv(p) + kvi(&#x27;Chẩn đoán&#x27;, p.chan_doan) + kvi(&#x27;Vị trí xạ&#x27;, p.vi_tri || &#x27;—&#x27;) + kvi(&#x27;Mục đích&#x27;, p.muc_dich || &#x27;—&#x27;) + kvi(&#x27;Bác sĩ điều trị&#x27;, nameOf(p.bs_email)) + kvi(&#x27;Khoa&#x27;, p.khoa) +
       kvi(&#x27;Kỹ thuật&#x27;, p.ky_thuat) + kvi(&#x27;Tổng liều&#x27;, p.tong_lieu + &#x27; Gy / &#x27; + p.so_buoi + &#x27; buổi&#x27;) + kvi(&#x27;Liều mỗi buổi&#x27;, RT.dosePerFx(p) + &#x27; Gy&#x27;) +
       (p.muc_lieu ? kvi(&#x27;Các mức liều (SIB)&#x27;, p.muc_lieu) : &#x27;&#x27;) +
-      kvi(&#x27;IGRT&#x27;, p.igrt || &#x27;Không&#x27;) + kvi(&#x27;SGRT&#x27;, p.sgrt || &#x27;Không&#x27;) + kvi(&#x27;Lịch tuần&#x27;, RT.needsOffDay(p) ? &#x27;Chưa rõ ngày nghỉ (tạm xạ cả T7)&#x27; : RT.scheduleLabel(p)) + (p.mp_his ? kvi(&#x27;Mô phỏng lại&#x27;, p.mp_his === &#x27;Có&#x27; ? &#x27;Có chỉ định trên HIS (vào sổ mô phỏng)&#x27; : &#x27;Chưa có chỉ định trên HIS (không vào sổ)&#x27;) : &#x27;&#x27;) + (p.mat_na &amp;&amp; p.mat_na !== &#x27;Không&#x27; ? kvi(&#x27;Mặt nạ&#x27;, p.mat_na + (p.mat_na_cu === &#x27;Có&#x27; ? &#x27; (dùng lại mặt nạ cũ)&#x27; : &#x27;&#x27;)) : &#x27;&#x27;) +
+      kvi(&#x27;IGRT&#x27;, p.igrt || &#x27;Không&#x27;) + kvi(&#x27;SGRT&#x27;, p.sgrt || &#x27;Không&#x27;) + kvi(&#x27;Lịch tuần&#x27;, RT.needsOffDay(p) ? &#x27;Chưa rõ ngày nghỉ (tạm xạ cả T7)&#x27; : RT.scheduleLabel(p)) +
       kvi(&#x27;Máy&#x27;, p.may || &#x27;—&#x27;) + kvi(&#x27;Kỹ sư lập KH&#x27;, p.ks_email ? nameOf(p.ks_email) : &#x27;—&#x27;) + kvi(&#x27;QA&#x27;, p.qa_ket_qua || &#x27;—&#x27;) +
       (c.par.length ? &#x27;&lt;div class=&quot;kv-full&quot;&gt;&lt;span&gt;Hai kế hoạch xạ cùng ngày · tổng &#x27; + c.total + &#x27; ngày xạ&lt;/span&gt;&lt;b&gt;&#x27; + [&#x27;&lt;div&gt;&#x27; + esc(mainName(p)) + &#x27;: &#x27; + esc(p.ky_thuat) + &#x27; &#x27; + c.doseTotal + &#x27; Gy/&#x27; + c.mainTotal + &#x27; buổi · đã xạ &#x27; + c.mainDone + &#x27;/&#x27; + c.mainTotal + &#x27;&lt;/div&gt;&#x27;].concat(c.par.map(function (q) { return &#x27;&lt;div&gt;&#x27; + esc(parName(q)) + &#x27;: &#x27; + esc(q.ky_thuat) + &#x27; &#x27; + RT.num(q.g.tong_lieu) + &#x27; Gy/&#x27; + q.total + &#x27; buổi · đã xạ &#x27; + q.done + &#x27;/&#x27; + q.total + &#x27;&lt;/div&gt;&#x27;; })).join(&#x27;&#x27;) + &#x27;&lt;/b&gt;&lt;/div&gt;&#x27;
         : c.multi ? kvi(&#x27;Tổng cả đợt&#x27;, c.doseTotal + &#x27; Gy / &#x27; + c.total + &#x27; buổi&#x27;) : &#x27;&#x27;) +
@@ -8615,6 +8621,28 @@ var XL = (function () {
     }).join(&#x27;&#x27;) + &#x27;&lt;/b&gt;&lt;/div&gt;&#x27;;
   }
 
+  /** Mục &quot;Mô phỏng&quot; trong hồ sơ: mọi vai trò đều xem được. Mỗi lần mô phỏng (đợt này, boost / KH lại) một khối. */
+  function simSec(p) {
+    var gs = ((p._arch &amp;&amp; S.arch ? S.arch.phases : S.data.phases) || []).filter(function (g) {
+      return g.bn_id === p.id &amp;&amp; g.trang_thai !== &#x27;HUY&#x27; &amp;&amp; g.di_cung !== &#x27;Có&#x27; &amp;&amp; (g.trang_thai === &#x27;MO_PHONG&#x27; || g.nguoi_mo_phong || g.mat_na || g.mp_his);
+    }).sort(function (a, b) { return RT.num(a.stt) - RT.num(b.stt); });
+    var who = function (x) {
+      var l = RT.splitList(x.nguoi_mo_phong || &#x27;&#x27;);
+      if (!l.length &amp;&amp; x.ngay_mo_phong) rosterRows().forEach(function (r) { if (r.ngay === x.ngay_mo_phong &amp;&amp; /mô phỏng/i.test(r.vi_tri || &#x27;&#x27;)) RT.splitList(r.nhan_vien).forEach(function (e) { if (l.indexOf(e) &lt; 0) l.push(e); }); });
+      return l.map(nameOf).join(&#x27;, &#x27;);
+    };
+    var block = function (x, title) {
+      var pre = x.trang_thai === &#x27;MO_PHONG&#x27; || x.trang_thai === &#x27;CHO_PL&#x27; &amp;&amp; !x.ngay_mo_phong;
+      var mn = !x.mat_na ? &#x27;Chưa ghi&#x27; : x.mat_na === &#x27;Không&#x27; ? &#x27;Không làm mặt nạ&#x27; : x.mat_na + (x.mat_na_cu === &#x27;Có&#x27; ? &#x27; (dùng lại mặt nạ cũ)&#x27; : x.mat_na_cu === &#x27;Không&#x27; ? &#x27; (mặt nạ mới)&#x27; : &#x27;&#x27;);
+      return (title ? &#x27;&lt;div class=&quot;kv-full&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;b class=&quot;sim-t&quot;&gt;&#x27; + title + &#x27;&lt;/b&gt;&lt;/div&gt;&#x27; : &#x27;&#x27;) +
+        kvi(&#x27;Ngày mô phỏng&#x27;, pre ? &#x27;Chưa mô phỏng&#x27; + (x.ngay_mo_phong ? &#x27; · hẹn &#x27; + fdw(x.ngay_mo_phong) : &#x27;&#x27;) : x.ngay_mo_phong ? fdw(x.ngay_mo_phong) + &#x27;/&#x27; + x.ngay_mo_phong.slice(0, 4) : &#x27;Chưa ghi&#x27;) +
+        (pre ? &#x27;&#x27; : kvi(&#x27;KTV mô phỏng&#x27;, who(x) || &#x27;Chưa ghi&#x27;) + kvi(&#x27;Mặt nạ&#x27;, mn) + kvi(&#x27;Tiêm thuốc cản quang&#x27;, x.tiem_thuoc || &#x27;Chưa ghi&#x27;) + kvi(&#x27;Dụng cụ&#x27;, x.dung_cu || &#x27;Không&#x27;)) +
+        (x.mp_his ? kvi(&#x27;Chỉ định mô phỏng lại trên HIS&#x27;, x.mp_his === &#x27;Có&#x27; ? &#x27;Có · vào sổ mô phỏng&#x27; : &#x27;Không · không vào sổ mô phỏng&#x27;) : &#x27;&#x27;);
+    };
+    var html = block(p, gs.length ? (p.mp_his ? &#x27;Đợt này (mô phỏng lại)&#x27; : &#x27;Lần đầu&#x27;) : &#x27;&#x27;);
+    gs.forEach(function (g) { html += block(g, phKind(g) + (g.loai ? &#x27;&#x27; : &#x27; GĐ&#x27; + esc(g.stt))); });
+    return &#x27;&lt;div class=&quot;sec&quot;&gt;&lt;h3&gt;Mô phỏng&lt;/h3&gt;&lt;div class=&quot;kv&quot;&gt;&#x27; + html + &#x27;&lt;/div&gt;&lt;/div&gt;&#x27;;
+  }
   function detailActions(p) {
     if (p._arch) return &#x27;&#x27;;
     var a = [], st = p.trang_thai, b = function (act, label, cls) { a.push(btn(act, p.id, label, cls)); };

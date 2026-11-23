@@ -1,6 +1,8 @@
 # Lịch sử phiên bản
 
 ## v4.9
+- **Hồ sơ BN có mục "Mô phỏng"** (mọi vai trò đều xem được, chỉ nút chức năng khác nhau): ngày mô phỏng (hoặc "chưa mô phỏng · hẹn …"), KTV mô phỏng, **mặt nạ** (loại / không làm; mặt nạ mới hay dùng lại), **tiêm thuốc cản quang Có / Không**, dụng cụ, chỉ định mô phỏng lại trên HIS (vào sổ hay không). BN có boost / KH lại mô phỏng lại: mỗi lần một khối.
+- **Sửa đếm vắng:** BN chờ phân loại / không xạ có buổi xạ cũ nhập từ HIS không còn bị tính "vắng chưa rõ lý do" mỗi ngày. Số vắng trên bảng ĐD, thống kê Vắng, danh sách "BN đang vắng xạ" chỉ còn BN đang trong đợt xạ (đang xạ, tạm ngừng, chờ vào xạ, đã xạ xong trong thời gian xạ).
 - Sửa: Quản trị dùng "Xem như" một ĐD / tài khoản khoa thì cột "tổng các khoa" trong số liệu ĐD bị tính bằng số của khoa. Nay tính trên toàn bộ BN như khi ĐD đăng nhập thật (ĐD đăng nhập thật không bị lỗi này).
 - Không có cột mới: không cần chạy `setup`.
 

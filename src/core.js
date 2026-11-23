@@ -298,7 +298,8 @@ var RT = (function () {
     });
     var start = p.ngay_bat_dau || (fx[0] && fx[0].ngay) || p.ngay_du_kien || '';
     var missed = [], projected = [];
-    if (fx.length && isDate(start)) {
+    // Vắng chỉ tính cho BN đang trong đợt xạ (không tính BN chờ phân loại / không xạ có buổi xạ cũ nhập từ HIS)
+    if (fx.length && isDate(start) && ['DANG_XA', 'TAM_NGUNG', 'HOAN_THANH', 'CHO_XA'].indexOf(p.trang_thai) >= 0) {
       var stop = p.trang_thai === 'HOAN_THANH' ? fx[fx.length - 1].ngay : addDays(today, -1);
       for (var s = start, i = 0; s <= stop && i < 800; s = addDays(s, 1), i++) {
         if (isTreatDay(p, s, env) && !doneDates[s]) missed.push(s);

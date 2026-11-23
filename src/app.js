@@ -2346,11 +2346,12 @@
         (can('setReview') ? btn('reviewGo', p.id, 'Xạ tiếp KH cũ', 'primary') : '') + (can('replan') ? btn('replan', p.id, 'Lập lại KH (contour / mô phỏng lại)') : '') + (can('endEarly') ? btn('endEarly', p.id, 'Kết thúc đợt', 'danger') : '') + '</div></div>' :
        c.blocked && p.trang_thai !== 'HOAN_THANH' ? '<div class="sec" style="border-color:var(--crit)"><h3 style="color:var(--crit)">BN đang chờ kế hoạch boost</h3><p>Đã xạ xong các giai đoạn trước. Kế hoạch ' + esc(c.cur.label) + ' chưa sẵn sàng nên KTV chưa ghi được buổi xạ tiếp theo.</p></div>' :
         (!ro && c.leftBeforeBlock > 0 && c.leftBeforeBlock <= 5 && c.readyTo < c.total && ['DANG_XA', 'TAM_NGUNG'].indexOf(p.trang_thai) >= 0 ? '<div class="sec" style="border-color:var(--warn)"><h3 style="color:var(--warn)">Sắp tới boost</h3><p>Còn ' + c.leftBeforeBlock + ' buổi nữa là hết giai đoạn hiện tại, kế hoạch boost chưa sẵn sàng.</p></div>' : '')) +
+      simSec(p) +
       '<div class="sec"><h3>Chỉ định' + (c.multi ? ' · GĐ1' : '') + '</h3><div class="kv">' +
       icdKv(p) + kvi('Chẩn đoán', p.chan_doan) + kvi('Vị trí xạ', p.vi_tri || '—') + kvi('Mục đích', p.muc_dich || '—') + kvi('Bác sĩ điều trị', nameOf(p.bs_email)) + kvi('Khoa', p.khoa) +
       kvi('Kỹ thuật', p.ky_thuat) + kvi('Tổng liều', p.tong_lieu + ' Gy / ' + p.so_buoi + ' buổi') + kvi('Liều mỗi buổi', RT.dosePerFx(p) + ' Gy') +
       (p.muc_lieu ? kvi('Các mức liều (SIB)', p.muc_lieu) : '') +
-      kvi('IGRT', p.igrt || 'Không') + kvi('SGRT', p.sgrt || 'Không') + kvi('Lịch tuần', RT.needsOffDay(p) ? 'Chưa rõ ngày nghỉ (tạm xạ cả T7)' : RT.scheduleLabel(p)) + (p.mp_his ? kvi('Mô phỏng lại', p.mp_his === 'Có' ? 'Có chỉ định trên HIS (vào sổ mô phỏng)' : 'Chưa có chỉ định trên HIS (không vào sổ)') : '') + (p.mat_na && p.mat_na !== 'Không' ? kvi('Mặt nạ', p.mat_na + (p.mat_na_cu === 'Có' ? ' (dùng lại mặt nạ cũ)' : '')) : '') +
+      kvi('IGRT', p.igrt || 'Không') + kvi('SGRT', p.sgrt || 'Không') + kvi('Lịch tuần', RT.needsOffDay(p) ? 'Chưa rõ ngày nghỉ (tạm xạ cả T7)' : RT.scheduleLabel(p)) +
       kvi('Máy', p.may || '—') + kvi('Kỹ sư lập KH', p.ks_email ? nameOf(p.ks_email) : '—') + kvi('QA', p.qa_ket_qua || '—') +
       (c.par.length ? '<div class="kv-full"><span>Hai kế hoạch xạ cùng ngày · tổng ' + c.total + ' ngày xạ</span><b>' + ['<div>' + esc(mainName(p)) + ': ' + esc(p.ky_thuat) + ' ' + c.doseTotal + ' Gy/' + c.mainTotal + ' buổi · đã xạ ' + c.mainDone + '/' + c.mainTotal + '</div>'].concat(c.par.map(function (q) { return '<div>' + esc(parName(q)) + ': ' + esc(q.ky_thuat) + ' ' + RT.num(q.g.tong_lieu) + ' Gy/' + q.total + ' buổi · đã xạ ' + q.done + '/' + q.total + '</div>'; })).join('') + '</b></div>'
         : c.multi ? kvi('Tổng cả đợt', c.doseTotal + ' Gy / ' + c.total + ' buổi') : '') +
@@ -2409,6 +2410,28 @@
     }).join('') + '</b></div>';
   }
 
+  /** Mục "Mô phỏng" trong hồ sơ: mọi vai trò đều xem được. Mỗi lần mô phỏng (đợt này, boost / KH lại) một khối. */
+  function simSec(p) {
+    var gs = ((p._arch && S.arch ? S.arch.phases : S.data.phases) || []).filter(function (g) {
+      return g.bn_id === p.id && g.trang_thai !== 'HUY' && g.di_cung !== 'Có' && (g.trang_thai === 'MO_PHONG' || g.nguoi_mo_phong || g.mat_na || g.mp_his);
+    }).sort(function (a, b) { return RT.num(a.stt) - RT.num(b.stt); });
+    var who = function (x) {
+      var l = RT.splitList(x.nguoi_mo_phong || '');
+      if (!l.length && x.ngay_mo_phong) rosterRows().forEach(function (r) { if (r.ngay === x.ngay_mo_phong && /mô phỏng/i.test(r.vi_tri || '')) RT.splitList(r.nhan_vien).forEach(function (e) { if (l.indexOf(e) < 0) l.push(e); }); });
+      return l.map(nameOf).join(', ');
+    };
+    var block = function (x, title) {
+      var pre = x.trang_thai === 'MO_PHONG' || x.trang_thai === 'CHO_PL' && !x.ngay_mo_phong;
+      var mn = !x.mat_na ? 'Chưa ghi' : x.mat_na === 'Không' ? 'Không làm mặt nạ' : x.mat_na + (x.mat_na_cu === 'Có' ? ' (dùng lại mặt nạ cũ)' : x.mat_na_cu === 'Không' ? ' (mặt nạ mới)' : '');
+      return (title ? '<div class="kv-full"><span></span><b class="sim-t">' + title + '</b></div>' : '') +
+        kvi('Ngày mô phỏng', pre ? 'Chưa mô phỏng' + (x.ngay_mo_phong ? ' · hẹn ' + fdw(x.ngay_mo_phong) : '') : x.ngay_mo_phong ? fdw(x.ngay_mo_phong) + '/' + x.ngay_mo_phong.slice(0, 4) : 'Chưa ghi') +
+        (pre ? '' : kvi('KTV mô phỏng', who(x) || 'Chưa ghi') + kvi('Mặt nạ', mn) + kvi('Tiêm thuốc cản quang', x.tiem_thuoc || 'Chưa ghi') + kvi('Dụng cụ', x.dung_cu || 'Không')) +
+        (x.mp_his ? kvi('Chỉ định mô phỏng lại trên HIS', x.mp_his === 'Có' ? 'Có · vào sổ mô phỏng' : 'Không · không vào sổ mô phỏng') : '');
+    };
+    var html = block(p, gs.length ? (p.mp_his ? 'Đợt này (mô phỏng lại)' : 'Lần đầu') : '');
+    gs.forEach(function (g) { html += block(g, phKind(g) + (g.loai ? '' : ' GĐ' + esc(g.stt))); });
+    return '<div class="sec"><h3>Mô phỏng</h3><div class="kv">' + html + '</div></div>';
+  }
   function detailActions(p) {
     if (p._arch) return '';
     var a = [], st = p.trang_thai, b = function (act, label, cls) { a.push(btn(act, p.id, label, cls)); };

@@ -1185,4 +1185,15 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   assert(!all.khoi, 'người không phải ĐD không cần số tổng từ máy chủ');
   if (RT.dow(d.today) === 1) assert.strictEqual(nr.ranges[0][0], RT.addDays(d.today, -3), 'sáng thứ Hai bắt đầu từ thứ Sáu');
 }
+// v4.9: BN chờ phân loại có buổi xạ cũ (nhập từ HIS) không bị tính vắng
+{
+  const RT = ctx.RT, old = RT.addDays(RT.monday(today), -21);
+  const dmy = d => d.slice(8) + '/' + d.slice(5, 7) + '/' + d.slice(0, 4);
+  r = ok('admin@x.vn', 'importFull', { rows: [{ ma_his: '998001', ho_ten: 'Xạ Xong Tháng Trước', nam_sinh: '1950', gioi: 'Nam', chan_doan: 'K phổi', icd: 'C34', bs: 'bs@x.vn', ky_thuat: '3D-CRT', ngay_xa: [0, 1, 2].map(k => dmy(RT.addDays(old, k))).join(', ') }] });
+  const d = r.data, p = d.patients.find(x => x.ma_his === '998001');
+  const env = RT.makeEnv(d.today, d.holidays, d.exceptions, d.phases, (d.dm.MAY || [])[0]);
+  assert(p.trang_thai === 'CHO_PL' && Object.keys(RT.course(p, d.fractions, env).absent).length === 0, 'chờ phân loại không tính vắng');
+  const s = RT.summary({ patients: [p], phases: d.phases, fractions: d.fractions, exceptions: d.exceptions, holidays: d.holidays, dm: d.dm }, RT.addDays(old, 3), d.today, d.today);
+  assert.strictEqual(s.vang_luot, 0, 'thống kê vắng không đếm BN chờ phân loại');
+}
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');
