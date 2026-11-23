@@ -10,6 +10,11 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
 
 ### (v5.0 đã làm, xem CHANGELOG)
 
+### Bản sau (anh yêu cầu 23/11, chưa làm): lọc "Tất cả BN" theo thời gian
+- Thêm ô chọn nhanh: Tất cả · 1 tháng gần đây · 3 tháng gần đây · 6 tháng · Năm nay · Tự chọn (Từ ngày – Đến ngày).
+- Anh chốt: tính theo **có hoạt động trong khoảng** (mô phỏng, xạ hoặc đang điều trị bất kỳ lúc nào trong khoảng; BN chưa xạ xong vẫn hiện). Không thêm ô "Tính theo".
+- Tải Excel theo đúng khoảng đang lọc. Nhớ lựa chọn trên máy (localStorage).
+
 ### Để sau (anh bảo từ từ 23/11): nhúng ứng dụng vào Google Sites để không hiện dòng "Ứng dụng này do một người dùng Google Apps Script tạo" (cần `XFrameOptionsMode.ALLOWALL` + thử đăng nhập / cấp quyền trên Sites, nhất là iPhone).
 
 
