@@ -9,7 +9,7 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
 ## Việc chờ
 
 ### v4.9 tiếp (anh chưa cài v4.9; chờ anh bảo "làm đi")
-1. **Hồ sơ BN có mục "Mô phỏng"** (anh yêu cầu 23/11): ngày mô phỏng (hoặc ngày hẹn nếu chưa mô phỏng), KTV mô phỏng (theo phân công / người ghi), **mặt nạ** (loại / không làm; mặt nạ mới hay dùng lại), **tiêm thuốc cản quang Có / Không**, dụng cụ (nêm lưỡi, khác…), chỉ định mô phỏng lại trên HIS (nếu là lần mô phỏng lại), có vào sổ mô phỏng không. BN có nhiều lần mô phỏng (boost / KH lại / đợt mới): mỗi lần một dòng. Chưa có thông tin thì ghi "Chưa ghi". Hiện ở cả hồ sơ trên điện thoại.
+1. **Hồ sơ BN có mục "Mô phỏng"** (anh yêu cầu 23/11): ngày mô phỏng (hoặc ngày hẹn nếu chưa mô phỏng), KTV mô phỏng (theo phân công / người ghi), **mặt nạ** (loại / không làm; mặt nạ mới hay dùng lại), **tiêm thuốc cản quang Có / Không**, dụng cụ (nêm lưỡi, khác…), chỉ định mô phỏng lại trên HIS (nếu là lần mô phỏng lại), có vào sổ mô phỏng không. BN có nhiều lần mô phỏng (boost / KH lại / đợt mới): mỗi lần một dòng. Chưa có thông tin thì ghi "Chưa ghi". Hiện ở cả hồ sơ trên điện thoại. **Mọi vai trò mở hồ sơ đều thấy đủ thông tin chi tiết như nhau, chỉ hàng nút chức năng khác nhau** (anh chốt 23/11; hiện hồ sơ đã như vậy).
 2. **Không đếm vắng cho BN Chờ phân loại / Không xạ** (em phát hiện 23/11, chờ anh duyệt): BN chờ phân loại đã có buổi xạ từ HIS (~225 ca, phần lớn xạ xong tháng 9–10, chưa có tổng) đang bị tính "vắng chưa rõ lý do" mỗi ngày làm việc → số vắng trên bảng ĐD (T6 120, T7 47), thống kê Vắng và "BN đang vắng xạ" bị đội. Sửa: chỉ tính vắng cho BN Đang xạ, Tạm ngừng, Đã xạ xong (trong thời gian còn xạ).
 
 ### (v4.8 đã làm, xem CHANGELOG)
