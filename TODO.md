@@ -10,6 +10,10 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
 
 ### (v5.0 đã làm, xem CHANGELOG)
 
+### Bản sau (a Thắng góp ý 23/11, chưa làm): mục Xạ trị xem số chỉ định / ngày của từng khoa
+- Hiện đã có bảng "Chỗ theo chỉ tiêu khoa" (10 ngày làm việc tới) nhưng chỉ ở Xạ trị › Chờ xếp lịch và chỉ hiện khi danh mục `CHI_TIEU` có khoa.
+- Em đề xuất (chờ anh chốt, anh có thể gửi ảnh a Thắng): Lịch tuần thêm dòng đếm số BN xạ theo lịch của từng khoa mỗi ngày; Hôm nay thêm ô nhỏ "Khoa: đã xạ / cần xạ"; mọi người vào mục Xạ trị đều thấy.
+
 ### Bản sau (anh yêu cầu 23/11, chưa làm): tạm ngừng có "dự kiến nghỉ"
 - Form Tạm ngừng thêm ô **Dự kiến nghỉ**: 3 ngày · 1 tuần (mặc định) · 2 tuần · Chưa rõ · Tự chọn ngày xạ lại. Lưu cột mới `du_kien_xa_lai` (ngày) ở BenhNhan → cần chạy `setup`.
 - Hiện "Dự kiến xạ lại: dd/mm" trong hồ sơ, danh sách Tạm ngừng (BS, KTV), lịch xạ (ô ngày dự kiến có viền).
