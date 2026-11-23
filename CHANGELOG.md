@@ -1,5 +1,11 @@
 # Lịch sử phiên bản
 
+## v5.0
+- **Số liệu điều dưỡng: mọi con số của khoa bấm được** (tổng lượt xạ, từng kỹ thuật, BN được xạ, mới vào, kết thúc, lượt vắng, BN vắng, ghi bù). Danh sách hiện ra có ô tìm tên / mã HIS, **sắp xếp** (ABC họ tên, theo BS, theo kỹ thuật, theo ngày), **lọc theo BS điều trị** (mọi ĐD dùng được), nút **⬇ Tải Excel** đúng danh sách đang xem; bấm dòng mở hồ sơ. Số tổng các khoa không bấm (ĐD chỉ xem BN khoa mình).
+- **Trang "Tất cả BN" có nút "⬇ Tải Excel"**: tải đúng danh sách đang lọc (trạng thái, BS, khoa, ô tìm) gồm họ tên, mã HIS, năm sinh, giới, ICD, chẩn đoán, vị trí, kỹ thuật, liều, số buổi, BS, khoa, trạng thái, đã xạ, bắt đầu, kết thúc / dự kiến.
+- **Quyền "Sửa thông tin":** chỉ BS điều trị của BN (kể cả trợ lý khi trợ lý là BS điều trị), Trưởng khoa, Quản trị; máy chủ chặn người khác. BS khác mở hồ sơ vẫn xem đủ thông tin, không có nút "Sửa thông tin". **Form sửa không đổi được BS điều trị** (ô chỉ đọc): đổi BS dùng nút "Chuyển BS điều trị" (lý do, xác nhận, chuông, lưu vết).
+- Không có cột mới: không cần chạy `setup`.
+
 ## v4.10
 - **Sửa lỗi "Chuyển BS điều trị" từ hồ sơ BN báo "Chưa chọn BN nào"** dù đã chọn BN (form gửi mã BN dạng chữ, máy chủ chờ danh sách). Nay chuyển được từ hồ sơ; máy chủ nhận cả hai dạng.
 - Không có cột mới: không cần chạy `setup`.

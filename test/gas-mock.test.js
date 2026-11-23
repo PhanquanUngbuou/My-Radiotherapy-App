@@ -438,7 +438,7 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   r = ok('dd2@x.vn', 'createPatient', { ma_his: 'K27', ho_ten: 'BN khoa', nam_sinh: '1970', bs_email: 'tk@x.vn', khoa: 'Xạ trị theo yêu cầu', trang_thai: 'CONTOUR' });
   let pk = r.data.patients.find(x => x.ma_his === 'K27');
   assert.strictEqual(pk.khoa, 'Xạ trị', 'khoa theo BS điều trị');
-  r = ok('admin@x.vn', 'updatePatient', { id: pk.id, bs_email: 'bs2@x.vn' });
+  r = ok('admin@x.vn', 'transferDoctor', { ids: [pk.id], bs_email: 'bs2@x.vn', ly_do: 'test' });
   assert.strictEqual(r.data.patients.find(x => x.id === pk.id).khoa, 'Xạ trị theo yêu cầu', 'đổi BS thì đổi khoa');
   // ĐD chỉ nhận BN khoa mình
   r = ok('dd2@x.vn', 'bootstrap');
@@ -1030,9 +1030,11 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   const d = ok('admin@x.vn', 'bootstrap').data;
   const p0 = d.patients.find(x => x.ma_his === '970001');
   const before = sheets.NhatKy.getLastRow();
-  r = ok('bs@x.vn', 'updatePatient', { id: p0.id, chan_doan: 'K vú trái', bs_email: 'tk@x.vn' });
+  assert(!api('bs@x.vn', 'updatePatient', { id: p0.id, bs_email: 'tk@x.vn' }).ok, 'không đổi BS qua sửa thông tin');
+  assert(!api('bs2@x.vn', 'updatePatient', { id: p0.id, chan_doan: 'x' }).ok, 'BS khác không sửa BN không phải của mình');
+  r = ok('bs@x.vn', 'updatePatient', { id: p0.id, chan_doan: 'K vú trái', vi_tri: 'Vú trái' });
   const row = sheets.NhatKy.data[sheets.NhatKy.getLastRow() - 1].join(' | ');
-  assert(sheets.NhatKy.getLastRow() > before && /Sửa thông tin/.test(row) && /Chẩn đoán: .+ → K vú trái/.test(row) && /BS điều trị: BS A → /.test(row), 'nhật ký ghi cũ → mới: ' + row);
+  assert(sheets.NhatKy.getLastRow() > before && /Sửa thông tin/.test(row) && /Chẩn đoán: .+ → K vú trái/.test(row) && /Vị trí xạ: .* → Vú trái/.test(row), 'nhật ký ghi cũ → mới: ' + row);
   assert(/Sửa thông tin \(BS A\): .*Chẩn đoán/.test(r.data.patients.find(x => x.id === p0.id).ghi_chu), 'ghi chú BN có lưu vết');
 }
 // v3.10: nhập đầy đủ có ICD thêm (BN 2 ung thư)
@@ -1126,7 +1128,7 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   r = ok('admin@x.vn', 'importHisBook', { rows: [{ ma_his: '991003', ho_ten: 'BN HIS Trợ Lý', nam_sinh: '1970', gioi: 'Nữ', chan_doan: 'K vú', khoa: 'Xạ trị', bs_email: 'tl@x.vn', ngay_mo_phong: today }] });
   const p3 = r.data.patients.find(x => x.ma_his === '991003');
   assert(p3 && p3.bs_email === 'tl@x.vn' && /BS Trợ Lý đang là BS trợ lý/.test(r.msg), 'nhập HIS giữ trợ lý + nhắc: ' + r.msg);
-  ok('bs@x.vn', 'updatePatient', { id: p3.id, chan_doan: 'K vú trái' }); // BN cũ đứng tên trợ lý vẫn sửa được
+  ok('tl@x.vn', 'updatePatient', { id: p3.id, chan_doan: 'K vú trái' }); // BN cũ đứng tên trợ lý: trợ lý (BS điều trị) vẫn sửa được
   // Quản trị cho phép
   ok('admin@x.vn', 'saveUser', { email: 'tl@x.vn', ho_ten: 'BS Trợ Lý', vai_tro: 'BS', kich_hoat: 'Có', khoa: 'Xạ trị', tro_ly_cho: 'bs@x.vn', nhan_bn: true });
   r = ok('ktv@x.vn', 'createPatient', Object.assign({ ma_his: '991004', bs_email: 'tl@x.vn' }, bn));

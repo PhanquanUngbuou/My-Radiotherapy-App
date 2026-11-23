@@ -8,14 +8,7 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
 
 ## Việc chờ
 
-### v5.0 (anh yêu cầu 23/11, đặt tên v5.0, chờ anh bảo "làm đi")
-1. **Bảng số liệu ĐD: mọi con số của khoa bấm được ra danh sách BN** (tổng lượt xạ, từng kỹ thuật, BN được xạ, mới vào, kết thúc, lượt vắng, BN vắng, ghi bù; hiện chỉ 3 dòng bấm được). Số tổng các khoa không bấm (ĐD không xem BN khoa khác).
-   - Danh sách: họ tên, mã HIS, kỹ thuật · liều, buổi n/tổng (hoặc ngày, lý do với vắng / ghi bù), BS điều trị; bấm dòng mở hồ sơ.
-   - **Sắp xếp**: ABC họ → đệm → tên (mặc định), theo BS, theo kỹ thuật. **Lọc theo BS điều trị** (ô chọn BS) + ô tìm tên / mã HIS. Nút "Tải Excel" danh sách đang xem.
-   - **Mọi ĐD đều lọc được theo BS** trong danh sách bấm từ số liệu "BN của tôi" (anh chốt 23/11; ngoại lệ của quy tắc v2.7 chỉ cho danh sách này).
-
-2. **Trang "Tất cả BN" có nút "⬇ Tải Excel"** (anh yêu cầu 23/11): tải đúng danh sách đang lọc (trạng thái, BS, khoa, chip trạng thái, ô tìm): họ tên, mã HIS, năm sinh, giới, ICD, chẩn đoán, vị trí, kỹ thuật, liều / số buổi, BS, khoa, trạng thái, tiến độ, ngày bắt đầu / kết thúc dự kiến. Ai xem được danh sách thì tải được đúng danh sách đó (ĐD chỉ BN khoa mình).
-3. **Quyền "Sửa thông tin"** (anh duyệt 23/11): chỉ BS điều trị của BN (kể cả trợ lý của BS đó), Trưởng khoa, Quản trị được sửa (máy chủ chặn); BS khác vẫn xem đủ hồ sơ, không có nút "Sửa thông tin". **Bỏ ô "BS điều trị" khỏi form sửa**: đổi BS chỉ qua "Chuyển BS điều trị" (lý do, xác nhận, chuông, lưu vết).
+### (v5.0 đã làm, xem CHANGELOG)
 
 ### Để sau (anh bảo từ từ 23/11): nhúng ứng dụng vào Google Sites để không hiện dòng "Ứng dụng này do một người dùng Google Apps Script tạo" (cần `XFrameOptionsMode.ALLOWALL` + thử đăng nhập / cấp quyền trên Sites, nhất là iPhone).
 

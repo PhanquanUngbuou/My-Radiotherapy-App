@@ -563,3 +563,17 @@ div.confirm{display:block;line-height:1.5}
 
 /* v4.9: mục Mô phỏng trong hồ sơ */
 .sim-t{display:block;margin-top:6px;padding-top:8px;border-top:1px dashed var(--line);color:var(--accent)}
+
+/* v5.0: danh sách bấm từ số liệu ĐD */
+.nl-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.nl-bar input{flex:1 1 200px;min-width:0}
+.nl-bar select{flex:0 1 auto}
+@media (max-width:760px){
+  .nl-bar input{flex:1 1 100%}
+  .nl-bar select{flex:1 1 40%}
+  #nl-tbl thead{display:none}
+  #nl-tbl table,#nl-tbl tbody,#nl-tbl tr,#nl-tbl td{display:block;width:100%}
+  #nl-tbl tr{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px;padding:10px 4px;border-bottom:1px solid var(--line)}
+  #nl-tbl td{padding:0;border:0}
+  #nl-tbl td:first-child{grid-column:1 / -1}
+}

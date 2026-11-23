@@ -1,4 +1,4 @@
-// Điều phối Xạ trị · phiên bản v4.10
+// Điều phối Xạ trị · phiên bản v5.0
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -9,7 +9,7 @@
  */
 var RT = (function () {
   'use strict';
-  var VERSION = '4.10';
+  var VERSION = '5.0';
 
   var STATUS_ORDER = ['CHO_PL', 'MO_PHONG', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA', 'DANG_XA', 'TAM_NGUNG', 'HOAN_THANH', 'KHONG_XA'];
   var STATUS = {
@@ -154,6 +154,8 @@ var RT = (function () {
   /** Được đứng tên BS điều trị: bác sĩ đang hoạt động; BS trợ lý chỉ khi Quản trị tích "Được làm BS điều trị" (nhan_bn) */
   /** Huỷ hồ sơ chỉ khi BN CHƯA mô phỏng (Chờ mô phỏng, hoặc chờ phân loại không có ngày mô phỏng / buổi xạ). Đã mô phỏng → chỉ Không xạ. */
   function canCancel(p, fractions) { return p.trang_thai === 'MO_PHONG' || (p.trang_thai === 'CHO_PL' && !p.ngay_mo_phong && !fxOf(p, fractions || []).length); }
+  /** Sửa thông tin BN: BS điều trị (kể cả trợ lý của BS đó), Trưởng khoa, Quản trị */
+  function canEditPatient(u, p) { return !!u && (u.vai_tro === 'ADMIN' || (u.vai_tro === 'BS' && (u.chuc_vu === 'Trưởng khoa' || myDoctors(u).indexOf(p.bs_email) >= 0))); }
   function canTreat(u) { return !!u && u.kich_hoat !== 'Không' && (u.vai_tro === 'BS' || u.vai_tro === 'ADMIN') && !(u.vai_tro === 'BS' && u.tro_ly_cho && u.nhan_bn !== 'Có'); }
   /** Chặn gán BN mới / đổi BS sang trợ lý chưa được phép (BN cũ đứng tên trợ lý giữ nguyên) */
   function checkTreat(ctx, email, old) {
@@ -708,9 +710,10 @@ var RT = (function () {
     },
     updatePatient: function (ctx, a) {
       var p = findP(ctx, a.id), o = clean(a, EDIT_FIELDS), merged = {};
+      if (!canEditPatient(ctx.user, p)) fail('Chỉ BS điều trị của BN, Trưởng khoa hoặc Quản trị được sửa thông tin BN này.');
+      if (o.bs_email !== undefined && o.bs_email !== p.bs_email) fail('Đổi BS điều trị: dùng nút "Chuyển BS điều trị" trong hồ sơ BN (có lý do, xác nhận, báo BS nhận).');
       Object.keys(p).forEach(function (k) { merged[k] = p[k]; });
       Object.keys(o).forEach(function (k) { merged[k] = o[k]; });
-      if (o.bs_email !== undefined) checkTreat(ctx, o.bs_email, p.bs_email);
       checkMpHis(o.mp_his);
       if (o.mp_his !== undefined && !p.mp_his && o.mp_his) fail('Lần mô phỏng đầu tiên của BN không cần chỉ định mô phỏng lại.');
       if (o.bs_email !== undefined || o.khoa !== undefined) { setKhoa(ctx, merged); o.khoa = merged.khoa; }
@@ -2347,7 +2350,7 @@ var RT = (function () {
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
-    scheduleLabel: scheduleLabel, isOpen: isOpen, lenientEdit: lenientEdit, FIELD_LABELS: FIELD_LABELS, missingRx: missingRx, needsOffDay: needsOffDay, offDay: offDay, viTris: viTris, canTreat: canTreat, canCancel: canCancel, prevSim: prevSim, nurseRanges: nurseRanges, slimSum: slimSum, khoiTotals: khoiTotals, dosePerFx: dosePerFx,
+    scheduleLabel: scheduleLabel, isOpen: isOpen, lenientEdit: lenientEdit, FIELD_LABELS: FIELD_LABELS, missingRx: missingRx, needsOffDay: needsOffDay, offDay: offDay, viTris: viTris, canTreat: canTreat, canEditPatient: canEditPatient, canCancel: canCancel, prevSim: prevSim, nurseRanges: nurseRanges, slimSum: slimSum, khoiTotals: khoiTotals, dosePerFx: dosePerFx,
     addDays: addDays, diffDays: diffDays, dow: dow, monday: monday, isDate: isDate, num: num, splitList: splitList, fxOf: fxOf
   };
 })();
