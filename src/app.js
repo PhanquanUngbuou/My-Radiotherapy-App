@@ -1281,7 +1281,7 @@
         if (!r0 && mine.indexOf(v.from) < 0 && mine.indexOf(v.bs_email) < 0) return 'Chỉ BS đang điều trị, BS nhận, trưởng khoa hoặc quản trị được chuyển.';
         return '';
       },
-      onOk: function (v) { run('transferDoctor', { ids: v.ids, bs_email: v.bs_email, ly_do: v.ly_do }); } });
+      onOk: function (v) { run('transferDoctor', { ids: [].concat(v.ids || []), bs_email: v.bs_email, ly_do: v.ly_do }); } });
   }
   function canClassify(p) { return can('classifyPatient') && (role() !== 'BS' || !p.bs_email || RT.myDoctors(me()).indexOf(p.bs_email) >= 0); }
   function classifyForm(p) {

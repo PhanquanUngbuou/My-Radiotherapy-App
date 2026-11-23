@@ -8,6 +8,10 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
 
 ## Việc chờ
 
+### Chờ anh duyệt (em đề xuất 23/11): quyền "Sửa thông tin"
+- Hiện BS nào cũng sửa được thông tin BN của BS khác, kể cả đổi "BS điều trị" (bỏ qua lý do, xác nhận, chuông của "Chuyển BS điều trị").
+- Đề xuất: "Sửa thông tin" chỉ cho BS điều trị của BN (kể cả trợ lý của BS đó), Trưởng khoa, Quản trị (máy chủ chặn); BS khác vẫn xem đủ hồ sơ. Bỏ ô "BS điều trị" khỏi form sửa, đổi BS chỉ qua "Chuyển BS điều trị".
+
 ### (v4.9 đã làm, xem CHANGELOG)
 
 ### (v4.8 đã làm, xem CHANGELOG)

@@ -1029,7 +1029,7 @@ var RT = (function () {
     },
     /** Chuyển BS điều trị (một hoặc nhiều BN). BS chuyển đi, BS nhận, trưởng khoa, quản trị đều làm được. */
     transferDoctor: function (ctx, a) {
-      var ids = Array.isArray(a.ids) ? a.ids : [a.id];
+      var ids = Array.isArray(a.ids) ? a.ids : a.ids ? [a.ids] : [a.id];
       ids = ids.filter(Boolean);
       if (!ids.length) fail('Chưa chọn BN nào.');
       var to = String(a.bs_email || '').toLowerCase();

@@ -41,21 +41,21 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
 </style>
 <div class="wrap">
   <div class="intro">
-    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v4.9</h1>
+    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v4.10</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v4.9 · bản lưu 8b73a83 · 23/11/2026 02:40. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v4.9”.</span>
+    <span class="rev">Phiên bản v4.10 · bản lưu f6b8f0a · 23/11/2026 02:42. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v4.10”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Code">Code.gs <span class="ver">· v4.9</span></h2>
+        <h2 id="h-Code">Code.gs <span class="ver">· v4.10</span></h2>
         <p>File có sẵn tên Code.gs: xoá hết nội dung cũ, dán vào.</p>
         <span class="size">657 dòng · 34 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v4.9)</button>
+      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v4.10)</button>
     </div>
-    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v4.9
+    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v4.10
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
@@ -716,13 +716,13 @@ function statsData_(ctx, tu, den) {
   <section class="card" aria-labelledby="h-Core">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Core">Core.gs <span class="ver">· v4.9</span></h2>
+        <h2 id="h-Core">Core.gs <span class="ver">· v4.10</span></h2>
         <p>Bấm + → Script (Tập lệnh), đặt tên Core.</p>
         <span class="size">2,359 dòng · 175 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v4.9)</button>
+      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v4.10)</button>
     </div>
-    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v4.9
+    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v4.10
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -733,7 +733,7 @@ function statsData_(ctx, tu, den) {
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;4.9&#x27;;
+  var VERSION = &#x27;4.10&#x27;;
 
   var STATUS_ORDER = [&#x27;CHO_PL&#x27;, &#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;, &#x27;KHONG_XA&#x27;];
   var STATUS = {
@@ -1754,7 +1754,7 @@ var RT = (function () {
     },
     /** Chuyển BS điều trị (một hoặc nhiều BN). BS chuyển đi, BS nhận, trưởng khoa, quản trị đều làm được. */
     transferDoctor: function (ctx, a) {
-      var ids = Array.isArray(a.ids) ? a.ids : [a.id];
+      var ids = Array.isArray(a.ids) ? a.ids : a.ids ? [a.ids] : [a.id];
       ids = ids.filter(Boolean);
       if (!ids.length) fail(&#x27;Chưa chọn BN nào.&#x27;);
       var to = String(a.bs_email || &#x27;&#x27;).toLowerCase();
@@ -3085,14 +3085,14 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
   <section class="card" aria-labelledby="h-Index">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Index">Index.html <span class="ver">· v4.9</span></h2>
+        <h2 id="h-Index">Index.html <span class="ver">· v4.10</span></h2>
         <p>Bấm + → HTML, đặt tên Index (chữ I hoa).</p>
         <span class="size">6,342 dòng · 538 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v4.9)</button>
+      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v4.10)</button>
     </div>
     <textarea id="t-Index" readonly spellcheck="false" aria-label="Nội dung Index.html">&lt;!DOCTYPE html&gt;
-&lt;!-- Điều phối Xạ trị · phiên bản v4.9 --&gt;
+&lt;!-- Điều phối Xạ trị · phiên bản v4.10 --&gt;
 &lt;html lang=&quot;vi&quot;&gt;
 &lt;head&gt;
 &lt;base target=&quot;_top&quot;&gt;
@@ -3695,7 +3695,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;4.9&#x27;;
+  var VERSION = &#x27;4.10&#x27;;
 
   var STATUS_ORDER = [&#x27;CHO_PL&#x27;, &#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;, &#x27;KHONG_XA&#x27;];
   var STATUS = {
@@ -4716,7 +4716,7 @@ var RT = (function () {
     },
     /** Chuyển BS điều trị (một hoặc nhiều BN). BS chuyển đi, BS nhận, trưởng khoa, quản trị đều làm được. */
     transferDoctor: function (ctx, a) {
-      var ids = Array.isArray(a.ids) ? a.ids : [a.id];
+      var ids = Array.isArray(a.ids) ? a.ids : a.ids ? [a.ids] : [a.id];
       ids = ids.filter(Boolean);
       if (!ids.length) fail(&#x27;Chưa chọn BN nào.&#x27;);
       var to = String(a.bs_email || &#x27;&#x27;).toLowerCase();
@@ -7492,7 +7492,7 @@ var XL = (function () {
         if (!r0 &amp;&amp; mine.indexOf(v.from) &lt; 0 &amp;&amp; mine.indexOf(v.bs_email) &lt; 0) return &#x27;Chỉ BS đang điều trị, BS nhận, trưởng khoa hoặc quản trị được chuyển.&#x27;;
         return &#x27;&#x27;;
       },
-      onOk: function (v) { run(&#x27;transferDoctor&#x27;, { ids: v.ids, bs_email: v.bs_email, ly_do: v.ly_do }); } });
+      onOk: function (v) { run(&#x27;transferDoctor&#x27;, { ids: [].concat(v.ids || []), bs_email: v.bs_email, ly_do: v.ly_do }); } });
   }
   function canClassify(p) { return can(&#x27;classifyPatient&#x27;) &amp;&amp; (role() !== &#x27;BS&#x27; || !p.bs_email || RT.myDoctors(me()).indexOf(p.bs_email) &gt;= 0); }
   function classifyForm(p) {

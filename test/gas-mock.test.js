@@ -1196,4 +1196,11 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   const s = RT.summary({ patients: [p], phases: d.phases, fractions: d.fractions, exceptions: d.exceptions, holidays: d.holidays, dm: d.dm }, RT.addDays(old, 3), d.today, d.today);
   assert.strictEqual(s.vang_luot, 0, 'thống kê vắng không đếm BN chờ phân loại');
 }
+// v4.10: chuyển BS điều trị từ hồ sơ 1 BN (ids gửi dạng chuỗi)
+{
+  r = ok('bs@x.vn', 'createPatient', { ma_his: '999101', ho_ten: 'Chuyển Từ Hồ Sơ', nam_sinh: '1960', trang_thai: 'MO_PHONG' });
+  const p = r.data.patients.find(x => x.ma_his === '999101');
+  r = ok('tk@x.vn', 'transferDoctor', { ids: p.id, bs_email: 'tk@x.vn', ly_do: 'test' });
+  assert.strictEqual(r.data.patients.find(x => x.id === p.id).bs_email, 'tk@x.vn', 'ids dạng chuỗi vẫn chuyển được');
+}
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');
