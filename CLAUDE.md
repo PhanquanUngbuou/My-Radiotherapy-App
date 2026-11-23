@@ -7,6 +7,7 @@
 - **Trình bày kế hoạch trước khi làm thay đổi lớn**, chờ anh duyệt. Thay đổi nhỏ chưa gấp thì ghi vào `TODO.md` để gộp lần sau. Khi anh nói "ghi vào todo / để đó" thì không sửa code, chỉ ghi `TODO.md`.
 - **Từ sau v2.7: mọi yêu cầu mới ghi vào `TODO.md`, KHÔNG sửa code, KHÔNG làm phiên bản mới cho tới khi anh bảo "làm đi / làm bản mới".** Tiết kiệm token: gom việc, chỉ chụp ảnh giao diện khi cần.
 - **Việc còn khúc mắc (dữ liệu mơ hồ, nhiều cách hiểu): chủ động đề xuất hướng giải quyết và hỏi anh, KHÔNG tự ý xử lý** (anh nhắc 21/11/2026 sau vụ nhập BN không có mô phỏng). Hỏi từng câu một khi có nhiều câu.
+- **Lỗi chỉ ảnh hưởng tài khoản Quản trị (VD chế độ "Xem như") thì không làm bản mới ngay**: ghi `TODO.md`, gộp vào bản sau (anh nhắc 23/11/2026).
 - **Mỗi lần gửi bản sửa (dù nhỏ) đều tăng số phiên bản** trong `VERSION` (2.6 → 2.7…) và ghi `CHANGELOG.md`. Ngoại lệ: anh chưa cài bản hiện tại và bảo gộp vào thì giữ số.
 - Hướng dẫn cài đặt đưa từng bước, ngắn gọn. Ứng dụng phải nhẹ (vài chục người dùng cùng lúc). Không làm thông báo đẩy, chỉ thông báo trong ứng dụng (chuông). Không làm "giờ hẹn".
 - **Dữ liệu cá nhân:** không đưa danh sách email nhân viên hay dữ liệu bệnh nhân vào GitHub.
