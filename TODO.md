@@ -8,6 +8,17 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
 
 ## Việc chờ
 
+### v4.8 (anh yêu cầu 23/11/2026, chờ anh bảo "làm đi")
+1. **Tìm kiếm xong quay về tab cũ:** gõ tìm ở tab khác (trừ Xạ trị, đã tìm tại chỗ từ v4.7) vẫn sang "Tất cả BN" nhưng nhớ tab đang đứng; đầu trang có nút "← Quay lại <tên tab>"; xoá hết chữ trong ô tìm (hoặc dấu ×) thì tự về tab cũ; đóng hồ sơ BN thì vẫn ở trang kết quả.
+
+### Bảo mật: đăng nhập bằng mã qua email (anh chốt dùng Gmail cá nhân 23/11; chờ anh bảo "làm đi", thay đổi lớn)
+- Ứng dụng chạy bằng tài khoản Quản trị ("Thực thi với tư cách: Tôi"), **bỏ chia sẻ Google Sheet** cho mọi người (chỉ Quản trị mở Sheet).
+- Đăng nhập: nhập email (phải có trong NguoiDung, đang kích hoạt) → mã 6 số gửi qua email (MailApp, hạn 10 phút, sai 5 lần khoá 15 phút) → nhập mã.
+- "Ghi nhớ thiết bị này" (mặc định tích): lưu mã thiết bị ngẫu nhiên trong trình duyệt, máy chủ lưu bản băm + hạn **90 ngày**; cùng máy, cùng trình duyệt vào thẳng. Máy dùng chung: bỏ tích. Nút "Đăng xuất".
+- Quản trị: nút "Đăng xuất mọi thiết bị" của từng người (mất điện thoại, nghỉ việc); khoá tài khoản thì mọi thiết bị mất hiệu lực.
+- Lưu ý: iPhone Safari có thể xoá ghi nhớ nếu ~7 ngày không mở; Gmail gửi tối đa ~100 email/ngày (đủ dùng).
+- Video: thêm đoạn "Bảo mật dữ liệu" (quy tắc người dùng: không chia sẻ link / tài khoản, bật xác minh 2 bước, đăng xuất máy chung, khoá điện thoại, không chụp màn hình BN gửi Zalo, không mở / sửa Sheet, file Excel dùng xong xoá, nghiên cứu bỏ họ tên + mã HIS, mất máy / nghỉ việc báo Quản trị).
+
 ### (v4.6 đã làm, xem CHANGELOG)
 
 ### (v4.5 đã làm, xem CHANGELOG)
