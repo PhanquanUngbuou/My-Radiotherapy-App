@@ -1,5 +1,15 @@
 # Lịch sử phiên bản
 
+## v4.7
+- **KTV tìm BN trong tab Xạ trị và xác nhận xạ ngay:**
+  - Đang ở tab Xạ trị, gõ mã HIS hoặc tên vào ô tìm kiếm thì không chuyển trang; khung "Kết quả tìm" hiện ở đầu tab, mỗi BN có nút **"✓ Xác nhận xạ"**, "Vắng", "Mở hồ sơ". Bấm Enter không tự mở form (KTV tự bấm sau khi kiểm tra đúng BN).
+  - Báo tình trạng ngay trên dòng: đã xạ hôm nay (giờ), tạm ngừng (từ ngày, lý do), chưa xếp lịch / lịch bắt đầu ngày khác, hôm nay không có lịch, đã ghi vắng, chưa có tổng liều, chưa rõ ngày nghỉ (bấm chọn luôn). Các trường hợp này vẫn ghi buổi xạ được.
+  - Không cho ghi (báo lý do đỏ): đã xạ hôm nay, chờ BS đánh giá lại KH, KH tiếp theo chưa sẵn sàng, đã đủ số buổi, chưa tới bước xạ / đã xạ xong.
+  - Nút "Xoá tìm kiếm". Ngoài tab Xạ trị, tìm kiếm vẫn sang "Tất cả BN"; với KTV danh sách đó có thêm nút "✓ Xác nhận xạ".
+- **Ghi buổi xạ cho BN đang tạm ngừng:** phải tích ô xác nhận "ghi buổi xạ sẽ chuyển BN về Đang xạ"; ghi chú BN lưu vết "Tiếp tục xạ … sau tạm ngừng từ …".
+- Kiểm thử: phần sổ mô phỏng không còn phụ thuộc ngày chạy (thứ Hai).
+- Không có cột mới: không cần chạy `setup`.
+
 ## v4.6
 - **Số liệu điều dưỡng sau ngày nghỉ:** cột "Hôm qua" thay bằng các ngày từ ngày làm việc trước, **mỗi ngày một cột riêng**. Sáng thứ Hai: cột "Thứ Sáu" và "Thứ Bảy (xạ bù)", rồi Hôm nay, Tuần này. Chủ nhật / ngày lễ chỉ hiện khi có buổi xạ bù. Ngày đầu sau nghỉ lễ cũng vậy.
 - Sửa các khung nhắc màu vàng bị vỡ thành nhiều cột chữ (form Phân loại, Thêm bệnh nhân…).

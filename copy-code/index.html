@@ -41,21 +41,21 @@ textarea { width:100%; height:180px; resize:vertical; font-family:var(--f-code);
 </style>
 <div class="wrap">
   <div class="intro">
-    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v4.6</h1>
+    <h1>Mã nguồn Apps Script · Điều phối Xạ trị · v4.7</h1>
     <p>Bấm nút <b>Sao chép</b> của từng file, rồi dán (Ctrl+V) vào đúng file cùng tên trong Apps Script. Làm lần lượt cả 3 file, bấm Ctrl+S để lưu, chạy hàm setup, rồi triển khai phiên bản mới.</p>
-    <span class="rev">Phiên bản v4.6 · bản lưu f59ba83 · 22/11/2026 01:30. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v4.6”.</span>
+    <span class="rev">Phiên bản v4.7 · bản lưu a8e2750 · 22/11/2026 01:33. Sau khi cập nhật, thanh trên cùng của ứng dụng hiện “v4.7”.</span>
   </div>
   
   <section class="card" aria-labelledby="h-Code">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Code">Code.gs <span class="ver">· v4.6</span></h2>
+        <h2 id="h-Code">Code.gs <span class="ver">· v4.7</span></h2>
         <p>File có sẵn tên Code.gs: xoá hết nội dung cũ, dán vào.</p>
         <span class="size">657 dòng · 34 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v4.6)</button>
+      <button class="copy" type="button" data-target="t-Code" id="b-Code">Sao chép Code.gs (v4.7)</button>
     </div>
-    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v4.6
+    <textarea id="t-Code" readonly spellcheck="false" aria-label="Nội dung Code.gs">// Điều phối Xạ trị · phiên bản v4.7
 /**
  * Điều phối Xạ trị — phần máy chủ chạy trên Google Apps Script.
  * Dữ liệu lưu trong chính Google Sheet chứa script này.
@@ -716,13 +716,13 @@ function statsData_(ctx, tu, den) {
   <section class="card" aria-labelledby="h-Core">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Core">Core.gs <span class="ver">· v4.6</span></h2>
+        <h2 id="h-Core">Core.gs <span class="ver">· v4.7</span></h2>
         <p>Bấm + → Script (Tập lệnh), đặt tên Core.</p>
-        <span class="size">2,337 dòng · 173 KB</span>
+        <span class="size">2,338 dòng · 174 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v4.6)</button>
+      <button class="copy" type="button" data-target="t-Core" id="b-Core">Sao chép Core.gs (v4.7)</button>
     </div>
-    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v4.6
+    <textarea id="t-Core" readonly spellcheck="false" aria-label="Nội dung Core.gs">// Điều phối Xạ trị · phiên bản v4.7
 /**
  * Lõi nghiệp vụ dùng chung cho máy chủ (Google Apps Script) và giao diện.
  * Không phụ thuộc Google: chỉ làm việc với mảng đối tượng thuần.
@@ -733,7 +733,7 @@ function statsData_(ctx, tu, den) {
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;4.6&#x27;;
+  var VERSION = &#x27;4.7&#x27;;
 
   var STATUS_ORDER = [&#x27;CHO_PL&#x27;, &#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;, &#x27;KHONG_XA&#x27;];
   var STATUS = {
@@ -2107,11 +2107,12 @@ var RT = (function () {
       });
       var n = fx.length + 1;
       p.ngay_bat_dau = fx.length ? (fx[0].ngay &lt; ngay ? fx[0].ngay : ngay) : ngay;
-      if (p.trang_thai === &#x27;TAM_NGUNG&#x27;) { p.tam_ngung_tu = &#x27;&#x27;; p.ly_do_tam_ngung = &#x27;&#x27;; }
+      var resumed = p.trang_thai === &#x27;TAM_NGUNG&#x27;;
+      if (resumed) { note(p, ctx.today, &#x27;Tiếp tục xạ (&#x27; + userName(ctx, ctx.user.email) + &#x27; ghi buổi xạ) sau tạm ngừng từ &#x27; + (p.tam_ngung_tu || &#x27;?&#x27;) + (p.ly_do_tam_ngung ? &#x27; · &#x27; + p.ly_do_tam_ngung : &#x27;&#x27;)); p.tam_ngung_tu = &#x27;&#x27;; p.ly_do_tam_ngung = &#x27;&#x27;; }
       p.trang_thai = &#x27;DANG_XA&#x27;;
       var finished = finishIfDone(ctx, p);
       save(ctx, p, late ? &#x27;Ghi bù buổi xạ&#x27; : &#x27;Ghi buổi xạ&#x27;, &#x27;Buổi &#x27; + n + &#x27;/&#x27; + (seg.open ? &#x27;?&#x27; : total) + (segs.length &gt; 1 ? &#x27; (&#x27; + seg.label + &#x27;)&#x27; : &#x27;&#x27;) + &#x27; ngày &#x27; + ngay + (img ? &#x27; · &#x27; + img : &#x27;&#x27;) + (late ? &#x27; · lý do ghi bù: &#x27; + lyDoBu : &#x27;&#x27;));
-      var msg = &#x27;Đã ghi buổi &#x27; + n + &#x27;/&#x27; + (seg.open ? &#x27;?&#x27; : total) + &#x27; cho &#x27; + p.ho_ten + &#x27;.&#x27; + (seg.open ? &#x27; BN chưa có tổng số buổi: BS cần bổ sung.&#x27; : &#x27;&#x27;);
+      var msg = &#x27;Đã ghi buổi &#x27; + n + &#x27;/&#x27; + (seg.open ? &#x27;?&#x27; : total) + &#x27; cho &#x27; + p.ho_ten + &#x27;.&#x27; + (resumed ? &#x27; BN chuyển lại Đang xạ.&#x27; : &#x27;&#x27;) + (seg.open ? &#x27; BN chưa có tổng số buổi: BS cần bổ sung.&#x27; : &#x27;&#x27;);
       if (finished) msg += &#x27; BN đã xạ đủ liệu trình.&#x27;;
       else if (n === seg.to &amp;&amp; segs.length &gt; 1) {
         var nx = segAt(segs, n);
@@ -3063,14 +3064,14 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
   <section class="card" aria-labelledby="h-Index">
     <div class="head">
       <div class="meta">
-        <h2 id="h-Index">Index.html <span class="ver">· v4.6</span></h2>
+        <h2 id="h-Index">Index.html <span class="ver">· v4.7</span></h2>
         <p>Bấm + → HTML, đặt tên Index (chữ I hoa).</p>
-        <span class="size">6,202 dòng · 526 KB</span>
+        <span class="size">6,260 dòng · 532 KB</span>
       </div>
-      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v4.6)</button>
+      <button class="copy" type="button" data-target="t-Index" id="b-Index">Sao chép Index.html (v4.7)</button>
     </div>
     <textarea id="t-Index" readonly spellcheck="false" aria-label="Nội dung Index.html">&lt;!DOCTYPE html&gt;
-&lt;!-- Điều phối Xạ trị · phiên bản v4.6 --&gt;
+&lt;!-- Điều phối Xạ trị · phiên bản v4.7 --&gt;
 &lt;html lang=&quot;vi&quot;&gt;
 &lt;head&gt;
 &lt;base target=&quot;_top&quot;&gt;
@@ -3623,6 +3624,12 @@ table.rpt.grid th.d,table.rpt.grid td.d{padding:4px 3px;min-width:26px;text-alig
 div.confirm{display:block;line-height:1.5}
 .nurse-tbl th{white-space:normal;vertical-align:bottom;min-width:70px;line-height:1.25}
 
+/* v4.7: kết quả tìm trong tab Xạ trị */
+.tx-find .group-head{flex-wrap:wrap}
+.tx-find .group-head .btn{margin-left:auto}
+.tx-find .flag{margin:2px 4px 2px 0;display:inline-block}
+.tx-find .flag{white-space:normal;line-height:1.35}
+
 &lt;/style&gt;
 &lt;/head&gt;
 &lt;body&gt;
@@ -3649,7 +3656,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = ICD10;
  */
 var RT = (function () {
   &#x27;use strict&#x27;;
-  var VERSION = &#x27;4.6&#x27;;
+  var VERSION = &#x27;4.7&#x27;;
 
   var STATUS_ORDER = [&#x27;CHO_PL&#x27;, &#x27;MO_PHONG&#x27;, &#x27;CONTOUR&#x27;, &#x27;CHO_KH&#x27;, &#x27;DANG_KH&#x27;, &#x27;CHO_QA&#x27;, &#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;, &#x27;KHONG_XA&#x27;];
   var STATUS = {
@@ -5023,11 +5030,12 @@ var RT = (function () {
       });
       var n = fx.length + 1;
       p.ngay_bat_dau = fx.length ? (fx[0].ngay &lt; ngay ? fx[0].ngay : ngay) : ngay;
-      if (p.trang_thai === &#x27;TAM_NGUNG&#x27;) { p.tam_ngung_tu = &#x27;&#x27;; p.ly_do_tam_ngung = &#x27;&#x27;; }
+      var resumed = p.trang_thai === &#x27;TAM_NGUNG&#x27;;
+      if (resumed) { note(p, ctx.today, &#x27;Tiếp tục xạ (&#x27; + userName(ctx, ctx.user.email) + &#x27; ghi buổi xạ) sau tạm ngừng từ &#x27; + (p.tam_ngung_tu || &#x27;?&#x27;) + (p.ly_do_tam_ngung ? &#x27; · &#x27; + p.ly_do_tam_ngung : &#x27;&#x27;)); p.tam_ngung_tu = &#x27;&#x27;; p.ly_do_tam_ngung = &#x27;&#x27;; }
       p.trang_thai = &#x27;DANG_XA&#x27;;
       var finished = finishIfDone(ctx, p);
       save(ctx, p, late ? &#x27;Ghi bù buổi xạ&#x27; : &#x27;Ghi buổi xạ&#x27;, &#x27;Buổi &#x27; + n + &#x27;/&#x27; + (seg.open ? &#x27;?&#x27; : total) + (segs.length &gt; 1 ? &#x27; (&#x27; + seg.label + &#x27;)&#x27; : &#x27;&#x27;) + &#x27; ngày &#x27; + ngay + (img ? &#x27; · &#x27; + img : &#x27;&#x27;) + (late ? &#x27; · lý do ghi bù: &#x27; + lyDoBu : &#x27;&#x27;));
-      var msg = &#x27;Đã ghi buổi &#x27; + n + &#x27;/&#x27; + (seg.open ? &#x27;?&#x27; : total) + &#x27; cho &#x27; + p.ho_ten + &#x27;.&#x27; + (seg.open ? &#x27; BN chưa có tổng số buổi: BS cần bổ sung.&#x27; : &#x27;&#x27;);
+      var msg = &#x27;Đã ghi buổi &#x27; + n + &#x27;/&#x27; + (seg.open ? &#x27;?&#x27; : total) + &#x27; cho &#x27; + p.ho_ten + &#x27;.&#x27; + (resumed ? &#x27; BN chuyển lại Đang xạ.&#x27; : &#x27;&#x27;) + (seg.open ? &#x27; BN chưa có tổng số buổi: BS cần bổ sung.&#x27; : &#x27;&#x27;);
       if (finished) msg += &#x27; BN đã xạ đủ liệu trình.&#x27;;
       else if (n === seg.to &amp;&amp; segs.length &gt; 1) {
         var nx = segAt(segs, n);
@@ -6627,6 +6635,7 @@ var XL = (function () {
     var q = $(&#x27;#q&#x27;);
     q.oninput = function () {
       S.q = q.value;
+      if (S.tab === &#x27;tx&#x27;) { renderMain(); return; }
       if (S.tab !== &#x27;all&#x27;) { S.tab = &#x27;all&#x27;; render(); var q2 = $(&#x27;#q&#x27;); q2.focus(); q2.setSelectionRange(q2.value.length, q2.value.length); }
       else renderMain();
     };
@@ -6655,6 +6664,7 @@ var XL = (function () {
     $$(&#x27;#main [data-do]&#x27;).forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); doAction(b.dataset.do, b.dataset.id); }; });
     $$(&#x27;#main [data-scroll]&#x27;).forEach(function (b) { b.onclick = function () { var g = document.getElementById(b.dataset.scroll); if (g) g.scrollIntoView({ behavior: &#x27;smooth&#x27;, block: &#x27;start&#x27; }); }; });
     $$(&#x27;#main [data-scope]&#x27;).forEach(function (b) { b.onclick = function () { S.scope = b.dataset.scope; renderMain(); }; });
+    $$(&#x27;#main [data-clearq]&#x27;).forEach(function (b) { b.onclick = function () { S.q = &#x27;&#x27;; var q = $(&#x27;#q&#x27;); if (q) q.value = &#x27;&#x27;; renderMain(); }; });
     $$(&#x27;#main [data-htab]&#x27;).forEach(function (b) { b.onclick = function () { S.homeTab = b.dataset.htab; lsSet(&#x27;rt.homeTab&#x27;, S.homeTab); renderMain(); window.scrollTo(0, 0); }; });
     $$(&#x27;#main [data-filter]&#x27;).forEach(function (el) { el.onchange = function () { S[el.dataset.filter] = el.value; renderMain(); }; });
     if (S.tab === &#x27;admin&#x27;) bindAdmin();
@@ -7013,7 +7023,55 @@ var XL = (function () {
     var seg = &#x27;&lt;div class=&quot;seg tx-seg&quot; role=&quot;group&quot; aria-label=&quot;Xạ trị&quot;&gt;&#x27; + segs.map(function (x) {
       return &#x27;&lt;button data-txsub=&quot;&#x27; + x[0] + &#x27;&quot; aria-pressed=&quot;&#x27; + (sub === x[0]) + &#x27;&quot;&gt;&#x27; + x[1] + (x[2] ? &#x27; &lt;span class=&quot;step-c&quot;&gt;&#x27; + x[2] + &#x27;&lt;/span&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/button&gt;&#x27;;
     }).join(&#x27;&#x27;) + &#x27;&lt;/div&gt;&#x27;;
-    return seg + (sub === &#x27;week&#x27; ? renderWeek() : sub === &#x27;sched&#x27; ? renderSchedule() : sub === &#x27;approve&#x27; ? renderApprove() : sub === &#x27;pl&#x27; ? renderPL() : renderToday(role() === &#x27;KTV&#x27; || role() === &#x27;ADMIN&#x27;));
+    return seg + txSearch() + (sub === &#x27;week&#x27; ? renderWeek() : sub === &#x27;sched&#x27; ? renderSchedule() : sub === &#x27;approve&#x27; ? renderApprove() : sub === &#x27;pl&#x27; ? renderPL() : renderToday(role() === &#x27;KTV&#x27; || role() === &#x27;ADMIN&#x27;));
+  }
+  /** Tình trạng BN khi KTV tìm trong tab Xạ trị: cảnh báo + có cho ghi buổi xạ không */
+  function txState(p) {
+    var st = p.trang_thai, t = today(), fl = [], can1 = false;
+    var flag = function (txt, cls) { fl.push(&#x27;&lt;span class=&quot;flag&#x27; + (cls ? &#x27; &#x27; + cls : &#x27;&#x27;) + &#x27;&quot;&gt;&#x27; + txt + &#x27;&lt;/span&gt;&#x27;); };
+    var txable = [&#x27;CHO_XA&#x27;, &#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;].indexOf(st) &gt;= 0 || (st === &#x27;CHO_PL&#x27; &amp;&amp; plFx(p).length &amp;&amp; p.ky_thuat);
+    if (!txable) {
+      if (st === &#x27;HOAN_THANH&#x27;) flag(&#x27;Đã xạ xong&#x27; + (p.ngay_ket_thuc ? &#x27; &#x27; + fdy(p.ngay_ket_thuc) : &#x27;&#x27;), &#x27;ok&#x27;);
+      else if (st === &#x27;CHO_PL&#x27;) flag(&#x27;Chờ phân loại: BS phân loại trước khi xạ&#x27;);
+      else flag(&#x27;Đang ở bước: &#x27; + esc(RT.STATUS[st] || st));
+      return { ok: false, flags: fl };
+    }
+    var c = course(p);
+    if (c.doneToday) {
+      var f = c.fx.filter(function (x) { return x.ngay === t; })[0];
+      flag(&#x27;Đã xạ hôm nay&#x27; + (f &amp;&amp; f.thoi_gian &amp;&amp; f.thoi_gian.length &gt; 15 &amp;&amp; f.ghi_bu !== &#x27;Có&#x27; ? &#x27; lúc &#x27; + f.thoi_gian.slice(11, 16) : &#x27;&#x27;), &#x27;ok&#x27;);
+      return { ok: false, flags: fl };
+    }
+    if (c.reviewWait) { flag(&#x27;Chờ BS đánh giá lại KH (đã xạ hết &#x27; + c.review + &#x27; buổi được chuyển)&#x27;, &#x27;crit&#x27;); return { ok: false, flags: fl }; }
+    if (!c.open &amp;&amp; c.done &gt;= c.total) { flag(&#x27;Đã xạ đủ &#x27; + c.total + &#x27; buổi&#x27;, &#x27;crit&#x27;); return { ok: false, flags: fl }; }
+    if (c.blocked) { flag(&#x27;KH tiếp theo chưa sẵn sàng: chưa xạ tiếp được&#x27;, &#x27;crit&#x27;); return { ok: false, flags: fl }; }
+    if (st === &#x27;TAM_NGUNG&#x27;) flag(&#x27;Tạm ngừng&#x27; + (p.tam_ngung_tu ? &#x27; từ &#x27; + fdw(p.tam_ngung_tu) : &#x27;&#x27;) + (p.ly_do_tam_ngung ? &#x27; · &#x27; + esc(p.ly_do_tam_ngung) : &#x27;&#x27;), &#x27;crit&#x27;);
+    if (st === &#x27;CHO_XA&#x27; &amp;&amp; !p.ngay_du_kien) flag(&#x27;Chưa xếp lịch&#x27;);
+    else if (st === &#x27;CHO_XA&#x27; &amp;&amp; p.ngay_du_kien &gt; t) flag(&#x27;Lịch bắt đầu &#x27; + fdw(p.ngay_du_kien));
+    else if (st === &#x27;CHO_XA&#x27;) flag(&#x27;Xạ buổi đầu&#x27;);
+    if (st === &#x27;DANG_XA&#x27; &amp;&amp; !c.treatToday) flag(&#x27;Hôm nay không có lịch xạ&#x27;);
+    if (c.absent[t] !== undefined) flag(&#x27;Đã ghi vắng hôm nay&#x27;, &#x27;crit&#x27;);
+    if (c.open || st === &#x27;CHO_PL&#x27;) flag(&#x27;Chưa có tổng liều, số buổi&#x27;);
+    if (RT.needsOffDay(p)) fl.push(can(&#x27;setOffDay&#x27;) || can(&#x27;schedule&#x27;) ? &#x27;&lt;button class=&quot;lnk sm&quot; data-do=&quot;offDay&quot; data-id=&quot;&#x27; + esc(p.id) + &#x27;&quot; style=&quot;color:var(--warn)&quot;&gt;Chưa rõ ngày nghỉ: chọn&lt;/button&gt;&#x27; : &#x27;&lt;span class=&quot;flag&quot;&gt;Chưa rõ ngày nghỉ&lt;/span&gt;&#x27;);
+    return { ok: true, flags: fl };
+  }
+  /** Khung &quot;Kết quả tìm&quot; ở đầu tab Xạ trị: KTV bấm xác nhận xạ ngay, không cần mở hồ sơ */
+  function txSearch() {
+    var q = fold(S.q || &#x27;&#x27;).trim();
+    if (!q) return &#x27;&#x27;;
+    var rank = { DANG_XA: 0, CHO_XA: 1, TAM_NGUNG: 2, CHO_PL: 3 };
+    var list = pts().filter(function (p) { return p.trang_thai !== &#x27;HUY&#x27; &amp;&amp; (fold(p.ho_ten).indexOf(q) &gt;= 0 || fold(p.ma_his).indexOf(q) &gt;= 0 || fold(p.id).indexOf(q) &gt;= 0); })
+      .sort(function (a, b) { return ((rank[a.trang_thai] != null ? rank[a.trang_thai] : 9) - (rank[b.trang_thai] != null ? rank[b.trang_thai] : 9)) || byName(a, b); }).slice(0, 20);
+    return &#x27;&lt;section class=&quot;group tx-find&quot;&gt;&lt;div class=&quot;group-head&quot;&gt;&lt;h2&gt;Kết quả tìm “&#x27; + esc(S.q.trim()) + &#x27;”&lt;/h2&gt;&lt;span class=&quot;count&quot;&gt;&#x27; + list.length + &#x27;&lt;/span&gt;&#x27; +
+      &#x27;&lt;span class=&quot;hint&quot;&gt;Kiểm tra đúng bệnh nhân rồi bấm “Xác nhận xạ”.&lt;/span&gt;&lt;button class=&quot;btn sm&quot; data-clearq=&quot;1&quot;&gt;Xoá tìm kiếm&lt;/button&gt;&lt;/div&gt;&#x27; +
+      table(list, [C.pt, C.rx,
+        { h: &#x27;Tiến độ&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) { return [&#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;].indexOf(p.trang_thai) &gt;= 0 ? progCell(p) : &#x27;&lt;span class=&quot;muted&quot;&gt;&#x27; + esc(RT.STATUS[p.trang_thai] || &#x27;&#x27;) + &#x27;&lt;/span&gt;&#x27;; } },
+        { h: &#x27;Lưu ý&#x27;, v: function (p) { return txState(p).flags.join(&#x27; &#x27;) || &#x27;&lt;span class=&quot;muted&quot;&gt;—&lt;/span&gt;&#x27;; } },
+        { h: &#x27;&#x27;, cls: &#x27;act&#x27;, v: function (p) {
+          var s = txState(p), c = s.ok ? course(p) : null;
+          return (s.ok &amp;&amp; can(&#x27;logFraction&#x27;) ? btn(&#x27;logFx&#x27;, p.id, &#x27;✓ Xác nhận xạ&#x27;, &#x27;ok&#x27;) : &#x27;&#x27;) +
+            (s.ok &amp;&amp; can(&#x27;markAbsent&#x27;) &amp;&amp; p.trang_thai !== &#x27;TAM_NGUNG&#x27; &amp;&amp; c.absent[today()] === undefined ? btn(&#x27;absent&#x27;, p.id, &#x27;Vắng&#x27;) : &#x27;&#x27;) + btn(&#x27;openP&#x27;, p.id, &#x27;Mở hồ sơ&#x27;);
+        } }], &#x27;Không tìm thấy bệnh nhân. Kiểm tra lại mã HIS hoặc họ tên.&#x27;) + &#x27;&lt;/section&gt;&#x27;;
   }
   // ---------- Kỹ sư: việc của tôi ----------
   function renderKsMine() {
@@ -7499,7 +7557,7 @@ var XL = (function () {
       { h: &#x27;Tiến độ / ngày dự kiến&#x27;, cls: &#x27;nowrap&#x27;, v: function (p) {
         if ([&#x27;DANG_XA&#x27;, &#x27;TAM_NGUNG&#x27;, &#x27;HOAN_THANH&#x27;].indexOf(p.trang_thai) &gt;= 0) return progCell(p) + (p.ly_do_ket_thuc ? &#x27;&lt;span class=&quot;ended&quot;&gt;Kết thúc sớm&lt;/span&gt;&#x27; : &#x27;&#x27;);
         return p.ngay_du_kien ? &#x27;Dự kiến xạ &lt;span class=&quot;num&quot;&gt;&#x27; + fdw(p.ngay_du_kien) + &#x27;&lt;/span&gt;&#x27; : &#x27;&lt;span class=&quot;muted&quot;&gt;—&lt;/span&gt;&#x27;;
-      } }], &#x27;Không tìm thấy bệnh nhân phù hợp.&#x27;);
+      } }].concat(role() === &#x27;KTV&#x27; ? [{ h: &#x27;&#x27;, cls: &#x27;act&#x27;, v: function (p) { return txState(p).ok ? btn(&#x27;logFx&#x27;, p.id, &#x27;✓ Xác nhận xạ&#x27;, &#x27;ok&#x27;) : &#x27;&#x27;; } }] : []), &#x27;Không tìm thấy bệnh nhân phù hợp.&#x27;);
     if (S.q &amp;&amp; S.q.trim().length &gt;= 2) {
       var key = S.q.trim();
       var res = S.archQ === key ? S.archRes : null;
@@ -8666,6 +8724,7 @@ var XL = (function () {
       title: &#x27;Xác nhận buổi xạ&#x27;, ok: &#x27;Ghi buổi xạ&#x27;, btnClass: &#x27;ok&#x27;, noFocus: true,
       body: whoBox(p, &#x27;&lt;span style=&quot;margin-top:6px&quot;&gt;&lt;b class=&quot;num&quot; style=&quot;font-size:17px&quot;&gt;Buổi &#x27; + n + &#x27; / &#x27; + c.total + &#x27;&lt;/b&gt; &lt;span class=&quot;muted&quot;&gt;· &#x27; + c.dosePerFx + &#x27; Gy&#x27; + (c.multi &amp;&amp; !parOpen.length ? &#x27; · &#x27; + c.cur.label + &#x27; &#x27; + esc(c.cur.ky_thuat) : &#x27;&#x27;) + (parOpen.length ? &#x27; (&#x27; + esc(mainName(p)) + &#x27;) + &#x27; + parOpen.map(function (q) { return Math.round(RT.num(q.g.tong_lieu) / Math.max(1, q.total) * 100) / 100 + &#x27; Gy (&#x27; + esc(parName(q)) + &#x27;)&#x27;; }).join(&#x27; + &#x27;) : &#x27;&#x27;) + &#x27; · &#x27; + (c.open ? &#x27;chưa có tổng số buổi&#x27; : &#x27;sau buổi này còn &#x27; + (c.total - n) + &#x27; buổi&#x27;) + &#x27;&lt;/span&gt;&lt;/span&gt;&#x27;) +
         (hasToday ? &#x27;&lt;div class=&quot;confirm&quot; style=&quot;background:var(--crit-soft);cursor:default&quot;&gt;BN này đã có buổi xạ ghi nhận hôm nay. Kiểm tra lại trước khi ghi thêm.&lt;/div&gt;&#x27; : &#x27;&#x27;) +
+        (p.trang_thai === &#x27;TAM_NGUNG&#x27; ? &#x27;&lt;label class=&quot;confirm&quot; style=&quot;background:var(--crit-soft)&quot;&gt;&lt;input type=&quot;checkbox&quot; name=&quot;tiep_tuc&quot;&gt;&lt;span&gt;BN đang &lt;b&gt;tạm ngừng&lt;/b&gt;&#x27; + (p.tam_ngung_tu ? &#x27; từ &#x27; + fdw(p.tam_ngung_tu) : &#x27;&#x27;) + (p.ly_do_tam_ngung ? &#x27; (&#x27; + esc(p.ly_do_tam_ngung) + &#x27;)&#x27; : &#x27;&#x27;) + &#x27;. Ghi buổi xạ sẽ &lt;b&gt;chuyển BN về Đang xạ&lt;/b&gt;.&lt;/span&gt;&lt;/label&gt;&#x27; : &#x27;&#x27;) +
         field(&#x27;Ngày xạ&#x27;, &#x27;&lt;input type=&quot;date&quot; name=&quot;ngay&quot; id=&quot;fx-day&quot; value=&quot;&#x27; + (day0 || t) + &#x27;&quot; min=&quot;&#x27; + min + &#x27;&quot; max=&quot;&#x27; + t + &#x27;&quot;&gt;&#x27;, &#x27;&#x27;, &#x27;Mặc định hôm nay. Chỉ ghi bù trong vòng 7 ngày.&#x27;) +
         &#x27;&lt;div class=&quot;field&quot; id=&quot;fx-late&quot;&gt;&lt;label&gt;Lý do ghi bù cho ngày đã qua &lt;span class=&quot;req&quot;&gt;*&lt;/span&gt;&lt;/label&gt;&lt;input type=&quot;text&quot; name=&quot;ly_do_bu&quot; placeholder=&quot;VD: BN có xạ nhưng quên tích xác nhận&quot;&gt;&lt;span class=&quot;help&quot;&gt;Được lưu vết; ngày ghi bù hiện màu khác trên lịch.&lt;/span&gt;&lt;/div&gt;&#x27; +
         &#x27;&lt;div class=&quot;field&quot;&gt;&lt;span class=&quot;lb&quot;&gt;IGRT / SGRT thực hiện trong buổi này&#x27; + (p.igrt &amp;&amp; p.igrt !== &#x27;Không&#x27; ? &#x27; &lt;span class=&quot;muted&quot;&gt;(kế hoạch: &#x27; + esc(p.igrt) + &#x27;)&lt;/span&gt;&#x27; : &#x27;&#x27;) + &#x27;&lt;/span&gt;&lt;div class=&quot;checks&quot;&gt;&#x27; +
@@ -8681,7 +8740,7 @@ var XL = (function () {
         ok.disabled = true;
         cb.onchange = function () { ok.disabled = !cb.checked; };
       },
-      validate: function (v) { if (v.ngay &amp;&amp; v.ngay &lt; t &amp;&amp; !v.ly_do_bu) return &#x27;Ghi bù cho ngày đã qua cần ghi lý do.&#x27;; return v.xac_nhan ? &#x27;&#x27; : &#x27;Cần tích xác nhận đã xạ.&#x27;; },
+      validate: function (v) { if (v.ngay &amp;&amp; v.ngay &lt; t &amp;&amp; !v.ly_do_bu) return &#x27;Ghi bù cho ngày đã qua cần ghi lý do.&#x27;; if (p.trang_thai === &#x27;TAM_NGUNG&#x27; &amp;&amp; !v.tiep_tuc) return &#x27;BN đang tạm ngừng: tích ô xác nhận chuyển BN về Đang xạ.&#x27;; return v.xac_nhan ? &#x27;&#x27; : &#x27;Cần tích xác nhận đã xạ.&#x27;; },
       onOk: function (v) {
         var payload = { bn_id: p.id, ngay: v.ngay, hinh_anh: v.hinh_anh, ghi_chu: v.ghi_chu, ly_do_bu: v.ngay &lt; t ? v.ly_do_bu : &#x27;&#x27; };
         if (parOpen.length) payload.song_song = v.song_song || [];

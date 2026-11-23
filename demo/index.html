@@ -546,6 +546,12 @@ table.rpt.grid th.d,table.rpt.grid td.d{padding:4px 3px;min-width:26px;text-alig
 div.confirm{display:block;line-height:1.5}
 .nurse-tbl th{white-space:normal;vertical-align:bottom;min-width:70px;line-height:1.25}
 
+/* v4.7: kết quả tìm trong tab Xạ trị */
+.tx-find .group-head{flex-wrap:wrap}
+.tx-find .group-head .btn{margin-left:auto}
+.tx-find .flag{margin:2px 4px 2px 0;display:inline-block}
+.tx-find .flag{white-space:normal;line-height:1.35}
+
 </style>
 <div id="busy" class="busy" hidden></div>
 <div class="demo-bar"><div class="demo-in"><b>BẢN DEMO</b><span>Dữ liệu giả, chỉ lưu tạm trong trình duyệt và mất khi tải lại trang. Đổi người dùng ở góc phải để xem giao diện của từng vai trò.</span><span id="demo-date"></span></div></div>
@@ -571,7 +577,7 @@ if (typeof module !== "undefined") module.exports = ICD10;
  */
 var RT = (function () {
   'use strict';
-  var VERSION = '4.6';
+  var VERSION = '4.7';
 
   var STATUS_ORDER = ['CHO_PL', 'MO_PHONG', 'CONTOUR', 'CHO_KH', 'DANG_KH', 'CHO_QA', 'CHO_XA', 'DANG_XA', 'TAM_NGUNG', 'HOAN_THANH', 'KHONG_XA'];
   var STATUS = {
@@ -1945,11 +1951,12 @@ var RT = (function () {
       });
       var n = fx.length + 1;
       p.ngay_bat_dau = fx.length ? (fx[0].ngay < ngay ? fx[0].ngay : ngay) : ngay;
-      if (p.trang_thai === 'TAM_NGUNG') { p.tam_ngung_tu = ''; p.ly_do_tam_ngung = ''; }
+      var resumed = p.trang_thai === 'TAM_NGUNG';
+      if (resumed) { note(p, ctx.today, 'Tiếp tục xạ (' + userName(ctx, ctx.user.email) + ' ghi buổi xạ) sau tạm ngừng từ ' + (p.tam_ngung_tu || '?') + (p.ly_do_tam_ngung ? ' · ' + p.ly_do_tam_ngung : '')); p.tam_ngung_tu = ''; p.ly_do_tam_ngung = ''; }
       p.trang_thai = 'DANG_XA';
       var finished = finishIfDone(ctx, p);
       save(ctx, p, late ? 'Ghi bù buổi xạ' : 'Ghi buổi xạ', 'Buổi ' + n + '/' + (seg.open ? '?' : total) + (segs.length > 1 ? ' (' + seg.label + ')' : '') + ' ngày ' + ngay + (img ? ' · ' + img : '') + (late ? ' · lý do ghi bù: ' + lyDoBu : ''));
-      var msg = 'Đã ghi buổi ' + n + '/' + (seg.open ? '?' : total) + ' cho ' + p.ho_ten + '.' + (seg.open ? ' BN chưa có tổng số buổi: BS cần bổ sung.' : '');
+      var msg = 'Đã ghi buổi ' + n + '/' + (seg.open ? '?' : total) + ' cho ' + p.ho_ten + '.' + (resumed ? ' BN chuyển lại Đang xạ.' : '') + (seg.open ? ' BN chưa có tổng số buổi: BS cần bổ sung.' : '');
       if (finished) msg += ' BN đã xạ đủ liệu trình.';
       else if (n === seg.to && segs.length > 1) {
         var nx = segAt(segs, n);
@@ -3862,6 +3869,7 @@ var XL = (function () {
     var q = $('#q');
     q.oninput = function () {
       S.q = q.value;
+      if (S.tab === 'tx') { renderMain(); return; }
       if (S.tab !== 'all') { S.tab = 'all'; render(); var q2 = $('#q'); q2.focus(); q2.setSelectionRange(q2.value.length, q2.value.length); }
       else renderMain();
     };
@@ -3890,6 +3898,7 @@ var XL = (function () {
     $$('#main [data-do]').forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); doAction(b.dataset.do, b.dataset.id); }; });
     $$('#main [data-scroll]').forEach(function (b) { b.onclick = function () { var g = document.getElementById(b.dataset.scroll); if (g) g.scrollIntoView({ behavior: 'smooth', block: 'start' }); }; });
     $$('#main [data-scope]').forEach(function (b) { b.onclick = function () { S.scope = b.dataset.scope; renderMain(); }; });
+    $$('#main [data-clearq]').forEach(function (b) { b.onclick = function () { S.q = ''; var q = $('#q'); if (q) q.value = ''; renderMain(); }; });
     $$('#main [data-htab]').forEach(function (b) { b.onclick = function () { S.homeTab = b.dataset.htab; lsSet('rt.homeTab', S.homeTab); renderMain(); window.scrollTo(0, 0); }; });
     $$('#main [data-filter]').forEach(function (el) { el.onchange = function () { S[el.dataset.filter] = el.value; renderMain(); }; });
     if (S.tab === 'admin') bindAdmin();
@@ -4248,7 +4257,55 @@ var XL = (function () {
     var seg = '<div class="seg tx-seg" role="group" aria-label="Xạ trị">' + segs.map(function (x) {
       return '<button data-txsub="' + x[0] + '" aria-pressed="' + (sub === x[0]) + '">' + x[1] + (x[2] ? ' <span class="step-c">' + x[2] + '</span>' : '') + '</button>';
     }).join('') + '</div>';
-    return seg + (sub === 'week' ? renderWeek() : sub === 'sched' ? renderSchedule() : sub === 'approve' ? renderApprove() : sub === 'pl' ? renderPL() : renderToday(role() === 'KTV' || role() === 'ADMIN'));
+    return seg + txSearch() + (sub === 'week' ? renderWeek() : sub === 'sched' ? renderSchedule() : sub === 'approve' ? renderApprove() : sub === 'pl' ? renderPL() : renderToday(role() === 'KTV' || role() === 'ADMIN'));
+  }
+  /** Tình trạng BN khi KTV tìm trong tab Xạ trị: cảnh báo + có cho ghi buổi xạ không */
+  function txState(p) {
+    var st = p.trang_thai, t = today(), fl = [], can1 = false;
+    var flag = function (txt, cls) { fl.push('<span class="flag' + (cls ? ' ' + cls : '') + '">' + txt + '</span>'); };
+    var txable = ['CHO_XA', 'DANG_XA', 'TAM_NGUNG'].indexOf(st) >= 0 || (st === 'CHO_PL' && plFx(p).length && p.ky_thuat);
+    if (!txable) {
+      if (st === 'HOAN_THANH') flag('Đã xạ xong' + (p.ngay_ket_thuc ? ' ' + fdy(p.ngay_ket_thuc) : ''), 'ok');
+      else if (st === 'CHO_PL') flag('Chờ phân loại: BS phân loại trước khi xạ');
+      else flag('Đang ở bước: ' + esc(RT.STATUS[st] || st));
+      return { ok: false, flags: fl };
+    }
+    var c = course(p);
+    if (c.doneToday) {
+      var f = c.fx.filter(function (x) { return x.ngay === t; })[0];
+      flag('Đã xạ hôm nay' + (f && f.thoi_gian && f.thoi_gian.length > 15 && f.ghi_bu !== 'Có' ? ' lúc ' + f.thoi_gian.slice(11, 16) : ''), 'ok');
+      return { ok: false, flags: fl };
+    }
+    if (c.reviewWait) { flag('Chờ BS đánh giá lại KH (đã xạ hết ' + c.review + ' buổi được chuyển)', 'crit'); return { ok: false, flags: fl }; }
+    if (!c.open && c.done >= c.total) { flag('Đã xạ đủ ' + c.total + ' buổi', 'crit'); return { ok: false, flags: fl }; }
+    if (c.blocked) { flag('KH tiếp theo chưa sẵn sàng: chưa xạ tiếp được', 'crit'); return { ok: false, flags: fl }; }
+    if (st === 'TAM_NGUNG') flag('Tạm ngừng' + (p.tam_ngung_tu ? ' từ ' + fdw(p.tam_ngung_tu) : '') + (p.ly_do_tam_ngung ? ' · ' + esc(p.ly_do_tam_ngung) : ''), 'crit');
+    if (st === 'CHO_XA' && !p.ngay_du_kien) flag('Chưa xếp lịch');
+    else if (st === 'CHO_XA' && p.ngay_du_kien > t) flag('Lịch bắt đầu ' + fdw(p.ngay_du_kien));
+    else if (st === 'CHO_XA') flag('Xạ buổi đầu');
+    if (st === 'DANG_XA' && !c.treatToday) flag('Hôm nay không có lịch xạ');
+    if (c.absent[t] !== undefined) flag('Đã ghi vắng hôm nay', 'crit');
+    if (c.open || st === 'CHO_PL') flag('Chưa có tổng liều, số buổi');
+    if (RT.needsOffDay(p)) fl.push(can('setOffDay') || can('schedule') ? '<button class="lnk sm" data-do="offDay" data-id="' + esc(p.id) + '" style="color:var(--warn)">Chưa rõ ngày nghỉ: chọn</button>' : '<span class="flag">Chưa rõ ngày nghỉ</span>');
+    return { ok: true, flags: fl };
+  }
+  /** Khung "Kết quả tìm" ở đầu tab Xạ trị: KTV bấm xác nhận xạ ngay, không cần mở hồ sơ */
+  function txSearch() {
+    var q = fold(S.q || '').trim();
+    if (!q) return '';
+    var rank = { DANG_XA: 0, CHO_XA: 1, TAM_NGUNG: 2, CHO_PL: 3 };
+    var list = pts().filter(function (p) { return p.trang_thai !== 'HUY' && (fold(p.ho_ten).indexOf(q) >= 0 || fold(p.ma_his).indexOf(q) >= 0 || fold(p.id).indexOf(q) >= 0); })
+      .sort(function (a, b) { return ((rank[a.trang_thai] != null ? rank[a.trang_thai] : 9) - (rank[b.trang_thai] != null ? rank[b.trang_thai] : 9)) || byName(a, b); }).slice(0, 20);
+    return '<section class="group tx-find"><div class="group-head"><h2>Kết quả tìm “' + esc(S.q.trim()) + '”</h2><span class="count">' + list.length + '</span>' +
+      '<span class="hint">Kiểm tra đúng bệnh nhân rồi bấm “Xác nhận xạ”.</span><button class="btn sm" data-clearq="1">Xoá tìm kiếm</button></div>' +
+      table(list, [C.pt, C.rx,
+        { h: 'Tiến độ', cls: 'nowrap', v: function (p) { return ['DANG_XA', 'TAM_NGUNG'].indexOf(p.trang_thai) >= 0 ? progCell(p) : '<span class="muted">' + esc(RT.STATUS[p.trang_thai] || '') + '</span>'; } },
+        { h: 'Lưu ý', v: function (p) { return txState(p).flags.join(' ') || '<span class="muted">—</span>'; } },
+        { h: '', cls: 'act', v: function (p) {
+          var s = txState(p), c = s.ok ? course(p) : null;
+          return (s.ok && can('logFraction') ? btn('logFx', p.id, '✓ Xác nhận xạ', 'ok') : '') +
+            (s.ok && can('markAbsent') && p.trang_thai !== 'TAM_NGUNG' && c.absent[today()] === undefined ? btn('absent', p.id, 'Vắng') : '') + btn('openP', p.id, 'Mở hồ sơ');
+        } }], 'Không tìm thấy bệnh nhân. Kiểm tra lại mã HIS hoặc họ tên.') + '</section>';
   }
   // ---------- Kỹ sư: việc của tôi ----------
   function renderKsMine() {
@@ -4734,7 +4791,7 @@ var XL = (function () {
       { h: 'Tiến độ / ngày dự kiến', cls: 'nowrap', v: function (p) {
         if (['DANG_XA', 'TAM_NGUNG', 'HOAN_THANH'].indexOf(p.trang_thai) >= 0) return progCell(p) + (p.ly_do_ket_thuc ? '<span class="ended">Kết thúc sớm</span>' : '');
         return p.ngay_du_kien ? 'Dự kiến xạ <span class="num">' + fdw(p.ngay_du_kien) + '</span>' : '<span class="muted">—</span>';
-      } }], 'Không tìm thấy bệnh nhân phù hợp.');
+      } }].concat(role() === 'KTV' ? [{ h: '', cls: 'act', v: function (p) { return txState(p).ok ? btn('logFx', p.id, '✓ Xác nhận xạ', 'ok') : ''; } }] : []), 'Không tìm thấy bệnh nhân phù hợp.');
     if (S.q && S.q.trim().length >= 2) {
       var key = S.q.trim();
       var res = S.archQ === key ? S.archRes : null;
@@ -5901,6 +5958,7 @@ var XL = (function () {
       title: 'Xác nhận buổi xạ', ok: 'Ghi buổi xạ', btnClass: 'ok', noFocus: true,
       body: whoBox(p, '<span style="margin-top:6px"><b class="num" style="font-size:17px">Buổi ' + n + ' / ' + c.total + '</b> <span class="muted">· ' + c.dosePerFx + ' Gy' + (c.multi && !parOpen.length ? ' · ' + c.cur.label + ' ' + esc(c.cur.ky_thuat) : '') + (parOpen.length ? ' (' + esc(mainName(p)) + ') + ' + parOpen.map(function (q) { return Math.round(RT.num(q.g.tong_lieu) / Math.max(1, q.total) * 100) / 100 + ' Gy (' + esc(parName(q)) + ')'; }).join(' + ') : '') + ' · ' + (c.open ? 'chưa có tổng số buổi' : 'sau buổi này còn ' + (c.total - n) + ' buổi') + '</span></span>') +
         (hasToday ? '<div class="confirm" style="background:var(--crit-soft);cursor:default">BN này đã có buổi xạ ghi nhận hôm nay. Kiểm tra lại trước khi ghi thêm.</div>' : '') +
+        (p.trang_thai === 'TAM_NGUNG' ? '<label class="confirm" style="background:var(--crit-soft)"><input type="checkbox" name="tiep_tuc"><span>BN đang <b>tạm ngừng</b>' + (p.tam_ngung_tu ? ' từ ' + fdw(p.tam_ngung_tu) : '') + (p.ly_do_tam_ngung ? ' (' + esc(p.ly_do_tam_ngung) + ')' : '') + '. Ghi buổi xạ sẽ <b>chuyển BN về Đang xạ</b>.</span></label>' : '') +
         field('Ngày xạ', '<input type="date" name="ngay" id="fx-day" value="' + (day0 || t) + '" min="' + min + '" max="' + t + '">', '', 'Mặc định hôm nay. Chỉ ghi bù trong vòng 7 ngày.') +
         '<div class="field" id="fx-late"><label>Lý do ghi bù cho ngày đã qua <span class="req">*</span></label><input type="text" name="ly_do_bu" placeholder="VD: BN có xạ nhưng quên tích xác nhận"><span class="help">Được lưu vết; ngày ghi bù hiện màu khác trên lịch.</span></div>' +
         '<div class="field"><span class="lb">IGRT / SGRT thực hiện trong buổi này' + (p.igrt && p.igrt !== 'Không' ? ' <span class="muted">(kế hoạch: ' + esc(p.igrt) + ')</span>' : '') + '</span><div class="checks">' +
@@ -5916,7 +5974,7 @@ var XL = (function () {
         ok.disabled = true;
         cb.onchange = function () { ok.disabled = !cb.checked; };
       },
-      validate: function (v) { if (v.ngay && v.ngay < t && !v.ly_do_bu) return 'Ghi bù cho ngày đã qua cần ghi lý do.'; return v.xac_nhan ? '' : 'Cần tích xác nhận đã xạ.'; },
+      validate: function (v) { if (v.ngay && v.ngay < t && !v.ly_do_bu) return 'Ghi bù cho ngày đã qua cần ghi lý do.'; if (p.trang_thai === 'TAM_NGUNG' && !v.tiep_tuc) return 'BN đang tạm ngừng: tích ô xác nhận chuyển BN về Đang xạ.'; return v.xac_nhan ? '' : 'Cần tích xác nhận đã xạ.'; },
       onOk: function (v) {
         var payload = { bn_id: p.id, ngay: v.ngay, hinh_anh: v.hinh_anh, ghi_chu: v.ghi_chu, ly_do_bu: v.ngay < t ? v.ly_do_bu : '' };
         if (parOpen.length) payload.song_song = v.song_song || [];

@@ -1382,11 +1382,12 @@ var RT = (function () {
       });
       var n = fx.length + 1;
       p.ngay_bat_dau = fx.length ? (fx[0].ngay < ngay ? fx[0].ngay : ngay) : ngay;
-      if (p.trang_thai === 'TAM_NGUNG') { p.tam_ngung_tu = ''; p.ly_do_tam_ngung = ''; }
+      var resumed = p.trang_thai === 'TAM_NGUNG';
+      if (resumed) { note(p, ctx.today, 'Tiếp tục xạ (' + userName(ctx, ctx.user.email) + ' ghi buổi xạ) sau tạm ngừng từ ' + (p.tam_ngung_tu || '?') + (p.ly_do_tam_ngung ? ' · ' + p.ly_do_tam_ngung : '')); p.tam_ngung_tu = ''; p.ly_do_tam_ngung = ''; }
       p.trang_thai = 'DANG_XA';
       var finished = finishIfDone(ctx, p);
       save(ctx, p, late ? 'Ghi bù buổi xạ' : 'Ghi buổi xạ', 'Buổi ' + n + '/' + (seg.open ? '?' : total) + (segs.length > 1 ? ' (' + seg.label + ')' : '') + ' ngày ' + ngay + (img ? ' · ' + img : '') + (late ? ' · lý do ghi bù: ' + lyDoBu : ''));
-      var msg = 'Đã ghi buổi ' + n + '/' + (seg.open ? '?' : total) + ' cho ' + p.ho_ten + '.' + (seg.open ? ' BN chưa có tổng số buổi: BS cần bổ sung.' : '');
+      var msg = 'Đã ghi buổi ' + n + '/' + (seg.open ? '?' : total) + ' cho ' + p.ho_ten + '.' + (resumed ? ' BN chuyển lại Đang xạ.' : '') + (seg.open ? ' BN chưa có tổng số buổi: BS cần bổ sung.' : '');
       if (finished) msg += ' BN đã xạ đủ liệu trình.';
       else if (n === seg.to && segs.length > 1) {
         var nx = segAt(segs, n);

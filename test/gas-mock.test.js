@@ -559,6 +559,8 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   assert(!ctx.RT.isIcd('C15.1') && ctx.RT.isIcd('C15'));
   ok('admin@x.vn', 'saveUser', { email: 'ktv@x.vn', ho_ten: 'KTV C', vai_tro: 'KTV', ky_hieu: 'C' });
   ok('admin@x.vn', 'saveUser', { email: 'ktvt@x.vn', ho_ten: 'KTV trưởng', vai_tro: 'KTV', chuc_vu: 'KTV trưởng', ky_hieu: 'IT' });
+  // hôm nay chưa có lịch phân công (kiểm thử phân công phía trên có thể đặt đúng thứ Hai tuần này)
+  ['Mô phỏng', 'Ca 1', 'Ca 2', 'Ca 3', 'Ca 4'].forEach(v => ok('ktvt@x.vn', 'setRoster', { ngay: today, vi_tri: v, nhan_vien: [] }));
   r = ok('tk@x.vn', 'createPatient', { ma_his: 'BC1', ho_ten: 'Báo cáo Một', nam_sinh: '1960', gioi: 'Nữ', icd: 'C50.9', chan_doan: 'K vú', ky_thuat: 'VMAT', tong_lieu: '50', so_buoi: '25', trang_thai: 'MO_PHONG' });
   let b1 = r.data.patients.find(x => x.ma_his === 'BC1');
   assert.strictEqual(b1.icd, 'C50', 'lưu mã 3 ký tự');
@@ -577,7 +579,7 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   assert(!api('bs@x.vn', 'khoaReport', { tu: today, den: today }).ok, 'BS thường không lập báo cáo khoa');
   let kr = ok('tk@x.vn', 'khoaReport', { tu: ctx.RT.addDays(today, -1), den: today }).kreport;
   assert.strictEqual(kr.khoa, 'Xạ trị');
-  assert(kr.mo_phong.some(x => x.ma_his === 'BC1' && x.mat_na && x.mat_na_loai === '5 điểm' && x.dung_cu.length === 2 && /^C, /.test(x.nguoi)), 'sổ mô phỏng');
+  assert(kr.mo_phong.some(x => x.ma_his === 'BC1' && x.mat_na && x.mat_na_loai === '5 điểm' && x.dung_cu.length === 2 && /^C(, |$)/.test(x.nguoi)), 'sổ mô phỏng (người mô phỏng theo phân công nếu có)');
   const vmg = kr.thang[0].nhom.find(g => g.ten === 'VMAT'), row = vmg.rows.find(x => x.ma_his === 'BC1');
   assert(row && row.o[String(+today.slice(8))] === 'C/IT' && row.nu === '1960', 'chưa có lịch phân công máy: tạm ghi người đã chọn');
   assert(kr.thieu_phan_cong.includes(today), 'báo ngày chưa có lịch phân công');
@@ -1158,5 +1160,15 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   // BS sửa câu trả lời sau khi tích trên HIS
   r = ok('bs@x.vn', 'updatePhase', { id: g3.id, mp_his: 'Có' });
   assert.strictEqual(ok('admin@x.vn', 'khoaReport', { tu: today, den: today }).kreport.mo_phong.filter(x => x.ma_his === '995001').length, 3, 'sửa thành Có thì vào sổ');
+}
+// v4.7: KTV ghi buổi xạ cho BN tạm ngừng → chuyển lại Đang xạ, lưu vết
+{
+  r = ok('bs@x.vn', 'createPatient', { ma_his: '997001', ho_ten: 'Tạm Ngừng Xạ Lại', nam_sinh: '1960', icd: 'C50', chan_doan: 'K vú', ky_thuat: '3D-CRT', tong_lieu: '50', so_buoi: '25', trang_thai: 'CHO_XA' });
+  const p = r.data.patients.find(x => x.ma_his === '997001');
+  ok('ktv@x.vn', 'logFraction', { bn_id: p.id, ngay: ctx.RT.addDays(today, -1), ly_do_bu: 'test' });
+  ok('bs@x.vn', 'pause', { id: p.id, ly_do: 'Tác dụng phụ', tu_ngay: today });
+  r = ok('ktv@x.vn', 'logFraction', { bn_id: p.id, ngay: today });
+  const p2 = r.data.patients.find(x => x.id === p.id);
+  assert(p2.trang_thai === 'DANG_XA' && !p2.tam_ngung_tu && /Tiếp tục xạ .*sau tạm ngừng từ/.test(p2.ghi_chu) && /chuyển lại Đang xạ/.test(r.msg), 'tạm ngừng → đang xạ: ' + r.msg);
 }
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');

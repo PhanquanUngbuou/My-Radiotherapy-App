@@ -539,3 +539,9 @@ table.rpt.grid th.d,table.rpt.grid td.d{padding:4px 3px;min-width:26px;text-alig
 /* v4.6: khung nhắc dạng đoạn văn (không chia cột) */
 div.confirm{display:block;line-height:1.5}
 .nurse-tbl th{white-space:normal;vertical-align:bottom;min-width:70px;line-height:1.25}
+
+/* v4.7: kết quả tìm trong tab Xạ trị */
+.tx-find .group-head{flex-wrap:wrap}
+.tx-find .group-head .btn{margin-left:auto}
+.tx-find .flag{margin:2px 4px 2px 0;display:inline-block}
+.tx-find .flag{white-space:normal;line-height:1.35}
