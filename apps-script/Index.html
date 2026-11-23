@@ -561,6 +561,18 @@ div.confirm{display:block;line-height:1.5}
 /* v4.8: số liệu ĐD: số khoa / tổng các khoa */
 .nurse-tbl .tot{color:var(--muted);font-weight:500;font-size:.9em;white-space:nowrap}
 
+/* v4.8: thanh BN đầu form ghi buổi xạ */
+.fx-who{background:#ffe3b3;border:2px solid #f59e0b;border-radius:14px;padding:14px 18px;margin-bottom:14px;color:#3a2600}
+.fx-nm{font-size:26px;font-weight:800;line-height:1.2;letter-spacing:-.01em}
+.fx-his{font-size:20px;margin-top:4px}
+.fx-his b{font-size:24px;letter-spacing:.03em}
+.fx-his span{font-size:16px;opacity:.8}
+.fx-sub{font-size:14px;margin-top:4px;opacity:.85}
+.fx-sub b.num{font-size:17px}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .fx-who{background:#4a3410;color:#ffe9c4;border-color:#f0b450} }
+:root[data-theme="dark"] .fx-who{background:#4a3410;color:#ffe9c4;border-color:#f0b450}
+.modal-body:has(.fx-who){align-content:start}
+
 </style>
 </head>
 <body>
@@ -5683,6 +5695,12 @@ var XL = (function () {
         (can('markAbsent') ? '<label><input type="radio" name="k" value="vang" checked><span><b>BN vắng thật</b><small>Ghi hoặc sửa lý do vắng.</small></span></label>' : '') + '</div>',
       onOk: function (v) { if (v.k === 'fx') fractionForm(p, day); else if (v.k === 'vang') absentForm(p, day); } });
   }
+  /** Thanh vàng cam đầu form ghi buổi xạ: họ tên, mã HIS chữ to để KTV nhìn lại đúng BN (không cần tích xác nhận) */
+  function fxBanner(p, extra) {
+    return '<div class="fx-who"><div class="fx-nm">' + esc(p.ho_ten) + (p._g ? phTag(p._g) : '') + '</div>' +
+      '<div class="fx-his">Mã HIS <b class="mono">' + esc(p.ma_his) + '</b>' + (age(p) ? ' <span>· ' + age(p) + (p.gioi ? ' · ' + esc(p.gioi) : '') + '</span>' : '') + '</div>' +
+      '<div class="fx-sub">' + esc(p.chan_doan || '') + '</div><div class="fx-sub">' + (extra || '') + '</div></div>';
+  }
   function fractionForm(p, day0) {
     var c = course(p), t = today(), n = c.done + 1;
     var hasToday = c.doneToday, parOpen = c.cur.tail ? [] : c.par.filter(function (q) { return q.open; });
@@ -5690,7 +5708,7 @@ var XL = (function () {
     var min = RT.addDays(t, -7);
     modal({
       title: 'Xác nhận buổi xạ', ok: 'Ghi buổi xạ', btnClass: 'ok', noFocus: true,
-      body: whoBox(p, '<span style="margin-top:6px"><b class="num" style="font-size:17px">Buổi ' + n + ' / ' + c.total + '</b> <span class="muted">· ' + c.dosePerFx + ' Gy' + (c.multi && !parOpen.length ? ' · ' + c.cur.label + ' ' + esc(c.cur.ky_thuat) : '') + (parOpen.length ? ' (' + esc(mainName(p)) + ') + ' + parOpen.map(function (q) { return Math.round(RT.num(q.g.tong_lieu) / Math.max(1, q.total) * 100) / 100 + ' Gy (' + esc(parName(q)) + ')'; }).join(' + ') : '') + ' · ' + (c.open ? 'chưa có tổng số buổi' : 'sau buổi này còn ' + (c.total - n) + ' buổi') + '</span></span>') +
+      body: fxBanner(p, '<span><b class="num" style="font-size:17px">Buổi ' + n + ' / ' + c.total + '</b> <span class="muted">· ' + c.dosePerFx + ' Gy' + (c.multi && !parOpen.length ? ' · ' + c.cur.label + ' ' + esc(c.cur.ky_thuat) : '') + (parOpen.length ? ' (' + esc(mainName(p)) + ') + ' + parOpen.map(function (q) { return Math.round(RT.num(q.g.tong_lieu) / Math.max(1, q.total) * 100) / 100 + ' Gy (' + esc(parName(q)) + ')'; }).join(' + ') : '') + ' · ' + (c.open ? 'chưa có tổng số buổi' : 'sau buổi này còn ' + (c.total - n) + ' buổi') + '</span></span>') +
         (hasToday ? '<div class="confirm" style="background:var(--crit-soft);cursor:default">BN này đã có buổi xạ ghi nhận hôm nay. Kiểm tra lại trước khi ghi thêm.</div>' : '') +
         (p.trang_thai === 'TAM_NGUNG' ? '<label class="confirm" style="background:var(--crit-soft)"><input type="checkbox" name="tiep_tuc"><span>BN đang <b>tạm ngừng</b>' + (p.tam_ngung_tu ? ' từ ' + fdw(p.tam_ngung_tu) : '') + (p.ly_do_tam_ngung ? ' (' + esc(p.ly_do_tam_ngung) + ')' : '') + '. Ghi buổi xạ sẽ <b>chuyển BN về Đang xạ</b>.</span></label>' : '') +
         field('Ngày xạ', '<input type="date" name="ngay" id="fx-day" value="' + (day0 || t) + '" min="' + min + '" max="' + t + '">', '', 'Mặc định hôm nay. Chỉ ghi bù trong vòng 7 ngày.') +
@@ -5700,15 +5718,12 @@ var XL = (function () {
         (parOpen.length ? '<div class="field"><span class="lb">Xạ cùng buổi KH đồng thời</span><div class="checks">' + parOpen.map(function (q) {
           return '<label><input type="checkbox" name="song_song" data-multi="1" value="' + q.stt + '" checked><span>' + esc(parName(q)) + ' ' + esc(q.ky_thuat) + ' · ' + Math.round(RT.num(q.g.tong_lieu) / Math.max(1, q.total) * 100) / 100 + ' Gy (buổi ' + (q.done + 1) + '/' + q.total + ')</span></label>';
         }).join('') + '</div><span class="help">Bỏ chọn nếu hôm nay BN chỉ xạ KH chính; buổi thiếu sẽ xạ bù ở cuối.</span></div>' : '') +
-        field('Ghi chú (không bắt buộc)', '<input type="text" name="ghi_chu" placeholder="VD: chỉnh tư thế 3 mm theo CBCT">') +
-        '<label class="confirm"><input type="checkbox" name="xac_nhan" id="fx-confirm"><span>Tôi đã kiểm tra đúng bệnh nhân <span class="mono">' + esc(p.ma_his) + '</span> và xác nhận bệnh nhân đã được xạ xong buổi ' + n + '.</span></label>',
+        field('Ghi chú (không bắt buộc)', '<input type="text" name="ghi_chu" placeholder="VD: chỉnh tư thế 3 mm theo CBCT">') ,
       onMount: function (form) {
-        var ok = $('#mdl-ok'), cb = $('#fx-confirm', form), dayEl = $('#fx-day', form), late = $('#fx-late', form);
+        var dayEl = $('#fx-day', form), late = $('#fx-late', form);
         var upd = function () { late.hidden = !(dayEl.value && dayEl.value < t); }; dayEl.addEventListener('change', upd); dayEl.addEventListener('input', upd); upd();
-        ok.disabled = true;
-        cb.onchange = function () { ok.disabled = !cb.checked; };
       },
-      validate: function (v) { if (v.ngay && v.ngay < t && !v.ly_do_bu) return 'Ghi bù cho ngày đã qua cần ghi lý do.'; if (p.trang_thai === 'TAM_NGUNG' && !v.tiep_tuc) return 'BN đang tạm ngừng: tích ô xác nhận chuyển BN về Đang xạ.'; return v.xac_nhan ? '' : 'Cần tích xác nhận đã xạ.'; },
+      validate: function (v) { if (v.ngay && v.ngay < t && !v.ly_do_bu) return 'Ghi bù cho ngày đã qua cần ghi lý do.'; if (p.trang_thai === 'TAM_NGUNG' && !v.tiep_tuc) return 'BN đang tạm ngừng: tích ô xác nhận chuyển BN về Đang xạ.'; return ''; },
       onOk: function (v) {
         var payload = { bn_id: p.id, ngay: v.ngay, hinh_anh: v.hinh_anh, ghi_chu: v.ghi_chu, ly_do_bu: v.ngay < t ? v.ly_do_bu : '' };
         if (parOpen.length) payload.song_song = v.song_song || [];

@@ -548,3 +548,15 @@ div.confirm{display:block;line-height:1.5}
 
 /* v4.8: số liệu ĐD: số khoa / tổng các khoa */
 .nurse-tbl .tot{color:var(--muted);font-weight:500;font-size:.9em;white-space:nowrap}
+
+/* v4.8: thanh BN đầu form ghi buổi xạ */
+.fx-who{background:#ffe3b3;border:2px solid #f59e0b;border-radius:14px;padding:14px 18px;margin-bottom:14px;color:#3a2600}
+.fx-nm{font-size:26px;font-weight:800;line-height:1.2;letter-spacing:-.01em}
+.fx-his{font-size:20px;margin-top:4px}
+.fx-his b{font-size:24px;letter-spacing:.03em}
+.fx-his span{font-size:16px;opacity:.8}
+.fx-sub{font-size:14px;margin-top:4px;opacity:.85}
+.fx-sub b.num{font-size:17px}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .fx-who{background:#4a3410;color:#ffe9c4;border-color:#f0b450} }
+:root[data-theme="dark"] .fx-who{background:#4a3410;color:#ffe9c4;border-color:#f0b450}
+.modal-body:has(.fx-who){align-content:start}
