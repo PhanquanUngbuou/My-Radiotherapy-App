@@ -10,6 +10,13 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
 
 ### (v5.0 đã làm, xem CHANGELOG)
 
+### Bản sau (anh yêu cầu 23/11, chưa làm): tạm ngừng có "dự kiến nghỉ"
+- Form Tạm ngừng thêm ô **Dự kiến nghỉ**: 3 ngày · 1 tuần (mặc định) · 2 tuần · Chưa rõ · Tự chọn ngày xạ lại. Lưu cột mới `du_kien_xa_lai` (ngày) ở BenhNhan → cần chạy `setup`.
+- Hiện "Dự kiến xạ lại: dd/mm" trong hồ sơ, danh sách Tạm ngừng (BS, KTV), lịch xạ (ô ngày dự kiến có viền).
+- Trước 1 ngày: chuông báo BS điều trị "BN … dự kiến xạ lại ngày …". Tới ngày mà chưa xạ lại: BS được hỏi tiếp tục nghỉ (chọn thêm) hay xạ lại / ngừng hẳn; thay cho hỏi mỗi 7 ngày (`pauseAsk`) khi có ngày dự kiến; "Chưa rõ" giữ hỏi 7 ngày như cũ.
+- Dự kiến ngày kết thúc đợt tính lại từ ngày xạ lại dự kiến (số buổi còn lại theo lịch tuần).
+- Anh chốt 23/11: **chỉ nhắc, không tự chuyển**. BN vẫn Tạm ngừng; từ ngày dự kiến hiện ở Xạ trị › Hôm nay mục "Dự kiến xạ lại" cho KTV; KTV ghi buổi xạ là về Đang xạ (như hiện nay). Quá ngày mà chưa xạ: hỏi BS nghỉ thêm / ngừng hẳn. Không tính vắng.
+
 ### Bản sau (anh yêu cầu 23/11, chưa làm): lọc "Tất cả BN" theo thời gian
 - Thêm ô chọn nhanh: Tất cả · 1 tháng gần đây · 3 tháng gần đây · 6 tháng · Năm nay · Tự chọn (Từ ngày – Đến ngày).
 - Anh chốt: tính theo **có hoạt động trong khoảng** (mô phỏng, xạ hoặc đang điều trị bất kỳ lúc nào trong khoảng; BN chưa xạ xong vẫn hiện). Không thêm ô "Tính theo".
