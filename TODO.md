@@ -10,6 +10,13 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
 
 ### (v5.0 đã làm, xem CHANGELOG)
 
+### Bản sau (anh hỏi 23/11, chưa làm, chờ anh duyệt): số liệu ĐD xem ngày khác (quá khứ, sắp tới)
+- Hiện tại: "Bệnh nhân của tôi" của ĐD chỉ có các ngày từ ngày làm việc trước, hôm nay, tuần này. Ngày cũ hơn phải vào Thống kê › Lượt xạ trị (chọn khoảng, có bảng theo từng ngày) nhưng không bấm ra danh sách như trang ĐD.
+- Đề xuất: thêm thanh **"Xem ngày: ‹ [ngày] › · Hôm nay"** trên bảng số liệu ĐD.
+  - Ngày đã qua: cùng các số như hiện nay (lượt xạ, theo kỹ thuật, BN được xạ, mới vào, kết thúc, vắng, ghi bù), bấm ra danh sách, tải Excel.
+  - Ngày sắp tới (đến 3 tuần): số **dự kiến** theo lịch: BN dự kiến xạ (theo kỹ thuật), BN dự kiến vào xạ (đã xếp lịch), BN dự kiến kết thúc, BN tạm ngừng; bấm ra danh sách. Ghi rõ "dự kiến" (có thể đổi do vắng, tạm ngừng, đổi lịch).
+  - Thêm ô "Từ ngày – Đến ngày" để cộng gộp khoảng (VD cả tháng) cho báo cáo.
+
 ### Bản sau (a Thắng góp ý + anh 23/11, chưa làm, chờ anh duyệt đề xuất): số BN / ngày theo khoa, gọn trang Chờ xếp lịch
 - Hiện tại: bảng "Chỗ theo chỉ tiêu khoa" chỉ ở Chờ xếp lịch, chỉ hiện khi có `CHI_TIEU`; trang Chờ xếp lịch dồn 7 mục (chỉ tiêu, 6 ngày tới, chờ mô phỏng, chưa có lịch, đã có lịch, đang xạ, sắp chuyển xạ); form xếp lịch chỉ có ô ngày + "sớm nhất còn chỗ".
 - Đề xuất:
