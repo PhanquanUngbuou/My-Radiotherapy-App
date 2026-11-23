@@ -10,9 +10,12 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
 
 ### (v5.0 đã làm, xem CHANGELOG)
 
-### Bản sau (a Thắng góp ý 23/11, chưa làm): mục Xạ trị xem số chỉ định / ngày của từng khoa
-- Hiện đã có bảng "Chỗ theo chỉ tiêu khoa" (10 ngày làm việc tới) nhưng chỉ ở Xạ trị › Chờ xếp lịch và chỉ hiện khi danh mục `CHI_TIEU` có khoa.
-- Em đề xuất (chờ anh chốt, anh có thể gửi ảnh a Thắng): Lịch tuần thêm dòng đếm số BN xạ theo lịch của từng khoa mỗi ngày; Hôm nay thêm ô nhỏ "Khoa: đã xạ / cần xạ"; mọi người vào mục Xạ trị đều thấy.
+### Bản sau (a Thắng góp ý + anh 23/11, chưa làm, chờ anh duyệt đề xuất): số BN / ngày theo khoa, gọn trang Chờ xếp lịch
+- Hiện tại: bảng "Chỗ theo chỉ tiêu khoa" chỉ ở Chờ xếp lịch, chỉ hiện khi có `CHI_TIEU`; trang Chờ xếp lịch dồn 7 mục (chỉ tiêu, 6 ngày tới, chờ mô phỏng, chưa có lịch, đã có lịch, đang xạ, sắp chuyển xạ); form xếp lịch chỉ có ô ngày + "sớm nhất còn chỗ".
+- Đề xuất:
+  1. Một bảng chung **"Số BN xạ theo ngày"**: mỗi khoa một dòng (số BN / chỉ tiêu nếu có), dòng Tổng; 2 tuần làm việc, nút ‹ › xem tuần trước / sau. Thay cả 2 bảng cũ. Hiện ở Lịch tuần (mọi người) và đầu Chờ xếp lịch. Hôm nay có ô nhỏ từng khoa: đã xạ / cần xạ.
+  2. Trang Chờ xếp lịch gọn: thanh mục nhỏ như Hôm nay: **Chưa có lịch** (mặc định) · Đã có lịch · Sắp chuyển xạ · Đang xạ (đổi lịch). Bỏ "Chờ mô phỏng" khỏi trang này (đã có ở tab Mô phỏng).
+  3. Form xếp lịch có **lịch mini 3 tuần** ngay trong form: mỗi ô ngày ghi số BN khoa của BN / chỉ tiêu (xanh còn chỗ, xám đủ), bấm ô chọn ngày bắt đầu, hiện ngay ngày kết thúc; vẫn giữ ô nhập ngày cho ngày xa.
 
 ### Bản sau (anh yêu cầu 23/11, chưa làm): tạm ngừng có "dự kiến nghỉ"
 - Form Tạm ngừng thêm ô **Dự kiến nghỉ**: 3 ngày · 1 tuần (mặc định) · 2 tuần · Chưa rõ · Tự chọn ngày xạ lại. Lưu cột mới `du_kien_xa_lai` (ngày) ở BenhNhan → cần chạy `setup`.
