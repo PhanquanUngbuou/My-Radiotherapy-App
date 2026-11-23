@@ -8,11 +8,11 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
 
 ## Việc chờ
 
-### v4.11 (anh yêu cầu 23/11, chờ anh bảo "làm đi")
+### v5.0 (anh yêu cầu 23/11, đặt tên v5.0, chờ anh bảo "làm đi")
 1. **Bảng số liệu ĐD: mọi con số của khoa bấm được ra danh sách BN** (tổng lượt xạ, từng kỹ thuật, BN được xạ, mới vào, kết thúc, lượt vắng, BN vắng, ghi bù; hiện chỉ 3 dòng bấm được). Số tổng các khoa không bấm (ĐD không xem BN khoa khác).
    - Danh sách: họ tên, mã HIS, kỹ thuật · liều, buổi n/tổng (hoặc ngày, lý do với vắng / ghi bù), BS điều trị; bấm dòng mở hồ sơ.
    - **Sắp xếp**: ABC họ → đệm → tên (mặc định), theo BS, theo kỹ thuật. **Lọc theo BS điều trị** (ô chọn BS) + ô tìm tên / mã HIS. Nút "Tải Excel" danh sách đang xem.
-   - (Chờ anh chốt) ô lọc theo BS cho mọi ĐD hay chỉ ĐD trưởng / lãnh đạo (quy tắc v2.7: lọc theo BS chỉ cho lãnh đạo khoa).
+   - **Mọi ĐD đều lọc được theo BS** trong danh sách bấm từ số liệu "BN của tôi" (anh chốt 23/11; ngoại lệ của quy tắc v2.7 chỉ cho danh sách này).
 
 ### Chờ anh duyệt (em đề xuất 23/11): quyền "Sửa thông tin"
 - Hiện BS nào cũng sửa được thông tin BN của BS khác, kể cả đổi "BS điều trị" (bỏ qua lý do, xác nhận, chuông của "Chuyển BS điều trị").
