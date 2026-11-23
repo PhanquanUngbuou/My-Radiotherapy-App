@@ -1658,6 +1658,8 @@ var RT = (function () {
   function view(ctx) {
     var cutoff = addDays(ctx.today, -60);
     var nk = nurseKhoa(ctx.user, ctx.dm);
+    var khoi = nk ? khoiTotals({ patients: ctx.patients.filter(function (p) { return p.trang_thai !== 'HUY'; }), phases: ctx.phases || [], fractions: ctx.fractions,
+      exceptions: ctx.exceptions || [], holidays: ctx.holidays || [], dm: ctx.dm }, ctx.today) : null;
     var pts = ctx.patients.filter(function (p) {
       if (p.trang_thai === 'HUY') return false;
       if (nk && p.khoa !== nk) return false;
@@ -1669,6 +1671,7 @@ var RT = (function () {
     return {
       me: { email: ctx.user.email, ho_ten: ctx.user.ho_ten, vai_tro: ctx.user.vai_tro, kich_hoat: ctx.user.kich_hoat || 'Có', chuc_vu: ctx.user.chuc_vu || '', khoa: ctx.user.khoa || '', tro_ly_cho: ctx.user.tro_ly_cho || '', nhan_bn: ctx.user.nhan_bn || '' },
       today: ctx.today,
+      khoi: khoi,
       users: ctx.users.map(function (u) { return { email: u.email, ho_ten: u.ho_ten, vai_tro: u.vai_tro, kich_hoat: u.kich_hoat === 'Không' ? 'Không' : 'Có', chuc_vu: u.chuc_vu || '', khoa: u.khoa || '', tro_ly_cho: u.tro_ly_cho || '', ky_hieu: u.ky_hieu || '', nhan_bn: u.nhan_bn || '' }; }),
       dm: ctx.dm,
       holidays: ctx.holidays,
@@ -1883,6 +1886,23 @@ var RT = (function () {
     return diffDays(from, today) >= 7;
   }
   /** Điều dưỡng chỉ thấy BN khoa mình (chưa ghi khoa thì thấy cả hai khoa) */
+  /** Các khoảng ngày của bảng số liệu ĐD: từng ngày từ ngày làm việc trước tới hôm qua (sáng T2: T6, T7, CN), hôm nay, tuần này */
+  function nurseRanges(t, hol) {
+    hol = hol || [];
+    var yd = addDays(t, -1), from = yd, r = [];
+    for (var k = 0; k < 15 && (dow(from) === 0 || dow(from) === 6 || hol.indexOf(from) >= 0); k++) from = addDays(from, -1);
+    for (var d = from; d <= yd; d = addDays(d, 1)) r.push([d, d]);
+    r.push([t, t]); r.push([monday(t), t]);
+    return { from: from, yd: yd, ranges: r };
+  }
+  /** Số liệu gọn (chỉ con số, không danh sách BN) */
+  function slimSum(s) { return { luot: s.luot, ky_thuat: s.ky_thuat, bn: s.bn, bat_dau: s.bat_dau.length, ket_thuc: s.ket_thuc.length, vang_luot: s.vang_luot, vang_bn: s.vang_bn, ghi_bu: s.ghi_bu }; }
+  /** Tổng các khoa cho bảng số liệu ĐD (ĐD chỉ nhận BN khoa mình nên máy chủ tính sẵn số tổng) */
+  function khoiTotals(data, t) {
+    var out = {};
+    nurseRanges(t, data.holidays).ranges.forEach(function (r) { out[r[0] + '|' + r[1]] = slimSum(summary(data, r[0], r[1], t)); });
+    return out;
+  }
   function nurseKhoa(u, dm) { return u && u.vai_tro === 'DD' && u.khoa && ((dm || {}).KHOA || []).indexOf(u.khoa) >= 0 ? u.khoa : ''; }
   /** Được lọc / thống kê theo từng bác sĩ: quản trị, trưởng khoa, ĐD trưởng */
   function canByDoctor(u) { var s = statsScope(u); return !!(s && s.byDoctor); }
@@ -2325,7 +2345,7 @@ var RT = (function () {
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,
     isTreatDay: isTreatDay, baseDay: baseDay, patternDay: patternDay, isDown: isDown, exceptionOf: exceptionOf,
-    scheduleLabel: scheduleLabel, isOpen: isOpen, lenientEdit: lenientEdit, FIELD_LABELS: FIELD_LABELS, missingRx: missingRx, needsOffDay: needsOffDay, offDay: offDay, viTris: viTris, canTreat: canTreat, canCancel: canCancel, prevSim: prevSim, dosePerFx: dosePerFx,
+    scheduleLabel: scheduleLabel, isOpen: isOpen, lenientEdit: lenientEdit, FIELD_LABELS: FIELD_LABELS, missingRx: missingRx, needsOffDay: needsOffDay, offDay: offDay, viTris: viTris, canTreat: canTreat, canCancel: canCancel, prevSim: prevSim, nurseRanges: nurseRanges, slimSum: slimSum, khoiTotals: khoiTotals, dosePerFx: dosePerFx,
     addDays: addDays, diffDays: diffDays, dow: dow, monday: monday, isDate: isDate, num: num, splitList: splitList, fxOf: fxOf
   };
 })();

@@ -484,7 +484,7 @@
     var q = $('#q');
     q.oninput = function () {
       S.q = q.value;
-      if (S.tab === 'tx') { renderMain(); return; }
+      if (FIND_TABS.indexOf(S.tab) >= 0) { renderMain(); return; }
       if (S.tab !== 'all') { S.tab = 'all'; render(); var q2 = $('#q'); q2.focus(); q2.setSelectionRange(q2.value.length, q2.value.length); }
       else renderMain();
     };
@@ -503,7 +503,9 @@
     renderMain();
     if (S.detail) renderDetail();
   }
-  function renderMain() { S.cc = S.cc || {}; $('#main').innerHTML = '<div class="main-in">' + TABS[S.tab].render() + '</div>'; bindMain(); }
+  /** Tab có tìm kiếm tại chỗ (khung "Kết quả tìm" ở đầu tab); tab khác vẫn chuyển sang Tất cả BN */
+  var FIND_TABS = ['home', 'sim', 'contour', 'plan', 'qa', 'tx'];
+  function renderMain() { S.cc = S.cc || {}; $('#main').innerHTML = '<div class="main-in">' + (FIND_TABS.indexOf(S.tab) >= 0 ? findPanel(S.tab) : '') + TABS[S.tab].render() + '</div>'; bindMain(); }
 
   function bindMain() {
     $$('#main [data-open]').forEach(function (el) {
@@ -738,38 +740,39 @@
   }
   function renderNurse() {
     var t = today(), list = nurseScope();
-    // "Hôm qua" = từ ngày làm việc trước tới hôm qua: sáng thứ Hai gộp T6 → CN (T7, CN chỉ KTV xạ bù), sau nghỉ lễ gộp cả kỳ nghỉ
-    var yd = RT.addDays(t, -1), from = yd, hol = S.data.holidays || [];
-    for (var k = 0; k < 15 && (RT.dow(from) === 0 || RT.dow(from) === 6 || hol.indexOf(from) >= 0); k++) from = RT.addDays(from, -1);
-    var dw = function (d) { return fdw(d).split(' ')[0]; };
-    // mỗi ngày một cột riêng (T6, T7…); ngày nghỉ (CN, lễ) chỉ hiện khi có buổi xạ bù
-    var cols = [], sums = [];
-    for (var d0 = from; d0 <= yd; d0 = RT.addDays(d0, 1)) {
-      var s0 = sumOf(list, d0, d0);
-      if (d0 !== from && !s0.luot) continue;
+    // Cột: từng ngày từ ngày làm việc trước tới hôm qua (sáng T2: T6, T7 xạ bù…), hôm nay, tuần này. Ngày nghỉ (CN, lễ) chỉ hiện khi có buổi xạ bù.
+    var nr = RT.nurseRanges(t, S.data.holidays), from = nr.from, yd = nr.yd;
+    // Tổng các khoa: ĐD nhận số tổng từ máy chủ (không có danh sách BN khoa khác); người xem lọc theo khoa thì tính tại chỗ
+    var tot = function (a, b) { if (S.data.khoi) return S.data.khoi[a + '|' + b] || null; return S.fKhoa ? RT.slimSum(sumOf(pts(), a, b)) : null; };
+    var cols = [], sums = [], tots = [];
+    nr.ranges.forEach(function (r, i) {
+      var s0 = sumOf(list, r[0], r[1]), t0 = tot(r[0], r[1]), last = nr.ranges.length;
+      var isDay = i < last - 2, d0 = r[0];
+      if (isDay && d0 !== from && !s0.luot && !(t0 && t0.luot)) return;
       var dn = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'][RT.dow(d0)];
-      cols.push([from === yd ? 'Hôm qua' : dn + (d0 !== from ? ' (xạ bù)' : ''), d0, d0]); sums.push(s0);
-    }
-    [['Hôm nay', t, t], ['Tuần này', RT.monday(t), t]].forEach(function (c) { cols.push(c); sums.push(sumOf(list, c[1], c[2])); });
+      cols.push([isDay ? (from === yd ? 'Hôm qua' : dn + (d0 !== from ? ' (xạ bù)' : '')) : i === last - 2 ? 'Hôm nay' : 'Tuần này', r[0], r[1]]); sums.push(s0); tots.push(t0);
+    });
     S.nurseSums = sums;
+    var showTot = tots.some(Boolean);
+    var cnt = function (v) { return Array.isArray(v) ? v.length : (v || 0); };
     var techs = (S.data.dm.KY_THUAT || []).slice();
-    sums.forEach(function (x) { Object.keys(x.ky_thuat).forEach(function (k) { if (techs.indexOf(k) < 0) techs.push(k); }); });
-    techs = techs.filter(function (k) { return sums.some(function (x) { return x.ky_thuat[k]; }); });
-    var cell = function (i, key, n) { return '<td class="num">' + (n && key ? '<button class="lnk" data-nlist="' + i + '|' + key + '">' + n + '</button>' : (n || '<span class="muted">0</span>')) + '</td>'; };
-    var row = function (label, f, key, cls) { return '<tr class="' + (cls || '') + '"><td>' + label + '</td>' + sums.map(function (x, i) { return cell(i, key, f(x)); }).join('') + '</tr>'; };
+    sums.concat(tots.filter(Boolean)).forEach(function (x) { Object.keys(x.ky_thuat).forEach(function (k) { if (techs.indexOf(k) < 0) techs.push(k); }); });
+    techs = techs.filter(function (k) { return sums.concat(tots.filter(Boolean)).some(function (x) { return x.ky_thuat[k]; }); });
+    var cell = function (i, key, n, tn) { return '<td class="num">' + (n && key ? '<button class="lnk" data-nlist="' + i + '|' + key + '">' + n + '</button>' : (n || '<span class="muted">0</span>')) + (tn != null ? '<span class="tot"> / ' + tn + '</span>' : '') + '</td>'; };
+    var row = function (label, f, key, cls) { return '<tr class="' + (cls || '') + '"><td>' + label + '</td>' + sums.map(function (x, i) { return cell(i, key, f(x), showTot && tots[i] ? f(tots[i]) : null); }).join('') + '</tr>'; };
     var khoaSel = khoaFilterOn() ? '<select data-filter="fKhoa" aria-label="Lọc theo khoa">' + opts(S.data.dm.KHOA, S.fKhoa, 'Cả hai khoa') + '</select>' : '';
     var html = '<div class="page-head"><div><h1>Tổng quan ' + esc(S.fKhoa ? 'khoa ' + S.fKhoa : 'hai khoa') + '</h1><p>' + fdw(t) + '/' + t.slice(0, 4) + ' · Bấm vào con số để xem danh sách bệnh nhân.</p></div><div class="filters">' + khoaSel + '</div></div>';
     var now = { tx: list.filter(function (p) { return p.trang_thai === 'DANG_XA'; }), pause: list.filter(function (p) { return p.trang_thai === 'TAM_NGUNG'; }), wait: list.filter(function (p) { return p.trang_thai === 'CHO_XA'; }) };
     S.nurseNow = now;
     html += '<div class="kpis">' + kpi('n-tx', now.tx.length, 'Đang xạ', 'var(--ktv)') + kpi('n-wait', now.wait.length, 'Chờ vào xạ', 'var(--warn)', now.wait.filter(function (p) { return !p.ngay_du_kien; }).length ? '<span class="kx" style="color:var(--warn)">' + now.wait.filter(function (p) { return !p.ngay_du_kien; }).length + ' chưa xếp lịch</span>' : '') +
       kpi('n-pause', now.pause.length, 'Tạm ngừng', 'var(--crit)') + kpi('n-abs', list.filter(function (p) { return course(p).streak > 0; }).length, 'BN đang vắng xạ', 'var(--crit)') + '</div>';
-    html += '<section class="group"><div class="group-head"><h2>Số liệu xạ trị</h2><span class="hint">Tuần này tính từ Thứ Hai đến hôm nay</span></div><div class="card"><div class="tbl-wrap"><table class="nurse-tbl"><thead><tr><th></th>' +
+    html += '<section class="group"><div class="group-head"><h2>Số liệu xạ trị</h2><span class="hint">' + (showTot ? 'Mỗi ô: <b>số của khoa</b> / tổng các khoa. ' : '') + 'Tuần này tính từ Thứ Hai đến hôm nay</span></div><div class="card"><div class="tbl-wrap"><table class="nurse-tbl"><thead><tr><th></th>' +
       cols.map(function (c) { return '<th class="num">' + c[0] + '<span class="sub">' + (c[1] === c[2] ? fdw(c[1]) : fd(c[1]) + ' → ' + fd(c[2])) + '</span></th>'; }).join('') + '</tr></thead><tbody>' +
       row('<b>Tổng lượt xạ</b>', function (x) { return x.luot; }, '', 'strong') +
       techs.map(function (k) { return row('&nbsp;&nbsp;· ' + esc(k), function (x) { return x.ky_thuat[k] || 0; }, ''); }).join('') +
       row('BN được xạ', function (x) { return x.bn; }, '') +
-      row('BN mới vào xạ (buổi đầu)', function (x) { return x.bat_dau.length; }, 'bat_dau') +
-      row('BN kết thúc xạ', function (x) { return x.ket_thuc.length; }, 'ket_thuc') +
+      row('BN mới vào xạ (buổi đầu)', function (x) { return cnt(x.bat_dau); }, 'bat_dau') +
+      row('BN kết thúc xạ', function (x) { return cnt(x.ket_thuc); }, 'ket_thuc') +
       row('<b style="color:var(--crit)">Lượt vắng</b>', function (x) { return x.vang_luot; }, 'vang', 'strong') +
       row('BN vắng', function (x) { return x.vang_bn; }, 'vang') +
       row('Buổi ghi bù (quên tích)', function (x) { return x.ghi_bu; }, '') +
@@ -872,7 +875,7 @@
     var seg = '<div class="seg tx-seg" role="group" aria-label="Xạ trị">' + segs.map(function (x) {
       return '<button data-txsub="' + x[0] + '" aria-pressed="' + (sub === x[0]) + '">' + x[1] + (x[2] ? ' <span class="step-c">' + x[2] + '</span>' : '') + '</button>';
     }).join('') + '</div>';
-    return seg + txSearch() + (sub === 'week' ? renderWeek() : sub === 'sched' ? renderSchedule() : sub === 'approve' ? renderApprove() : sub === 'pl' ? renderPL() : renderToday(role() === 'KTV' || role() === 'ADMIN'));
+    return seg + (sub === 'week' ? renderWeek() : sub === 'sched' ? renderSchedule() : sub === 'approve' ? renderApprove() : sub === 'pl' ? renderPL() : renderToday(role() === 'KTV' || role() === 'ADMIN'));
   }
   /** Tình trạng BN khi KTV tìm trong tab Xạ trị: cảnh báo + có cho ghi buổi xạ không */
   function txState(p) {
@@ -904,23 +907,37 @@
     if (RT.needsOffDay(p)) fl.push(can('setOffDay') || can('schedule') ? '<button class="lnk sm" data-do="offDay" data-id="' + esc(p.id) + '" style="color:var(--warn)">Chưa rõ ngày nghỉ: chọn</button>' : '<span class="flag">Chưa rõ ngày nghỉ</span>');
     return { ok: true, flags: fl };
   }
-  /** Khung "Kết quả tìm" ở đầu tab Xạ trị: KTV bấm xác nhận xạ ngay, không cần mở hồ sơ */
-  function txSearch() {
+  /** Nút thao tác đúng bước của BN (theo quyền người xem) trong khung kết quả tìm */
+  function stepActions(p) {
+    var st = p.trang_thai, o = '', mineBs = role() === 'ADMIN' || RT.myDoctors(me()).indexOf(p.bs_email) >= 0;
+    if (st === 'MO_PHONG' && can('simDone')) o += btn('simDone', p.id, 'Đã mô phỏng xong', 'primary');
+    if (st === 'CONTOUR' && can('contourDone') && mineBs) o += btn('contourDone', p.id, 'Contour xong', 'primary');
+    if (st === 'CHO_KH' && can('claimPlan')) o += btn('claimPlan', p.id, 'Nhận ca', 'primary');
+    if (st === 'DANG_KH' && can('planDone')) o += btn('planDone', p.id, 'Lập KH xong', 'primary');
+    if ((st === 'DANG_KH' || st === 'CHO_QA') && can('changeTech')) o += btn('changeTech', p.id, 'Đổi kỹ thuật');
+    if (st === 'CHO_QA' && can('qaResult')) o += btn('qaPass', p.id, 'QA đạt', 'ok') + btn('qaFail', p.id, 'Không đạt', 'danger');
+    if (st === 'CHO_PL' && !p._g && canClassify(p)) o += btn('classify', p.id, 'Phân loại', 'primary');
+    if (st === 'CHO_XA' && !p._g && can('schedule')) o += btn('schedule', p.id, 'Xếp lịch');
+    if (!p._g) {
+      var s1 = txState(p);
+      if (s1.ok && can('logFraction')) o += btn('logFx', p.id, '✓ Xác nhận xạ', 'ok');
+      if (s1.ok && can('markAbsent') && st !== 'TAM_NGUNG' && st !== 'CHO_PL' && course(p).absent[today()] === undefined) o += btn('absent', p.id, 'Vắng');
+    }
+    return o + btn('openP', p._pid || p.id, 'Mở hồ sơ');
+  }
+  /** Khung "Kết quả tìm" ở đầu tab đang đứng: tìm trên toàn bộ BN, BN thuộc bước của tab lên trước */
+  var TAB_STATES = { sim: ['MO_PHONG'], contour: ['CONTOUR'], plan: ['CHO_KH', 'DANG_KH'], qa: ['CHO_QA'], tx: ['DANG_XA', 'CHO_XA', 'TAM_NGUNG', 'CHO_PL'] };
+  function findPanel(tab) {
     var q = fold(S.q || '').trim();
     if (!q) return '';
-    var rank = { DANG_XA: 0, CHO_XA: 1, TAM_NGUNG: 2, CHO_PL: 3 };
-    var list = pts().filter(function (p) { return p.trang_thai !== 'HUY' && (fold(p.ho_ten).indexOf(q) >= 0 || fold(p.ma_his).indexOf(q) >= 0 || fold(p.id).indexOf(q) >= 0); })
-      .sort(function (a, b) { return ((rank[a.trang_thai] != null ? rank[a.trang_thai] : 9) - (rank[b.trang_thai] != null ? rank[b.trang_thai] : 9)) || byName(a, b); }).slice(0, 20);
+    var mine = TAB_STATES[tab] || [];
+    var list = items().filter(function (p) { return p.trang_thai !== 'HUY' && (fold(p.ho_ten).indexOf(q) >= 0 || fold(p.ma_his).indexOf(q) >= 0 || fold(p._pid || p.id).indexOf(q) >= 0); })
+      .sort(function (a, b) { var ra = mine.indexOf(a.trang_thai), rb = mine.indexOf(b.trang_thai); ra = ra < 0 ? 9 : ra; rb = rb < 0 ? 9 : rb; return (ra - rb) || byName(a, b); }).slice(0, 20);
     return '<section class="group tx-find"><div class="group-head"><h2>Kết quả tìm “' + esc(S.q.trim()) + '”</h2><span class="count">' + list.length + '</span>' +
-      '<span class="hint">Kiểm tra đúng bệnh nhân rồi bấm “Xác nhận xạ”.</span><button class="btn sm" data-clearq="1">Xoá tìm kiếm</button></div>' +
+      '<span class="hint">Tìm trên toàn bộ BN. Kiểm tra đúng bệnh nhân rồi bấm nút thao tác.</span><button class="btn sm" data-clearq="1">Xoá tìm kiếm</button></div>' +
       table(list, [C.pt, C.rx,
-        { h: 'Tiến độ', cls: 'nowrap', v: function (p) { return ['DANG_XA', 'TAM_NGUNG'].indexOf(p.trang_thai) >= 0 ? progCell(p) : '<span class="muted">' + esc(RT.STATUS[p.trang_thai] || '') + '</span>'; } },
-        { h: 'Lưu ý', v: function (p) { return txState(p).flags.join(' ') || '<span class="muted">—</span>'; } },
-        { h: '', cls: 'act', v: function (p) {
-          var s = txState(p), c = s.ok ? course(p) : null;
-          return (s.ok && can('logFraction') ? btn('logFx', p.id, '✓ Xác nhận xạ', 'ok') : '') +
-            (s.ok && can('markAbsent') && p.trang_thai !== 'TAM_NGUNG' && c.absent[today()] === undefined ? btn('absent', p.id, 'Vắng') : '') + btn('openP', p.id, 'Mở hồ sơ');
-        } }], 'Không tìm thấy bệnh nhân. Kiểm tra lại mã HIS hoặc họ tên.') + '</section>';
+        { h: 'Bước · lưu ý', v: function (p) { var f = p._g || ['CHO_XA', 'DANG_XA', 'TAM_NGUNG', 'CHO_PL'].indexOf(p.trang_thai) < 0 ? [] : txState(p).flags; return stPill(p) + (f.length ? '<div style="margin-top:4px">' + f.join(' ') + '</div>' : ''); } },
+        { h: '', cls: 'act', v: stepActions }], 'Không tìm thấy bệnh nhân. Kiểm tra lại mã HIS hoặc họ tên.') + '</section>';
   }
   // ---------- Kỹ sư: việc của tôi ----------
   function renderKsMine() {

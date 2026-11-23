@@ -8,8 +8,7 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
 
 ## Việc chờ
 
-### v4.8 (anh yêu cầu 23/11/2026, chờ anh bảo "làm đi")
-1. **Tìm kiếm xong quay về tab cũ:** gõ tìm ở tab khác (trừ Xạ trị, đã tìm tại chỗ từ v4.7) vẫn sang "Tất cả BN" nhưng nhớ tab đang đứng; đầu trang có nút "← Quay lại <tên tab>"; xoá hết chữ trong ô tìm (hoặc dấu ×) thì tự về tab cũ; đóng hồ sơ BN thì vẫn ở trang kết quả.
+### (v4.8 đã làm, xem CHANGELOG)
 
 ### Bảo mật: đăng nhập bằng mã qua email (anh chốt dùng Gmail cá nhân 23/11; chờ anh bảo "làm đi", thay đổi lớn)
 - Ứng dụng chạy bằng tài khoản Quản trị ("Thực thi với tư cách: Tôi"), **bỏ chia sẻ Google Sheet** cho mọi người (chỉ Quản trị mở Sheet).

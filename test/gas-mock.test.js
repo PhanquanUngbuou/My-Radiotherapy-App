@@ -1171,4 +1171,18 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   const p2 = r.data.patients.find(x => x.id === p.id);
   assert(p2.trang_thai === 'DANG_XA' && !p2.tam_ngung_tu && /Tiếp tục xạ .*sau tạm ngừng từ/.test(p2.ghi_chu) && /chuyển lại Đang xạ/.test(r.msg), 'tạm ngừng → đang xạ: ' + r.msg);
 }
+// v4.8: ĐD nhận số tổng các khoa (chỉ con số), danh sách BN vẫn chỉ khoa mình
+{
+  ok('admin@x.vn', 'saveUser', { email: 'dd@x.vn', ho_ten: 'ĐD D', vai_tro: 'DD', kich_hoat: 'Có', khoa: 'Xạ trị' });
+  const d = ok('dd@x.vn', 'bootstrap').data;
+  const RT = ctx.RT, nr = RT.nurseRanges(d.today, d.holidays);
+  assert(d.khoi && nr.ranges.every(r => d.khoi[r[0] + '|' + r[1]]), 'có số tổng cho mọi cột');
+  assert(d.patients.every(p => p.khoa === 'Xạ trị'), 'ĐD chỉ nhận BN khoa mình');
+  const wk = nr.ranges[nr.ranges.length - 1], all = ok('admin@x.vn', 'bootstrap').data;
+  const own = RT.summary({ patients: d.patients, phases: d.phases, fractions: d.fractions, exceptions: d.exceptions, holidays: d.holidays, dm: d.dm }, wk[0], wk[1], d.today);
+  const tot = d.khoi[wk[0] + '|' + wk[1]];
+  assert(tot.luot >= own.luot && typeof tot.bat_dau === 'number' && !('vang' in tot), 'tổng ≥ khoa, chỉ con số: ' + tot.luot + ' / ' + own.luot);
+  assert(!all.khoi, 'người không phải ĐD không cần số tổng từ máy chủ');
+  if (RT.dow(d.today) === 1) assert.strictEqual(nr.ranges[0][0], RT.addDays(d.today, -3), 'sáng thứ Hai bắt đầu từ thứ Sáu');
+}
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');

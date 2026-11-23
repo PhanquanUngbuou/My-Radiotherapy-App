@@ -545,3 +545,6 @@ div.confirm{display:block;line-height:1.5}
 .tx-find .group-head .btn{margin-left:auto}
 .tx-find .flag{margin:2px 4px 2px 0;display:inline-block}
 .tx-find .flag{white-space:normal;line-height:1.35}
+
+/* v4.8: số liệu ĐD: số khoa / tổng các khoa */
+.nurse-tbl .tot{color:var(--muted);font-weight:500;font-size:.9em;white-space:nowrap}
