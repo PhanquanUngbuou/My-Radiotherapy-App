@@ -14,6 +14,8 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
    - **Sắp xếp**: ABC họ → đệm → tên (mặc định), theo BS, theo kỹ thuật. **Lọc theo BS điều trị** (ô chọn BS) + ô tìm tên / mã HIS. Nút "Tải Excel" danh sách đang xem.
    - **Mọi ĐD đều lọc được theo BS** trong danh sách bấm từ số liệu "BN của tôi" (anh chốt 23/11; ngoại lệ của quy tắc v2.7 chỉ cho danh sách này).
 
+2. **Trang "Tất cả BN" có nút "⬇ Tải Excel"** (anh yêu cầu 23/11): tải đúng danh sách đang lọc (trạng thái, BS, khoa, chip trạng thái, ô tìm): họ tên, mã HIS, năm sinh, giới, ICD, chẩn đoán, vị trí, kỹ thuật, liều / số buổi, BS, khoa, trạng thái, tiến độ, ngày bắt đầu / kết thúc dự kiến. Ai xem được danh sách thì tải được đúng danh sách đó (ĐD chỉ BN khoa mình).
+
 ### Chờ anh duyệt (em đề xuất 23/11): quyền "Sửa thông tin"
 - Hiện BS nào cũng sửa được thông tin BN của BS khác, kể cả đổi "BS điều trị" (bỏ qua lý do, xác nhận, chuông của "Chuyển BS điều trị").
 - Đề xuất: "Sửa thông tin" chỉ cho BS điều trị của BN (kể cả trợ lý của BS đó), Trưởng khoa, Quản trị (máy chủ chặn); BS khác vẫn xem đủ hồ sơ. Bỏ ô "BS điều trị" khỏi form sửa, đổi BS chỉ qua "Chuyển BS điều trị".
