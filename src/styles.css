@@ -577,3 +577,38 @@ div.confirm{display:block;line-height:1.5}
   #nl-tbl td{padding:0;border:0}
   #nl-tbl td:first-child{grid-column:1 / -1}
 }
+/* v5.1: thanh chọn ngày số liệu, bảng khoa, lịch nhỏ xếp lịch, dự kiến xạ lại */
+.ds-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 10px}
+.ds-bar .chip{border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;padding:6px 12px;min-height:36px;font:inherit;font-weight:600;font-size:13.5px}
+.ds-bar .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.ds-bar .ds-day,.ds-bar .ds-rg{display:inline-flex;align-items:center;gap:4px}
+.ds-bar input[type=date]{min-height:36px;padding:4px 6px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit;font-size:13.5px}
+.ds-bar .hint{flex:1 1 100%;margin:0}
+.kl-today{display:flex;flex-wrap:wrap;gap:6px;margin:-6px 0 12px}
+.kl-today .chip{padding:5px 12px;background:var(--surface);border:1px solid var(--line);color:var(--ink);font-weight:500}
+table.kl td.past{color:var(--muted)}
+table.kl tr.kl-tot td{border-top:2px solid var(--line);background:var(--surface-2)}
+table.kl .wk-today{background:var(--accent-soft)}
+.mini-cal{grid-column:1 / -1;border:1px solid var(--line);border-radius:10px;padding:8px;background:var(--surface-2)}
+.mini-cal .mc-h{font-size:13px;font-weight:600;margin:0 0 6px}
+.mini-cal .mc-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.mini-cal .mc-dw{text-align:center;font-size:12px;color:var(--muted);font-weight:600}
+.mini-cal .mc{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:4px 2px;min-height:44px;cursor:pointer;display:grid;align-content:center;justify-items:center;gap:1px;font:inherit;color:var(--ink)}
+.mini-cal .mc .d{font-size:12px}
+.mini-cal .mc .n{font-size:13px;font-weight:700}
+.mini-cal .mc.ok{background:var(--ktv-soft);border-color:var(--ktv)}
+.mini-cal .mc.full{background:var(--surface-3);color:var(--muted)}
+.mini-cal .mc.dis{opacity:.45;cursor:default}
+.mini-cal .mc.today{outline:2px solid var(--accent-2);outline-offset:-2px}
+.mini-cal .mc.sel{background:var(--accent);border-color:var(--accent);color:#fff}
+.mini-cal .mc-lg{display:flex;gap:12px;font-size:12px;color:var(--muted);margin-top:6px}
+.mini-cal .mc-lg i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:4px;border:1px solid var(--line)}
+.mini-cal .mc-lg i.ok{background:var(--ktv-soft);border-color:var(--ktv)}
+.mini-cal .mc-lg i.full{background:var(--surface-3)}
+.cal .c.paused{background:var(--surface-2);color:var(--crit)}
+.cal .c.back,.wk.back{outline:2px solid var(--ktv);outline-offset:-2px}
+@media (max-width:760px){
+  .ds-bar .ds-rg{flex:1 1 100%}
+  .ds-bar .ds-rg input{flex:1 1 40%;min-width:0}
+  .mini-cal .mc{min-height:40px}
+}

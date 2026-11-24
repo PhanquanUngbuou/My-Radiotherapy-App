@@ -286,6 +286,8 @@ window.DEMO = (function () {
         var who = payload.as ? users.filter(function (x) { return x.email === payload.as; })[0] || c.user : c.user;
         var dta = { patients: patients.concat(archive.patients), phases: phases, fractions: fractions.concat(archive.fractions), exceptions: exceptions, holidays: holidays, users: users, dm: dm, today: today };
         return JSON.stringify({ ok: true, report: RT.report(dta, payload.tu, payload.den, who, payload.chi_tiet, payload.pv) });
+      } else if (action === 'khoiSum') {
+        return JSON.stringify({ ok: true, khoi: RT.khoiSum({ patients: patients.filter(function (p) { return p.trang_thai !== 'HUY'; }), phases: phases, fractions: fractions, exceptions: exceptions, holidays: holidays, dm: dm }, payload.tu, payload.den, today) });
       } else if (action === 'khoaReport') {
         var who3 = payload.as ? users.filter(function (x) { return x.email === payload.as; })[0] || c.user : c.user;
         return JSON.stringify({ ok: true, kreport: RT.khoaReport({ patients: patients.concat(archive.patients), phases: phases, fractions: fractions.concat(archive.fractions), users: users, dm: dm, roster: roster }, payload, who3) });

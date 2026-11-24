@@ -1,5 +1,18 @@
 # Lịch sử phiên bản
 
+## v5.1
+- **Xạ trị › Theo ngày** (KTV trưởng, Quản trị): chọn Hôm qua / Hôm nay / ‹ ngày › / Khoảng từ – đến. Cột Tổng các khoa và từng khoa: tổng lượt xạ, từng kỹ thuật, **tỉ lệ 3D-CRT / kỹ thuật khác**, theo máy, **giờ xạ buổi đầu → buổi cuối** (ghi "rạng sáng" nếu quá nửa đêm), BN được xạ, mới vào, kết thúc, vắng, ghi bù. Ngày sắp tới (đến 3 tuần): số **dự kiến** (BN dự kiến xạ theo kỹ thuật, vào xạ, kết thúc, đang tạm ngừng). Bấm số ra danh sách, tải Excel. KTV khác không có mục này.
+- **Số liệu điều dưỡng xem ngày khác**: cùng thanh chọn ngày (Gần đây = như cũ). Ngày đã qua, khoảng ngày: số của khoa / tổng các khoa (máy chủ tính số tổng). Ngày sắp tới: số dự kiến. Có dữ liệu 60 ngày gần đây; cũ hơn xem Thống kê.
+- **Xạ quá nửa đêm**: danh mục mới "Hết ngày làm việc lúc" (mặc định **04:00**). Trước giờ này ứng dụng vẫn tính là ngày hôm trước: Xạ trị › Hôm nay vẫn là lịch hôm trước, ghi buổi xạ không phải ghi bù, BN không bị tính vắng; giờ thực vẫn lưu.
+- **Tạm ngừng có "Dự kiến nghỉ"**: 3 ngày · 1 tuần (mặc định) · 2 tuần · Chưa rõ · Tự chọn ngày xạ lại (cột mới `du_kien_xa_lai`). Hiện ở hồ sơ, danh sách Tạm ngừng, lịch (ô viền xanh). Trước 1 ngày chuông báo BS điều trị. Tới ngày: BN hiện ở Xạ trị › Hôm nay › **Dự kiến xạ lại**, KTV ghi buổi xạ là về Đang xạ. Quá ngày mà chưa xạ: hỏi BS (nút "Vẫn xạ tiếp" chọn nghỉ thêm); chưa rõ ngày thì hỏi mỗi 7 ngày như cũ. Ngày kết thúc dự kiến tính từ ngày xạ lại.
+- **Ngày tạm ngừng không còn bị tính "vắng chưa rõ lý do"** (trước đây mỗi ngày có lịch trong lúc tạm ngừng bị đếm vắng). Khi BN xạ lại, khoảng đã nghỉ được lưu (cột mới `tn_cac_dot`) để vẫn không tính vắng. Đợt tạm ngừng đã kết thúc trước bản này không truy lại được.
+- **Số BN theo khoa từng ngày** (đề xuất của a Thắng): bảng chung 2 tuần, mỗi khoa một dòng + dòng Tổng; ngày đã qua = số BN đã xạ, hôm nay và sắp tới = số BN đang điều trị / chỉ tiêu (nếu có). Ở Lịch tuần (theo tuần đang xem) và Chờ xếp lịch (nút ‹ ›). Thay bảng "Chỗ theo chỉ tiêu khoa" và "Số BN dự kiến xạ 6 ngày tới". Xạ trị › Hôm nay có dòng nhỏ từng khoa: đã xạ / có lịch, vắng.
+- **Trang Chờ xếp lịch gọn**: thanh mục Chưa có lịch · Đã có lịch · Sắp chuyển xạ · Đang xạ (đổi lịch); bỏ mục Chờ mô phỏng (đã có ở tab Mô phỏng).
+- **Form xếp lịch có lịch nhỏ 3 tuần**: mỗi ngày ghi số BN của khoa / chỉ tiêu (xanh còn chỗ, xám đủ), bấm ngày để chọn ngày bắt đầu, hiện ngay ngày kết thúc.
+- **Tất cả BN lọc theo thời gian**: 1 / 3 / 6 tháng gần đây, Năm nay, Tự chọn (từ – đến): BN có mô phỏng, xạ hoặc đang điều trị trong khoảng. Tải Excel theo đúng khoảng; máy nhớ lựa chọn.
+- Kiểm thử: sửa một kiểm thử phụ thuộc ngày (hôm qua là Thứ Hai).
+- **Cần chạy `setup` một lần** (2 cột mới ở BenhNhan).
+
 ## v5.0
 - **Số liệu điều dưỡng: mọi con số của khoa bấm được** (tổng lượt xạ, từng kỹ thuật, BN được xạ, mới vào, kết thúc, lượt vắng, BN vắng, ghi bù). Danh sách hiện ra có ô tìm tên / mã HIS, **sắp xếp** (ABC họ tên, theo BS, theo kỹ thuật, theo ngày), **lọc theo BS điều trị** (mọi ĐD dùng được), nút **⬇ Tải Excel** đúng danh sách đang xem; bấm dòng mở hồ sơ. Số tổng các khoa không bấm (ĐD chỉ xem BN khoa mình).
 - **Trang "Tất cả BN" có nút "⬇ Tải Excel"**: tải đúng danh sách đang lọc (trạng thái, BS, khoa, ô tìm) gồm họ tên, mã HIS, năm sinh, giới, ICD, chẩn đoán, vị trí, kỹ thuật, liều, số buổi, BS, khoa, trạng thái, đã xạ, bắt đầu, kết thúc / dự kiến.

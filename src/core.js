@@ -37,7 +37,7 @@ var RT = (function () {
       'ks_email', 'ngay_nhan_kh', 'ngay_kh_xong', 'can_qa', 'qa_ket_qua', 'ngay_qa', 'ngay_du_kien',
       'ngay_nghi_tuan', 'may', 'ngay_bat_dau', 'ngay_ket_thuc', 'tam_ngung_tu', 'ly_do_tam_ngung',
       'ghi_chu', 'cap_nhat_luc', 'cap_nhat_boi', 'ly_do_ket_thuc', 'muc_lieu', 'vi_tri', 'muc_dich', 'ngay_mo_phong', 'nguoi_nhap', 'icd', 'ly_do_uu_tien', 'tg_nop_kh',
-      'de_xuat_lich', 'de_xuat_boi', 'de_xuat_luc', 'xn_tam_ngung', 'nguoi_mo_phong', 'mat_na', 'tiem_thuoc', 'dung_cu', 'icd_phu', 'chuyen_buoi', 'mp_his', 'mat_na_cu'],
+      'de_xuat_lich', 'de_xuat_boi', 'de_xuat_luc', 'xn_tam_ngung', 'nguoi_mo_phong', 'mat_na', 'tiem_thuoc', 'dung_cu', 'icd_phu', 'chuyen_buoi', 'mp_his', 'mat_na_cu', 'du_kien_xa_lai', 'tn_cac_dot'],
     GiaiDoan: ['id', 'bn_id', 'stt', 'ky_thuat', 'tong_lieu', 'so_buoi', 'muc_lieu', 'trang_thai', 'di_cung',
       'uu_tien', 'ngay_tao', 'ngay_mo_phong', 'ngay_contour_xong', 'ks_email', 'ngay_nhan_kh', 'ngay_kh_xong',
       'can_qa', 'qa_ket_qua', 'ngay_qa', 'ghi_chu', 'cap_nhat_luc', 'cap_nhat_boi', 'ly_do_uu_tien', 'tg_nop_kh', 'nguoi_mo_phong', 'mat_na', 'tiem_thuoc', 'dung_cu', 'loai', 'thay_gd', 'cat_tai', 'bo_qua', 'vi_tri', 'chuyen_buoi', 'mp_his', 'mat_na_cu'],
@@ -61,7 +61,8 @@ var RT = (function () {
     MAY: ['Máy gia tốc 1'],
     UU_TIEN: ['Cấp cứu', 'Ưu tiên', 'Thường'],
     LY_DO_TAM_NGUNG: ['Tác dụng phụ', 'Máy hỏng / bảo trì', 'BN xin nghỉ', 'Bệnh lý khác, đang điều trị', 'Không liên lạc được', 'Khác'],
-    NGAY_LE: []
+    NGAY_LE: [],
+    GIO_HET_NGAY: ['04:00']
   };
   DEFAULT_DM.MUC_DICH = ['Triệt căn', 'Bổ trợ', 'Tân bổ trợ', 'Củng cố', 'Giảm nhẹ / triệu chứng', 'Xạ lại'];
   /** Mô phỏng: loại mặt nạ, dụng cụ khác */
@@ -92,7 +93,7 @@ var RT = (function () {
   /** Đơn vị của nhân viên: các khoa điều trị (danh mục KHOA) + khoa không nhận bệnh nhân */
   var KHOA_KHAC = ['Vật lý xạ trị'];
   function staffKhoa(dm) { return (dm.KHOA || []).concat(KHOA_KHAC.filter(function (k) { return (dm.KHOA || []).indexOf(k) < 0; })); }
-  var DM_EDITABLE = ['VI_TRI_PC', 'GIO_CA', 'VI_TRI', 'MUC_DICH', 'MAY', 'NGAY_LE', 'KY_THUAT', 'IGRT', 'HINH_ANH', 'KHOA', 'LY_DO_TAM_NGUNG', 'LY_DO_VANG', 'TEN_DON_VI', 'CHI_TIEU', 'LIEU_HAY_DUNG', 'SO_BUOI_HAY_DUNG', 'DON_GIA', 'KY_TEN', 'MAT_NA', 'DUNG_CU'];
+  var DM_EDITABLE = ['VI_TRI_PC', 'GIO_CA', 'VI_TRI', 'MUC_DICH', 'MAY', 'NGAY_LE', 'KY_THUAT', 'IGRT', 'HINH_ANH', 'KHOA', 'LY_DO_TAM_NGUNG', 'LY_DO_VANG', 'TEN_DON_VI', 'CHI_TIEU', 'LIEU_HAY_DUNG', 'SO_BUOI_HAY_DUNG', 'DON_GIA', 'KY_TEN', 'MAT_NA', 'DUNG_CU', 'GIO_HET_NGAY'];
 
   var PERM = {
     createPatient: ['BS', 'KS', 'KTV', 'DD', 'ADMIN'],
@@ -304,7 +305,7 @@ var RT = (function () {
     if (fx.length && isDate(start) && ['DANG_XA', 'TAM_NGUNG', 'HOAN_THANH', 'CHO_XA'].indexOf(p.trang_thai) >= 0) {
       var stop = p.trang_thai === 'HOAN_THANH' ? fx[fx.length - 1].ngay : addDays(today, -1);
       for (var s = start, i = 0; s <= stop && i < 800; s = addDays(s, 1), i++) {
-        if (isTreatDay(p, s, env) && !doneDates[s]) missed.push(s);
+        if (isTreatDay(p, s, env) && !doneDates[s] && !inPause(p, s)) missed.push(s);
       }
     }
     var open = segs.some(function (s) { return s.open; });
@@ -312,6 +313,7 @@ var RT = (function () {
     if (remaining > 0 && p.trang_thai !== 'HOAN_THANH' && isDate(start)) {
       var c = start > today ? start : today;
       if (c === today && doneDates[today]) c = addDays(today, 1);
+      if (p.trang_thai === 'TAM_NGUNG' && isDate(p.du_kien_xa_lai) && p.du_kien_xa_lai > c) c = p.du_kien_xa_lai;
       for (var j = 0; remaining > 0 && j < 800; j++, c = addDays(c, 1)) {
         if (isTreatDay(p, c, env)) { projected.push(c); remaining--; }
       }
@@ -399,7 +401,7 @@ var RT = (function () {
     var p = t.p, env = envOf(ctx), segs = segments(p, env), n = fxOf(p, ctx.fractions).length;
     var old = segs.filter(function (s) { return s.stt === num(g.thay_gd); })[0] || segs[segs.length - 1];
     g.cat_tai = String(Math.max(0, Math.min(old.so_buoi, n - old.from)));
-    if (p.trang_thai === 'TAM_NGUNG' && p.ly_do_tam_ngung === 'Chờ lập lại kế hoạch') { p.trang_thai = n ? 'DANG_XA' : 'CHO_XA'; p.tam_ngung_tu = ''; p.ly_do_tam_ngung = ''; save(ctx, p, 'Xạ tiếp', 'KH lại đã sẵn sàng'); }
+    if (p.trang_thai === 'TAM_NGUNG' && p.ly_do_tam_ngung === 'Chờ lập lại kế hoạch') { p.trang_thai = n ? 'DANG_XA' : 'CHO_XA'; endPause(p, ctx.today); save(ctx, p, 'Xạ tiếp', 'KH lại đã sẵn sàng'); }
   }
   /** Mức ưu tiên và lý do: "Cấp cứu" và "Ưu tiên" bắt buộc ghi lý do; "Thường" thì xoá lý do. */
   function checkPrio(x, reason, strict) {
@@ -1175,7 +1177,7 @@ var RT = (function () {
         p.so_buoi = ''; p.ngay_bat_dau = hadFx[0].ngay; p.ngay_du_kien = p.ngay_du_kien || hadFx[0].ngay;
         p.ngay_contour_xong = p.ngay_contour_xong || hadFx[0].ngay; p.ngay_kh_xong = p.ngay_kh_xong || hadFx[0].ngay; p.qa_ket_qua = p.qa_ket_qua || 'Nhập từ HIS';
         var nn0 = String(a.ngay_nghi_tuan || p.ngay_nghi_tuan || ''); if (nn0 && !/^[0-5]$/.test(nn0)) fail('Ngày nghỉ trong tuần không hợp lệ.'); p.ngay_nghi_tuan = nn0;
-        if (buoc === 'TAM_NGUNG') { if (!a.ly_do) fail('Cần chọn lý do tạm ngừng.'); p.trang_thai = 'TAM_NGUNG'; p.tam_ngung_tu = isDate(a.tam_ngung_tu) ? a.tam_ngung_tu : ctx.today; p.ly_do_tam_ngung = a.ly_do; p.xn_tam_ngung = ''; }
+        if (buoc === 'TAM_NGUNG') { if (!a.ly_do) fail('Cần chọn lý do tạm ngừng.'); p.trang_thai = 'TAM_NGUNG'; p.tam_ngung_tu = isDate(a.tam_ngung_tu) ? a.tam_ngung_tu : ctx.today; p.ly_do_tam_ngung = a.ly_do; p.xn_tam_ngung = ''; p.du_kien_xa_lai = ''; }
         else p.trang_thai = 'DANG_XA';
         save(ctx, p, 'Phân loại', STATUS[p.trang_thai] + ' · đã xạ ' + hadFx.length + ' buổi · chưa có tổng số buổi');
         return 'Đã chuyển ' + p.ho_ten + ' sang "' + STATUS[p.trang_thai] + '" (đã xạ ' + hadFx.length + ' buổi, chưa có tổng: BS bổ sung sau).';
@@ -1219,7 +1221,7 @@ var RT = (function () {
       else if (buoc === 'DANG_XA') p.trang_thai = 'DANG_XA';
       else if (buoc === 'TAM_NGUNG') {
         if (!a.ly_do) fail('Cần chọn lý do tạm ngừng.');
-        p.trang_thai = 'TAM_NGUNG'; p.tam_ngung_tu = isDate(a.tam_ngung_tu) ? a.tam_ngung_tu : ctx.today; p.ly_do_tam_ngung = a.ly_do; p.xn_tam_ngung = '';
+        p.trang_thai = 'TAM_NGUNG'; p.tam_ngung_tu = isDate(a.tam_ngung_tu) ? a.tam_ngung_tu : ctx.today; p.ly_do_tam_ngung = a.ly_do; p.xn_tam_ngung = ''; p.du_kien_xa_lai = '';
       } else { p.trang_thai = 'HOAN_THANH'; p.ngay_ket_thuc = isDate(a.ngay_ket_thuc) && a.ngay_ket_thuc <= ctx.today && a.ngay_ket_thuc >= days[days.length - 1] ? a.ngay_ket_thuc : days[days.length - 1]; }
       save(ctx, p, 'Phân loại', STATUS[p.trang_thai] + (done ? ' · đã xạ ' + done + ' buổi' : '') + (autoDone ? ' · đủ số buổi nên tự chuyển Đã xạ xong' : ''));
       return 'Đã chuyển ' + p.ho_ten + ' sang "' + STATUS[p.trang_thai] + '"' + (autoDone ? ' (đã xạ đủ ' + done + '/' + num(p.so_buoi) + ' buổi)' : '') + '.';
@@ -1273,8 +1275,9 @@ var RT = (function () {
       var p = findP(ctx, a.id);
       need(p, ['TAM_NGUNG']);
       p.xn_tam_ngung = ctx.today;
-      save(ctx, p, 'Xác nhận còn xạ', a.ghi_chu || 'BN tạm ngừng, bác sĩ xác nhận vẫn xạ tiếp');
-      return 'Đã ghi nhận ' + p.ho_ten + ' vẫn xạ tiếp. Ứng dụng sẽ hỏi lại sau 7 ngày nếu BN vẫn tạm ngừng.';
+      p.du_kien_xa_lai = backDate(a.du_kien, ctx.today);
+      save(ctx, p, 'Xác nhận còn xạ', (a.ghi_chu || 'BN tạm ngừng, bác sĩ xác nhận vẫn xạ tiếp') + (p.du_kien_xa_lai ? ' · dự kiến xạ lại ' + p.du_kien_xa_lai : ' · chưa rõ ngày xạ lại'));
+      return 'Đã ghi nhận ' + p.ho_ten + ' vẫn xạ tiếp. ' + (p.du_kien_xa_lai ? 'Dự kiến xạ lại ngày ' + p.du_kien_xa_lai.split('-').reverse().join('/') + '; quá ngày đó mà chưa xạ, ứng dụng sẽ hỏi lại.' : 'Ứng dụng sẽ hỏi lại sau 7 ngày nếu BN vẫn tạm ngừng.');
     },
     _scheduleOld: function (ctx, p, a, title, extra) {
       var parts = [];
@@ -1387,7 +1390,7 @@ var RT = (function () {
       var n = fx.length + 1;
       p.ngay_bat_dau = fx.length ? (fx[0].ngay < ngay ? fx[0].ngay : ngay) : ngay;
       var resumed = p.trang_thai === 'TAM_NGUNG';
-      if (resumed) { note(p, ctx.today, 'Tiếp tục xạ (' + userName(ctx, ctx.user.email) + ' ghi buổi xạ) sau tạm ngừng từ ' + (p.tam_ngung_tu || '?') + (p.ly_do_tam_ngung ? ' · ' + p.ly_do_tam_ngung : '')); p.tam_ngung_tu = ''; p.ly_do_tam_ngung = ''; }
+      if (resumed) { note(p, ctx.today, 'Tiếp tục xạ (' + userName(ctx, ctx.user.email) + ' ghi buổi xạ) sau tạm ngừng từ ' + (p.tam_ngung_tu || '?') + (p.ly_do_tam_ngung ? ' · ' + p.ly_do_tam_ngung : '')); endPause(p, ngay > p.tam_ngung_tu ? ngay : ctx.today); }
       p.trang_thai = 'DANG_XA';
       var finished = finishIfDone(ctx, p);
       save(ctx, p, late ? 'Ghi bù buổi xạ' : 'Ghi buổi xạ', 'Buổi ' + n + '/' + (seg.open ? '?' : total) + (segs.length > 1 ? ' (' + seg.label + ')' : '') + ' ngày ' + ngay + (img ? ' · ' + img : '') + (late ? ' · lý do ghi bù: ' + lyDoBu : ''));
@@ -1448,15 +1451,16 @@ var RT = (function () {
       p.tam_ngung_tu = a.tu_ngay && isDate(a.tu_ngay) ? a.tu_ngay : ctx.today;
       p.ly_do_tam_ngung = a.ly_do + (a.ghi_chu ? ': ' + a.ghi_chu : '');
       p.xn_tam_ngung = '';
-      save(ctx, p, 'Tạm ngừng', p.ly_do_tam_ngung);
-      return 'Đã ghi tạm ngừng xạ cho ' + p.ho_ten + '.';
+      p.du_kien_xa_lai = backDate(a.du_kien, p.tam_ngung_tu);
+      save(ctx, p, 'Tạm ngừng', p.ly_do_tam_ngung + (p.du_kien_xa_lai ? ' · dự kiến xạ lại ' + p.du_kien_xa_lai : ' · chưa rõ ngày xạ lại'));
+      return 'Đã ghi tạm ngừng xạ cho ' + p.ho_ten + (p.du_kien_xa_lai ? ', dự kiến xạ lại ngày ' + p.du_kien_xa_lai.split('-').reverse().join('/') : '') + '.';
     },
     resume: function (ctx, a) {
       var p = findP(ctx, a.id);
       need(p, ['TAM_NGUNG']);
       var days = p.tam_ngung_tu ? diffDays(p.tam_ngung_tu, ctx.today) : 0;
       p.trang_thai = fxOf(p, ctx.fractions).length ? 'DANG_XA' : 'CHO_XA';
-      p.tam_ngung_tu = ''; p.ly_do_tam_ngung = '';
+      endPause(p, ctx.today);
       save(ctx, p, 'Tiếp tục xạ', 'Sau ' + days + ' ngày');
       return p.ho_ten + ' tiếp tục xạ.';
     },
@@ -1468,7 +1472,7 @@ var RT = (function () {
       p.trang_thai = 'HOAN_THANH';
       p.ngay_ket_thuc = fx.length ? fx[fx.length - 1].ngay : ctx.today;
       p.ly_do_ket_thuc = 'Kết thúc sớm sau ' + fx.length + '/' + (isOpen(p, envOf(ctx)) ? '?' : totalFx(p, envOf(ctx))) + ' buổi: ' + a.ly_do;
-      p.tam_ngung_tu = ''; p.ly_do_tam_ngung = '';
+      endPause(p, ctx.today);
       save(ctx, p, 'Kết thúc sớm', p.ly_do_ket_thuc);
       return 'Đã kết thúc đợt xạ của ' + p.ho_ten + '.';
     },
@@ -1578,7 +1582,13 @@ var RT = (function () {
       }
       ctx.dm[loai] = ctx.dm[loai] || [];
       if (ctx.dm[loai].indexOf(v) >= 0) fail('Giá trị này đã có trong danh mục.');
-      if (loai === 'TEN_DON_VI') { ctx.dm[loai].slice().forEach(function (old) { ctx.removeDmRow(loai, old); }); ctx.dm[loai] = []; }
+      if (loai === 'GIO_HET_NGAY') {
+        var mh = v.match(/^(\d{1,2})[:hH](\d{2})$/);
+        if (!mh || +mh[1] > 8 || +mh[2] > 59) fail('Ghi giờ dạng HH:MM, từ 00:00 tới 08:00 (VD: 04:00).');
+        v = (mh[1].length < 2 ? '0' : '') + mh[1] + ':' + mh[2];
+        if (ctx.dm[loai].indexOf(v) >= 0) fail('Giá trị này đã có trong danh mục.');
+      }
+      if (loai === 'TEN_DON_VI' || loai === 'GIO_HET_NGAY') { ctx.dm[loai].slice().forEach(function (old) { ctx.removeDmRow(loai, old); }); ctx.dm[loai] = []; }
       ctx.dm[loai].push(v);
       if (loai === 'NGAY_LE') ctx.holidays.push(v);
       ctx.addDmRow(loai, v);
@@ -1884,8 +1894,44 @@ var RT = (function () {
   function userName(ctx, email) { var u = ctx.users.filter(function (x) { return x.email === email; })[0]; return u ? u.ho_ten : (email || ''); }
   function applySchedule(ctx, p, a, title, extra) { return H._scheduleOld(ctx, p, a, title, extra); }
   /** BN tạm ngừng từ 7 ngày (và sau đó mỗi 7 ngày) mà bác sĩ chưa xác nhận: hỏi bác sĩ còn xạ tiếp không */
+  /** Các khoảng tạm ngừng của BN: đợt đã xong (cột tn_cac_dot "từ..đến; …") và đợt đang tạm ngừng */
+  function pauseRanges(p) {
+    var r = String(p.tn_cac_dot || '').split(';').map(function (x) { var m = x.trim().split('..'); return isDate(m[0]) && isDate(m[1]) ? [m[0], m[1]] : null; }).filter(Boolean);
+    if (p.trang_thai === 'TAM_NGUNG' && isDate(p.tam_ngung_tu)) r.push([p.tam_ngung_tu, '9999-12-31']);
+    return r;
+  }
+  /** Ngày d BN đang tạm ngừng: không tính vắng */
+  function inPause(p, d) { if (!p.tn_cac_dot && p.trang_thai !== 'TAM_NGUNG') return false; return pauseRanges(p).some(function (r) { return d >= r[0] && d <= r[1]; }); }
+  /** Kết thúc tạm ngừng: lưu khoảng đã nghỉ (tới trước ngày upto) để không tính vắng */
+  function endPause(p, upto) {
+    if (isDate(p.tam_ngung_tu)) {
+      var last = addDays(upto, -1);
+      if (last >= p.tam_ngung_tu) p.tn_cac_dot = (p.tn_cac_dot ? p.tn_cac_dot + '; ' : '') + p.tam_ngung_tu + '..' + last;
+    }
+    p.tam_ngung_tu = ''; p.ly_do_tam_ngung = ''; p.du_kien_xa_lai = '';
+  }
+  /** Ngày dự kiến xạ lại (phải sau ngày bắt đầu tạm ngừng / hôm nay), trống = chưa rõ */
+  function backDate(v, from) {
+    v = String(v || '').trim(); if (!v) return '';
+    if (!isDate(v)) fail('Ngày dự kiến xạ lại không hợp lệ.');
+    if (v <= from) fail('Ngày dự kiến xạ lại phải sau ngày ' + from.split('-').reverse().join('/') + '.');
+    return v;
+  }
+  /** Ngày làm việc: trước giờ "hết ngày" (VD 04:00) vẫn tính là ngày hôm trước (xạ quá nửa đêm cho lịch hôm trước) */
+  function workDate(nowIso, cut) {
+    var d = String(nowIso).slice(0, 10), hm = String(nowIso).slice(11, 16), m = String(cut || '04:00').match(/^(\d{1,2}):(\d{2})$/);
+    var c = m ? (m[1].length < 2 ? '0' : '') + m[1] + ':' + m[2] : '04:00';
+    return hm && hm < c ? addDays(d, -1) : d;
+  }
+  /** Tổng các khoa (chỉ con số) cho ĐD / KTV trưởng xem khoảng ngày bất kỳ */
+  function khoiSum(data, tu, den, today) {
+    if (!isDate(tu) || !isDate(den) || den < tu) fail('Khoảng ngày không hợp lệ.');
+    if (diffDays(tu, den) > 400) fail('Khoảng ngày quá dài (tối đa 400 ngày).');
+    return slimSum(summary(data, tu, den, today));
+  }
   function pauseAsk(p, today) {
     if (p.trang_thai !== 'TAM_NGUNG' || !p.tam_ngung_tu) return false;
+    if (isDate(p.du_kien_xa_lai)) return today > p.du_kien_xa_lai;
     var from = p.xn_tam_ngung && p.xn_tam_ngung > p.tam_ngung_tu ? p.xn_tam_ngung : p.tam_ngung_tu;
     return diffDays(from, today) >= 7;
   }
@@ -1947,10 +1993,12 @@ var RT = (function () {
     var inR = function (d) { return d && d >= tu && d <= den; };
     var fx = data.fractions.filter(function (f) { return f.da_huy !== 'Có' && inR(f.ngay) && P[f.bn_id] && !isParFx(f); });
     var o = { tu: tu, den: den, luot: fx.length, bn: 0, ky_thuat: {}, bat_dau: [], ket_thuc: [], ghi_bu: 0,
-      vang_luot: 0, vang_bn: 0, vang_ly_do: {}, vang: [], ngay: {} };
-    var bn = {};
+      vang_luot: 0, vang_bn: 0, vang_ly_do: {}, vang: [], ngay: {}, may: {}, gio_dau: '', gio_cuoi: '' };
+    var bn = {}, may0 = ((data.dm || {}).MAY || [])[0] || '';
     fx.forEach(function (f) {
       var k = techOf(f); o.ky_thuat[k] = (o.ky_thuat[k] || 0) + 1; bn[f.bn_id] = 1;
+      var mk = P[f.bn_id].may || may0 || 'Khác'; o.may[mk] = (o.may[mk] || 0) + 1;
+      var tg = String(f.thoi_gian || ''); if (f.ghi_bu !== 'Có' && tg.length >= 16) { if (!o.gio_dau || tg < o.gio_dau) o.gio_dau = tg; if (tg > o.gio_cuoi) o.gio_cuoi = tg; }
       if (f.ghi_bu === 'Có') o.ghi_bu++;
       var d = o.ngay[f.ngay] = o.ngay[f.ngay] || { luot: 0, ky_thuat: {}, vang: 0 };
       d.luot++; d.ky_thuat[k] = (d.ky_thuat[k] || 0) + 1;
@@ -2344,7 +2392,7 @@ var RT = (function () {
 
   return {
     VERSION: VERSION, CHUC_VU: CHUC_VU, isLead: isLead, statsScope: statsScope, nurseKhoa: nurseKhoa, canByDoctor: canByDoctor, doctorKhoa: doctorKhoa, report: report, staffKhoa: staffKhoa, myDoctors: myDoctors,
-    IMPORT_COLS: IMPORT_COLS, FULL_COLS: FULL_COLS, isoDate: isoDate, guessOffDay: guessOffDay, khoaReport: khoaReport, khoaReportScope: khoaReportScope, initials: initials, quotas: quotas, parseQuota: parseQuota, occupancy: occupancy, quotaOver: quotaOver, isKtvLead: isKtvLead, pauseAsk: pauseAsk, isParFx: isParFx, normIcd: normIcd, isIcd: isIcd, icdsOf: icdsOf, icdName: icdName, summary: summary, findPatients: findPatients, scopePatients: scopePatients, fold: fold, indexRow: indexRow, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, planOrder: planOrder, submitTime: submitTime, DOW: DOW,
+    IMPORT_COLS: IMPORT_COLS, FULL_COLS: FULL_COLS, isoDate: isoDate, guessOffDay: guessOffDay, khoaReport: khoaReport, khoaReportScope: khoaReportScope, initials: initials, quotas: quotas, parseQuota: parseQuota, occupancy: occupancy, quotaOver: quotaOver, isKtvLead: isKtvLead, pauseAsk: pauseAsk, inPause: inPause, workDate: workDate, khoiSum: khoiSum, isParFx: isParFx, normIcd: normIcd, isIcd: isIcd, icdsOf: icdsOf, icdName: icdName, summary: summary, findPatients: findPatients, scopePatients: scopePatients, fold: fold, indexRow: indexRow, STATUS: STATUS, STATUS_ORDER: STATUS_ORDER, PLAN_STATES: PLAN_STATES, ROLES: ROLES, PRIORITY_RANK: PRIORITY_RANK, planOrder: planOrder, submitTime: submitTime, DOW: DOW,
     parseHisSheet: parseHisSheet, planImport: planImport, matchDoctor: matchDoctor, rosterFor: rosterFor, caOfTime: caOfTime,
     COLS: COLS, DEFAULT_DM: DEFAULT_DM, DM_EDITABLE: DM_EDITABLE, can: can, handle: handle, view: view, localCtx: localCtx,
     makeEnv: makeEnv, course: course, segments: segments, totalFx: totalFx, planningQueue: planningQueue,

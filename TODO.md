@@ -10,38 +10,7 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
 
 ### (v5.0 đã làm, xem CHANGELOG)
 
-### Bản sau (anh hỏi 24/11 bằng tk KTV, chưa làm, chờ anh duyệt): Xạ trị › "Theo ngày" + xạ quá nửa đêm
-- KTV (mọi người vào mục Xạ trị) xem được một ngày bất kỳ: thanh "‹ [ngày] › · Hôm qua · Hôm nay" (gộp chung khung với số liệu ĐD bên dưới, ĐD vẫn chỉ khoa mình).
-  - Ngày đã qua: tổng BN / lượt xạ; **theo khoa**; **theo kỹ thuật: 3D-CRT, IMRT, VMAT…, tỉ lệ 3D / IMRT+VMAT (%)**; theo máy; **giờ bắt đầu – giờ xạ cuối** (theo giờ ghi buổi xạ, VD "07:05 – 01:40 rạng sáng T3"); BN mới vào, kết thúc, vắng; bấm số ra danh sách, tải Excel.
-  - Ngày sắp tới: số dự kiến (theo khoa, kỹ thuật).
-  - Ô "Từ – đến" cộng gộp khoảng (tuần, tháng) với tỉ lệ 3D / VMAT.
-- **Xạ quá nửa đêm** (T2 quá tải, 2h sáng T3 vẫn xạ lịch T2): thêm mốc **"Hết ngày làm việc lúc"** (danh mục, anh chốt 24/11: **04:00**, sửa được trong danh mục). Trước mốc đó, ứng dụng coi vẫn là ngày hôm trước: Hôm nay vẫn là T2, buổi xạ ghi cho T2 không cần lý do ghi bù, không tính vắng; giờ thực vẫn lưu (báo cáo ghi "01:40 rạng sáng T3").
-
-### Bản sau (anh hỏi 23/11, chưa làm, chờ anh duyệt): số liệu ĐD xem ngày khác (quá khứ, sắp tới)
-- Hiện tại: "Bệnh nhân của tôi" của ĐD chỉ có các ngày từ ngày làm việc trước, hôm nay, tuần này. Ngày cũ hơn phải vào Thống kê › Lượt xạ trị (chọn khoảng, có bảng theo từng ngày) nhưng không bấm ra danh sách như trang ĐD.
-- Đề xuất: thêm thanh **"Xem ngày: ‹ [ngày] › · Hôm nay"** trên bảng số liệu ĐD.
-  - Ngày đã qua: cùng các số như hiện nay (lượt xạ, theo kỹ thuật, BN được xạ, mới vào, kết thúc, vắng, ghi bù), bấm ra danh sách, tải Excel.
-  - Ngày sắp tới (đến 3 tuần): số **dự kiến** theo lịch: BN dự kiến xạ (theo kỹ thuật), BN dự kiến vào xạ (đã xếp lịch), BN dự kiến kết thúc, BN tạm ngừng; bấm ra danh sách. Ghi rõ "dự kiến" (có thể đổi do vắng, tạm ngừng, đổi lịch).
-  - Thêm ô "Từ ngày – Đến ngày" để cộng gộp khoảng (VD cả tháng) cho báo cáo.
-
-### Bản sau (a Thắng góp ý + anh 23/11, chưa làm, chờ anh duyệt đề xuất): số BN / ngày theo khoa, gọn trang Chờ xếp lịch
-- Hiện tại: bảng "Chỗ theo chỉ tiêu khoa" chỉ ở Chờ xếp lịch, chỉ hiện khi có `CHI_TIEU`; trang Chờ xếp lịch dồn 7 mục (chỉ tiêu, 6 ngày tới, chờ mô phỏng, chưa có lịch, đã có lịch, đang xạ, sắp chuyển xạ); form xếp lịch chỉ có ô ngày + "sớm nhất còn chỗ".
-- Đề xuất:
-  1. Một bảng chung **"Số BN xạ theo ngày"**: mỗi khoa một dòng (số BN / chỉ tiêu nếu có), dòng Tổng; 2 tuần làm việc, nút ‹ › xem tuần trước / sau. Thay cả 2 bảng cũ. Hiện ở Lịch tuần (mọi người) và đầu Chờ xếp lịch. Hôm nay có ô nhỏ từng khoa: đã xạ / cần xạ.
-  2. Trang Chờ xếp lịch gọn: thanh mục nhỏ như Hôm nay: **Chưa có lịch** (mặc định) · Đã có lịch · Sắp chuyển xạ · Đang xạ (đổi lịch). Bỏ "Chờ mô phỏng" khỏi trang này (đã có ở tab Mô phỏng).
-  3. Form xếp lịch có **lịch mini 3 tuần** ngay trong form: mỗi ô ngày ghi số BN khoa của BN / chỉ tiêu (xanh còn chỗ, xám đủ), bấm ô chọn ngày bắt đầu, hiện ngay ngày kết thúc; vẫn giữ ô nhập ngày cho ngày xa.
-
-### Bản sau (anh yêu cầu 23/11, chưa làm): tạm ngừng có "dự kiến nghỉ"
-- Form Tạm ngừng thêm ô **Dự kiến nghỉ**: 3 ngày · 1 tuần (mặc định) · 2 tuần · Chưa rõ · Tự chọn ngày xạ lại. Lưu cột mới `du_kien_xa_lai` (ngày) ở BenhNhan → cần chạy `setup`.
-- Hiện "Dự kiến xạ lại: dd/mm" trong hồ sơ, danh sách Tạm ngừng (BS, KTV), lịch xạ (ô ngày dự kiến có viền).
-- Trước 1 ngày: chuông báo BS điều trị "BN … dự kiến xạ lại ngày …". Tới ngày mà chưa xạ lại: BS được hỏi tiếp tục nghỉ (chọn thêm) hay xạ lại / ngừng hẳn; thay cho hỏi mỗi 7 ngày (`pauseAsk`) khi có ngày dự kiến; "Chưa rõ" giữ hỏi 7 ngày như cũ.
-- Dự kiến ngày kết thúc đợt tính lại từ ngày xạ lại dự kiến (số buổi còn lại theo lịch tuần).
-- Anh chốt 23/11: **chỉ nhắc, không tự chuyển**. BN vẫn Tạm ngừng; từ ngày dự kiến hiện ở Xạ trị › Hôm nay mục "Dự kiến xạ lại" cho KTV; KTV ghi buổi xạ là về Đang xạ (như hiện nay). Quá ngày mà chưa xạ: hỏi BS nghỉ thêm / ngừng hẳn. Không tính vắng.
-
-### Bản sau (anh yêu cầu 23/11, chưa làm): lọc "Tất cả BN" theo thời gian
-- Thêm ô chọn nhanh: Tất cả · 1 tháng gần đây · 3 tháng gần đây · 6 tháng · Năm nay · Tự chọn (Từ ngày – Đến ngày).
-- Anh chốt: tính theo **có hoạt động trong khoảng** (mô phỏng, xạ hoặc đang điều trị bất kỳ lúc nào trong khoảng; BN chưa xạ xong vẫn hiện). Không thêm ô "Tính theo".
-- Tải Excel theo đúng khoảng đang lọc. Nhớ lựa chọn trên máy (localStorage).
+### (v5.1 đã làm, xem CHANGELOG)
 
 ### Để sau (anh bảo từ từ 23/11): nhúng ứng dụng vào Google Sites để không hiện dòng "Ứng dụng này do một người dùng Google Apps Script tạo" (cần `XFrameOptionsMode.ALLOWALL` + thử đăng nhập / cấp quyền trên Sites, nhất là iPhone).
 

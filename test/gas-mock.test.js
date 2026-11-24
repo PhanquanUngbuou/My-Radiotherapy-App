@@ -612,6 +612,7 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   const s1 = mkT('SR1', 'SRS/SBRT'), s2 = mkT('KH1', 'Khác'), s3 = mkT('3D1', '3D-CRT');
   const y = ctx.RT.addDays(today, -1);
   [s1, s2, s3].forEach(p => ok('ktv@x.vn', 'logFraction', { bn_id: p.id, ngay: y, ly_do_bu: 'test' }));
+  ['Mô phỏng', 'Ca 1', 'Ca 2', 'Ca 3', 'Ca 4'].forEach(v => ok('ktvt@x.vn', 'setRoster', { ngay: y, vi_tri: v, nhan_vien: [] })); // hôm qua có thể là Thứ Hai đã phân công ở trên
   ok('ktvt@x.vn', 'setRoster', { ngay: y, vi_tri: 'Ca 1', nhan_vien: ['ktvt@x.vn'] });
   ok('ktvt@x.vn', 'setRoster', { ngay: y, vi_tri: 'Ca 3', nhan_vien: ['ktv@x.vn'] });
   ok('ktvt@x.vn', 'setRoster', { ngay: y, vi_tri: 'Mô phỏng', nhan_vien: ['ktv@x.vn', 'ktvt@x.vn'] });
@@ -1204,5 +1205,49 @@ assert(/lập chỉ mục/.test(vm.runInContext('buildIndex_()', ctx)));
   const p = r.data.patients.find(x => x.ma_his === '999101');
   r = ok('tk@x.vn', 'transferDoctor', { ids: p.id, bs_email: 'tk@x.vn', ly_do: 'test' });
   assert.strictEqual(r.data.patients.find(x => x.id === p.id).bs_email, 'tk@x.vn', 'ids dạng chuỗi vẫn chuyển được');
+}
+// v5.1: tạm ngừng có dự kiến xạ lại, không tính vắng khi tạm ngừng; số tổng các khoa; giờ hết ngày
+{
+  const RT = ctx.RT;
+  assert.strictEqual(RT.workDate('2026-11-24T02:10:00', '04:00'), '2026-11-23', 'trước 4h sáng: vẫn là ngày hôm trước');
+  assert.strictEqual(RT.workDate('2026-11-24T04:00:00', '04:00'), '2026-11-24');
+  assert.strictEqual(RT.workDate('2026-11-24T23:59:00', ''), '2026-11-24');
+  const back = n => { let d = today, c = 0; while (c < n) { d = RT.addDays(d, -1); if (RT.dow(d) >= 1 && RT.dow(d) <= 5) c++; } return d; };
+  const d6 = back(5), d5 = back(4);
+  r = ok('tk@x.vn', 'createPatient', { ma_his: '995101', ho_ten: 'Tạm Ngừng Dự Kiến', nam_sinh: '1960', icd: 'C50', chan_doan: 'K', ky_thuat: '3D-CRT', tong_lieu: '40', so_buoi: '20', trang_thai: 'CHO_XA', ngay_du_kien: d6 });
+  let p = r.data.patients.find(x => x.ma_his === '995101');
+  ok('ktv@x.vn', 'logFraction', { bn_id: p.id, ngay: d6, ly_do_bu: 'test' });
+  assert(!api('tk@x.vn', 'pause', { id: p.id, ly_do: 'Tác dụng phụ', tu_ngay: d5, du_kien: d5 }).ok, 'ngày xạ lại phải sau ngày tạm ngừng');
+  const du = RT.addDays(today, 3);
+  r = ok('tk@x.vn', 'pause', { id: p.id, ly_do: 'Tác dụng phụ', tu_ngay: d5, du_kien: du });
+  p = r.data.patients.find(x => x.id === p.id);
+  assert.strictEqual(p.du_kien_xa_lai, du);
+  let env = RT.makeEnv(r.data.today, r.data.holidays, r.data.exceptions, r.data.phases, (r.data.dm.MAY || [])[0]);
+  let c = RT.course(p, r.data.fractions, env);
+  assert.strictEqual(Object.keys(c.absent).filter(d => d >= d5).length, 0, 'ngày tạm ngừng không tính vắng');
+  assert(c.projected[0] >= du, 'dự kiến xạ tiếp từ ngày dự kiến xạ lại');
+  assert(!RT.pauseAsk(p, today) && RT.pauseAsk(p, RT.addDays(du, 1)), 'chỉ hỏi BS khi quá ngày dự kiến xạ lại');
+  r = ok('tk@x.vn', 'confirmPause', { id: p.id, du_kien: RT.addDays(today, 5) });
+  assert.strictEqual(r.data.patients.find(x => x.id === p.id).du_kien_xa_lai, RT.addDays(today, 5), 'nghỉ thêm');
+  r = ok('tk@x.vn', 'confirmPause', { id: p.id, du_kien: '' });
+  assert.strictEqual(r.data.patients.find(x => x.id === p.id).du_kien_xa_lai, '', 'chưa rõ ngày');
+  r = ok('ktv@x.vn', 'logFraction', { bn_id: p.id, tiep_tuc: true });
+  p = r.data.patients.find(x => x.id === p.id);
+  assert(p.trang_thai === 'DANG_XA' && p.du_kien_xa_lai === '' && p.tn_cac_dot === d5 + '..' + RT.addDays(today, -1), 'xạ lại: lưu khoảng tạm ngừng ' + p.tn_cac_dot);
+  env = RT.makeEnv(r.data.today, r.data.holidays, r.data.exceptions, r.data.phases, (r.data.dm.MAY || [])[0]);
+  assert.strictEqual(Object.keys(RT.course(p, r.data.fractions, env).absent).length, 0, 'sau khi xạ lại, những ngày đã tạm ngừng vẫn không tính vắng');
+  // số tổng các khoa
+  const k = ok('dd@x.vn', 'khoiSum', { tu: d6, den: today }).khoi;
+  assert(k.luot >= 2 && k.ky_thuat['3D-CRT'] >= 2, 'ĐD xem số tổng các khoa');
+  assert(!api('ktv@x.vn', 'khoiSum', { tu: d6, den: today }).ok, 'KTV thường không xem số tổng các khoa');
+  assert(ok('ktvt@x.vn', 'khoiSum', { tu: today, den: today }).khoi, 'KTV trưởng xem được');
+  assert(!api('dd@x.vn', 'khoiSum', { tu: today, den: d6 }).ok, 'khoảng ngày ngược');
+  // giờ hết ngày làm việc
+  r = ok('admin@x.vn', 'dmAdd', { loai: 'GIO_HET_NGAY', gia_tri: '3:30' });
+  assert.deepStrictEqual(r.data.dm.GIO_HET_NGAY, ['03:30'], 'chỉ một giá trị, chuẩn hoá HH:MM');
+  assert(!api('admin@x.vn', 'dmAdd', { loai: 'GIO_HET_NGAY', gia_tri: '10:00' }).ok, 'quá 08:00 không hợp lệ');
+  ok('admin@x.vn', 'dmAdd', { loai: 'GIO_HET_NGAY', gia_tri: '04:00' });
+  const s = RT.summary({ patients: [p], phases: r.data.phases, fractions: r.data.fractions, exceptions: [], holidays: [], dm: r.data.dm }, today, today, today);
+  assert(s.gio_dau && s.may[(r.data.dm.MAY || [])[0]] === 1, 'giờ xạ và số theo máy');
 }
 console.log('Tất cả kiểm tra máy chủ đều đạt. Hôm nay:', today, '· Nhật ký:', sheets.NhatKy.getLastRow() - 1, 'dòng');

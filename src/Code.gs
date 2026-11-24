@@ -265,7 +265,7 @@ function api(action, payload) {
     // Kiểm tra nhanh có thay đổi không (không đọc Google Sheet) để giao diện biết khi nào cần tải lại
     if (action === 'rev') return JSON.stringify({ ok: true, rev: PropertiesService.getScriptProperties().getProperty('REV') || '0' });
     if (action === 'searchArchive') return JSON.stringify(searchArchive_(payload || {}));
-    var READ_ONLY = { lookupHisMany: 1, bootstrap: 1, getLog: 1, getRoster: 1, report: 1, lookupHis: 1, archiveCourse: 1, findPatients: 1, khoaReport: 1 };
+    var READ_ONLY = { lookupHisMany: 1, bootstrap: 1, getLog: 1, getRoster: 1, report: 1, khoiSum: 1, lookupHis: 1, archiveCourse: 1, findPatients: 1, khoaReport: 1 };
     if (!READ_ONLY[action]) {
       lock = LockService.getScriptLock();
       lock.waitLock(30000);
@@ -284,6 +284,12 @@ function api(action, payload) {
       extra.course = archiveCourse_(String((payload || {}).id || ''));
       var nk0 = RT.nurseKhoa(ctx.user, ctx.dm);
       if (nk0 && extra.course.patients[0].khoa !== nk0) throw new Error('Bệnh nhân này thuộc khoa khác.');
+    } else if (action === 'khoiSum') {
+      // Số tổng các khoa (chỉ con số) cho ĐD, KTV trưởng, Quản trị
+      if (!(ctx.user.vai_tro === 'DD' || ctx.user.vai_tro === 'ADMIN' || RT.isKtvLead(ctx.user, ctx.users))) throw new Error('Không có quyền xem số tổng các khoa.');
+      var k1 = payload || {};
+      var kd1 = statsData_(ctx, k1.tu, k1.den);
+      extra.khoi = RT.khoiSum({ patients: kd1.patients.filter(function (p) { return p.trang_thai !== 'HUY'; }), phases: kd1.phases, fractions: kd1.fractions, exceptions: kd1.exceptions, holidays: kd1.holidays, dm: kd1.dm }, String(k1.tu || ''), String(k1.den || ''), ctx.today);
     } else if (action === 'report' || action === 'findPatients') {
       var p0 = payload || {};
       var data = statsData_(ctx, p0.tu, p0.den);
@@ -315,7 +321,7 @@ function api(action, payload) {
       PropertiesService.getScriptProperties().setProperty('REV', String(Date.now()));
       }
     }
-    return JSON.stringify({ ok: true, msg: msg, data: RT.view(ctx), log: extra.log, roster: extra.roster, report: extra.report, kreport: extra.kreport, found: extra.found, his: extra.his, course: extra.course, rev: PropertiesService.getScriptProperties().getProperty('REV') || '0' });
+    return JSON.stringify({ ok: true, msg: msg, data: RT.view(ctx), log: extra.log, roster: extra.roster, report: extra.report, kreport: extra.kreport, khoi: extra.khoi, found: extra.found, his: extra.his, course: extra.course, rev: PropertiesService.getScriptProperties().getProperty('REV') || '0' });
   } catch (e) {
     return JSON.stringify({ ok: false, error: String(e && e.message || e) });
   } finally {
@@ -428,7 +434,8 @@ function buildCtx_() {
   var now = Utilities.formatDate(new Date(), TZ, "yyyy-MM-dd'T'HH:mm:ss");
   var ctx = {
     user: user,
-    today: Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd'),
+    // Trước giờ "hết ngày" (danh mục GIO_HET_NGAY, mặc định 04:00) vẫn tính là ngày hôm trước: xạ quá nửa đêm ghi cho lịch hôm trước
+    today: RT.workDate(now, (dm.GIO_HET_NGAY || [])[0]),
     now: now,
     users: users,
     dm: dm,
