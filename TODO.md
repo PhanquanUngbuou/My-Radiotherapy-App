@@ -15,7 +15,7 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
   - Ngày đã qua: tổng BN / lượt xạ; **theo khoa**; **theo kỹ thuật: 3D-CRT, IMRT, VMAT…, tỉ lệ 3D / IMRT+VMAT (%)**; theo máy; **giờ bắt đầu – giờ xạ cuối** (theo giờ ghi buổi xạ, VD "07:05 – 01:40 rạng sáng T3"); BN mới vào, kết thúc, vắng; bấm số ra danh sách, tải Excel.
   - Ngày sắp tới: số dự kiến (theo khoa, kỹ thuật).
   - Ô "Từ – đến" cộng gộp khoảng (tuần, tháng) với tỉ lệ 3D / VMAT.
-- **Xạ quá nửa đêm** (T2 quá tải, 2h sáng T3 vẫn xạ lịch T2): thêm mốc **"Hết ngày làm việc lúc"** (danh mục, mặc định 06:00, chờ anh chốt). Trước mốc đó, ứng dụng coi vẫn là ngày hôm trước: Hôm nay vẫn là T2, buổi xạ ghi cho T2 không cần lý do ghi bù, không tính vắng; giờ thực vẫn lưu (báo cáo ghi "01:40 rạng sáng T3").
+- **Xạ quá nửa đêm** (T2 quá tải, 2h sáng T3 vẫn xạ lịch T2): thêm mốc **"Hết ngày làm việc lúc"** (danh mục, anh chốt 24/11: **04:00**, sửa được trong danh mục). Trước mốc đó, ứng dụng coi vẫn là ngày hôm trước: Hôm nay vẫn là T2, buổi xạ ghi cho T2 không cần lý do ghi bù, không tính vắng; giờ thực vẫn lưu (báo cáo ghi "01:40 rạng sáng T3").
 
 ### Bản sau (anh hỏi 23/11, chưa làm, chờ anh duyệt): số liệu ĐD xem ngày khác (quá khứ, sắp tới)
 - Hiện tại: "Bệnh nhân của tôi" của ĐD chỉ có các ngày từ ngày làm việc trước, hôm nay, tuần này. Ngày cũ hơn phải vào Thống kê › Lượt xạ trị (chọn khoảng, có bảng theo từng ngày) nhưng không bấm ra danh sách như trang ĐD.
