@@ -12,8 +12,14 @@ Các thay đổi đã thống nhất nhưng chưa làm, để tránh phải cậ
 
 ### (v5.1 đã làm, xem CHANGELOG)
 
-### Bản sau (anh gặp 25/11, chưa làm): Quản trị "Đổi email" người dùng
-- Đổi email ở NguoiDung làm BN mất liên kết (BN gắn theo `bs_email`). Thêm nút "Đổi email" trong Quản trị: đổi email cũ → mới (chữ thường) ở NguoiDung (kể cả `tro_ly_cho` của trợ lý), BenhNhan (`bs_email`, `ks_email`, `nguoi_nhap`, `nguoi_mo_phong`, `de_xuat_boi`…), GiaiDoan, BuoiXa (`ktv_email`, `ktv_xa`), PhanCong, LichNgoaiLe, các trang lưu trữ; ghi NhatKy. Tạm thời: Ctrl+H trên Google Sheet (tất cả trang tính, khớp toàn bộ ô, email viết thường).
+### Bản sau (anh chốt 25/11, chưa làm, thay đổi lớn): mã nhân viên riêng thay cho email
+- Lý do: nhân viên đổi email (BS Kiên) làm BN mất liên kết vì dữ liệu gắn theo `bs_email`.
+- Anh chốt: **cách 1, mã nhân viên do ứng dụng tự cấp** (NV001, NV002…; cột mới `ma_nv` ở NguoiDung, không bao giờ đổi, không dùng lại). Email chỉ để đăng nhập; đổi email = sửa 1 ô ở NguoiDung.
+- Mọi chỗ đang lưu email nhân viên chuyển sang lưu mã: BenhNhan (`bs_email`, `ks_email`, `nguoi_nhap`, `nguoi_mo_phong`, `de_xuat_boi`, `cap_nhat_boi`…), GiaiDoan, BuoiXa (`ktv_email`, `ktv_xa`, `huy_boi`), PhanCong (`nhan_vien`), LichNgoaiLe (`nguoi`), NguoiDung (`tro_ly_cho`), NhatKy, ghi chú, chuông, các trang lưu trữ, `ChiMuc`. (~180 chỗ trong mã; cân nhắc giữ tên cột cũ để đỡ đổi sheet, chỉ đổi giá trị.)
+- Hàm chạy tay `chuyenMaNV()`: sao lưu file → cấp mã cho mọi người → thay email bằng mã ở mọi trang (kể cả email cũ không còn trong NguoiDung: tạo người "đã nghỉ" có mã) → báo số ô đã đổi. Chạy lại không hỏng (bỏ qua ô đã là mã).
+- Giao diện vẫn hiện họ tên; Quản trị thấy cột mã NV và email. Báo cáo Excel không đổi.
+- Kiểm thử kỹ (gas-mock) cả dữ liệu cũ lẫn mới; demo đổi sang mã.
+- Trong lúc chờ: đổi email phải Ctrl+H cả file (email viết thường).
 
 ### Để sau (anh bảo từ từ 23/11): nhúng ứng dụng vào Google Sites để không hiện dòng "Ứng dụng này do một người dùng Google Apps Script tạo" (cần `XFrameOptionsMode.ALLOWALL` + thử đăng nhập / cấp quyền trên Sites, nhất là iPhone).
 
